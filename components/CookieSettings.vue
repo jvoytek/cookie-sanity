@@ -11,42 +11,16 @@ const user = useSupabaseUser();
 
 const { data: products } = await useAsyncData(
   "products",
-  async () => supabase.from("cookies").select(`*`).eq("profile", user.value.id),
+  async () => supabase.from("cookies").select(`*`).eq("profile", user.value.id).order("order"),
   { transform: (result) => result.data },
 );
 
 loading.value = false;
 
-async function updateCookies() {
-  try {
-    loading.value = true;
-    const user = useSupabaseUser();
-
-    const updates = {
-      id: user.value.id,
-      username: username.value,
-      website: website.value,
-      avatar_url: avatar_path.value,
-      updated_at: new Date(),
-    };
-
-    const { error } = await supabase.from("profiles").upsert(updates, {
-      returning: "minimal", // Don't return the value after inserting
-    });
-
-    if (error) throw error;
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    loading.value = false;
-  }
-}
-
 const toast = useToast();
 const dt = ref();
 const productDialog = ref(false);
 const deleteProductDialog = ref(false);
-const deleteProductsDialog = ref(false);
 const product = ref({});
 const selectedProducts = ref();
 const filters = ref({
@@ -116,7 +90,7 @@ async function saveProduct() {
         toast.add({
           severity: "success",
           summary: "Successful",
-          detail: "Product Created",
+          detail: "Cookie Created",
           life: 3000,
         });
       } catch (error) {
@@ -162,7 +136,7 @@ async function deleteProduct() {
     toast.add({
       severity: "success",
       summary: "Successful",
-      detail: "Product Deleted",
+      detail: "Cookie Deleted",
       life: 3000,
     });
   } catch (error) {
@@ -187,43 +161,6 @@ function findIndexById(id) {
   return index;
 }
 
-function confirmDeleteSelected() {
-  deleteProductsDialog.value = true;
-}
-
-async function deleteSelectedProducts() {
-  try {
-    const { error } = await supabase
-      .from("cookies")
-      .delete()
-      .in(
-        "id",
-        selectedProducts.value.map((val) => val.id),
-      );
-
-    if (error) throw error;
-
-    products.value = products.value.filter(
-      (val) => !selectedProducts.value.includes(val),
-    );
-    deleteProductsDialog.value = false;
-    selectedProducts.value = null;
-    toast.add({
-      severity: "success",
-      summary: "Successful",
-      detail: "Products Deleted",
-      life: 3000,
-    });
-  } catch (error) {
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: error.message,
-      life: 3000,
-    });
-  }
-}
-
 async function onRowReorder(event) {
   event.value.forEach((cookie, i) => {
     const index = findIndexById(cookie.id);
@@ -239,7 +176,7 @@ async function onRowReorder(event) {
     if (error) throw error;
     toast.add({
       severity: "success",
-      summary: "Product Reordered",
+      summary: "Cookies Reordered",
       life: 3000,
     });
   } catch (error) {
@@ -359,6 +296,14 @@ async function onRowReorder(event) {
               >
             </div>
             <div>
+              <label for="abbreviation" class="block font-bold mb-3">Abbreviation</label>
+              <InputText
+                id="abbreviation"
+                v-model.trim="product.abbreviation"
+                fluid
+              />
+            </div>            
+            <div>
               <label for="order" class="block font-bold mb-3">Order</label>
               <InputNumber id="order" v-model.trim="product.order" fluid />
             </div>
@@ -432,34 +377,6 @@ async function onRowReorder(event) {
               @click="deleteProductDialog = false"
             />
             <Button label="Yes" icon="pi pi-check" @click="deleteProduct" />
-          </template>
-        </Dialog>
-
-        <Dialog
-          v-model:visible="deleteProductsDialog"
-          :style="{ width: '450px' }"
-          header="Confirm"
-          :modal="true"
-        >
-          <div class="flex items-center gap-4">
-            <i class="pi pi-exclamation-triangle !text-3xl" />
-            <span v-if="product"
-              >Are you sure you want to delete the selected products?</span
-            >
-          </div>
-          <template #footer>
-            <Button
-              label="No"
-              icon="pi pi-times"
-              text
-              @click="deleteProductsDialog = false"
-            />
-            <Button
-              label="Yes"
-              icon="pi pi-check"
-              text
-              @click="deleteSelectedProducts"
-            />
           </template>
         </Dialog>
       </div>

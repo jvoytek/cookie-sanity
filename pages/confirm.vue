@@ -1,3 +1,3 @@
 <template>
-  <Confirm />
+  <ConfirmationPage />
 </template>

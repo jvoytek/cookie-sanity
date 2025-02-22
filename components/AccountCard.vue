@@ -1,5 +1,5 @@
 <script setup>
-import Avatar from "@/components/Avatar.vue";
+import Avatar from "~/components/AvatarUpload.vue";
 const supabase = useSupabaseClient();
 
 const loading = ref(true);
@@ -51,17 +51,6 @@ async function updateProfile() {
   }
 }
 
-async function signOut() {
-  try {
-    loading.value = true;
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    loading.value = false;
-  }
-}
 </script>
 
 <template>

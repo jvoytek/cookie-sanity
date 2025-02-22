@@ -1,5 +1,10 @@
 <script setup>
-const props = defineProps(["path"]);
+const props = defineProps({
+  path: {
+    type: String,
+    required: true
+  }
+});
 const { path } = toRefs(props);
 
 const emit = defineEmits(["update:path", "upload"]);
@@ -71,7 +76,7 @@ watch(path, () => {
     <div
       v-else
       class="avatar no-image"
-      :style="{ height: size, width: size }"
+      style="width: 10em; height: 10em"
     />
 
     <div style="width: 10em; position: relative">

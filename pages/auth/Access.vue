@@ -3,7 +3,8 @@ import FloatingConfigurator from "@/components/FloatingConfigurator.vue";
 </script>
 
 <template>
-  <FloatingConfigurator />
+  <div>
+    <FloatingConfigurator />
   <div
     class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden"
   >
@@ -57,5 +58,6 @@ import FloatingConfigurator from "@/components/FloatingConfigurator.vue";
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>

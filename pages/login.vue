@@ -1,14 +1,8 @@
 <script setup>
-import { ref } from "vue";
-
 definePageMeta({
   layout: "login",
 });
 
-const email = ref("");
-const password = ref("");
-const checked = ref(false);
-const user = useSupabaseUser();
 </script>
 
 <template>
@@ -41,7 +35,7 @@ const user = useSupabaseUser();
               >Sign in via magic link with your email below</span
             >
           </div>
-          <Auth />
+          <AuthForm />
         </div>
       </div>
     </div>

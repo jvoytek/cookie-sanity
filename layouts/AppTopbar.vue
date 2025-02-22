@@ -5,16 +5,15 @@ const supabase = useSupabaseClient();
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const user = useSupabaseUser();
-console.log(user.value);
 const loading = ref(false);
 loading.value = false;
 
 const menu = ref(null);
 const userMenuItems = ref([
   {
-    label: "Account",
+    label: "Settings",
     icon: "pi pi-cog",
-    url: "/account",
+    url: "/settings",
   },
   {
     label: "Sign Out",

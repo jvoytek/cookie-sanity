@@ -8,9 +8,10 @@ const model = ref([
     items: [
       { label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" },
       { label: "Girls", icon: "pi pi-fw pi-users", to: "/girls" },
+      { label: "Orders", icon: "pi pi-fw pi-table", to: "/orders" },
     ],
   },
-  {
+  /*{
     label: "UI Components",
     items: [
       {
@@ -150,7 +151,7 @@ const model = ref([
         target: "_blank",
       },
     ],
-  },
+  },*/
 ]);
 </script>
 
