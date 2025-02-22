@@ -1,10 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-import Aura from '@primevue/themes/aura';
+import Aura from "@primevue/themes/aura";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: "2024-11-01",
   devtools: {
     enabled: true,
 
@@ -12,25 +12,21 @@ export default defineNuxtConfig({
       enabled: true,
     },
   },
-  css: ['~/assets/tailwind.css', '~/assets/styles.scss', '~/assets/main.css'],
+  css: ["~/assets/tailwind.css", "~/assets/styles.scss", "~/assets/main.css"],
   vite: {
-    plugins: [
-      tailwindcss(),
-    ],
+    plugins: [tailwindcss()],
   },
-  modules: [
-    '@nuxtjs/supabase',
-    '@primevue/nuxt-module'],
+  modules: ["@nuxtjs/supabase", "@primevue/nuxt-module"],
   primevue: {
     options: {
-        theme: {
-            preset: Aura,
-            options: {
-              prefix: 'p',
-              darkModeSelector: 'system',
-              cssLayer: false
-          }
-        }
-    }
-  }
-})
+      theme: {
+        preset: Aura,
+        options: {
+          prefix: "p",
+          darkModeSelector: "system",
+          cssLayer: false,
+        },
+      },
+    },
+  },
+});

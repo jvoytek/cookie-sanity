@@ -1,59 +1,63 @@
 <script setup>
-const props = defineProps(['path'])
-const { path } = toRefs(props)
+const props = defineProps(["path"]);
+const { path } = toRefs(props);
 
-const emit = defineEmits(['update:path', 'upload'])
+const emit = defineEmits(["update:path", "upload"]);
 
-const supabase = useSupabaseClient()
+const supabase = useSupabaseClient();
 
-const uploading = ref(false)
-const src = ref('')
-const files = ref()
+const uploading = ref(false);
+const src = ref("");
+const files = ref();
 
 const downloadImage = async () => {
   try {
-    const { data, error } = await supabase.storage.from('avatars').download(path.value)
-    if (error) throw error
-    src.value = URL.createObjectURL(data)
+    const { data, error } = await supabase.storage
+      .from("avatars")
+      .download(path.value);
+    if (error) throw error;
+    src.value = URL.createObjectURL(data);
   } catch (error) {
-    console.error('Error downloading image: ', error.message)
+    console.error("Error downloading image: ", error.message);
   }
-}
+};
 
 const uploadAvatar = async (evt) => {
-  files.value = evt.target.files
+  files.value = evt.target.files;
   try {
-    uploading.value = true
+    uploading.value = true;
 
     if (!files.value || files.value.length === 0) {
-      throw new Error('You must select an image to upload.')
+      throw new Error("You must select an image to upload.");
     }
 
-    const file = files.value[0]
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Math.random()}.${fileExt}`
-    const filePath = `${fileName}`
+    const file = files.value[0];
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
 
-    const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file)
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file);
 
-    if (uploadError) throw uploadError
+    if (uploadError) throw uploadError;
 
-    emit('update:path', filePath)
-    emit('upload')
+    emit("update:path", filePath);
+    emit("upload");
   } catch (error) {
-    alert(error.message)
+    alert(error.message);
   } finally {
-    uploading.value = false
+    uploading.value = false;
   }
-}
+};
 
-downloadImage()
+downloadImage();
 
 watch(path, () => {
   if (path.value) {
-    downloadImage()
+    downloadImage();
   }
-})
+});
 </script>
 
 <template>
@@ -62,22 +66,26 @@ watch(path, () => {
       v-if="src"
       :src="src"
       alt="Avatar"
-      style="width: 10em; height: 10em;"
+      style="width: 10em; height: 10em"
     />
-    <div v-else class="avatar no-image" :style="{ height: size, width: size }" />
+    <div
+      v-else
+      class="avatar no-image"
+      :style="{ height: size, width: size }"
+    />
 
-    <div style="width: 10em; position: relative;">
+    <div style="width: 10em; position: relative">
       <label class="button primary block" for="single">
-        {{ uploading ? 'Uploading ...' : 'Upload' }}
+        {{ uploading ? "Uploading ..." : "Upload" }}
       </label>
       <input
-        style="position: absolute; visibility: hidden;"
-        type="file"
         id="single"
+        style="position: absolute; visibility: hidden"
+        type="file"
         accept="image/*"
-        @change="uploadAvatar"
         :disabled="uploading"
-      />
+        @change="uploadAvatar"
+      >
     </div>
   </div>
 </template>

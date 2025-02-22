@@ -1,4 +1,3 @@
 <template>
-    <div className="card">
-    </div>
+  <div className="card"/>
 </template>
