@@ -7,13 +7,9 @@ const supabase = useSupabaseClient();
 const loading = ref(true);
 
 loading.value = true;
-const user = useSupabaseUser();
 
-const { data: girls } = await useAsyncData(
-  "girls",
-  async () => supabase.from("sellers").select(`*`).eq("profile", user.value.id),
-  { transform: (result) => result.data },
-);
+const { $db } = useNuxtApp();
+const girls = $db.allGirls;
 
 loading.value = false;
 
@@ -180,7 +176,6 @@ function findIndexById(id) {
             data-key="id"
             :filters="filters"
             sort-field="first_name"
-            sort-order="1"
           >
             <template #header>
               <div class="flex flex-wrap gap-2 items-center justify-between">

@@ -36,7 +36,7 @@ export type Database = {
     Tables: {
       cookies: {
         Row: {
-          abbreviation: string | null
+          abbreviation: string
           color: string | null
           created_at: string
           id: number
@@ -46,7 +46,7 @@ export type Database = {
           profile: string | null
         }
         Insert: {
-          abbreviation?: string | null
+          abbreviation: string
           color?: string | null
           created_at?: string
           id?: number
@@ -56,7 +56,7 @@ export type Database = {
           profile?: string | null
         }
         Update: {
-          abbreviation?: string | null
+          abbreviation?: string
           color?: string | null
           created_at?: string
           id?: number
@@ -175,6 +175,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sellers_profile_fkey"
+            columns: ["profile"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      uploads: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: number
+          profile: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: number
+          profile?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: number
+          profile?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploads_profile_fkey"
             columns: ["profile"]
             isOneToOne: false
             referencedRelation: "profiles"

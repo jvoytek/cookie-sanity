@@ -4,7 +4,7 @@ import { FilterMatchMode } from "@primevue/core/api";
 import { useToast } from "primevue/usetoast";
 import type { Database } from "@/types/supabase";
 import type { Order, Girl, Cookie } from "@/types/types";
-
+import UploadOrders from "./UploadOrders.vue";
 const supabase = useSupabaseClient<Database>();
 
 const loading = ref(true);
@@ -13,46 +13,10 @@ loading.value = true;
 const user = useSupabaseUser();
 
 
-const { data: orders } = await useAsyncData<Order[]>(
-  "orders",
-  async () => {
-    if (user.value) {
-      const { data, error } = await supabase.from("orders").select(`*`).eq("profile", user.value.id).order("order_date", { ascending: false });
-      if (error) throw error;
-      return data;
-    }
-    return [];
-  },
-  { transform: (result) => result },
-);
-//.eq('guests->0->>first_name','Guest')
-
-
-const { data: girls } = await useAsyncData<Girl[]>(
-  "girls",
-  async () => {
-  if (user.value) {
-      const { data, error } = await supabase.from("sellers").select(`*`).eq("profile", user.value.id);
-      if (error) throw error;
-      return data;
-    }
-    return [];
-  },
-  { transform: (result) => result }
-);
-
-const { data: cookies } = await useAsyncData<Cookie[]>(
-  "cookies",
-  async () => {
-  if (user.value) {
-      const { data, error } = await supabase.from("cookies").select(`*`).eq("profile", user.value.id).order("order");
-      if (error) throw error;
-      return data;
-    }
-    return [];
-  },
-  { transform: (result) => result }
-);
+const { $db } = useNuxtApp();
+const orders = $db.allOrders;
+const girls = $db.allGirls;
+const cookies = $db.allCookies;
 
 loading.value = false;
 
@@ -61,7 +25,7 @@ const dt = ref();
 const deleteOrderDialog = ref(false);
 const emptyOrder = {profile: "", id: -1, created_at: "", order_date: formatDate(new Date()), order_num: "", to: 0, cookies: {}}
 const newOrder: Ref<Order> = ref(emptyOrder);
-const orderToBeDeleted: Ref<Order> | Ref<null> = ref(null);
+const orderToBeDeleted: Ref<Order> = ref(emptyOrder);
 const editingRows: Ref<Order[]> = ref([]);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -188,10 +152,10 @@ function formatGirlName(theGirl: Girl) {
   return theGirl.first_name + " " + theGirl.last_name[0] + ".";
 }
 
-function getCookieTotal(cookies: {[id: number]: number}) {
+function getCookieTotal(orderCookies: {[id: number]: number}) {
   let total = 0;
-  for(const [, value] of Object.entries(cookies)) {
-    total += value;
+  for (const key in cookies.value) {
+    total += orderCookies[cookies.value[key].abbreviation] ?? 0;
   }
   return total
 }
@@ -206,6 +170,7 @@ function formatDate(date: Date | string | null) {
     return `${year}-${month}-${day}`;
   }
 }
+
 
 </script>
 
@@ -225,6 +190,7 @@ function formatDate(date: Date | string | null) {
                 class="mr-2"
                 @click="openNew"
               />
+              <UploadOrders />
             </template>
           </Toolbar>
 
@@ -279,12 +245,12 @@ function formatDate(date: Date | string | null) {
                 <Select v-model="data[field]" :options="girls || []" :option-label="formatGirlName" option-value="id" placeholder="Select a Girl" fluid />
               </template>
             </Column>
-            <Column v-for="cookie in cookies" :key="cookie.id" field="cookies" :header="cookie.abbreviation || cookie.name">
+            <Column v-for="cookie in cookies" :key="cookie.abbreviation" field="cookies" :header="cookie.abbreviation">
               <template #body="slotProps">
-                {{ slotProps.data.cookies[cookie.id] }}
+                {{ slotProps.data.cookies[cookie.abbreviation] }}
               </template>
               <template #editor="{ data, field }">
-                <InputNumber v-model="data[field][cookie.id]" size="small" fluid/>
+                <InputNumber v-model="data[field][cookie.abbreviation]" size="small" fluid/>
               </template>
             </Column>
             <Column field="cookies" header="Total">
@@ -315,10 +281,7 @@ function formatDate(date: Date | string | null) {
         >
           <div class="flex items-center gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl" />
-            <span v-if="order"
-              >Are you sure you want to delete <b>{{ order.order_date }}</b
-              >?</span
-            >
+            Are you sure you want to delete <b>{{ orderToBeDeleted.order_date }}</b>?
           </div>
           <template #footer>
             <Button

@@ -7,13 +7,9 @@ const supabase = useSupabaseClient();
 const loading = ref(true);
 
 loading.value = true;
-const user = useSupabaseUser();
 
-const { data: products } = await useAsyncData(
-  "products",
-  async () => supabase.from("cookies").select(`*`).eq("profile", user.value.id).order("order"),
-  { transform: (result) => result.data },
-);
+const { $db } = useNuxtApp();
+const products = $db.allCookies;
 
 loading.value = false;
 
@@ -300,8 +296,12 @@ async function onRowReorder(event) {
               <InputText
                 id="abbreviation"
                 v-model.trim="product.abbreviation"
+                required="true"
+                :invalid="submitted && !product.name"
                 fluid
               />
+              <small v-if="submitted && !product.abbreviation" class="text-red-500"
+                >Abbreviation is required.</small>
             </div>            
             <div>
               <label for="order" class="block font-bold mb-3">Order</label>
