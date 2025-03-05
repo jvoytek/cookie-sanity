@@ -1,6 +1,7 @@
 <script setup>
 import { FilterMatchMode } from "@primevue/core/api";
 import { useToast } from "primevue/usetoast";
+import { useCookiesStore } from '@/stores/cookies'
 
 const supabase = useSupabaseClient();
 
@@ -8,8 +9,10 @@ const loading = ref(true);
 
 loading.value = true;
 
-const { $db } = useNuxtApp();
-const products = $db.allCookies;
+//const { $db } = useNuxtApp();
+const cookiesStore = useCookiesStore()
+//cookiesStore.fetchCookies();
+//const products = $db.allCookies;
 
 loading.value = false;
 
@@ -46,58 +49,12 @@ function hideDialog() {
 
 async function saveProduct() {
   submitted.value = true;
-  const user = useSupabaseUser();
 
   if (product?.value.name?.trim()) {
     if (product.value.id) {
-      products.value[findIndexById(product.value.id)] = product.value;
-
-      try {
-        const { error } = await supabase.from("cookies").upsert(product.value);
-
-        if (error) throw error;
-
-        toast.add({
-          severity: "success",
-          summary: "Successful",
-          detail: "Product Updated",
-          life: 3000,
-        });
-      } catch (error) {
-        console.log(error.message);
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: error.message,
-          life: 3000,
-        });
-      }
+      cookiesStore.upsertCookie(product.value);
     } else {
-      product.value.profile = user.value.id;
-      try {
-        const { data, error } = await supabase
-          .from("cookies")
-          .insert(product.value)
-          .select();
-
-        if (error) throw error;
-
-        products.value.push(data[0]);
-        toast.add({
-          severity: "success",
-          summary: "Successful",
-          detail: "Cookie Created",
-          life: 3000,
-        });
-      } catch (error) {
-        console.log(error.message);
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: error.message,
-          life: 3000,
-        });
-      }
+      cookiesStore.insertCookie(product.value);
     }
 
     productDialog.value = false;
@@ -117,24 +74,9 @@ function confirmDeleteProduct(prod) {
 
 async function deleteProduct() {
   try {
-    const { error } = await supabase
-      .from("cookies")
-      .delete()
-      .eq("id", product.value.id);
-
-    if (error) throw error;
-
-    products.value = products.value.filter(
-      (val) => val.id !== product.value.id,
-    );
+    cookiesStore.deleteCookie(product.value);
     deleteProductDialog.value = false;
     product.value = {};
-    toast.add({
-      severity: "success",
-      summary: "Successful",
-      detail: "Cookie Deleted",
-      life: 3000,
-    });
   } catch (error) {
     toast.add({
       severity: "error",
@@ -143,46 +85,10 @@ async function deleteProduct() {
       life: 3000,
     });
   }
-}
-
-function findIndexById(id) {
-  let index = -1;
-  for (let i = 0; i < products.value.length; i++) {
-    if (products.value[i].id === id) {
-      index = i;
-      break;
-    }
-  }
-
-  return index;
 }
 
 async function onRowReorder(event) {
-  event.value.forEach((cookie, i) => {
-    const index = findIndexById(cookie.id);
-    products.value[index].order = i;
-  });
-
-  products.value.sort(function (cookiea, cookieb) {
-    return cookiea.order - cookieb.order;
-  });
-
-  try {
-    const { error } = await supabase.from("cookies").upsert(products.value);
-    if (error) throw error;
-    toast.add({
-      severity: "success",
-      summary: "Cookies Reordered",
-      life: 3000,
-    });
-  } catch (error) {
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: error.message,
-      life: 3000,
-    });
-  }
+  cookiesStore.reorderCookies(event.value);
 }
 </script>
 
@@ -208,7 +114,7 @@ async function onRowReorder(event) {
           <DataTable
             ref="dt"
             v-model:selection="selectedProducts"
-            :value="products"
+            :value="cookiesStore.allCookies"
             data-key="id"
             :filters="filters"
             sort-field="order"

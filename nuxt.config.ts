@@ -16,7 +16,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  modules: ["@nuxtjs/supabase", "@primevue/nuxt-module"],
+  modules: ["@nuxtjs/supabase", "@primevue/nuxt-module", "@pinia/nuxt"],
   primevue: {
     options: {
       theme: {
