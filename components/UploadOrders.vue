@@ -33,23 +33,15 @@ const handleFileUpload = async (event: any): Promise<void> => {
     }
 
     try {
-        // Step 1: Read the Excel file
         const sheet = await readExcel(file);
 
-        // Log the sheet object to see what it contains
-        console.log('Sheet:', sheet);
-
-        // Ensure that the data looks correct
         const jsonData = XLSX.utils.sheet_to_json<SCOrder2025>(sheet);
-        console.log('Parsed JSON Data:', jsonData);
 
-        // Step 3: Insert the JSON data into Supabase
         await insertDataIntoSupabase(jsonData);
 
         // Convert the uploaded data to Orders
         const girlData = (jsonData as SCOrder2025[]).filter((order) => order['TO'].indexOf && order['TO'].indexOf(' ') >= 0)
         const ordersList: object[] = girlData.map(convertSCOrderToOrder).filter((order) => order.to !== 0);
-        console.log(ordersList);
         const { data, error } = await supabase.from("orders").insert(ordersList).select();
         if (error) throw error;
 
@@ -113,17 +105,6 @@ function getGirlId(name: string): number {
         console.log(`Could not
         find  ${name}`);
         return 0;
-    }
-}
-
-function formatDate(date: Date | string | null) {
-    if (! date || typeof date === 'string') {
-        return date
-    } else {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
     }
 }
 

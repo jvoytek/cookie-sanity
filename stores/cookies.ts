@@ -1,8 +1,5 @@
 import type { Database } from '@/types/supabase';
 import type { Cookie } from "@/types/types";
-//import { useToast } from "primevue/usetoast";
-
-//const toast = useToast();
 
 /*
 ref()s become state properties
@@ -85,7 +82,6 @@ export const useCookiesStore = defineStore('cookies', () => {
             life: 3000,
           });
         } catch (error) {
-          console.log(error.message);
           toast.add({
             severity: "error",
             summary: "Error",
@@ -179,13 +175,6 @@ export const useCookiesStore = defineStore('cookies', () => {
     
 
     fetchCookies();
-
-    /*const count = ref(0)
-    const name = ref('Eduardo')
-    const doubleCount = computed(() => count.value * 2)
-    function increment() {
-      count.value++
-    }*/
   
     return { allCookies, fetchCookies, insertCookie, upsertCookie, deleteCookie, reorderCookies }
   });

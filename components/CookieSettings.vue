@@ -3,16 +3,11 @@ import { FilterMatchMode } from "@primevue/core/api";
 import { useToast } from "primevue/usetoast";
 import { useCookiesStore } from '@/stores/cookies'
 
-const supabase = useSupabaseClient();
-
 const loading = ref(true);
-
 loading.value = true;
 
-//const { $db } = useNuxtApp();
 const cookiesStore = useCookiesStore()
-//cookiesStore.fetchCookies();
-//const products = $db.allCookies;
+
 
 loading.value = false;
 

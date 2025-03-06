@@ -1,49 +1,20 @@
 <script setup>
 import Avatar from "~/components/AvatarUpload.vue";
-const supabase = useSupabaseClient();
+import { useProfileStore } from '@/stores/profile'
 
 const loading = ref(true);
-const username = ref("");
-const website = ref("");
-const avatar_path = ref("");
 
 loading.value = true;
 const user = useSupabaseUser();
 
-const { data } = await supabase
-  .from("profiles")
-  .select(`username, website, avatar_url`)
-  .eq("id", user.value.id)
-  .single();
-
-if (data) {
-  username.value = data.username;
-  website.value = data.website;
-  avatar_path.value = data.avatar_url;
-} else {
-  console.log("no data");
-}
+const profileStore = useProfileStore();
 
 loading.value = false;
 
 async function updateProfile() {
   try {
     loading.value = true;
-    const user = useSupabaseUser();
-
-    const updates = {
-      id: user.value.id,
-      username: username.value,
-      website: website.value,
-      avatar_url: avatar_path.value,
-      updated_at: new Date(),
-    };
-
-    const { error } = await supabase.from("profiles").upsert(updates, {
-      returning: "minimal", // Don't return the value after inserting
-    });
-
-    if (error) throw error;
+    profileStore.updateProfile();
   } catch (error) {
     alert(error.message);
   } finally {
@@ -58,18 +29,18 @@ async function updateProfile() {
     <div class="card">
       <form @submit.prevent="updateProfile">
         <div class="font-semibold text-xl">Account</div>
-        <Avatar v-model:path="avatar_path" @upload="updateProfile" />
+        <Avatar v-model:path="profileStore.avatar_url" @upload="updateProfile" />
         <div class="flex flex-col gap-2">
           <label for="email">Email</label>
           <InputText id="email" type="text" :value="user.email" disabled />
         </div>
         <div class="flex flex-col gap-2">
           <label for="username">Name</label>
-          <InputText id="username" v-model="username" type="text" />
+          <InputText id="username" v-model="profileStore.username" type="text" />
         </div>
         <div class="flex flex-col gap-2">
           <label for="website">Website</label>
-          <InputText id="website" v-model="website" type="url" />
+          <InputText id="website" v-model="profileStore.website" type="url" />
         </div>
         <div class="flex flex-col gap-2">
           <Button
