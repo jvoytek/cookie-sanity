@@ -1,6 +1,5 @@
 <script setup>
 import Avatar from "~/components/AvatarUpload.vue";
-import { useProfileStore } from '@/stores/profile'
 
 const loading = ref(true);
 

@@ -1,5 +1,4 @@
 <script setup>
-import { useProfileStore } from '@/stores/profile'
 
 const profileStore = useProfileStore();
 

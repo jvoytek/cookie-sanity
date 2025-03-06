@@ -12,11 +12,15 @@ export const useCookiesStore = defineStore('cookies', () => {
     const supabaseClient = useSupabaseClient<Database>();
     const user = useSupabaseUser();
     const toast = useToast();
+    const profileStore = useProfileStore();
+    const seasonsStore = useSeasonsStore();
 
     /* State */
     const allCookies = ref<Cookie[]>([]);
+    const seasonCookies = ref<Cookie[]>([]);
 
     /* Computed */
+
 
 
     /* Private Functions */
@@ -49,22 +53,42 @@ export const useCookiesStore = defineStore('cookies', () => {
     /* Actions */
 
     const fetchCookies = async () => {
-        try {
-            const { data, error } = await supabaseClient.from('cookies').select(`*`).eq("profile", user.value.id).order("order");
-            if (error) throw error;
-            allCookies.value = data ?? [];
-        } catch (error) {
-            toast.add({
-                severity: "error",
-                summary: "Error",
-                detail: (error as Error).message,
-                life: 3000,
-              });
-        }
+      try {
+          if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id) return;
+          const { data, error } = await supabaseClient.from('cookies').select(`*`).eq("profile", profileStore.currentProfile.id).eq("season", seasonsStore.currentSeason.id).order("order");
+          if (error) throw error;
+          allCookies.value = data ?? [];
+      } catch (error) {
+          toast.add({
+              severity: "error",
+              summary: "Error",
+              detail: (error as Error).message,
+              life: 3000,
+            });
+      }
+    }
+
+    const fetchSeasonCookies = async () => {
+      try {
+        if (!seasonsStore.settingsSelectedSeason) return;
+
+          const { data, error } = await supabaseClient.from('cookies').select(`*`).eq("profile", user.value.id).eq("season", seasonsStore.settingsSelectedSeason.id).order("order");
+          if (error) throw error;
+          seasonCookies.value = data ?? [];
+      } catch (error) {
+          toast.add({
+              severity: "error",
+              summary: "Error",
+              detail: (error as Error).message,
+              life: 3000,
+            });
+      }
     }
 
     const insertCookie = async (cookie: Cookie) => {
+        if (!seasonsStore.settingsSelectedSeason) return;
         cookie.profile = user.value.id;
+        cookie.season = seasonsStore.settingsSelectedSeason.id;
         try {
           const { data, error } = await supabaseClient
             .from("cookies")
@@ -174,7 +198,7 @@ export const useCookiesStore = defineStore('cookies', () => {
 
     
 
-    fetchCookies();
+    //fetchCookies();
   
-    return { allCookies, fetchCookies, insertCookie, upsertCookie, deleteCookie, reorderCookies }
+    return { allCookies, seasonCookies, fetchSeasonCookies, fetchCookies, insertCookie, upsertCookie, deleteCookie, reorderCookies }
   });

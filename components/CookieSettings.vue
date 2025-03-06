@@ -1,12 +1,12 @@
 <script setup>
 import { FilterMatchMode } from "@primevue/core/api";
 import { useToast } from "primevue/usetoast";
-import { useCookiesStore } from '@/stores/cookies'
 
 const loading = ref(true);
 loading.value = true;
 
-const cookiesStore = useCookiesStore()
+const cookiesStore = useCookiesStore();
+const seasonsStore = useSeasonsStore();
 
 
 loading.value = false;
@@ -88,9 +88,7 @@ async function onRowReorder(event) {
 </script>
 
 <template>
-  <div class="col-span-12 lg:col-span-8 xl:col-span-8">
-    <div class="card">
-      <h5>Cookie Settings</h5>
+      <h5>Cookie Settings for {{ seasonsStore.getSeasonName(seasonsStore.settingsSelectedSeason) }}</h5>
 
       <div>
         <div class="card">
@@ -109,7 +107,7 @@ async function onRowReorder(event) {
           <DataTable
             ref="dt"
             v-model:selection="selectedProducts"
-            :value="cookiesStore.allCookies"
+            :value="cookiesStore.seasonCookies"
             data-key="id"
             :filters="filters"
             sort-field="order"
@@ -281,6 +279,4 @@ async function onRowReorder(event) {
           </template>
         </Dialog>
       </div>
-    </div>
-  </div>
 </template>

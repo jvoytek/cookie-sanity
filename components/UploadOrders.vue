@@ -2,22 +2,19 @@
 
 import * as XLSX from "xlsx";
 import { useToast } from "primevue/usetoast";
-import type { Database } from "@/types/supabase";
-import type { SCOrder2025, Upload } from "@/types/types";
-
-
-const supabase = useSupabaseClient<Database>();
+import type { SCOrder2025 } from "@/types/types";
 
 const loading = ref(true);
 
 loading.value = true;
-const user = useSupabaseUser();
 const toast = useToast();
-const { $db } = useNuxtApp();
-const girls = $db.allGirls;
+const ordersStore = useOrdersStore();
+const uploadsStore = useUploadsStore();
+const profileStore = useProfileStore();
+
 
 // Handle file upload event
-const handleFileUpload = async (event: any): Promise<void> => {
+const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
     const file = event.files[0];
 
     // Validate file type
@@ -32,22 +29,25 @@ const handleFileUpload = async (event: any): Promise<void> => {
         return;
     }
 
+    if (!profileStore.currentProfile?.season) return;
+
     try {
         const sheet = await readExcel(file);
 
         const jsonData = XLSX.utils.sheet_to_json<SCOrder2025>(sheet);
+        const orders = jsonData.map(ordersStore.convertSCOrderToNewOrder).filter((order): order is NewOrder => order !== undefined);
+        
+        // Save all of the uploaded orders as JSON
+        await uploadsStore.insertUpload(jsonData);
+        
+        // Insert into orders table
+        await ordersStore.insertOrders(orders);
 
-        await insertDataIntoSupabase(jsonData);
-
-        // Convert the uploaded data to Orders
-        const girlData = (jsonData as SCOrder2025[]).filter((order) => order['TO'].indexOf && order['TO'].indexOf(' ') >= 0)
-        const ordersList: object[] = girlData.map(convertSCOrderToOrder).filter((order) => order.to !== 0);
-        const { data, error } = await supabase.from("orders").insert(ordersList).select();
-        if (error) throw error;
-
-        // Step 4: Clear the file input
+        // Clear the file input
         event.files = [];
 
+        ordersStore.fetchOrders();
+        
         // Set success message
         showToast("success", "Successful", "File uploaded and data inserted successfully!");
     } catch (error) {
@@ -57,7 +57,7 @@ const handleFileUpload = async (event: any): Promise<void> => {
     }
 };
 
-const readExcel = (file: File): Promise<any> => {
+const readExcel = (file: File): Promise<XLSX.WorkSheet> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -74,18 +74,6 @@ const readExcel = (file: File): Promise<any> => {
     });
 };
 
-// Insert data into Supabase table
-const insertDataIntoSupabase = async (jsonData: SCOrder2025[]): Promise<Upload> => {
-    const upload = {
-        profile: user?.value?.id,
-        data: jsonData,
-    };
-    const { data, error } = await supabase.from("uploads").insert(upload).select().single();
-
-    if (error) throw new Error(error.message); // Handle any errors from Supabase
-    return data;
-};
-
 const showToast = (severity: string, summary: string, detail: string) => {
     toast.add({
         severity,
@@ -94,29 +82,6 @@ const showToast = (severity: string, summary: string, detail: string) => {
         life: 3000,
     });
 };
-
-function getGirlId(name: string): number {
-    const first_name = name.split(" ")[0];
-    const last_name = name.split(" ")[1];
-    const matchingGirls = girls?.value ? girls.value.filter((girl) => girl.first_name === first_name && girl.last_name === last_name) : [];
-    if (matchingGirls.length === 1) {
-        return matchingGirls[0].id;
-    } else {
-        console.log(`Could not
-        find  ${name}`);
-        return 0;
-    }
-}
-
-function convertSCOrderToOrder(obj: SCOrder2025): object {
-    return {
-        profile: user?.value?.id,
-        order_date: obj.DATE,
-        order_num: obj["ORDER #"].toString(),
-        to: getGirlId(obj.TO),
-        cookies: obj,
-    };
-}
 
 </script>
 

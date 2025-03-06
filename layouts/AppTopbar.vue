@@ -7,6 +7,10 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const user = useSupabaseUser();
 const loading = ref(false);
 loading.value = false;
+const profileStore = useProfileStore();
+const seasonsStore = useSeasonsStore();
+
+//const currentSeason = ref();
 
 const menu = ref(null);
 const userMenuItems = ref([
@@ -39,6 +43,12 @@ async function signOut() {
     loading.value = false;
   }
 }
+
+const saveCurrentSeasonInProfile = async () => {
+  await profileStore.saveCurrentSeasonInProfile();
+  await profileStore.fetchProfile();
+}
+
 </script>
 
 <template>
@@ -74,7 +84,7 @@ async function signOut() {
 
     <div class="layout-topbar-actions">
       <div class="layout-config-menu">
-        <button
+        <!----<button
           type="button"
           class="layout-topbar-action"
           @click="toggleDarkMode"
@@ -99,7 +109,7 @@ async function signOut() {
             <i class="pi pi-palette"/>
           </button>
           <AppConfigurator />
-        </div>
+        </div>-->
         <div class="relative">
           <Menu ref="menu" :model="userMenuItems" :popup="true" />
           <button
@@ -120,6 +130,7 @@ async function signOut() {
         </div>
       </div>
 
+      <Select v-model="seasonsStore.currentSeason" :options="seasonsStore.allSeasons" :option-label="seasonsStore.getSeasonName" placeholder="Select a Season" @change="saveCurrentSeasonInProfile" />
       <button
         v-styleclass="{
           selector: '@next',
@@ -134,7 +145,7 @@ async function signOut() {
         <i class="pi pi-ellipsis-v"/>
       </button>
 
-      <div class="layout-topbar-menu hidden lg:block">
+      <!---<div class="layout-topbar-menu hidden lg:block">
         <div class="layout-topbar-menu-content">
           <button type="button" class="layout-topbar-action">
             <i class="pi pi-calendar"/>
@@ -149,7 +160,7 @@ async function signOut() {
             <span>Profile</span>
           </button>
         </div>
-      </div>
+      </div>-->
     </div>
   </div>
 </template>

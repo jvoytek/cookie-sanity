@@ -1,15 +1,15 @@
 <script setup>
 import { FilterMatchMode } from "@primevue/core/api";
 import { useToast } from "primevue/usetoast";
-
-const supabase = useSupabaseClient();
+import { useGirlsStore } from '@/stores/girls'
 
 const loading = ref(true);
 
 loading.value = true;
 
-const { $db } = useNuxtApp();
-const girls = $db.allGirls;
+const profileStore = useProfileStore();
+const girlsStore = useGirlsStore();
+
 
 loading.value = false;
 
@@ -25,7 +25,9 @@ const filters = ref({
 const submitted = ref(false);
 
 function openNew() {
-  girl.value = {};
+  girl.value = {
+    season: profileStore.currentProfile.season
+  };
   submitted.value = false;
   girlDialog.value = true;
 }
@@ -37,60 +39,12 @@ function hideDialog() {
 
 async function saveGirl() {
   submitted.value = true;
-  const user = useSupabaseUser();
-  console.log(girl.value.first_name);
   if (girl?.value.first_name?.trim()) {
     if (girl.value.id) {
-      girls.value[findIndexById(girl.value.id)] = girl.value;
-
-      try {
-        const { error } = await supabase.from("sellers").upsert(girl.value);
-
-        if (error) throw error;
-
-        toast.add({
-          severity: "success",
-          summary: "Successful",
-          detail: "Girl Updated",
-          life: 3000,
-        });
-      } catch (error) {
-        console.log(error.message);
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: error.message,
-          life: 3000,
-        });
-      }
+      girlsStore.upsertGirl(girl.value);
     } else {
-      girl.value.profile = user.value.id;
-      try {
-        const { data, error } = await supabase
-          .from("sellers")
-          .insert(girl.value)
-          .select();
-
-        if (error) throw error;
-
-        girls.value.push(data[0]);
-        toast.add({
-          severity: "success",
-          summary: "Successful",
-          detail: "Girl Created",
-          life: 3000,
-        });
-      } catch (error) {
-        console.log(error.message);
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: error.message,
-          life: 3000,
-        });
-      }
+      girlsStore.insertGirl(girl.value);
     }
-
     girlDialog.value = false;
     girl.value = {};
   }
@@ -108,24 +62,9 @@ function confirmDeleteGirl(g) {
 
 async function deleteGirl() {
   try {
-    const { error } = await supabase
-      .from("sellers")
-      .delete()
-      .eq("id", girl.value.id);
-
-    if (error) throw error;
-
-    girls.value = girls.value.filter(
-      (val) => val.id !== girl.value.id,
-    );
+    girlsStore.deleteGirl(girl.value);
     deleteGirlDialog.value = false;
     girl.value = {};
-    toast.add({
-      severity: "success",
-      summary: "Successful",
-      detail: "Cookie Deleted",
-      life: 3000,
-    });
   } catch (error) {
     toast.add({
       severity: "error",
@@ -134,18 +73,6 @@ async function deleteGirl() {
       life: 3000,
     });
   }
-}
-
-function findIndexById(id) {
-  let index = -1;
-  for (let i = 0; i < girls.value.length; i++) {
-    if (girls.value[i].id === id) {
-      index = i;
-      break;
-    }
-  }
-
-  return index;
 }
 
 </script>
@@ -172,7 +99,7 @@ function findIndexById(id) {
           <DataTable
             ref="dt"
             v-model:selection="selectedGirls"
-            :value="girls"
+            :value="girlsStore.allGirls"
             data-key="id"
             :filters="filters"
             sort-field="first_name"

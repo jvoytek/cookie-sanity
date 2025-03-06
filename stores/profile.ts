@@ -1,4 +1,4 @@
-import type { Database } from '@/types/supabase';
+import type { Database, Json } from '@/types/supabase';
 import type { User } from "@/types/types";
 
 /*
@@ -12,6 +12,10 @@ export const useProfileStore = defineStore('profile', () => {
     const supabaseClient = useSupabaseClient<Database>();
     const user = useSupabaseUser();
     const toast = useToast();
+    const seasonsStore = useSeasonsStore();
+    const cookiesStore = useCookiesStore();
+    const girlsStore = useGirlsStore();
+    const ordersStore = useOrdersStore();
 
     /* State */
     const currentProfile = ref<User>();
@@ -19,6 +23,8 @@ export const useProfileStore = defineStore('profile', () => {
     const website = ref<string>("");
     const avatar_url = ref<string>("");
     const avatar_src = ref<string>("");
+    const currentSeasonId = ref<number>(-1);
+    const appState = ref<Json>({});
     
     /* Computed */
 
@@ -29,13 +35,25 @@ export const useProfileStore = defineStore('profile', () => {
     /* Actions */
     const fetchProfile = async () => {
         try {
-            const { data, error } = await supabaseClient.from('profiles').select(`*`).eq("id", user?.value.id).single();
-            if (error) throw error;
-            currentProfile.value = data as User ?? [];
-            username.value = currentProfile.value?.username ?? "";
-            website.value = currentProfile.value?.website ?? "";
-            avatar_url.value = currentProfile.value?.avatar_url ?? "";
-            if (avatar_url.value) downloadAvatar();
+          if(!user.value) return;
+          const { data, error } = await supabaseClient.from('profiles').select(`*`).eq("id", user.value.id).single();
+          if (error) throw error;
+          
+          // Set state in profile store
+          currentProfile.value = data as User ?? [];
+          username.value = currentProfile.value?.username ?? "";
+          website.value = currentProfile.value?.website ?? "";
+          avatar_url.value = currentProfile.value?.avatar_url ?? "";
+          appState.value = currentProfile.value?.state ?? {};
+          currentSeasonId.value = currentSeasonId.value ?? -1;
+          if (avatar_url.value) downloadAvatar();
+
+          // Trigger state update for other stores depending on profile
+          await seasonsStore.fetchSeasons();
+          await cookiesStore.fetchCookies();
+          await girlsStore.fetchGirls();
+          await ordersStore.fetchOrders();
+
         } catch (error) {
             toast.add({
                 severity: "error",
@@ -46,28 +64,29 @@ export const useProfileStore = defineStore('profile', () => {
         }
     }
 
-    const updateProfile = async () => {
+    const updateProfile = async (silent:boolean = false) => {
         try {
-        
+            if (!user.value?.id) return;
             const updates = {
-              id: user?.value.id,
+              id: user.value.id,
               username: username.value,
               website: website.value,
               avatar_url: avatar_url.value,
+              state: appState.value,
+              season: currentSeasonId.value
             };
         
-            const { error } = await supabaseClient.from("profiles").upsert(updates, {
-              returning: "minimal", // Don't return the value after inserting
-            });
+            const { error } = await supabaseClient.from("profiles").upsert(updates);
         
             if (error) throw error;
-
-            toast.add({
-                severity: "success",
-                summary: "Successful",
-                detail: "Profile Updated",
-                life: 3000,
-              });
+            if (silent == false) {
+              toast.add({
+                  severity: "success",
+                  summary: "Successful",
+                  detail: "Profile Updated",
+                  life: 3000,
+                });
+            }
           } catch (error) {
             toast.add({
                 severity: "error",
@@ -138,7 +157,13 @@ export const useProfileStore = defineStore('profile', () => {
           }
     };
 
+    const saveCurrentSeasonInProfile = async () => {
+      if(!seasonsStore.currentSeason?.id) return;
+      currentSeasonId.value = seasonsStore.currentSeason.id;
+      await updateProfile(true);
+    }
+
     fetchProfile();
 
-    return { currentProfile, username, website, avatar_url, fetchProfile, updateProfile, uploadAvatar, avatar_src };
+    return { currentProfile, username, website, avatar_url, appState, fetchProfile, updateProfile, uploadAvatar, saveCurrentSeasonInProfile, avatar_src };
 });
