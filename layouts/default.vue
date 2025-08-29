@@ -67,16 +67,17 @@ function isOutsideClicked(event) {
 <template>
   <div>
     <div class="layout-wrapper" :class="containerClass">
-    <app-topbar/>
-    <app-sidebar v-if="user"/>
-    <div class="layout-main-container">
-      <div class="layout-main">
-        <slot />
+      <app-topbar />
+      <app-sidebar v-if="user" />
+      <div class="layout-main-container">
+        <div class="layout-main">
+          <slot />
+        </div>
+        <app-footer />
       </div>
-      <app-footer/>
+      <div class="layout-mask animate-fadein" />
     </div>
-    <div class="layout-mask animate-fadein"/>
-  </div>
-  <Toast />
+    <Toast />
+    <TransactionDialog />
   </div>
 </template>

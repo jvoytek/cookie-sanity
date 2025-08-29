@@ -42,26 +42,26 @@
               class="p-button-rounded border-0 ml-4 font-light leading-tight bg-blue-500 text-white"
             />
           </div>
-          <Divider class="w-full bg-surface-200"/>
+          <Divider class="w-full bg-surface-200" />
           <ul
             class="my-8 list-none p-0 flex text-surface-900 dark:text-surface-0 flex-col px-8"
           >
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">Responsive Layout</span>
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal"
                 >Unlimited Push Messages</span
               >
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">50 Support Ticket</span>
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">Free Shipping</span>
             </li>
           </ul>
@@ -98,26 +98,26 @@
               class="p-button-rounded border-0 ml-4 font-light leading-tight bg-blue-500 text-white"
             />
           </div>
-          <Divider class="w-full bg-surface-200"/>
+          <Divider class="w-full bg-surface-200" />
           <ul
             class="my-8 list-none p-0 flex text-surface-900 dark:text-surface-0 flex-col px-8"
           >
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">Responsive Layout</span>
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal"
                 >Unlimited Push Messages</span
               >
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">50 Support Ticket</span>
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">Free Shipping</span>
             </li>
           </ul>
@@ -154,26 +154,26 @@
               class="p-button-rounded border-0 ml-4 font-light leading-tight bg-blue-500 text-white"
             />
           </div>
-          <Divider class="w-full bg-surface-200"/>
+          <Divider class="w-full bg-surface-200" />
           <ul
             class="my-8 list-none p-0 flex text-surface-900 dark:text-surface-0 flex-col px-8"
           >
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">Responsive Layout</span>
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal"
                 >Unlimited Push Messages</span
               >
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">50 Support Ticket</span>
             </li>
             <li class="py-2">
-              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"/>
+              <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2" />
               <span class="text-xl leading-normal">Free Shipping</span>
             </li>
           </ul>

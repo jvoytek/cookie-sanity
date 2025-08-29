@@ -16,7 +16,17 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  modules: ["@nuxtjs/supabase", "@primevue/nuxt-module", "@pinia/nuxt"],
+  modules: [
+    "@nuxtjs/supabase",
+    "@primevue/nuxt-module",
+    "@pinia/nuxt",
+    "@formkit/nuxt",
+  ],
+  formkitPrimevue: {
+    includePrimeIcons: true,
+    includeStyles: true,
+    installFormKit: true,
+  },
   primevue: {
     options: {
       theme: {

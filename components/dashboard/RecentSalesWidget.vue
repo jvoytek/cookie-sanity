@@ -32,12 +32,7 @@ onMounted(() => {
           >
         </template>
       </Column>
-      <Column
-        field="name"
-        header="Name"
-        :sortable="true"
-        style="width: 35%"
-      />
+      <Column field="name" header="Name" :sortable="true" style="width: 35%" />
       <Column field="price" header="Price" :sortable="true" style="width: 35%">
         <template #body="slotProps">
           {{ formatCurrency(slotProps.data.price) }}
@@ -45,11 +40,7 @@ onMounted(() => {
       </Column>
       <Column style="width: 15%" header="View">
         <template #body>
-          <Button
-            icon="pi pi-search"
-            type="button"
-            class="p-button-text"
-          />
+          <Button icon="pi pi-search" type="button" class="p-button-text" />
         </template>
       </Column>
     </DataTable>

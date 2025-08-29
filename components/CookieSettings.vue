@@ -8,7 +8,6 @@ loading.value = true;
 const cookiesStore = useCookiesStore();
 const seasonsStore = useSeasonsStore();
 
-
 loading.value = false;
 
 const toast = useToast();
@@ -88,195 +87,196 @@ async function onRowReorder(event) {
 </script>
 
 <template>
-      <h5>Cookie Settings for {{ seasonsStore.getSeasonName(seasonsStore.settingsSelectedSeason) }}</h5>
+  <h5>
+    Cookie Settings for
+    {{ seasonsStore.getSeasonName(seasonsStore.settingsSelectedSeason) }}
+  </h5>
 
-      <div>
-        <div class="card">
-          <Toolbar class="mb-6">
-            <template #start>
-              <Button
-                label="New"
-                icon="pi pi-plus"
-                severity="secondary"
-                class="mr-2"
-                @click="openNew"
-              />
-            </template>
-          </Toolbar>
+  <div>
+    <div class="card">
+      <Toolbar class="mb-6">
+        <template #start>
+          <Button
+            label="New"
+            icon="pi pi-plus"
+            severity="secondary"
+            class="mr-2"
+            @click="openNew"
+          />
+        </template>
+      </Toolbar>
 
-          <DataTable
-            ref="dt"
-            v-model:selection="selectedProducts"
-            :value="cookiesStore.seasonCookies"
-            data-key="id"
-            :filters="filters"
-            sort-field="order"
-            @row-reorder="onRowReorder"
-          >
-            <template #header>
-              <div class="flex flex-wrap gap-2 items-center justify-between">
-                <h4 class="m-0">Manage Products</h4>
-                <IconField>
-                  <InputIcon>
-                    <i class="pi pi-search" />
-                  </InputIcon>
-                  <InputText
-                    v-model="filters['global'].value"
-                    placeholder="Search..."
-                  />
-                </IconField>
-              </div>
-            </template>
-
-            <Column
-              row-reorder
-              header-style="width: 3rem"
-              :reorderable-column="false"
-            />
-            <Column field="order" header="Order"/>
-            <Column field="name" header="Name"/>
-            <Column field="price" header="Price">
-              <template #body="slotProps">
-                {{ formatCurrency(slotProps.data.price) }}
-              </template>
-            </Column>
-            <Column field="color" header="Color">
-              <template #body="slotProps">
-                <Badge
-                  size="xlarge"
-                  :style="{ backgroundColor: slotProps.data.color }"
-                />
-              </template>
-            </Column>
-            <Column :exportable="false" nowrap>
-              <template #body="slotProps">
-                <Button
-                  icon="pi pi-pencil"
-                  outlined
-                  rounded
-                  class="mr-2"
-                  @click="editProduct(slotProps.data)"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  outlined
-                  rounded
-                  severity="danger"
-                  @click="confirmDeleteProduct(slotProps.data)"
-                />
-              </template>
-            </Column>
-          </DataTable>
-        </div>
-
-        <Dialog
-          v-model:visible="productDialog"
-          :style="{ width: '450px' }"
-          header="Product Details"
-          :modal="true"
-        >
-          <div class="flex flex-col gap-6">
-            <div>
-              <label for="name" class="block font-bold mb-3">Name</label>
+      <DataTable
+        ref="dt"
+        v-model:selection="selectedProducts"
+        :value="cookiesStore.seasonCookies"
+        data-key="id"
+        :filters="filters"
+        sort-field="order"
+        @row-reorder="onRowReorder"
+      >
+        <template #header>
+          <div class="flex flex-wrap gap-2 items-center justify-between">
+            <h4 class="m-0">Manage Products</h4>
+            <IconField>
+              <InputIcon>
+                <i class="pi pi-search" />
+              </InputIcon>
               <InputText
-                id="name"
-                v-model.trim="product.name"
-                required="true"
-                autofocus
-                :invalid="submitted && !product.name"
-                fluid
+                v-model="filters['global'].value"
+                placeholder="Search..."
               />
-              <small v-if="submitted && !product.name" class="text-red-500"
-                >Name is required.</small
-              >
-            </div>
-            <div>
-              <label for="abbreviation" class="block font-bold mb-3">Abbreviation</label>
-              <InputText
-                id="abbreviation"
-                v-model.trim="product.abbreviation"
-                required="true"
-                :invalid="submitted && !product.name"
-                fluid
-              />
-              <small v-if="submitted && !product.abbreviation" class="text-red-500"
-                >Abbreviation is required.</small>
-            </div>            
-            <div>
-              <label for="order" class="block font-bold mb-3">Order</label>
-              <InputNumber id="order" v-model.trim="product.order" fluid />
-            </div>
-            <div class="grid grid-cols-12 gap-4">
-              <div class="col-span-12">
-                <label for="color" class="block font-bold mb-3">Color</label>
-              </div>
-              <div class="flex flex-col col-span-1">
-                <ColorPicker v-model="product.color" />
-              </div>
-              <div class="flex flex-col w-full col-span-11">
-                <InputMask
-                  id="color"
-                  v-model.trim="product.color"
-                  mask="#******"
-                  required="true"
-                  :invalid="submitted && !product.color"
-                />
-              </div>
-              <div>
-                <small v-if="submitted && !product.color" class="text-red-500"
-                  >Color is required.</small
-                >
-              </div>
-            </div>
-
-            <div class="grid grid-cols-12 gap-4">
-              <div class="col-span-6">
-                <label for="price" class="block font-bold mb-3">Price</label>
-                <InputNumber
-                  id="price"
-                  v-model="product.price"
-                  mode="currency"
-                  currency="USD"
-                  locale="en-US"
-                  fluid
-                />
-              </div>
-            </div>
+            </IconField>
           </div>
+        </template>
 
-          <template #footer>
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              text
-              @click="hideDialog"
-            />
-            <Button label="Save" icon="pi pi-check" @click="saveProduct" />
+        <Column
+          row-reorder
+          header-style="width: 3rem"
+          :reorderable-column="false"
+        />
+        <Column field="order" header="Order" />
+        <Column field="name" header="Name" />
+        <Column field="price" header="Price">
+          <template #body="slotProps">
+            {{ formatCurrency(slotProps.data.price) }}
           </template>
-        </Dialog>
+        </Column>
+        <Column field="color" header="Color">
+          <template #body="slotProps">
+            <Badge
+              size="xlarge"
+              :style="{ backgroundColor: slotProps.data.color }"
+            />
+          </template>
+        </Column>
+        <Column :exportable="false" nowrap>
+          <template #body="slotProps">
+            <Button
+              icon="pi pi-pencil"
+              outlined
+              rounded
+              class="mr-2"
+              @click="editProduct(slotProps.data)"
+            />
+            <Button
+              icon="pi pi-trash"
+              outlined
+              rounded
+              severity="danger"
+              @click="confirmDeleteProduct(slotProps.data)"
+            />
+          </template>
+        </Column>
+      </DataTable>
+    </div>
 
-        <Dialog
-          v-model:visible="deleteProductDialog"
-          :style="{ width: '450px' }"
-          header="Confirm"
-          :modal="true"
-        >
-          <div class="flex items-center gap-4">
-            <i class="pi pi-exclamation-triangle !text-3xl" />
-            <span v-if="product"
-              >Are you sure you want to delete <b>{{ product.name }}</b
-              >?</span
+    <Dialog
+      v-model:visible="productDialog"
+      :style="{ width: '450px' }"
+      header="Product Details"
+      :modal="true"
+    >
+      <div class="flex flex-col gap-6">
+        <div>
+          <label for="name" class="block font-bold mb-3">Name</label>
+          <InputText
+            id="name"
+            v-model.trim="product.name"
+            required="true"
+            autofocus
+            :invalid="submitted && !product.name"
+            fluid
+          />
+          <small v-if="submitted && !product.name" class="text-red-500"
+            >Name is required.</small
+          >
+        </div>
+        <div>
+          <label for="abbreviation" class="block font-bold mb-3"
+            >Abbreviation</label
+          >
+          <InputText
+            id="abbreviation"
+            v-model.trim="product.abbreviation"
+            required="true"
+            :invalid="submitted && !product.name"
+            fluid
+          />
+          <small v-if="submitted && !product.abbreviation" class="text-red-500"
+            >Abbreviation is required.</small
+          >
+        </div>
+        <div>
+          <label for="order" class="block font-bold mb-3">Order</label>
+          <InputNumber id="order" v-model.trim="product.order" fluid />
+        </div>
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-12">
+            <label for="color" class="block font-bold mb-3">Color</label>
+          </div>
+          <div class="flex flex-col col-span-1">
+            <ColorPicker v-model="product.color" />
+          </div>
+          <div class="flex flex-col w-full col-span-11">
+            <InputMask
+              id="color"
+              v-model.trim="product.color"
+              mask="#******"
+              required="true"
+              :invalid="submitted && !product.color"
+            />
+          </div>
+          <div>
+            <small v-if="submitted && !product.color" class="text-red-500"
+              >Color is required.</small
             >
           </div>
-          <template #footer>
-            <Button
-              label="No"
-              icon="pi pi-times"
-              text
-              @click="deleteProductDialog = false"
+        </div>
+
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-6">
+            <label for="price" class="block font-bold mb-3">Price</label>
+            <InputNumber
+              id="price"
+              v-model="product.price"
+              mode="currency"
+              currency="USD"
+              locale="en-US"
+              fluid
             />
-            <Button label="Yes" icon="pi pi-check" @click="deleteProduct" />
-          </template>
-        </Dialog>
+          </div>
+        </div>
       </div>
+
+      <template #footer>
+        <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
+        <Button label="Save" icon="pi pi-check" @click="saveProduct" />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="deleteProductDialog"
+      :style="{ width: '450px' }"
+      header="Confirm"
+      :modal="true"
+    >
+      <div class="flex items-center gap-4">
+        <i class="pi pi-exclamation-triangle !text-3xl" />
+        <span v-if="product"
+          >Are you sure you want to delete <b>{{ product.name }}</b
+          >?</span
+        >
+      </div>
+      <template #footer>
+        <Button
+          label="No"
+          icon="pi pi-times"
+          text
+          @click="deleteProductDialog = false"
+        />
+        <Button label="Yes" icon="pi pi-check" @click="deleteProduct" />
+      </template>
+    </Dialog>
+  </div>
 </template>

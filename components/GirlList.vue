@@ -1,7 +1,7 @@
 <script setup>
 import { FilterMatchMode } from "@primevue/core/api";
 import { useToast } from "primevue/usetoast";
-import { useGirlsStore } from '@/stores/girls'
+import { useGirlsStore } from "@/stores/girls";
 
 const loading = ref(true);
 
@@ -9,7 +9,6 @@ loading.value = true;
 
 const profileStore = useProfileStore();
 const girlsStore = useGirlsStore();
-
 
 loading.value = false;
 
@@ -26,7 +25,7 @@ const submitted = ref(false);
 
 function openNew() {
   girl.value = {
-    season: profileStore.currentProfile.season
+    season: profileStore.currentProfile.season,
   };
   submitted.value = false;
   girlDialog.value = true;
@@ -74,7 +73,6 @@ async function deleteGirl() {
     });
   }
 }
-
 </script>
 
 <template>
@@ -119,9 +117,9 @@ async function deleteGirl() {
               </div>
             </template>
 
-            <Column field="first_name" header="First Name" sortable/>
-            <Column field="last_name" header="Last Name" sortable/>
-            <Column field="preferred_name" header="Preferred Name" sortable/>
+            <Column field="first_name" header="First Name" sortable />
+            <Column field="last_name" header="Last Name" sortable />
+            <Column field="preferred_name" header="Preferred Name" sortable />
             <Column :exportable="false" nowrap>
               <template #body="slotProps">
                 <Button
@@ -151,7 +149,9 @@ async function deleteGirl() {
         >
           <div class="flex flex-col gap-6">
             <div>
-              <label for="first_name" class="block font-bold mb-3">First Name</label>
+              <label for="first_name" class="block font-bold mb-3"
+                >First Name</label
+              >
               <InputText
                 id="first_name"
                 v-model.trim="girl.first_name"
@@ -165,7 +165,9 @@ async function deleteGirl() {
               >
             </div>
             <div>
-              <label for="last_name" class="block font-bold mb-3">Last Name</label>
+              <label for="last_name" class="block font-bold mb-3"
+                >Last Name</label
+              >
               <InputText
                 id="last_name"
                 v-model.trim="girl.last_name"
@@ -179,7 +181,9 @@ async function deleteGirl() {
               >
             </div>
             <div>
-              <label for="preferred_name" class="block font-bold mb-3">Preferred Name</label>
+              <label for="preferred_name" class="block font-bold mb-3"
+                >Preferred Name</label
+              >
               <InputText
                 id="preferred_name"
                 v-model.trim="girl.preferred_name"

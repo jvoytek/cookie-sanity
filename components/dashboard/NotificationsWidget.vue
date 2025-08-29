@@ -19,7 +19,7 @@ const items = ref([
           class="p-button-text p-button-plain p-button-rounded"
           @click="$refs.menu.toggle($event)"
         />
-        <Menu ref="menu" popup :model="items" class="!min-w-40"/>
+        <Menu ref="menu" popup :model="items" class="!min-w-40" />
       </div>
     </div>
 
@@ -29,7 +29,7 @@ const items = ref([
         <div
           class="w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-blue-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-dollar !text-xl text-blue-500"/>
+          <i class="pi pi-dollar !text-xl text-blue-500" />
         </div>
         <span class="text-surface-900 dark:text-surface-0 leading-normal"
           >Richard Jones
@@ -43,7 +43,7 @@ const items = ref([
         <div
           class="w-12 h-12 flex items-center justify-center bg-orange-100 dark:bg-orange-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-download !text-xl text-orange-500"/>
+          <i class="pi pi-download !text-xl text-orange-500" />
         </div>
         <span class="text-surface-700 dark:text-surface-100 leading-normal"
           >Your request for withdrawal of
@@ -59,7 +59,7 @@ const items = ref([
         <div
           class="w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-blue-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-dollar !text-xl text-blue-500"/>
+          <i class="pi pi-dollar !text-xl text-blue-500" />
         </div>
         <span class="text-surface-900 dark:text-surface-0 leading-normal"
           >Keyser Wick
@@ -73,7 +73,7 @@ const items = ref([
         <div
           class="w-12 h-12 flex items-center justify-center bg-pink-100 dark:bg-pink-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-question !text-xl text-pink-500"/>
+          <i class="pi pi-question !text-xl text-pink-500" />
         </div>
         <span class="text-surface-900 dark:text-surface-0 leading-normal"
           >Jane Davis
@@ -89,7 +89,7 @@ const items = ref([
         <div
           class="w-12 h-12 flex items-center justify-center bg-green-100 dark:bg-green-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-arrow-up !text-xl text-green-500"/>
+          <i class="pi pi-arrow-up !text-xl text-green-500" />
         </div>
         <span class="text-surface-900 dark:text-surface-0 leading-normal"
           >Your revenue has increased by
@@ -100,7 +100,7 @@ const items = ref([
         <div
           class="w-12 h-12 flex items-center justify-center bg-purple-100 dark:bg-purple-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-heart !text-xl text-purple-500"/>
+          <i class="pi pi-heart !text-xl text-purple-500" />
         </div>
         <span class="text-surface-900 dark:text-surface-0 leading-normal"
           ><span class="text-primary font-bold">12</span> users have added your

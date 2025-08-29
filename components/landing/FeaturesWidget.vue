@@ -41,7 +41,7 @@
               class="flex items-center justify-center bg-yellow-200 mb-4"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-users !text-2xl text-yellow-700"/>
+              <i class="pi pi-fw pi-users !text-2xl text-yellow-700" />
             </div>
             <h5 class="mb-2 text-surface-900 dark:text-surface-0">
               Easy to Use
@@ -82,7 +82,7 @@
               class="flex items-center justify-center bg-cyan-200 mb-4"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-palette !text-2xl text-cyan-700"/>
+              <i class="pi pi-fw pi-palette !text-2xl text-cyan-700" />
             </div>
             <h5 class="mb-2 text-surface-900 dark:text-surface-0">
               Fresh Design
@@ -123,7 +123,7 @@
               class="flex items-center justify-center bg-indigo-200"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-map !text-2xl text-indigo-700"/>
+              <i class="pi pi-fw pi-map !text-2xl text-indigo-700" />
             </div>
             <div
               class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold"
@@ -166,7 +166,7 @@
               class="flex items-center justify-center bg-slate-200 mb-4"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-id-card !text-2xl text-slate-700"/>
+              <i class="pi pi-fw pi-id-card !text-2xl text-slate-700" />
             </div>
             <div
               class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold"
@@ -209,7 +209,7 @@
               class="flex items-center justify-center bg-orange-200 mb-4"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-star !text-2xl text-orange-700"/>
+              <i class="pi pi-fw pi-star !text-2xl text-orange-700" />
             </div>
             <div
               class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold"
@@ -252,7 +252,7 @@
               class="flex items-center justify-center bg-pink-200 mb-4"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-moon !text-2xl text-pink-700"/>
+              <i class="pi pi-fw pi-moon !text-2xl text-pink-700" />
             </div>
             <div
               class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold"
@@ -295,7 +295,7 @@
               class="flex items-center justify-center bg-teal-200 mb-4"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-shopping-cart !text-2xl text-teal-700"/>
+              <i class="pi pi-fw pi-shopping-cart !text-2xl text-teal-700" />
             </div>
             <div
               class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold"
@@ -338,7 +338,7 @@
               class="flex items-center justify-center bg-blue-200 mb-4"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-globe !text-2xl text-blue-700"/>
+              <i class="pi pi-fw pi-globe !text-2xl text-blue-700" />
             </div>
             <div
               class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold"
@@ -381,7 +381,7 @@
               class="flex items-center justify-center bg-purple-200 mb-4"
               style="width: 3.5rem; height: 3.5rem; border-radius: 10px"
             >
-              <i class="pi pi-fw pi-eye !text-2xl text-purple-700"/>
+              <i class="pi pi-fw pi-eye !text-2xl text-purple-700" />
             </div>
             <div
               class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold"

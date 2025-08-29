@@ -1,9 +1,7 @@
 <script setup lang="ts">
-
 import { FilterMatchMode } from "@primevue/core/api";
 import { useToast } from "primevue/usetoast";
-import type { Order, Girl, Cookie, SCOrder2025 } from "@/types/types";
-import type { Json } from "@/types/supabase";
+import type { Order, Girl, Cookie } from "@/types/types";
 import UploadOrders from "./UploadOrders.vue";
 
 const loading = ref(true);
@@ -26,14 +24,14 @@ const filters = ref({
 });
 const submitted = ref(false);
 const originalDataCols = [
-  { field: 'DATE', header: 'DATE' },
-  { field: 'ORDER #', header: 'ORDER #' },
-  { field: 'TO', header: 'TO' },
-  { field: 'FROM', header: 'FROM' },
-  { field: 'TYPE', header: 'TYPE' },
-  { field: 'STATUS', header: 'STATUS' },
-  { field: 'TOTAL $', header: 'TOTAL $' }
-]
+  { field: "DATE", header: "DATE" },
+  { field: "ORDER #", header: "ORDER #" },
+  { field: "TO", header: "TO" },
+  { field: "FROM", header: "FROM" },
+  { field: "TYPE", header: "TYPE" },
+  { field: "STATUS", header: "STATUS" },
+  { field: "TOTAL $", header: "TOTAL $" },
+];
 
 function openNew() {
   ordersStore.addTemporaryOrder();
@@ -43,13 +41,13 @@ async function onRowEditSave(event: { newData: Order; data: Order }) {
   submitted.value = true;
   try {
     if (event.newData.id == -1) {
-      const {id, created_at, ...insertOrder} = event.newData;
+      const { id, created_at, ...insertOrder } = event.newData;
       console.log(insertOrder);
       ordersStore.insertNewOrderFromOrdersList(insertOrder);
     } else {
       ordersStore.upsertOrder(event.newData);
     }
-  } catch (error){
+  } catch (error) {
     if (error instanceof Error) {
       toast.add({
         severity: "error",
@@ -60,7 +58,7 @@ async function onRowEditSave(event: { newData: Order; data: Order }) {
     }
   }
 }
-  
+
 function confirmDeleteOrder(ord: Order) {
   orderToBeDeleted.value = { ...ord };
   deleteOrderDialog.value = true;
@@ -95,7 +93,9 @@ function findIndexById(id: number, theList: Order[] | Girl[] | Cookie[]) {
 }
 
 function getGirlName(id: number) {
-  const theGirl = girlsStore.allGirls ? girlsStore.allGirls[findIndexById(id, girlsStore.allGirls)] : null;
+  const theGirl = girlsStore.allGirls
+    ? girlsStore.allGirls[findIndexById(id, girlsStore.allGirls)]
+    : null;
   if (theGirl) {
     return formatGirlName(theGirl);
   }
@@ -111,14 +111,7 @@ function getCookieTotal(orderCookies: Record<string, number>) {
     const cookie = cookiesStore.allCookies[key];
     total += orderCookies[cookie.abbreviation] ?? 0;
   }
-  return total
-}
-
-function getExtraFields(cookies: Json) {
-  if (!cookies) return [];
-  const extraFields = Object.keys(cookies).map(key => ({id: key, value: (cookies as Record<string, Json>)[key]}));
-  console.log(extraFields);
-  return extraFields;
+  return total;
 }
 
 </script>
@@ -152,17 +145,19 @@ function getExtraFields(cookies: Json) {
             data-key="id"
             :filters="filters"
             sort-field="order_date"
-            paginator :rows="20" 
+            paginator
+            :rows="20"
             :rows-per-page-options="[20, 50, 100]"
             size="small"
             :pt="{
-                rowExpansionCell: ({ instance: {}}) => ({
-                  style : {
-                    'padding': 0
-                  }
-                })}"
+              rowExpansionCell: ({ instance: {} }) => ({
+                style: {
+                  padding: 0,
+                },
+              }),
+            }"
             @row-edit-save="onRowEditSave"
-            >
+          >
             <template #header>
               <div class="flex flex-wrap gap-2 items-center justify-between">
                 <h4 class="m-0">Manage Orders</h4>
@@ -181,15 +176,23 @@ function getExtraFields(cookies: Json) {
             <Column
               expander
               :pt="{
-                  rowToggleButton: ({ instance: { rowData }}) => {
+                rowToggleButton: ({ instance: { rowData } }) => {
                   console.log(rowData?.cookies.DATE);
-                  return {style: {
-                    'display': !rowData?.cookies.DATE ? 'none' : ''
-                  }};
-                }
+                  return {
+                    style: {
+                      display: !rowData?.cookies.DATE ? 'none' : '',
+                    },
+                  };
+                },
               }"
-              style="width:5%"/>
-            <Column field="order_date" header="Date" style="width:10%" sortable> 
+              style="width: 5%"
+            />
+            <Column
+              field="order_date"
+              header="Date"
+              style="width: 10%"
+              sortable
+            >
               <template #editor="{ data, field }">
                 <DatePicker
                   v-model.trim="data[field]"
@@ -199,28 +202,50 @@ function getExtraFields(cookies: Json) {
                 />
               </template>
             </Column>
-            <Column field="order_num" header="Order #" style="width:10%" sortable>
+            <Column
+              field="order_num"
+              header="Order #"
+              style="width: 10%"
+              sortable
+            >
               <template #editor="{ data, field }">
-                <InputText v-model="data[field]" fluid/>
+                <InputText v-model="data[field]" fluid />
               </template>
             </Column>
-            <Column field="to" header="To" style="width:10%" sortable>
+            <Column field="to" header="To" style="width: 10%" sortable>
               <template #body="slotProps">
                 {{ getGirlName(slotProps.data.to) }}
               </template>
               <template #editor="{ data, field }">
-                <Select v-model="data[field]" :options="girlsStore.allGirls || []" :option-label="formatGirlName" option-value="id" placeholder="Select a Girl" fluid />
+                <Select
+                  v-model="data[field]"
+                  :options="girlsStore.allGirls || []"
+                  :option-label="formatGirlName"
+                  option-value="id"
+                  placeholder="Select a Girl"
+                  fluid
+                />
               </template>
             </Column>
-            <Column v-for="cookie in cookiesStore.allCookies" :key="cookie.id" field="cookies" :header="cookie.abbreviation" style="width:5%">
+            <Column
+              v-for="cookie in cookiesStore.allCookies"
+              :key="cookie.id"
+              field="cookies"
+              :header="cookie.abbreviation"
+              style="width: 5%"
+            >
               <template #body="slotProps">
                 {{ slotProps.data.cookies[cookie.abbreviation] }}
               </template>
               <template #editor="{ data, field }">
-                <InputNumber v-model="data[field][cookie.abbreviation]" size="small" fluid/>
+                <InputNumber
+                  v-model="data[field][cookie.abbreviation]"
+                  size="small"
+                  fluid
+                />
               </template>
             </Column>
-            <Column field="cookies-total" header="Total" style="width:5%">
+            <Column field="cookies-total" header="Total" style="width: 5%">
               <template #body="slotProps">
                 {{ getCookieTotal(slotProps.data.cookies) }}
               </template>
@@ -238,8 +263,8 @@ function getExtraFields(cookies: Json) {
               </template>
             </Column>
             <template #expansion="slotProps">
-              <OriginalDataTable 
-                :data="slotProps.data.cookies" 
+              <OriginalDataTable
+                :data="slotProps.data.cookies"
                 :original-data-cols="originalDataCols"
               />
             </template>
@@ -254,7 +279,9 @@ function getExtraFields(cookies: Json) {
         >
           <div class="flex items-center gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl" />
-            Are you sure you want to delete <b>{{ orderToBeDeleted.order_date }}</b>?
+            Are you sure you want to delete
+            <b>{{ orderToBeDeleted.order_date }}</b
+            >?
           </div>
           <template #footer>
             <Button

@@ -19,7 +19,7 @@ const items = ref([
           class="p-button-text p-button-plain p-button-rounded"
           @click="$refs.menu.toggle($event)"
         />
-        <Menu ref="menu" popup :model="items" class="!min-w-40"/>
+        <Menu ref="menu" popup :model="items" class="!min-w-40" />
       </div>
     </div>
     <ul class="list-none p-0 m-0">
@@ -38,7 +38,7 @@ const items = ref([
             class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24"
             style="height: 8px"
           >
-            <div class="bg-orange-500 h-full" style="width: 50%"/>
+            <div class="bg-orange-500 h-full" style="width: 50%" />
           </div>
           <span class="text-orange-500 ml-4 font-medium">%50</span>
         </div>
@@ -58,7 +58,7 @@ const items = ref([
             class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24"
             style="height: 8px"
           >
-            <div class="bg-cyan-500 h-full" style="width: 16%"/>
+            <div class="bg-cyan-500 h-full" style="width: 16%" />
           </div>
           <span class="text-cyan-500 ml-4 font-medium">%16</span>
         </div>
@@ -78,7 +78,7 @@ const items = ref([
             class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24"
             style="height: 8px"
           >
-            <div class="bg-pink-500 h-full" style="width: 67%"/>
+            <div class="bg-pink-500 h-full" style="width: 67%" />
           </div>
           <span class="text-pink-500 ml-4 font-medium">%67</span>
         </div>
@@ -98,7 +98,7 @@ const items = ref([
             class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24"
             style="height: 8px"
           >
-            <div class="bg-green-500 h-full" style="width: 35%"/>
+            <div class="bg-green-500 h-full" style="width: 35%" />
           </div>
           <span class="text-primary ml-4 font-medium">%35</span>
         </div>
@@ -118,7 +118,7 @@ const items = ref([
             class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24"
             style="height: 8px"
           >
-            <div class="bg-purple-500 h-full" style="width: 75%"/>
+            <div class="bg-purple-500 h-full" style="width: 75%" />
           </div>
           <span class="text-purple-500 ml-4 font-medium">%75</span>
         </div>
@@ -138,7 +138,7 @@ const items = ref([
             class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24"
             style="height: 8px"
           >
-            <div class="bg-teal-500 h-full" style="width: 40%"/>
+            <div class="bg-teal-500 h-full" style="width: 40%" />
           </div>
           <span class="text-teal-500 ml-4 font-medium">%40</span>
         </div>

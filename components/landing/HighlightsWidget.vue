@@ -30,7 +30,7 @@
           class="flex items-center justify-center bg-purple-200 self-center lg:self-end"
           style="width: 4.2rem; height: 4.2rem; border-radius: 10px"
         >
-          <i class="pi pi-fw pi-mobile !text-4xl text-purple-700"/>
+          <i class="pi pi-fw pi-mobile !text-4xl text-purple-700" />
         </div>
         <div
           class="leading-none text-surface-900 dark:text-surface-0 text-3xl font-normal"
@@ -55,7 +55,7 @@
           class="flex items-center justify-center bg-yellow-200 self-center lg:self-start"
           style="width: 4.2rem; height: 4.2rem; border-radius: 10px"
         >
-          <i class="pi pi-fw pi-desktop !text-3xl text-yellow-700"/>
+          <i class="pi pi-fw pi-desktop !text-3xl text-yellow-700" />
         </div>
         <div
           class="leading-none text-surface-900 dark:text-surface-0 text-3xl font-normal"

@@ -47,8 +47,7 @@ async function signOut() {
 const saveCurrentSeasonInProfile = async () => {
   await profileStore.saveCurrentSeasonInProfile();
   await profileStore.fetchProfile();
-}
-
+};
 </script>
 
 <template>
@@ -59,7 +58,7 @@ const saveCurrentSeasonInProfile = async () => {
         class="layout-menu-button layout-topbar-action"
         @click="toggleMenu"
       >
-        <i class="pi pi-bars"/>
+        <i class="pi pi-bars" />
       </button>
       <router-link to="/" class="layout-topbar-logo">
         <svg
@@ -84,7 +83,7 @@ const saveCurrentSeasonInProfile = async () => {
 
     <div class="layout-topbar-actions">
       <div class="layout-config-menu">
-        <!----<button
+        <button
           type="button"
           class="layout-topbar-action"
           @click="toggleDarkMode"
@@ -109,7 +108,7 @@ const saveCurrentSeasonInProfile = async () => {
             <i class="pi pi-palette"/>
           </button>
           <AppConfigurator />
-        </div>-->
+        </div>
         <div class="relative">
           <Menu ref="menu" :model="userMenuItems" :popup="true" />
           <button
@@ -125,12 +124,18 @@ const saveCurrentSeasonInProfile = async () => {
             class="layout-topbar-action"
             @click="toggleOverlayMenu"
           >
-            <i class="pi pi-user"/>
+            <i class="pi pi-user" />
           </button>
         </div>
       </div>
 
-      <Select v-model="seasonsStore.currentSeason" :options="seasonsStore.allSeasons" :option-label="seasonsStore.getSeasonName" placeholder="Select a Season" @change="saveCurrentSeasonInProfile" />
+      <Select
+        v-model="seasonsStore.currentSeason"
+        :options="seasonsStore.allSeasons"
+        :option-label="seasonsStore.getSeasonName"
+        placeholder="Select a Season"
+        @change="saveCurrentSeasonInProfile"
+      />
       <button
         v-styleclass="{
           selector: '@next',
@@ -142,25 +147,9 @@ const saveCurrentSeasonInProfile = async () => {
         }"
         class="layout-topbar-menu-button layout-topbar-action"
       >
-        <i class="pi pi-ellipsis-v"/>
+        <i class="pi pi-ellipsis-v" />
       </button>
 
-      <!---<div class="layout-topbar-menu hidden lg:block">
-        <div class="layout-topbar-menu-content">
-          <button type="button" class="layout-topbar-action">
-            <i class="pi pi-calendar"/>
-            <span>Calendar</span>
-          </button>
-          <button type="button" class="layout-topbar-action">
-            <i class="pi pi-inbox"/>
-            <span>Messages</span>
-          </button>
-          <button type="button" class="layout-topbar-action">
-            <i class="pi pi-user"/>
-            <span>Profile</span>
-          </button>
-        </div>
-      </div>-->
     </div>
   </div>
 </template>

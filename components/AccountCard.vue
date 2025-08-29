@@ -20,7 +20,6 @@ async function updateProfile() {
     loading.value = false;
   }
 }
-
 </script>
 
 <template>
@@ -28,14 +27,21 @@ async function updateProfile() {
     <div class="card">
       <form @submit.prevent="updateProfile">
         <div class="font-semibold text-xl">Account</div>
-        <Avatar v-model:path="profileStore.avatar_url" @upload="updateProfile" />
+        <Avatar
+          v-model:path="profileStore.avatar_url"
+          @upload="updateProfile"
+        />
         <div class="flex flex-col gap-2">
           <label for="email">Email</label>
           <InputText id="email" type="text" :value="user.email" disabled />
         </div>
         <div class="flex flex-col gap-2">
           <label for="username">Name</label>
-          <InputText id="username" v-model="profileStore.username" type="text" />
+          <InputText
+            id="username"
+            v-model="profileStore.username"
+            type="text"
+          />
         </div>
         <div class="flex flex-col gap-2">
           <label for="website">Website</label>

@@ -1,37 +1,13 @@
 <script setup lang="ts">
 const props = defineProps<{
   orders: Json[];
-  transactionTypes: "troop-transactions" | "girl-transactions";
+  transactionTypes: "troop" | "girl";
+  paginated?: boolean;
 }>();
 
 const ordersStore = useOrdersStore();
-const cookiesStore = useCookiesStore();
-
-/*
-
-    const activeTransaction: ref<Json | null> = ref(null);
-    const editTransactionDialogVisible: ref<boolean> = ref(false);
-    const deleteTransactionDialogVisible: ref<boolean> = ref(false);
-    
-  Transaction Helpers Composable should return the following:
-  {
-    submitted: ref<boolean>,
-    editTransaction: (order: Order) => void,
-    hideDialog: () => void,
-    saveTransaction: () => Promise<void>,
-    confirmDeleteTransaction: (order: Order) => void,
-    deleteTransaction: () => Promise<void>,
-    transactionTypeBadgeSeverity: (type: string) => string
-  }
-  */
-const transactionHelpers =
-  props.transactionTypes == "troop-transactions"
-    ? useTroopTransactionHelpers()
-    : useGirlTransactionHelpers();
-
-const transactionTypeBadgeSeverity =
-  transactionHelpers.transactionTypeBadgeSeverity;
-//const submitted = transactionHelpers.submitted;
+const girlsStore = useGirlsStore();
+const transactionHelpers = useTransactionHelpers();
 </script>
 
 <template>
@@ -40,44 +16,92 @@ const transactionTypeBadgeSeverity =
     data-key="id"
     sort-field="order_date"
     :sort-order="1"
+    :paginator="props.paginated !== false"
+    :rows="20"
+    :rows-per-page-options="[20, 50, 100]"
     size="small"
   >
-    <Column field="supplier" header="Supplier" style="width: 5%" sortable />
     <Column
-      field="order_num"
-      header="Transaction #"
-      style="width: 5%"
+      v-if="props.transactionTypes === 'troop'"
+      field="supplier"
+      header="Supplier"
       sortable
     />
+    <Column field="order_num" header="Transaction #" sortable />
     <Column
-      field="troop_transaction_type"
-      header="Type"
-      style="width: 5%"
+      v-if="props.transactionTypes === 'girl'"
+      field="from"
+      header="From"
       sortable
     >
       <template #body="slotProps">
+        {{
+          slotProps.data.from
+            ? girlsStore.getGirlNameById(slotProps.data.from)
+            : ""
+        }}
+      </template>
+    </Column>
+    <Column
+      v-if="props.transactionTypes === 'girl'"
+      field="to"
+      header="To"
+      sortable
+    >
+      <template #body="slotProps">
+        {{
+          slotProps.data.to ? girlsStore.getGirlNameById(slotProps.data.to) : ""
+        }}
+      </template>
+    </Column>
+
+    <Column field="type" header="Type" style="min-width: 120px" sortable>
+      <template #body="slotProps">
         <Badge
           :severity="
-            transactionTypeBadgeSeverity(slotProps.data.troop_transaction_type)
+            transactionHelpers.transactionTypeBadgeSeverity(slotProps.data.type)
           "
-          >{{ slotProps.data.troop_transaction_type }}</Badge
+          >{{
+            ordersStore.friendlyTransactionTypes(slotProps.data.type)
+          }}</Badge
         >
       </template>
     </Column>
-    <Column field="cookies" header="Cookies">
+    <Column field="cookies">
+      <template #header>
+        <span class="p-datatable-column-title"
+          >Cookies
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Cookie quantities are negative when cookies are moved from the troop inventory to a scout or another location, and positive when cookies are added to the troop inventory from a scout or another location.',
+              showDelay: 500,
+            }"
+            class="pi pi-question-circle"
+        /></span>
+      </template>
       <template #body="slotProps">
         <CookieList :cookies="slotProps.data.cookies" />
       </template>
     </Column>
+    <Column field="order_date" header="Expected" sortable />
     <Column
-      field="order_date"
-      header="Expected Date"
-      style="width: 10%"
+      v-if="props.transactionTypes === 'girl'"
+      field="completed_date"
+      header="Completed"
       sortable
-    />
-    <Column field="status" header="Status" style="width: 10%" sortable />
-    <Column field="notes" header="Notes" style="width: 10%" />
-    <Column field="actions" header="Actions" style="width: 30%">
+    >
+      <template #body="slotProps">
+        {{
+          slotProps.data.status === "complete"
+            ? slotProps.data.completed_date
+              ? slotProps.data.completed_date
+              : slotProps.data.order_date
+            : "N/A"
+        }}
+      </template>
+    </Column>
+    <Column field="actions" header="Actions" style="min-width: 140px">
       <template #body="slotProps">
         <Button
           v-if="slotProps.data.status === 'pending'"
@@ -89,10 +113,26 @@ const transactionTypeBadgeSeverity =
           icon="pi pi-check"
           class="mr-2"
           variant="outlined"
-          @click="ordersStore.markOrderComplete(slotProps.data.id)"
+          @click="ordersStore.updateOrderStatus(slotProps.data.id, 'complete')"
         />
         <Button
-          v-if="slotProps.data.status === 'complete'"
+          v-if="slotProps.data.status === 'requested'"
+          v-tooltip.bottom="{
+            value: 'Click this to approve this request and mark as pending',
+            showDelay: 500,
+          }"
+          aria-label="Approve Request"
+          icon="pi pi-check"
+          class="mr-2"
+          variant="outlined"
+          severity="secondary"
+          @click="ordersStore.updateOrderStatus(slotProps.data.id, 'pending')"
+        />
+        <Button
+          v-if="
+            slotProps.data.status === 'complete' ||
+            slotProps.data.status === 'rejected'
+          "
           v-tooltip.bottom="{
             value: 'Click this to mark this transaction as pending again',
             showDelay: 500,
@@ -102,7 +142,7 @@ const transactionTypeBadgeSeverity =
           class="mr-2"
           variant="outlined"
           severity="secondary"
-          @click="ordersStore.markOrderPending(slotProps.data.id)"
+          @click="ordersStore.updateOrderStatus(slotProps.data.id, 'pending')"
         />
         <Button
           v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
@@ -111,24 +151,48 @@ const transactionTypeBadgeSeverity =
           class="mr-2"
           variant="outlined"
           severity="secondary"
-          @click="transactionHelpers.editTransaction(slotProps.data)"
+          @click="
+            transactionHelpers.editTransaction(
+              slotProps.data,
+              props.transactionTypes,
+            )
+          "
         />
         <Button
-          v-tooltip.bottom="{ value: 'Cancel', showDelay: 500 }"
-          aria-label="Cancel"
-          icon="pi pi-times"
+          v-if="
+            props.transactionTypes === 'troop' ||
+            (props.transactionTypes === 'girl' &&
+              (slotProps.data.status === 'rejected' ||
+                slotProps.data.status === 'complete'))
+          "
+          v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
+          aria-label="Delete"
+          icon="pi pi-trash"
           class="mr-2"
           variant="outlined"
           severity="warn"
           @click="transactionHelpers.confirmDeleteTransaction(slotProps.data)"
         />
+        <Button
+          v-if="
+            props.transactionTypes === 'girl' &&
+            (slotProps.data.status === 'requested' ||
+              slotProps.data.status === 'pending')
+          "
+          v-tooltip.bottom="{
+            value: 'Reject Transaction Request',
+            showDelay: 500,
+          }"
+          aria-label="Reject Transaction Request"
+          icon="pi pi-times"
+          class="mr-2"
+          variant="outlined"
+          severity="warn"
+          @click="ordersStore.updateOrderStatus(slotProps.data.id, 'rejected')"
+        />
       </template>
     </Column>
   </DataTable>
-
-  <TransactionDialog
-    :transaction-types="'troop-transactions'"
-  />
 
   <Dialog
     v-model:visible="ordersStore.deleteTransactionDialogVisible"
@@ -138,7 +202,7 @@ const transactionTypeBadgeSeverity =
   >
     <div class="flex items-center gap-4">
       <i class="pi pi-exclamation-triangle !text-3xl" />
-      <span v-if="transaction"
+      <span v-if="ordersStore.activeTransaction"
         >Are you sure you want to delete the transaction from
         <b>{{ ordersStore.activeTransaction.order_date }}</b
         >?</span

@@ -8,8 +8,16 @@ const model = ref([
     items: [
       { label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" },
       { label: "Girls", icon: "pi pi-fw pi-users", to: "/girls" },
-      { label: "Troop Inventory", icon: "pi pi-fw pi-box", to: "/inventory" },
-      { label: "Girl Inventory", icon: "pi pi-fw pi-arrow-right-arrow-left", to: "/allocations" },
+      {
+        label: "Troop Inventory",
+        icon: "pi pi-fw pi-box",
+        to: "/troop-inventory",
+      },
+      {
+        label: "Girl Inventory",
+        icon: "pi pi-fw pi-arrow-right-arrow-left",
+        to: "/girl-inventory",
+      },
       { label: "All Transactions", icon: "pi pi-fw pi-table", to: "/orders" },
     ],
   },
@@ -160,12 +168,8 @@ const model = ref([
 <template>
   <ul class="layout-menu">
     <template v-for="(item, i) in model" :key="item">
-      <app-menu-item
-        v-if="!item.separator"
-        :item="item"
-        :index="i"
-      />
-      <li v-if="item.separator" class="menu-separator"/>
+      <app-menu-item v-if="!item.separator" :item="item" :index="i" />
+      <li v-if="item.separator" class="menu-separator" />
     </template>
   </ul>
 </template>
