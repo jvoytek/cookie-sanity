@@ -1,6 +1,6 @@
 # Cookie Sanity
 
-**Description**:  Cookie Sanity is a volunteer-built app designed to simplify and streamline the chaos of cookie season. The tools provided by GSUSA, the cookie bakers and local councils are confusing, overly complicated, and missing key features that volunteers have been requesting for years. Cookie Sanity fills in those gaps.
+Cookie Sanity is a volunteer-built app designed to simplify and streamline the chaos of cookie season. The tools provided by GSUSA, the cookie bakers and local councils are confusing, overly complicated, and missing key features that volunteers have been requesting for years. Cookie Sanity fills in those gaps.
 
 This app solves real, everyday problems that troop leaders, troop cookie managers, and parents face—like unclear inventory tracking, poor user interfaces, missing reports, and inventory forecasting. Cookie Sanity replaces your personal spreadsheets, with a clean, intuitive interface that’s actually built for the way volunteers work.
 
@@ -106,80 +106,3 @@ If you have questions, concerns, bug reports, etc, please file an issue in this 
 We are just getting started, but we need all the help we can get. We're looking for help with feature, UI/UX and software development, deployment, and getting the word out.
 
 Check out our [Guide to Contributing](CONTRIBUTING.md) for more information.
-
-
-
-# Nuxt Minimal Starter
-
-
-## Setup
-
-Make sure to install dependencies:
-
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
