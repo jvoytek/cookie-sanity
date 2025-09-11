@@ -432,7 +432,7 @@
             src="/demo/images/landing/peak-logo.svg"
             class="mt-6"
             alt="Company logo"
-          >
+          />
         </div>
       </div>
     </div>

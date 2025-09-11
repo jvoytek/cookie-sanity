@@ -26,7 +26,7 @@
             src="/demo/images/landing/free.svg"
             class="w-10/12 mx-auto"
             alt="free"
-          >
+          />
           <div class="my-8 flex flex-col items-center gap-4">
             <div class="flex items-center">
               <span
@@ -82,7 +82,7 @@
             src="/demo/images/landing/startup.svg"
             class="w-10/12 mx-auto"
             alt="startup"
-          >
+          />
           <div class="my-8 flex flex-col items-center gap-4">
             <div class="flex items-center">
               <span
@@ -138,7 +138,7 @@
             src="/demo/images/landing/enterprise.svg"
             class="w-10/12 mx-auto"
             alt="enterprise"
-          >
+          />
           <div class="my-8 flex flex-col items-center gap-4">
             <div class="flex items-center">
               <span

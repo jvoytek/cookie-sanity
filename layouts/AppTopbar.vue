@@ -105,7 +105,7 @@ const saveCurrentSeasonInProfile = async () => {
             type="button"
             class="layout-topbar-action"
           >
-            <i class="pi pi-palette"/>
+            <i class="pi pi-palette" />
           </button>
           <AppConfigurator />
         </div>
@@ -149,7 +149,6 @@ const saveCurrentSeasonInProfile = async () => {
       >
         <i class="pi pi-ellipsis-v" />
       </button>
-
     </div>
   </div>
 </template>

@@ -1,5 +1,4 @@
 <script setup>
-
 const seasonsStore = useSeasonsStore();
 const cookiesStore = useCookiesStore();
 const seasonDialog = ref(false);

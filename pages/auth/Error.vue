@@ -46,7 +46,7 @@ import FloatingConfigurator from "@/components/FloatingConfigurator.vue";
                 alt="Error"
                 class="mb-8"
                 width="80%"
-              >
+              />
               <div class="col-span-12 mt-8 text-center">
                 <Button
                   as="router-link"
