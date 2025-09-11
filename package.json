@@ -1,5 +1,8 @@
 {
-  "name": "nuxt-app",
+  "name": "cookie-sanity",
+  "version": "0.0.1",
+  "license": "GPL-3.0-or-later",
+  "description": "Cookie season is insane. Bring a little sanity to your cookie season.",
   "private": true,
   "type": "module",
   "scripts": {
