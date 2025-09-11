@@ -29,7 +29,7 @@ onMounted(() => {
             :alt="slotProps.data.image"
             width="50"
             class="shadow"
-          >
+          />
         </template>
       </Column>
       <Column field="name" header="Name" :sortable="true" style="width: 35%" />

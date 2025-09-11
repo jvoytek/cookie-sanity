@@ -1,6 +1,12 @@
-# Nuxt Minimal Starter
+# Cookie Sanity
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Cookie season is insane. Bring a little sanity to your cookie season.
+
+This is a web application built with Nuxt.js 3 to help manage cookie sales and inventory during cookie season.
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started.
 
 ## Setup
 

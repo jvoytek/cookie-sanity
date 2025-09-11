@@ -38,7 +38,7 @@
         src="/demo/images/landing/screen-1.png"
         alt="Hero Image"
         class="w-9/12 md:w-auto"
-      >
+      />
     </div>
   </div>
 </template>

@@ -113,7 +113,6 @@ function getCookieTotal(orderCookies: Record<string, number>) {
   }
   return total;
 }
-
 </script>
 
 <template>
