@@ -15,12 +15,6 @@ Other things to include:
   - **Links to production or demo instances**
   - Once we make it to a Beta version a demo and/or link to live site will go here.
 
-
-**Screenshot**: If the software has visual components, place a screenshot after the description; e.g.,
-
-![](https://raw.githubusercontent.com/cfpb/open-source-project-template/main/screenshot.png)
-
-
 ## TODO: Dependencies
 
 - NodeJS
