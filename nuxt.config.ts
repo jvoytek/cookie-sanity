@@ -2,8 +2,13 @@
 
 import Aura from "@primevue/themes/aura";
 import tailwindcss from "@tailwindcss/vite";
+import { config as dotenvConfig } from "dotenv";
+
+// Load environment variables from .env.local if present (for local Supabase dev)
+dotenvConfig({ path: ".env.local" });
 
 export default defineNuxtConfig({
+  // For local Supabase development, set SUPABASE_URL and SUPABASE_ANON_KEY in .env.local
   compatibilityDate: "2024-11-01",
   devtools: {
     enabled: true,
@@ -22,6 +27,10 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@formkit/nuxt",
   ],
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_ANON_KEY,
+  },
   formkitPrimevue: {
     includePrimeIcons: true,
     includeStyles: true,
