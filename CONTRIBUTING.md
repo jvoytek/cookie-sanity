@@ -58,6 +58,7 @@ Cookie Sanity is a web application built with Nuxt.js 3 to help bring sanity to 
 4. **Set up environment** (if needed):
    - Copy any example environment files
    - Configure Supabase connection if working on backend features
+   - [ADD MORE DETAILS HERE]
 
 ### Development Commands
 
