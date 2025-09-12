@@ -1,6 +1,6 @@
 # Cookie Sanity - GitHub Copilot Instructions
 
-Cookie Sanity is a Nuxt.js 3 web application for managing Girl Scout cookie season activities. It provides inventory management, order processing, seller tracking, and reporting functionality integrated with Supabase for backend services.
+Cookie Sanity is a Nuxt.js 3 web application for managing cookie season activities. It provides inventory management, order processing, seller tracking, and reporting functionality integrated with Supabase for backend services.
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
