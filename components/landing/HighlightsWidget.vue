@@ -20,7 +20,7 @@
           src="/demo/images/landing/mockup.svg"
           class="w-11/12"
           alt="mockup mobile"
-        >
+        />
       </div>
 
       <div
@@ -79,7 +79,7 @@
           src="/demo/images/landing/mockup-desktop.svg"
           class="w-11/12"
           alt="mockup"
-        >
+        />
       </div>
     </div>
   </div>
