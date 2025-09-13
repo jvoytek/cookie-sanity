@@ -19,7 +19,7 @@ Other things to include:
 
  - [git](https://git-scm.com/)
  - [NodeJs](https://nodejs.org/en)
- - [Take a look at the Nuxt getting started section](https://nuxt.com/docs/4.x/getting-started/installation)
+ - A container runtime compatible with Docker APIs [Take a look at the Supabase Local Development Guide for some options](https://supabase.com/docs/guides/local-development)
 
 ## Installation
 
@@ -37,26 +37,19 @@ Other things to include:
     npm install
     ```
 
-3. **Initialize Supabase locally**
-   See [Supabase Local Development Guide](https://supabase.com/docs/guides/local-development) for details.
-
-   ```bash
-   npx supabase init
-   ```
-
-2. **Start Supabase locally**
+3. **Start Supabase locally**
    ```bash
    npx supabase start
    ```
    This will start Supabase services on `http://localhost:54321` Supabase Studio on `http://localhost:54323`, and MailPit on `http://localhost:54324/`
 
-3. **Reset Database with latest migration**
+4. **Reset Database with latest migration**
    ```bash
    npx supabase db reset
    ```
-4. **TODO: Seed the DB with some testing data** (optional)
+5. **TODO: Seed the DB with some testing data** (optional)
 
-5. **Configure environment variables**
+6. **Configure environment variables**
    1. Get your local anon key from Supabase Studio (`http://localhost:54323/project/_/settings/api`).
    2. Create a new file called `.env` using vim:
 
@@ -85,7 +78,7 @@ Other things to include:
    :wq
    ```
 
-6. **Start the development server on `http://localhost:3000`**
+7. **Start the development server on `http://localhost:3000`**
 
     ```bash
     npm run dev
