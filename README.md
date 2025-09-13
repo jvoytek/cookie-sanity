@@ -15,16 +15,11 @@ Other things to include:
   - **Links to production or demo instances**
   - Once we make it to a Beta version a demo and/or link to live site will go here.
 
-## TODO: Dependencies
+## Prerequisites
 
-- NodeJS
-- Supabase
-
-Describe any dependencies that must be installed for this software to work.
-This includes programming languages, databases or other storage mechanisms, build tools, frameworks, and so forth.
-If specific versions of other software are required, or known not to work, call that out.
-
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+ - [git](https://git-scm.com/)
+ - [NodeJs](https://nodejs.org/en)
+ - [Take a look at the Nuxt getting started section](https://nuxt.com/docs/4.x/getting-started/installation)
 
 ## Installation
 
@@ -36,93 +31,37 @@ Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduct
    ```
 
 2. **Install depenencies**
+   This includes Supabase and Nuxt and other required node packages.
 
-```bash
-# npm
-npm install
-```
+    ```bash
+    npm install
+    ```
 
-3. **Start the development server on `http://localhost:3000`**
-
-```bash
-# npm
-npm run dev
-```
-
-**Lint your code**
-
-```bash
-# npm
-npm run lint
-```
-
-**Build the application for production**
-
-```bash
-# npm
-npm run build
-```
-
-**Locally preview production build**
-
-```bash
-# npm
-npm run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-
-
-## TODO: Configuration
-
-If the software is configurable, describe it in detail, either here or in other documentation to which you link.
-
-## TODO: Usage
-
-Show users how to use the software.
-Be specific.
-Use appropriate formatting when showing code snippets.
-
-## TODO: How to test the software
-
-If the software includes automated tests, detail how to run those tests.
-
-## TODO: Known issues
-
-Document any known significant shortcomings with the software.
-
-## Getting help
-
-If you have questions, concerns, bug reports, etc, please file an issue in this repository's Issue Tracker.
-
-## Getting involved
-
-We are just getting started, but we need all the help we can get. We're looking for help with feature, UI/UX and software development, deployment, and getting the word out.
-
-Check out our [Guide to Contributing](CONTRIBUTING.md) for more information.
-
-## Local Supabase Development
-
-To run Cookie Sanity with a local Supabase database:
-
-1. **Install Supabase CLI**
+3. **Initialize Supabase locally**
    See [Supabase Local Development Guide](https://supabase.com/docs/guides/local-development) for details.
+
    ```bash
-   npm install -g supabase
+   npx supabase init
    ```
 
 2. **Start Supabase locally**
    ```bash
-   supabase start
+   npx supabase start
    ```
-   This will start Supabase services on `http://localhost:54321` and Supabase Studio on `http://localhost:54323`.
+   This will start Supabase services on `http://localhost:54321` Supabase Studio on `http://localhost:54323`, and MailPit on `http://localhost:54324/`
 
-3. **Configure environment variables**
+3. **Reset Database with latest migration**
+   ```bash
+   npx supabase db reset
+   ```
+4. **TODO: Seed the DB with some testing data** (optional)
+
+5. **Configure environment variables**
    1. Get your local anon key from Supabase Studio (`http://localhost:54323/project/_/settings/api`).
-   2. Create a new file called `.env.local` using vim:
+   2. Create a new file called `.env` using vim:
 
     ```bash
-    vim .env.local
+    vim .env
     ```
 
    3. Enter Insert Mode
@@ -146,67 +85,53 @@ To run Cookie Sanity with a local Supabase database:
    :wq
    ```
 
-4. **Install dependencies and run the app**
-   ```bash
-   npm install
-   npm run dev
-   ```
+6. **Start the development server on `http://localhost:3000`**
 
-The app will connect to your local Supabase instance. For production, set these variables to your hosted Supabase project values.
+    ```bash
+    npm run dev
+    ```
 
-## Initializing the Local Database Schema (Command Line)
+## Usage
 
-To set up the required tables and permissions for Cookie Sanity using the Supabase CLI:
+**Lint your code**
 
-1. **Install Supabase CLI**
-   ```bash
-   npm install -g supabase
-   ```
-   See [Supabase CLI docs](https://supabase.com/docs/guides/cli) for more details.
+```bash
+npm run lint
+```
 
-2. **Create a migration file**
-   Create a file named `init.sql` in your project root with the following example schema:
+**Reset Supabase DB to latest migration**
+```bash
+npx supabase db reset
+```
 
-   ```sql
-   -- Example: Create cookies table
-   CREATE TABLE public.cookies (
-     id SERIAL PRIMARY KEY,
-     abbreviation TEXT NOT NULL,
-     name TEXT NOT NULL,
-     color TEXT,
-     order INTEGER,
-     price NUMERIC,
-     profile UUID,
-     season INTEGER,
-     created_at TIMESTAMP DEFAULT now()
-   );
+**Build the application for production**
 
-   -- Example: Create sellers table
-   CREATE TABLE public.sellers (
-     id SERIAL PRIMARY KEY,
-     first_name TEXT NOT NULL,
-     last_name TEXT NOT NULL,
-     preferred_name TEXT,
-     profile UUID,
-     season INTEGER,
-     created_at TIMESTAMP DEFAULT now()
-   );
+```bash
+npm run build
+```
 
-   -- Example: Enable RLS
-   ALTER TABLE public.cookies ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE public.sellers ENABLE ROW LEVEL SECURITY;
-   -- Add more tables and RLS policies as needed
-   -- See /types/supabase.ts for full schema details
-   ```
+**Locally preview production build**
 
-3. **Start Supabase locally**
-   ```bash
-   supabase start
-   ```
+```bash
+npm run preview
+```
 
-4. **Apply the migration**
-   ```bash
-   supabase db execute ./init.sql
-   ```
+Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 
-This will create the required tables and enable RLS. Repeat for all tables and relationships as defined in `/types/supabase.ts`.
+## TODO: How to test the software
+
+If the software includes automated tests, detail how to run those tests.
+
+## TODO: Known issues
+
+Document any known significant shortcomings with the software.
+
+## Getting help
+
+If you have questions, concerns, bug reports, etc, please file an issue in this repository's Issue Tracker.
+
+## Getting involved
+
+We are just getting started, but we need all the help we can get. We're looking for help with feature, UI/UX and software development, deployment, and getting the word out.
+
+Check out our [Guide to Contributing](CONTRIBUTING.md) for more information.

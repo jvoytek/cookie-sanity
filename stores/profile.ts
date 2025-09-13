@@ -46,7 +46,7 @@ export const useProfileStore = defineStore("profile", () => {
       website.value = currentProfile.value?.website ?? "";
       avatar_url.value = currentProfile.value?.avatar_url ?? "";
       appState.value = currentProfile.value?.state ?? {};
-      currentSeasonId.value = currentSeasonId.value ?? -1;
+      currentSeasonId.value = currentProfile.value?.season ?? -1;
       if (avatar_url.value) downloadAvatar();
 
       // Trigger state update for other stores depending on profile
@@ -65,6 +65,7 @@ export const useProfileStore = defineStore("profile", () => {
   };
 
   const updateProfile = async (silent: boolean = false) => {
+    console.log(currentSeasonId.value);
     try {
       if (!user.value?.id) return;
       const updates = {
@@ -157,6 +158,7 @@ export const useProfileStore = defineStore("profile", () => {
   };
 
   const saveCurrentSeasonInProfile = async () => {
+    console.log("Saving current season in profile", seasonsStore.currentSeason?.id);
     if (!seasonsStore.currentSeason?.id) return;
     currentSeasonId.value = seasonsStore.currentSeason.id;
     await updateProfile(true);

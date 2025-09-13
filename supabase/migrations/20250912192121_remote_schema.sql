@@ -65,11 +65,14 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 
 
-CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
-    LANGUAGE "plpgsql" SECURITY DEFINER
+CREATE OR REPLACE FUNCTION "public"."handle_new_user"() 
+    RETURNS "trigger"
+    LANGUAGE "plpgsql" 
+    SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
 begin
+  RAISE LOG 'Trigger function started for user: %', NEW.id;
   insert into public.profiles (id, full_name, avatar_url)
   values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
   return new;
@@ -79,6 +82,10 @@ $$;
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
 
+CREATE TRIGGER on_auth_user_insert
+AFTER INSERT ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_new_user();
 SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
