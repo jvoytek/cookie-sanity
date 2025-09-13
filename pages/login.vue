@@ -31,7 +31,7 @@ definePageMeta({
               Cookie Sanity
             </div>
             <span class="text-muted-color font-medium"
-              >Sign in via magic link with your email below</span
+              >Sign in with your username and password</span
             >
           </div>
           <AuthForm />
