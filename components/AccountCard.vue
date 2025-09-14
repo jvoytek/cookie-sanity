@@ -1,5 +1,4 @@
 <script setup>
-import Avatar from "~/components/AvatarUpload.vue";
 
 const loading = ref(true);
 
