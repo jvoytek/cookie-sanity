@@ -91,7 +91,6 @@ export const useProfileStore = defineStore("profile", () => {
   };
 
   const saveCurrentSeasonInProfile = async () => {
-    console.log("Saving current season in profile", seasonsStore.currentSeason?.id);
     if (!seasonsStore.currentSeason?.id) return;
     currentSeasonId.value = seasonsStore.currentSeason.id;
     await updateProfile(true);

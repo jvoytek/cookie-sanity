@@ -1,5 +1,4 @@
 <script setup>
-
 const loading = ref(true);
 
 loading.value = true;

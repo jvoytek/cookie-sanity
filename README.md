@@ -10,16 +10,16 @@ You've found the public repository of source code for this project. If you would
 
 Other things to include:
 
-  - **Technology stack**: Vue.js (with Nuxt), Tailwind CSS, PrimeVue, Node.js, and Supabase
-  - **Status**:  Alpha 0.0.1 We're just getting started, join us!
-  - **Links to production or demo instances**
-  - Once we make it to a Beta version a demo and/or link to live site will go here.
+- **Technology stack**: Vue.js (with Nuxt), Tailwind CSS, PrimeVue, Node.js, and Supabase
+- **Status**: Alpha 0.0.1 We're just getting started, join us!
+- **Links to production or demo instances**
+- Once we make it to a Beta version a demo and/or link to live site will go here.
 
 ## Prerequisites
 
- - [git](https://git-scm.com/)
- - [NodeJs](https://nodejs.org/en)
- - A container runtime compatible with Docker APIs [Take a look at the Supabase Local Development Guide for some options](https://supabase.com/docs/guides/local-development)
+- [git](https://git-scm.com/)
+- [NodeJs](https://nodejs.org/en)
+- A container runtime compatible with Docker APIs [Take a look at the Supabase Local Development Guide for some options](https://supabase.com/docs/guides/local-development)
 
 ## Installation
 
@@ -33,14 +33,16 @@ Other things to include:
 2. **Install depenencies**
    This includes Supabase and Nuxt and other required node packages.
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 3. **Start Supabase locally**
+
    ```bash
    npx supabase start
    ```
+
    This will start Supabase services on `http://localhost:54321` Supabase Studio on `http://localhost:54323`, and MailPit on `http://localhost:54324/`
 
 4. **Reset Database with latest migration**
@@ -50,15 +52,16 @@ Other things to include:
 5. **TODO: Seed the DB with some testing data** (optional)
 
 6. **Configure environment variables**
+
    1. Get your local anon key from Supabase Studio (`http://localhost:54323/project/_/settings/api`).
    2. Create a new file called `.env` using vim:
 
-    ```bash
-    vim .env
-    ```
+   ```bash
+   vim .env
+   ```
 
    3. Enter Insert Mode
-   Press `i` to enter **insert mode**.
+      Press `i` to enter **insert mode**.
    4. Add the following lines:
 
    ```env
@@ -80,9 +83,9 @@ Other things to include:
 
 7. **Start the development server on `http://localhost:3000`**
 
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
 ## Usage
 
@@ -93,6 +96,7 @@ npm run lint
 ```
 
 **Reset Supabase DB to latest migration**
+
 ```bash
 npx supabase db reset
 ```
