@@ -23,7 +23,7 @@ Other things to include:
 
 ## Installation
 
-1. **Clone this repository**.
+1. **Clone this repository**
 
    ```console
    $ git clone https://github.com/jvoytek/cookie-sanity
@@ -31,6 +31,7 @@ Other things to include:
    ```
 
 2. **Install depenencies**
+   
    This includes Supabase and Nuxt and other required node packages.
 
    ```bash
@@ -45,19 +46,13 @@ Other things to include:
 
    This will start Supabase services on `http://localhost:54321` Supabase Studio on `http://localhost:54323`, and MailPit on `http://localhost:54324/`
 
-4. **Reset Database with latest migration**
-   ```bash
-   npx supabase db reset
-   ```
-5. **TODO: Seed the DB with some testing data** (optional)
-
-6. **Configure environment variables**
+4. **Configure environment variables**
 
    1. Get your local anon key from Supabase Studio (`http://localhost:54323/project/_/settings/api`).
-   2. Create a new file called `.env` using vim:
+   2. Create a new file called `.env.local` using vim:
 
    ```bash
-   vim .env
+   vim .env.local
    ```
 
    3. Enter Insert Mode
@@ -81,10 +76,26 @@ Other things to include:
    :wq
    ```
 
-7. **Start the development server on `http://localhost:3000`**
+5. **Seed the DB with some testing data** (optional)
+   
+   Rename `supabase/seed_RENAME_TO_USE.sql` to `supabase/seed.sql`
 
    ```bash
-   npm run dev
+   mv supabase/seed_RENAME_TO_USE.sql supabase/seed.sql
+   ```
+
+6. **Reset Database with latest migration**
+   
+   If you renamed the seed file in the last step this will also load testing data.
+
+   ```bash
+   npx supabase db reset
+   ```
+
+7. **Start the development server on `http://localhost:3000`**
+   
+   ```bash
+   npm run dev-local
    ```
 
 ## Usage
@@ -96,6 +107,8 @@ npm run lint
 ```
 
 **Reset Supabase DB to latest migration**
+
+This will also load seed data if you have a supabase/seed.sql file.
 
 ```bash
 npx supabase db reset
