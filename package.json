@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "dev-local": "nuxt dev --dotenv .env.local",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -37,6 +38,7 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-vue": "^9.32.0",
     "prettier": "3.5.1",
-    "sass-embedded": "^1.85.0"
+    "sass-embedded": "^1.85.0",
+    "supabase": "^2.40.7"
   }
 }

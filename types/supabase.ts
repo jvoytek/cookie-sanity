@@ -165,44 +165,27 @@ export type Database = {
       };
       profiles: {
         Row: {
-          avatar_url: string | null;
-          full_name: string | null;
+          display_name: string | null;
           id: string;
           season: number | null;
           state: Json | null;
           updated_at: string | null;
-          username: string | null;
-          website: string | null;
         };
         Insert: {
-          avatar_url?: string | null;
-          full_name?: string | null;
+          display_name?: string | null;
           id: string;
           season?: number | null;
           state?: Json | null;
           updated_at?: string | null;
-          username?: string | null;
-          website?: string | null;
         };
         Update: {
-          avatar_url?: string | null;
-          full_name?: string | null;
+          display_name?: string | null;
           id?: string;
           season?: number | null;
           state?: Json | null;
           updated_at?: string | null;
-          username?: string | null;
-          website?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "profiles_season_fkey";
-            columns: ["season"];
-            isOneToOne: false;
-            referencedRelation: "seasons";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       seasons: {
         Row: {

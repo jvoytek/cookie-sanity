@@ -10,25 +10,20 @@ You've found the public repository of source code for this project. If you would
 
 Other things to include:
 
-  - **Technology stack**: Vue.js (with Nuxt), Tailwind CSS, PrimeVue, Node.js, and Supabase
-  - **Status**:  Alpha 0.0.1 We're just getting started, join us!
-  - **Links to production or demo instances**
-  - Once we make it to a Beta version a demo and/or link to live site will go here.
+- **Technology stack**: Vue.js (with Nuxt), Tailwind CSS, PrimeVue, Node.js, and Supabase
+- **Status**: Alpha 0.0.1 We're just getting started, join us!
+- **Links to production or demo instances**
+- Once we make it to a Beta version a demo and/or link to live site will go here.
 
-## TODO: Dependencies
+## Prerequisites
 
-- NodeJS
-- Supabase
-
-Describe any dependencies that must be installed for this software to work.
-This includes programming languages, databases or other storage mechanisms, build tools, frameworks, and so forth.
-If specific versions of other software are required, or known not to work, call that out.
-
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+- [git](https://git-scm.com/)
+- [NodeJs](https://nodejs.org/en)
+- A container runtime compatible with Docker APIs [Take a look at the Supabase Local Development Guide for some options](https://supabase.com/docs/guides/local-development)
 
 ## Installation
 
-1. **Clone this repository**.
+1. **Clone this repository**
 
    ```console
    $ git clone https://github.com/jvoytek/cookie-sanity
@@ -36,52 +31,102 @@ Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduct
    ```
 
 2. **Install depenencies**
+   
+   This includes Supabase and Nuxt and other required node packages.
 
-```bash
-# npm
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. **Start the development server on `http://localhost:3000`**
+3. **Start Supabase locally**
 
-```bash
-# npm
-npm run dev
-```
+   ```bash
+   npx supabase start
+   ```
+
+   This will start Supabase services on `http://localhost:54321` Supabase Studio on `http://localhost:54323`, and MailPit on `http://localhost:54324/`
+
+4. **Configure environment variables**
+
+   1. Get your local anon key from Supabase Studio (`http://localhost:54323/project/_/settings/api`).
+   2. Create a new file called `.env.local` using vim:
+
+   ```bash
+   vim .env.local
+   ```
+
+   3. Enter Insert Mode
+      Press `i` to enter **insert mode**.
+   4. Add the following lines:
+
+   ```env
+   SUPABASE_URL=http://localhost:54321
+   SUPABASE_ANON_KEY=your-local-anon-key
+   ```
+
+   5. Exit Insert Mode
+
+   Press `Esc` to return to normal mode.
+
+   6. Save and Quit
+
+   Type the following and press `Enter`:
+
+   ```vim
+   :wq
+   ```
+
+5. **Seed the DB with some testing data** (optional)
+   
+   Rename `supabase/seed_RENAME_TO_USE.sql` to `supabase/seed.sql`
+
+   ```bash
+   mv supabase/seed_RENAME_TO_USE.sql supabase/seed.sql
+   ```
+
+6. **Reset Database with latest migration**
+   
+   If you renamed the seed file in the last step this will also load testing data.
+
+   ```bash
+   npx supabase db reset
+   ```
+
+7. **Start the development server on `http://localhost:3000`**
+   
+   ```bash
+   npm run dev-local
+   ```
+
+## Usage
 
 **Lint your code**
 
 ```bash
-# npm
 npm run lint
+```
+
+**Reset Supabase DB to latest migration**
+
+This will also load seed data if you have a supabase/seed.sql file.
+
+```bash
+npx supabase db reset
 ```
 
 **Build the application for production**
 
 ```bash
-# npm
 npm run build
 ```
 
 **Locally preview production build**
 
 ```bash
-# npm
 npm run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-
-
-## TODO: Configuration
-
-If the software is configurable, describe it in detail, either here or in other documentation to which you link.
-
-## TODO: Usage
-
-Show users how to use the software.
-Be specific.
-Use appropriate formatting when showing code snippets.
 
 ## TODO: How to test the software
 

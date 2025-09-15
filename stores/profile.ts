@@ -18,10 +18,7 @@ export const useProfileStore = defineStore("profile", () => {
 
   /* State */
   const currentProfile = ref<User>();
-  const username = ref<string>("");
-  const website = ref<string>("");
-  const avatar_url = ref<string>("");
-  const avatar_src = ref<string>("");
+  const display_name = ref<string>("");
   const currentSeasonId = ref<number>(-1);
   const appState = ref<Json>({});
 
@@ -42,12 +39,9 @@ export const useProfileStore = defineStore("profile", () => {
 
       // Set state in profile store
       currentProfile.value = (data as User) ?? [];
-      username.value = currentProfile.value?.username ?? "";
-      website.value = currentProfile.value?.website ?? "";
-      avatar_url.value = currentProfile.value?.avatar_url ?? "";
+      display_name.value = currentProfile.value?.display_name ?? "";
       appState.value = currentProfile.value?.state ?? {};
-      currentSeasonId.value = currentSeasonId.value ?? -1;
-      if (avatar_url.value) downloadAvatar();
+      currentSeasonId.value = currentProfile.value?.season ?? -1;
 
       // Trigger state update for other stores depending on profile
       await seasonsStore.fetchSeasons();
@@ -65,13 +59,12 @@ export const useProfileStore = defineStore("profile", () => {
   };
 
   const updateProfile = async (silent: boolean = false) => {
+    console.log(currentSeasonId.value);
     try {
       if (!user.value?.id) return;
       const updates = {
         id: user.value.id,
-        username: username.value,
-        website: website.value,
-        avatar_url: avatar_url.value,
+        display_name: display_name.value,
         state: appState.value,
         season: currentSeasonId.value,
       };
@@ -97,65 +90,6 @@ export const useProfileStore = defineStore("profile", () => {
     }
   };
 
-  const uploadAvatar = async (file: File) => {
-    try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-
-      const filePath = `${fileName}`;
-
-      const { error: uploadError } = await supabaseClient.storage
-        .from("avatars")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Delete the old avatar
-      if (avatar_url.value) {
-        const { error: deleteError } = await supabaseClient.storage
-          .from("avatars")
-          .remove([avatar_url.value]);
-        if (deleteError) throw deleteError;
-      }
-
-      avatar_url.value = filePath;
-      downloadAvatar();
-      updateProfile();
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Avatar Uploaded",
-        life: 3000,
-      });
-    } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
-    }
-  };
-
-  const downloadAvatar = async () => {
-    try {
-      const { data, error } = await supabaseClient.storage
-        .from("avatars")
-        .download(avatar_url.value);
-
-      if (error) throw error;
-      avatar_src.value = URL.createObjectURL(data);
-    } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
-    }
-  };
-
   const saveCurrentSeasonInProfile = async () => {
     if (!seasonsStore.currentSeason?.id) return;
     currentSeasonId.value = seasonsStore.currentSeason.id;
@@ -166,14 +100,10 @@ export const useProfileStore = defineStore("profile", () => {
 
   return {
     currentProfile,
-    username,
-    website,
-    avatar_url,
+    display_name,
     appState,
     fetchProfile,
     updateProfile,
-    uploadAvatar,
     saveCurrentSeasonInProfile,
-    avatar_src,
   };
 });

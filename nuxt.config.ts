@@ -22,6 +22,11 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@formkit/nuxt",
   ],
+
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_ANON_KEY,
+  },
   formkitPrimevue: {
     includePrimeIcons: true,
     includeStyles: true,
