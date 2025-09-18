@@ -56,7 +56,8 @@ export const useAccountsStore = defineStore("accounts", () => {
       distributedOrders.forEach((order) => {
         if (order.cookies) {
           Object.keys(order.cookies).forEach((cookieAbbr) => {
-            const quantity = order.cookies![cookieAbbr] as number;
+            const cookieValue = order.cookies![cookieAbbr];
+            const quantity = typeof cookieValue === 'number' ? cookieValue : 0;
             if (quantity && quantity > 0) {
               const cookie = cookiesStore.allCookies.find(c => c.abbreviation === cookieAbbr);
               if (cookie) {
