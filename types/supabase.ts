@@ -264,6 +264,61 @@ export type Database = {
           },
         ];
       };
+      payments: {
+        Row: {
+          amount: number;
+          created_at: string;
+          id: number;
+          notes: string | null;
+          payment_date: string;
+          profile: string;
+          season: number;
+          seller_id: number;
+        };
+        Insert: {
+          amount: number;
+          created_at?: string;
+          id?: number;
+          notes?: string | null;
+          payment_date: string;
+          profile: string;
+          season: number;
+          seller_id: number;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string;
+          id?: number;
+          notes?: string | null;
+          payment_date?: string;
+          profile?: string;
+          season?: number;
+          seller_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_profile_fkey";
+            columns: ["profile"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_season_fkey";
+            columns: ["season"];
+            isOneToOne: false;
+            referencedRelation: "seasons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_seller_id_fkey";
+            columns: ["seller_id"];
+            isOneToOne: false;
+            referencedRelation: "sellers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       uploads: {
         Row: {
           created_at: string;

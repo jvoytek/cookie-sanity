@@ -19,6 +19,7 @@ const model = ref([
         to: "/girl-inventory",
       },
       { label: "All Transactions", icon: "pi pi-fw pi-table", to: "/orders" },
+      { label: "Account Management", icon: "pi pi-fw pi-wallet", to: "/accounts" },
     ],
   },
   /*{
