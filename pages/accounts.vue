@@ -1,40 +1,74 @@
 <script setup lang="ts">
-const accountsStore = useAccountsStore();
 const girlsStore = useGirlsStore();
-const cookiesStore = useCookiesStore();
-const ordersStore = useOrdersStore();
-
-// Fetch all necessary data when the page loads
-onMounted(async () => {
-  await Promise.all([
-    accountsStore.fetchPayments(),
-    girlsStore.fetchGirls(),
-    cookiesStore.fetchCookies(),
-    ordersStore.fetchOrders(),
-  ]);
-});
+const paymentHelpers = usePaymentHelpers();
+const activeGirlAccount = ref(null);
+function openNew() {
+  paymentHelpers.editPayment({});
+}
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Page Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0">
-          Account Management
-        </h1>
+    <div class="col-span-12 lg:col-span-12 xl:col-span-12">
+      <div class="card">
+        <h5>Account Management</h5>
         <p class="text-muted-color mt-1">
           View and manage scout account balances and payments
         </p>
+        <Toolbar class="mb-6">
+          <template #start>
+            <Button
+              label="Record Payment"
+              icon="pi pi-plus"
+              severity="secondary"
+              class="mr-2"
+              @click="openNew"
+            />
+          </template>
+        </Toolbar>
       </div>
     </div>
 
-    <!-- Troop Summary Dashboard -->
-    <div class="grid grid-cols-12 gap-6">
-      <AccountSummaryWidget />
+    <div class="card">
+      <Tabs value="0">
+        <TabList>
+          <Tab value="0" class="flex items-center gap-2"
+            ><i class="pi pi-envelope" />Troop Summary</Tab
+          >
+          <Tab value="1" class="flex items-center gap-2"
+            ><i class="pi pi-exclamation-triangle" />Girl Details</Tab
+          >
+        </TabList>
+        <TabPanel value="0">
+          <div class="grid grid-cols-12 gap-6">
+            <AccountSummaryWidget />
+          </div>
+
+          <ScoutAccountBalancesTable />
+        </TabPanel>
+        <TabPanel value="1">
+          <div class="flex flex-wrap items-center">
+          <label for="activeGirlAccount" class="m-4">Select a girl to view details:</label>
+          <Select
+            v-model="activeGirlAccount"
+            :options="girlsStore.girlOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="Select a girl"
+            class="m-4"
+          />
+          </div>
+          <div class="grid grid-cols-12 gap-6">
+            <AccountDetailWidget
+            v-if="activeGirlAccount !== null"
+            :girl-id="activeGirlAccount"
+          />
+          </div>
+        </TabPanel>
+      </Tabs>
     </div>
 
-    <!-- Scout Account Balances Table -->
-    <ScoutAccountBalancesTable />
+    <PaymentDialog />
   </div>
 </template>

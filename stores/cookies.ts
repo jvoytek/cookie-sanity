@@ -21,6 +21,12 @@ export const useCookiesStore = defineStore("cookies", () => {
 
   /* Computed */
 
+  const averageCookiePrice = computed(() => {
+    if (allCookies.value.length === 0) return 0;
+    const total = allCookies.value.reduce((sum, cookie) => sum + (cookie.price || 0), 0);
+    return total / allCookies.value.length;
+  });
+
   const allCookiesWithInventoryTotals = computed(() => {
     const stock = [];
     if (!seasonsStore.currentSeason) return stock;
@@ -260,6 +266,7 @@ export const useCookiesStore = defineStore("cookies", () => {
     allCookies,
     allCookiesWithInventoryTotals,
     seasonCookies,
+    averageCookiePrice,
     fetchSeasonCookies,
     fetchCookies,
     insertCookie,

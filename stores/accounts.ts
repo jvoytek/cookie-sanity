@@ -36,6 +36,9 @@ export const useAccountsStore = defineStore("accounts", () => {
 
   /* State */
   const allPayments = ref<Payment[]>([]);
+  const editPaymentDialogVisible: ref<boolean> = ref(false);
+  const activePayment: ref<Payment> = ref({});
+  const paymentDialogFormSchema = reactive([]);
 
   /* Computed */
   
@@ -52,19 +55,18 @@ export const useAccountsStore = defineStore("accounts", () => {
       
       let distributedValue = 0;
       const cookieTotals: Record<string, number> = {};
-      
+      let numCookiesDistributed = 0;
       distributedOrders.forEach((order) => {
         if (order.cookies) {
-          Object.keys(order.cookies).forEach((cookieAbbr) => {
+          cookiesStore.allCookies.forEach((cookie) => {
+            const cookieAbbr = cookie.abbreviation;
             const cookieValue = order.cookies![cookieAbbr];
             const quantity = typeof cookieValue === 'number' ? cookieValue : 0;
-            if (quantity && quantity > 0) {
-              const cookie = cookiesStore.allCookies.find(c => c.abbreviation === cookieAbbr);
-              if (cookie) {
-                const value = quantity * (cookie.price || 0);
+            if (quantity !== 0) {
+                const value = (quantity * (cookie.price || 0))*-1;
+                numCookiesDistributed += (quantity * -1);
                 distributedValue += value;
                 cookieTotals[cookieAbbr] = (cookieTotals[cookieAbbr] || 0) + quantity;
-              }
             }
           });
         }
@@ -88,15 +90,7 @@ export const useAccountsStore = defineStore("accounts", () => {
       }
 
       // Calculate estimated sales based on average prices
-      const estimatedSales: Record<string, number> = {};
-      cookiesStore.allCookies.forEach((cookie) => {
-        if (cookieTotals[cookie.abbreviation] && cookie.price) {
-          const distributedQty = cookieTotals[cookie.abbreviation];
-          const avgPrice = cookie.price;
-          const paymentForThisCookie = (paymentsReceived / distributedValue) * (distributedQty * avgPrice);
-          estimatedSales[cookie.abbreviation] = Math.round(paymentForThisCookie / avgPrice);
-        }
-      });
+      const estimatedSales = Math.round((paymentsReceived / cookiesStore.averageCookiePrice) * 10) / 10;
 
       return {
         girl,
@@ -104,8 +98,9 @@ export const useAccountsStore = defineStore("accounts", () => {
         paymentsReceived,
         balance,
         status,
+        numCookiesDistributed,
         cookieTotals,
-        estimatedSales
+        estimatedSales,
       };
     });
   });
@@ -118,13 +113,7 @@ export const useAccountsStore = defineStore("accounts", () => {
     const troopBalance = totalPaymentsReceived - totalDistributedValue;
     
     // Calculate estimated total sales
-    const estimatedTotalSales: Record<string, number> = {};
-    cookiesStore.allCookies.forEach((cookie) => {
-      estimatedTotalSales[cookie.abbreviation] = balances.reduce(
-        (sum, balance) => sum + (balance.estimatedSales[cookie.abbreviation] || 0), 
-        0
-      );
-    });
+    const estimatedTotalSales =  Math.round((totalPaymentsReceived / cookiesStore.averageCookiePrice) * 10) / 10;
     
     // Count active accounts (accounts with any activity)
     const activeAccounts = balances.filter(
@@ -136,7 +125,9 @@ export const useAccountsStore = defineStore("accounts", () => {
       totalPaymentsReceived,
       troopBalance,
       estimatedTotalSales,
-      activeAccounts
+      activeAccounts,
+      numCookiesDistributed: balances.reduce((sum, balance) => sum + (balance.numCookiesDistributed || 0), 0),
+      numCookiesRemaining: cookiesStore.allCookiesWithInventoryTotals.reduce((sum, cookie) => sum + (cookie.onHand || 0), 0),
     };
   });
 
@@ -185,7 +176,12 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   };
 
-  const insertPayment = async (payment: Omit<Payment, 'id' | 'created_at'>) => {
+  const insertNewPayment = async (payment: Omit<Payment, 'id' | 'created_at'>) => {
+    if (!profileStore.currentProfile) return;
+    payment.profile = profileStore.currentProfile.id;
+    payment.season =
+      profileStore.currentProfile.season || seasonsStore.allSeasons[0].id;
+
     try {
       const { data, error } = await supabaseClient
         .from("payments")
@@ -213,12 +209,11 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   };
 
-  const updatePayment = async (payment: Payment) => {
+  const upsertPayment = async (payment: Payment) => {
     try {
       const { data, error } = await supabaseClient
         .from("payments")
-        .update(payment)
-        .eq("id", payment.id)
+        .upsert(payment)
         .select()
         .single();
 
@@ -269,13 +264,26 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   };
 
-  return {
-    allPayments,
-    girlAccountBalances,
-    troopAccountSummary,
-    fetchPayments,
-    insertPayment,
-    updatePayment,
-    deletePayment,
-  };
+
+  function getGirlAccountById(id: number) {
+    for (let i = 0; i < girlAccountBalances.value.length; i++) {
+      if (girlAccountBalances.value[i].girl.id === id) {
+        return girlAccountBalances.value[i]
+      }
+    }
+  }
+
+return {
+  allPayments,
+  girlAccountBalances,
+  editPaymentDialogVisible,
+  activePayment,
+  paymentDialogFormSchema,
+  troopAccountSummary,
+  fetchPayments,
+  insertNewPayment,
+  upsertPayment,
+  deletePayment,
+  getGirlAccountById,
+};
 });
