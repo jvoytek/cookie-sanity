@@ -23,3 +23,9 @@
     top: 100px;
   }
 }
+
+/* Fix for date picker overlay rendering behind dialog */
+.p-datepicker,
+.p-calendar-panel {
+  z-index: 1200 !important;
+}
