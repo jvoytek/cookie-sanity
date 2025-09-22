@@ -25,7 +25,7 @@
 }
 
 /* Fix for date picker overlay rendering behind dialog */
-.p-datepicker,
-.p-calendar-panel {
+.p-datepicker-panel,
+.p-datepicker-calendar {
   z-index: 1200 !important;
 }
