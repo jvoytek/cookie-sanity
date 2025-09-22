@@ -5,6 +5,7 @@ export type Cookie = Database["public"]["Tables"]["cookies"]["Row"];
 export type User = Database["public"]["Tables"]["profiles"]["Row"];
 export type Upload = Database["public"]["Tables"]["uploads"]["Row"];
 export type Season = Database["public"]["Tables"]["seasons"]["Row"];
+export type Payment = Database["public"]["Tables"]["payments"]["Row"];
 export type SCOrder2025 = {
   DATE: string;
   "ORDER #": number;
