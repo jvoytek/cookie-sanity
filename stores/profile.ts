@@ -16,6 +16,7 @@ export const useProfileStore = defineStore("profile", () => {
   const girlsStore = useGirlsStore();
   const ordersStore = useOrdersStore();
   const accountsStore = useAccountsStore();
+  const boothsStore = useBoothsStore();
 
   /* State */
   const currentProfile = ref<User>();
@@ -50,6 +51,7 @@ export const useProfileStore = defineStore("profile", () => {
       await girlsStore.fetchGirls();
       await ordersStore.fetchOrders();
       await accountsStore.fetchPayments();
+      await boothsStore.fetchBoothSales();
     } catch (error) {
       toast.add({
         severity: "error",

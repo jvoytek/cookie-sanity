@@ -319,6 +319,66 @@ export type Database = {
           },
         ];
       };
+      booth_sales: {
+        Row: {
+          created_at: string;
+          expected_sales_level: string;
+          id: number;
+          inventory_type: string;
+          location: string;
+          notes: string | null;
+          predicted_cookies: Json | null;
+          profile: string;
+          sale_date: string;
+          sale_time: string;
+          scouts_attending: string[];
+          season: number;
+        };
+        Insert: {
+          created_at?: string;
+          expected_sales_level: string;
+          id?: number;
+          inventory_type: string;
+          location: string;
+          notes?: string | null;
+          predicted_cookies?: Json | null;
+          profile: string;
+          sale_date: string;
+          sale_time: string;
+          scouts_attending?: string[];
+          season?: number;
+        };
+        Update: {
+          created_at?: string;
+          expected_sales_level?: string;
+          id?: number;
+          inventory_type?: string;
+          location?: string;
+          notes?: string | null;
+          predicted_cookies?: Json | null;
+          profile?: string;
+          sale_date?: string;
+          sale_time?: string;
+          scouts_attending?: string[];
+          season?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "booth_sales_profile_fkey";
+            columns: ["profile"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "booth_sales_season_fkey";
+            columns: ["season"];
+            isOneToOne: false;
+            referencedRelation: "seasons";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       uploads: {
         Row: {
           created_at: string;

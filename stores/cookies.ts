@@ -14,6 +14,7 @@ export const useCookiesStore = defineStore("cookies", () => {
   const profileStore = useProfileStore();
   const seasonsStore = useSeasonsStore();
   const ordersStore = useOrdersStore();
+  const boothsStore = useBoothsStore();
 
   /* State */
   const allCookies = ref<Cookie[]>([]);
@@ -50,7 +51,8 @@ export const useCookiesStore = defineStore("cookies", () => {
         "troop",
         cookie.abbreviation,
       );
-      const afterPending = onHand + pendingGirl + pendingTroop;
+      const pendingBooth = boothsStore.getPredictedAmountForCookie(cookie.abbreviation);
+      const afterPending = onHand + pendingGirl + pendingTroop + pendingBooth;
       const afterPendingIncludingRequests = afterPending + requestedGirl;
       const afterPendingStatus = _afterPendingStatusSeverity(afterPending);
       const cookieTotals = {
@@ -59,6 +61,7 @@ export const useCookiesStore = defineStore("cookies", () => {
         requestedGirl: requestedGirl,
         pendingGirl: pendingGirl,
         pendingTroop: pendingTroop,
+        pendingBooth: pendingBooth,
         afterPending: afterPending,
         afterPendingIncludingRequests: afterPendingIncludingRequests,
         afterPendingStatusSeverity: afterPendingStatus[0],

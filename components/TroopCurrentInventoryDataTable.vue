@@ -43,6 +43,7 @@ loading.value = false;
           </span>
         </template>
       </Column>
+      <Column field="pendingBooth" header="Pending Booth" sortable />
 
       <Column field="afterPending" header="After Pending" sortable>
         <template #body="slotProps">
