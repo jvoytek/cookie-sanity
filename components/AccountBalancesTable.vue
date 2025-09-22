@@ -3,13 +3,7 @@ import type { AccountBalance } from "@/stores/accounts";
 
 const accountsStore = useAccountsStore();
 const paymentHelpers = usePaymentHelpers();
-
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
+const formatHelpers = useFormatHelpers();
 
 const getGirlDisplayName = (balance: AccountBalance): string => {
   const girl = balance.girl;
@@ -55,19 +49,19 @@ function openNewForGirl(girlId: number) {
 
       <Column field="distributedValue" header="Distributed Value" sortable>
         <template #body="slotProps">
-          {{ formatCurrency(slotProps.data.distributedValue) }}
+          {{ formatHelpers.formatCurrency(slotProps.data.distributedValue) }}
         </template>
       </Column>
 
       <Column field="paymentsReceived" header="Payments Received" sortable>
         <template #body="slotProps">
-          {{ formatCurrency(slotProps.data.paymentsReceived) }}
+          {{ formatHelpers.formatCurrency(slotProps.data.paymentsReceived) }}
         </template>
       </Column>
 
       <Column field="balance" header="Balance" sortable>
         <template #body="slotProps">
-          {{ formatCurrency(slotProps.data.balance) }}
+          {{ formatHelpers.formatCurrency(slotProps.data.balance) }}
         </template>
       </Column>
 

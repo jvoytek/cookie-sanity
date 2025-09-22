@@ -1,12 +1,6 @@
 <script setup lang="ts">
 const accountsStore = useAccountsStore();
-
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
+const formatHelpers = useFormatHelpers();
 </script>
 
 <template>
@@ -19,7 +13,7 @@ const formatCurrency = (amount: number): string => {
         </p>
       </template>
       <p class="text-xl">
-        {{ formatCurrency(accountsStore.troopAccountSummary.troopBalance)
+        {{ formatHelpers.formatCurrency(accountsStore.troopAccountSummary.troopBalance)
         }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total still owed by all girls</span
@@ -37,7 +31,7 @@ const formatCurrency = (amount: number): string => {
       </template>
       <p class="text-xl">
         {{
-          formatCurrency(
+          formatHelpers.formatCurrency(
             accountsStore.troopAccountSummary.totalPaymentsReceived,
           )
         }}<br />

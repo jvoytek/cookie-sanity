@@ -1,12 +1,6 @@
 <script setup lang="ts">
 const accountsStore = useAccountsStore();
-
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-};
+const formatHelpers = useFormatHelpers();
 </script>
 
 <template>
@@ -16,7 +10,7 @@ const formatCurrency = (amount: number): string => {
         <div>
           <span class="block text-muted-color font-medium mb-4">Total Outstanding</span>
           <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-            {{ formatCurrency(Math.abs(accountsStore.troopAccountSummary.troopBalance)) }}
+            {{ formatHelpers.formatCurrency(Math.abs(accountsStore.troopAccountSummary.troopBalance)) }}
           </div>
         </div>
         <div
@@ -36,7 +30,7 @@ const formatCurrency = (amount: number): string => {
         <div>
           <span class="block text-muted-color font-medium mb-4">Total Payments</span>
           <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-            {{ formatCurrency(accountsStore.troopAccountSummary.totalPaymentsReceived) }}
+            {{ formatHelpers.formatCurrency(accountsStore.troopAccountSummary.totalPaymentsReceived) }}
           </div>
         </div>
         <div
@@ -56,7 +50,7 @@ const formatCurrency = (amount: number): string => {
         <div>
           <span class="block text-muted-color font-medium mb-4">Total Distributed</span>
           <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-            {{ formatCurrency(accountsStore.troopAccountSummary.totalDistributedValue) }}
+            {{ formatHelpers.formatCurrency(accountsStore.troopAccountSummary.totalDistributedValue) }}
           </div>
         </div>
         <div

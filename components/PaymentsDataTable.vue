@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const accountsStore = useAccountsStore();
 const paymentHelpers = usePaymentHelpers();
-const currencyHelprs = useCurrencyHelpers();
+const formatHelpers = useFormatHelpers();
 
 const girlAccount = computed(() => {
   return accountsStore.getGirlAccountById(props.girlId);
@@ -34,7 +34,7 @@ const girlAccount = computed(() => {
       header="Amount"
       sortable>
       <template #body="slotProps">
-        {{ currencyHelprs.formatCurrency(slotProps.data.amount) }}
+        {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
       </template>
     </Column>
     <Column

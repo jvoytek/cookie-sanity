@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const accountsStore = useAccountsStore();
+const formatHelpers = useFormatHelpers();
 
 const props = defineProps<{
   girlId: number;
@@ -8,14 +9,7 @@ const props = defineProps<{
 const girlAccount = computed(() => {
   return accountsStore.getGirlAccountById(props.girlId);
 });
-console.log("girlAccount:", girlAccount);
 
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
 </script>
 
 <template>
@@ -28,7 +22,7 @@ const formatCurrency = (amount: number): string => {
         </p>
       </template>
       <p class="text-xl">
-        {{ formatCurrency(girlAccount.balance)
+        {{ formatHelpers.formatCurrency(girlAccount.balance)
         }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total still owed</span
@@ -46,7 +40,7 @@ const formatCurrency = (amount: number): string => {
       </template>
       <p class="text-xl">
         {{
-          formatCurrency(
+          formatHelpers.formatCurrency(
             girlAccount.paymentsReceived,
           )
         }}<br />
