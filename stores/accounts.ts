@@ -41,18 +41,22 @@ export const useAccountsStore = defineStore("accounts", () => {
   const paymentDialogFormSchema = reactive([]);
 
   /* Computed */
-  
+
   const girlAccountBalances = computed((): AccountBalance[] => {
-    if (!girlsStore.allGirls || !cookiesStore.allCookies || !ordersStore.allOrders) {
+    if (
+      !girlsStore.allGirls ||
+      !cookiesStore.allCookies ||
+      !ordersStore.allOrders
+    ) {
       return [];
     }
 
     return girlsStore.allGirls.map((girl) => {
       // Calculate distributed value from completed orders to this girl
       const distributedOrders = ordersStore.allOrders.filter(
-        (order) => order.to === girl.id && order.status === "complete"
+        (order) => order.to === girl.id && order.status === "complete",
       );
-      
+
       let distributedValue = 0;
       const cookieTotals: Record<string, number> = {};
       let numCookiesDistributed = 0;
@@ -61,20 +65,26 @@ export const useAccountsStore = defineStore("accounts", () => {
           cookiesStore.allCookies.forEach((cookie) => {
             const cookieAbbr = cookie.abbreviation;
             const cookieValue = order.cookies![cookieAbbr];
-            const quantity = typeof cookieValue === 'number' ? cookieValue : 0;
+            const quantity = typeof cookieValue === "number" ? cookieValue : 0;
             if (quantity !== 0) {
-                const value = (quantity * (cookie.price || 0))*-1;
-                numCookiesDistributed += (quantity * -1);
-                distributedValue += value;
-                cookieTotals[cookieAbbr] = (cookieTotals[cookieAbbr] || 0) + quantity;
+              const value = quantity * (cookie.price || 0) * -1;
+              numCookiesDistributed += quantity * -1;
+              distributedValue += value;
+              cookieTotals[cookieAbbr] =
+                (cookieTotals[cookieAbbr] || 0) + quantity;
             }
           });
         }
       });
 
       // Calculate payments received for this girl
-      const girlPaymentsList = allPayments.value.filter(p => p.seller_id === girl.id);
-      const paymentsReceived = girlPaymentsList.reduce((sum, payment) => sum + payment.amount, 0);
+      const girlPaymentsList = allPayments.value.filter(
+        (p) => p.seller_id === girl.id,
+      );
+      const paymentsReceived = girlPaymentsList.reduce(
+        (sum, payment) => sum + payment.amount,
+        0,
+      );
 
       // Calculate balance
       const balance = paymentsReceived - distributedValue;
@@ -90,7 +100,10 @@ export const useAccountsStore = defineStore("accounts", () => {
       }
 
       // Calculate estimated sales based on average prices
-      const estimatedSales = balance >= 0 ? numCookiesDistributed : Math.round(paymentsReceived / cookiesStore.averageCookiePrice);
+      const estimatedSales =
+        balance >= 0
+          ? numCookiesDistributed
+          : Math.round(paymentsReceived / cookiesStore.averageCookiePrice);
 
       return {
         girl,
@@ -108,17 +121,29 @@ export const useAccountsStore = defineStore("accounts", () => {
 
   const troopAccountSummary = computed((): TroopAccountSummary => {
     const balances = girlAccountBalances.value;
-    
-    const totalDistributedValue = balances.reduce((sum, balance) => sum + balance.distributedValue, 0);
-    const totalPaymentsReceived = balances.reduce((sum, balance) => sum + balance.paymentsReceived, 0);
+
+    const totalDistributedValue = balances.reduce(
+      (sum, balance) => sum + balance.distributedValue,
+      0,
+    );
+    const totalPaymentsReceived = balances.reduce(
+      (sum, balance) => sum + balance.paymentsReceived,
+      0,
+    );
     const troopBalance = totalPaymentsReceived - totalDistributedValue;
-    
-    const numCookiesDistributed = balances.reduce((sum, balance) => sum + (balance.numCookiesDistributed || 0), 0);
-    const estimatedTotalSales =  troopBalance >= 0 ? numCookiesDistributed : Math.round(totalPaymentsReceived / cookiesStore.averageCookiePrice);
-    
+
+    const numCookiesDistributed = balances.reduce(
+      (sum, balance) => sum + (balance.numCookiesDistributed || 0),
+      0,
+    );
+    const estimatedTotalSales =
+      troopBalance >= 0
+        ? numCookiesDistributed
+        : Math.round(totalPaymentsReceived / cookiesStore.averageCookiePrice);
+
     // Count active accounts (accounts with any activity)
     const activeAccounts = balances.filter(
-      balance => balance.distributedValue > 0 || balance.paymentsReceived > 0
+      (balance) => balance.distributedValue > 0 || balance.paymentsReceived > 0,
     ).length;
 
     return {
@@ -128,7 +153,10 @@ export const useAccountsStore = defineStore("accounts", () => {
       estimatedTotalSales,
       activeAccounts,
       numCookiesDistributed: numCookiesDistributed,
-      numCookiesRemaining: cookiesStore.allCookiesWithInventoryTotals.reduce((sum, cookie) => sum + (cookie.onHand || 0), 0),
+      numCookiesRemaining: cookiesStore.allCookiesWithInventoryTotals.reduce(
+        (sum, cookie) => sum + (cookie.onHand || 0),
+        0,
+      ),
     };
   });
 
@@ -177,7 +205,9 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   };
 
-  const insertNewPayment = async (payment: Omit<Payment, 'id' | 'created_at'>) => {
+  const insertNewPayment = async (
+    payment: Omit<Payment, "id" | "created_at">,
+  ) => {
     if (!profileStore.currentProfile) return;
     payment.profile = profileStore.currentProfile.id;
     payment.season =
@@ -265,26 +295,25 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   };
 
-
   function getGirlAccountById(id: number) {
     for (let i = 0; i < girlAccountBalances.value.length; i++) {
       if (girlAccountBalances.value[i].girl.id === id) {
-        return girlAccountBalances.value[i]
+        return girlAccountBalances.value[i];
       }
     }
   }
 
-return {
-  allPayments,
-  girlAccountBalances,
-  editPaymentDialogVisible,
-  activePayment,
-  paymentDialogFormSchema,
-  troopAccountSummary,
-  fetchPayments,
-  insertNewPayment,
-  upsertPayment,
-  deletePayment,
-  getGirlAccountById,
-};
+  return {
+    allPayments,
+    girlAccountBalances,
+    editPaymentDialogVisible,
+    activePayment,
+    paymentDialogFormSchema,
+    troopAccountSummary,
+    fetchPayments,
+    insertNewPayment,
+    upsertPayment,
+    deletePayment,
+    getGirlAccountById,
+  };
 });

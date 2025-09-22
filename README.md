@@ -31,7 +31,7 @@ Other things to include:
    ```
 
 2. **Install depenencies**
-   
+
    This includes Supabase and Nuxt and other required node packages.
 
    ```bash
@@ -77,7 +77,7 @@ Other things to include:
    ```
 
 5. **Seed the DB with some testing data** (optional)
-   
+
    Rename `supabase/seed_RENAME_TO_USE.sql` to `supabase/seed.sql`
 
    ```bash
@@ -85,7 +85,7 @@ Other things to include:
    ```
 
 6. **Reset Database with latest migration**
-   
+
    If you renamed the seed file in the last step this will also load testing data.
 
    ```bash
@@ -93,7 +93,7 @@ Other things to include:
    ```
 
 7. **Start the development server on `http://localhost:3000`**
-   
+
    ```bash
    npm run dev-local
    ```

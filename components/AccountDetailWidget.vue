@@ -9,7 +9,6 @@ const props = defineProps<{
 const girlAccount = computed(() => {
   return accountsStore.getGirlAccountById(props.girlId);
 });
-
 </script>
 
 <template>
@@ -22,8 +21,7 @@ const girlAccount = computed(() => {
         </p>
       </template>
       <p class="text-xl">
-        {{ formatHelpers.formatCurrency(girlAccount.balance)
-        }}<br />
+        {{ formatHelpers.formatCurrency(girlAccount.balance) }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total still owed</span
         >
@@ -39,11 +37,7 @@ const girlAccount = computed(() => {
         </p>
       </template>
       <p class="text-xl">
-        {{
-          formatHelpers.formatCurrency(
-            girlAccount.paymentsReceived,
-          )
-        }}<br />
+        {{ formatHelpers.formatCurrency(girlAccount.paymentsReceived) }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total received</span
         >
@@ -54,21 +48,19 @@ const girlAccount = computed(() => {
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
-            <i class="pi pi-arrow-right" />
-            <span>Packages Distributed</span>
+          <i class="pi pi-arrow-right" />
+          <span>Packages Distributed</span>
         </p>
       </template>
-      <p class="text-xl">
-        {{ girlAccount.numCookiesDistributed }}<br />
-      </p>
+      <p class="text-xl">{{ girlAccount.numCookiesDistributed }}<br /></p>
     </Fieldset>
   </div>
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
-            <i class="pi pi-tag" />
-            <span>Estimated Sales</span>
+          <i class="pi pi-tag" />
+          <span>Estimated Sales</span>
         </p>
       </template>
       <p class="text-xl">

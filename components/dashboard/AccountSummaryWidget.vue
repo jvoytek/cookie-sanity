@@ -8,9 +8,15 @@ const formatHelpers = useFormatHelpers();
     <div class="card mb-0">
       <div class="flex justify-between mb-4">
         <div>
-          <span class="block text-muted-color font-medium mb-4">Total Outstanding</span>
+          <span class="block text-muted-color font-medium mb-4"
+            >Total Outstanding</span
+          >
           <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-            {{ formatHelpers.formatCurrency(Math.abs(accountsStore.troopAccountSummary.troopBalance)) }}
+            {{
+              formatHelpers.formatCurrency(
+                Math.abs(accountsStore.troopAccountSummary.troopBalance),
+              )
+            }}
           </div>
         </div>
         <div
@@ -23,14 +29,20 @@ const formatHelpers = useFormatHelpers();
       <span class="text-muted-color">amount still owed</span>
     </div>
   </div>
-  
+
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">
     <div class="card mb-0">
       <div class="flex justify-between mb-4">
         <div>
-          <span class="block text-muted-color font-medium mb-4">Total Payments</span>
+          <span class="block text-muted-color font-medium mb-4"
+            >Total Payments</span
+          >
           <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-            {{ formatHelpers.formatCurrency(accountsStore.troopAccountSummary.totalPaymentsReceived) }}
+            {{
+              formatHelpers.formatCurrency(
+                accountsStore.troopAccountSummary.totalPaymentsReceived,
+              )
+            }}
           </div>
         </div>
         <div
@@ -43,14 +55,20 @@ const formatHelpers = useFormatHelpers();
       <span class="text-muted-color">total received</span>
     </div>
   </div>
-  
+
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">
     <div class="card mb-0">
       <div class="flex justify-between mb-4">
         <div>
-          <span class="block text-muted-color font-medium mb-4">Total Distributed</span>
+          <span class="block text-muted-color font-medium mb-4"
+            >Total Distributed</span
+          >
           <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-            {{ formatHelpers.formatCurrency(accountsStore.troopAccountSummary.totalDistributedValue) }}
+            {{
+              formatHelpers.formatCurrency(
+                accountsStore.troopAccountSummary.totalDistributedValue,
+              )
+            }}
           </div>
         </div>
         <div
@@ -63,12 +81,14 @@ const formatHelpers = useFormatHelpers();
       <span class="text-muted-color">value distributed</span>
     </div>
   </div>
-  
+
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">
     <div class="card mb-0">
       <div class="flex justify-between mb-4">
         <div>
-          <span class="block text-muted-color font-medium mb-4">Active Accounts</span>
+          <span class="block text-muted-color font-medium mb-4"
+            >Active Accounts</span
+          >
           <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
             {{ accountsStore.troopAccountSummary.activeAccounts }}
           </div>

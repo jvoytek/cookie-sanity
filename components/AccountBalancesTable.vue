@@ -21,86 +21,95 @@ const getStatusClass = (status: string): string => {
 };
 
 function openNewForGirl(girlId: number) {
-  paymentHelpers.editPayment({seller_id: girlId});
+  paymentHelpers.editPayment({ seller_id: girlId });
 }
-
 </script>
 
 <template>
-      <h5 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
-        Scout Account Balances
-      </h5>
-      <p class="text-muted-color">Current account status for each scout</p>
+  <h5 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
+    Scout Account Balances
+  </h5>
+  <p class="text-muted-color">Current account status for each scout</p>
 
-    <DataTable
-      :value="accountsStore.girlAccountBalances"
-      data-key="girl.id"
-      sort-field="girl.first_name"
-      :sort-order="1"
-      class="p-datatable"
-    >
-      <Column field="girl.first_name" header="Scout" sortable>
-        <template #body="slotProps">
-          <div class="font-medium">
-            {{ getGirlDisplayName(slotProps.data) }}
-          </div>
-        </template>
-      </Column>
+  <DataTable
+    :value="accountsStore.girlAccountBalances"
+    data-key="girl.id"
+    sort-field="girl.first_name"
+    :sort-order="1"
+    class="p-datatable"
+  >
+    <Column field="girl.first_name" header="Scout" sortable>
+      <template #body="slotProps">
+        <div class="font-medium">
+          {{ getGirlDisplayName(slotProps.data) }}
+        </div>
+      </template>
+    </Column>
 
-      <Column field="distributedValue" header="Distributed Value" sortable>
-        <template #body="slotProps">
-          {{ formatHelpers.formatCurrency(slotProps.data.distributedValue) }}
-        </template>
-      </Column>
+    <Column field="distributedValue" header="Distributed Value" sortable>
+      <template #body="slotProps">
+        {{ formatHelpers.formatCurrency(slotProps.data.distributedValue) }}
+      </template>
+    </Column>
 
-      <Column field="paymentsReceived" header="Payments Received" sortable>
-        <template #body="slotProps">
-          {{ formatHelpers.formatCurrency(slotProps.data.paymentsReceived) }}
-        </template>
-      </Column>
+    <Column field="paymentsReceived" header="Payments Received" sortable>
+      <template #body="slotProps">
+        {{ formatHelpers.formatCurrency(slotProps.data.paymentsReceived) }}
+      </template>
+    </Column>
 
-      <Column field="balance" header="Balance" sortable>
-        <template #body="slotProps">
-          {{ formatHelpers.formatCurrency(slotProps.data.balance) }}
-        </template>
-      </Column>
+    <Column field="balance" header="Balance" sortable>
+      <template #body="slotProps">
+        {{ formatHelpers.formatCurrency(slotProps.data.balance) }}
+      </template>
+    </Column>
 
-      <Column field="status" header="Status" sortable>
-        <template #body="slotProps">
-          <span
-            :class="getStatusClass(slotProps.data.status)"
-            class="px-2 py-1 rounded-full text-xs font-medium"
-          >
-            {{ slotProps.data.status }}
-          </span>
-        </template>
-      </Column>
+    <Column field="status" header="Status" sortable>
+      <template #body="slotProps">
+        <span
+          :class="getStatusClass(slotProps.data.status)"
+          class="px-2 py-1 rounded-full text-xs font-medium"
+        >
+          {{ slotProps.data.status }}
+        </span>
+      </template>
+    </Column>
 
-      <Column field="numCookiesDistributed" header="Packages Distributed" sortable />
-      <Column field="estimatedSales" sortable>
-        <template #header>
-          <span class="flex items-center gap-2">
-            <strong>Estimated Sales</strong>
-            <i v-tooltip.bottom="{ value: 'Based on payments received/average price per cookie. May not match actual sales.', showDelay: 500 }" class="pi pi-info-circle" />
-          </span>
-        </template>
-        <template #body="slotProps">
-          {{ slotProps.data.estimatedSales }}
-        </template>
-      </Column>
-      <Column header="Actions" style="min-width: 140px">
-        <template #body="slotProps">
-          <Button
-            v-tooltip.bottom="{ value: 'Add Payment', showDelay: 500 }"
-            aria-label="Add Payment"
-            icon="pi pi-plus"
-            class="mr-2"
-            variant="outlined"
-            severity="secondary"
-            @click="openNewForGirl(slotProps.data.girl.id)"
+    <Column
+      field="numCookiesDistributed"
+      header="Packages Distributed"
+      sortable
+    />
+    <Column field="estimatedSales" sortable>
+      <template #header>
+        <span class="flex items-center gap-2">
+          <strong>Estimated Sales</strong>
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Based on payments received/average price per cookie. May not match actual sales.',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
           />
-        </template>
-      </Column>
-
-    </DataTable>
+        </span>
+      </template>
+      <template #body="slotProps">
+        {{ slotProps.data.estimatedSales }}
+      </template>
+    </Column>
+    <Column header="Actions" style="min-width: 140px">
+      <template #body="slotProps">
+        <Button
+          v-tooltip.bottom="{ value: 'Add Payment', showDelay: 500 }"
+          aria-label="Add Payment"
+          icon="pi pi-plus"
+          class="mr-2"
+          variant="outlined"
+          severity="secondary"
+          @click="openNewForGirl(slotProps.data.girl.id)"
+        />
+      </template>
+    </Column>
+  </DataTable>
 </template>

@@ -29,7 +29,7 @@ export const usePaymentHelpers = () => {
         validation: "required|number|min:0.01",
         class: "w-full",
         minFractionDigits: 2,
-        maxFractionDigits: 2
+        maxFractionDigits: 2,
       },
       {
         $formkit: "primeDatePicker",
@@ -56,12 +56,9 @@ export const usePaymentHelpers = () => {
     return baseSchema;
   };
 
-  function editPayment(
-    payment: Payment,
-  ) {
+  function editPayment(payment: Payment) {
     accountsStore.activePayment = { ...payment };
-    accountsStore.paymentDialogFormSchema.value =
-    getPaymentDialogFormSchema();
+    accountsStore.paymentDialogFormSchema.value = getPaymentDialogFormSchema();
     accountsStore.editPaymentDialogVisible = true;
   }
 

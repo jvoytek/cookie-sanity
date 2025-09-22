@@ -49,30 +49,31 @@ function openNew() {
         </TabPanel>
         <TabPanel value="1">
           <div class="flex flex-wrap items-center">
-          <label for="activeGirlAccount" class="m-4">Select a girl to view details:</label>
-          <Select
-            v-model="activeGirlAccount"
-            :options="girlsStore.girlOptions"
-            option-label="label"
-            option-value="value"
-            placeholder="Select a girl"
-            class="m-4"
-          />
+            <label for="activeGirlAccount" class="m-4"
+              >Select a girl to view details:</label
+            >
+            <Select
+              v-model="activeGirlAccount"
+              :options="girlsStore.girlOptions"
+              option-label="label"
+              option-value="value"
+              placeholder="Select a girl"
+              class="m-4"
+            />
           </div>
           <div class="grid grid-cols-12 gap-6">
             <AccountDetailWidget
-            v-if="activeGirlAccount !== null"
-            :girl-id="activeGirlAccount"
-          />
+              v-if="activeGirlAccount !== null"
+              :girl-id="activeGirlAccount"
+            />
 
-          <div class="col-span-12">
-            <PaymentsDataTable
-            v-if="activeGirlAccount !== null"
-            :girl-id="activeGirlAccount"
-          />
-          </div>  
-                </div>
-      
+            <div class="col-span-12">
+              <PaymentsDataTable
+                v-if="activeGirlAccount !== null"
+                :girl-id="activeGirlAccount"
+              />
+            </div>
+          </div>
         </TabPanel>
       </Tabs>
     </div>

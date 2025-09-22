@@ -25,9 +25,7 @@ const submitHandler = () => {
         @submit="submitHandler"
       >
         <!-- Render the dynamic form using the schema -->
-        <FormKitSchema
-          :schema="accountsStore.paymentDialogFormSchema.value"
-        />
+        <FormKitSchema :schema="accountsStore.paymentDialogFormSchema.value" />
       </FormKit>
     </div>
     <template #footer>

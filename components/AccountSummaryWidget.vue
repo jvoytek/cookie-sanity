@@ -13,7 +13,10 @@ const formatHelpers = useFormatHelpers();
         </p>
       </template>
       <p class="text-xl">
-        {{ formatHelpers.formatCurrency(accountsStore.troopAccountSummary.troopBalance)
+        {{
+          formatHelpers.formatCurrency(
+            accountsStore.troopAccountSummary.troopBalance,
+          )
         }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total still owed by all girls</span
@@ -45,8 +48,8 @@ const formatHelpers = useFormatHelpers();
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
-            <i class="pi pi-arrow-right" />
-            <span>Packages Distributed</span>
+          <i class="pi pi-arrow-right" />
+          <span>Packages Distributed</span>
         </p>
       </template>
       <p class="text-xl">
@@ -62,8 +65,8 @@ const formatHelpers = useFormatHelpers();
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
-            <i class="pi pi-tag" />
-            <span>Estimated Sales</span>
+          <i class="pi pi-tag" />
+          <span>Estimated Sales</span>
         </p>
       </template>
       <p class="text-xl">

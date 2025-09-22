@@ -10,13 +10,12 @@ const formatHelpers = useFormatHelpers();
 const girlAccount = computed(() => {
   return accountsStore.getGirlAccountById(props.girlId);
 });
-
 </script>
 
 <template>
-        <h5 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
-        Payment History for {{ girlAccount.girl.first_name  }}
-      </h5>
+  <h5 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
+    Payment History for {{ girlAccount.girl.first_name }}
+  </h5>
   <DataTable
     :value="girlAccount.girlPaymentsList"
     data-key="id"
@@ -24,24 +23,13 @@ const girlAccount = computed(() => {
     :sort-order="1"
     size="small"
   >
-    <Column
-      field="payment_date"
-      header="Date"
-      sortable
-    />
-    <Column
-      field="amount"
-      header="Amount"
-      sortable>
+    <Column field="payment_date" header="Date" sortable />
+    <Column field="amount" header="Amount" sortable>
       <template #body="slotProps">
         {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
       </template>
     </Column>
-    <Column
-      field="notes"
-      header="Notes"
-      sortable
-    />
+    <Column field="notes" header="Notes" sortable />
     <Column field="actions" header="Actions" style="min-width: 140px">
       <template #body="slotProps">
         <Button
@@ -51,11 +39,7 @@ const girlAccount = computed(() => {
           class="mr-2"
           variant="outlined"
           severity="secondary"
-          @click="
-            paymentHelpers.editPayment(
-              slotProps.data,
-            )
-          "
+          @click="paymentHelpers.editPayment(slotProps.data)"
         />
         <Button
           v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"

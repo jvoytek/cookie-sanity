@@ -23,7 +23,10 @@ export const useCookiesStore = defineStore("cookies", () => {
 
   const averageCookiePrice = computed(() => {
     if (allCookies.value.length === 0) return 0;
-    const total = allCookies.value.reduce((sum, cookie) => sum + (cookie.price || 0), 0);
+    const total = allCookies.value.reduce(
+      (sum, cookie) => sum + (cookie.price || 0),
+      0,
+    );
     return total / allCookies.value.length;
   });
 
