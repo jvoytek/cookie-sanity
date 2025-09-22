@@ -21,6 +21,7 @@ export default defineNuxtConfig({
     "@primevue/nuxt-module",
     "@pinia/nuxt",
     "@formkit/nuxt",
+    "@nuxt/test-utils/module",
   ],
 
   supabase: {

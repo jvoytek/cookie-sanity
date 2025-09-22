@@ -128,9 +128,92 @@ npm run preview
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 
-## TODO: How to test the software
+## How to test the software
 
-If the software includes automated tests, detail how to run those tests.
+Cookie Sanity includes unit tests using Vitest, a fast and modern testing framework with excellent Vue.js support.
+
+### Running Tests
+
+**Run all tests:**
+```bash
+npm test
+```
+
+**Run tests in watch mode:**
+```bash
+npm run test:watch
+```
+
+**Run tests with coverage:**
+```bash
+npm run test:coverage
+```
+
+### Test Structure
+
+The test suite includes:
+
+- **Unit Tests** (`tests/unit/`): Test individual functions, utilities, and Vue components
+  - `helpers.test.ts`: Tests for utility functions like currency formatting, calculations, and email validation
+  - `component.test.ts`: Example Vue component tests demonstrating the testing capabilities
+
+### Test Dependencies
+
+The testing setup includes:
+- **Vitest**: Modern testing framework with excellent Vue support
+- **@vue/test-utils**: Vue component testing utilities
+- **@vitejs/plugin-vue**: Vue support for Vite/Vitest
+- **happy-dom**: Lightweight DOM implementation for testing
+
+### Writing Tests
+
+When adding new features, include appropriate tests:
+
+1. **Unit tests** for utility functions, business logic, and data transformations
+2. **Component tests** for Vue components and their behavior
+3. **Integration tests** for connected functionality
+
+Example unit test:
+```typescript
+import { describe, it, expect } from 'vitest'
+import { calculateTotal } from '../../utils/helpers'
+
+describe('calculateTotal', () => {
+  it('calculates correct total', () => {
+    expect(calculateTotal(5, 4.00)).toBe(20.00)
+  })
+})
+```
+
+Example component test:
+```typescript
+import { describe, it, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import MyComponent from '~/components/MyComponent.vue'
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    const wrapper = mount(MyComponent)
+    expect(wrapper.text()).toContain('Expected text')
+  })
+})
+```
+
+### Testing Environment
+
+Tests run in a fast, isolated environment that:
+- Uses happy-dom for DOM simulation
+- Supports Vue 3 component mounting and testing
+- Includes TypeScript support
+- Provides comprehensive assertion capabilities
+- Supports async/await patterns
+
+### Future Enhancements
+
+The testing framework is set up to support:
+- End-to-end testing with Playwright (planned)
+- Visual regression testing (planned)
+- Component integration testing with Nuxt runtime (planned)
 
 ## TODO: Known issues
 
