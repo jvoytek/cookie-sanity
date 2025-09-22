@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
 // Import the store after setting up global mocks in setup.ts
-import { useCookiesStore } from '../../stores/cookies'
+import { useCookiesStore } from '@/stores/cookies'
 
 
 
