@@ -73,24 +73,24 @@ export const useAccountsStore = defineStore("accounts", () => {
       });
 
       // Calculate payments received for this girl
-      const girlPayments = allPayments.value.filter(p => p.seller_id === girl.id);
-      const paymentsReceived = girlPayments.reduce((sum, payment) => sum + payment.amount, 0);
+      const girlPaymentsList = allPayments.value.filter(p => p.seller_id === girl.id);
+      const paymentsReceived = girlPaymentsList.reduce((sum, payment) => sum + payment.amount, 0);
 
       // Calculate balance
       const balance = paymentsReceived - distributedValue;
 
       // Determine status
       let status = "";
-      if (balance < -0.01) {
-        status = `Owes $${Math.abs(balance).toFixed(2)}`;
-      } else if (balance > 0.01) {
+      if (balance < 0) {
+        status = `Balance Due`;
+      } else if (balance > 0) {
         status = "Overpaid";
       } else {
         status = "Paid in Full";
       }
 
       // Calculate estimated sales based on average prices
-      const estimatedSales = Math.round((paymentsReceived / cookiesStore.averageCookiePrice) * 10) / 10;
+      const estimatedSales = balance >= 0 ? numCookiesDistributed : Math.round(paymentsReceived / cookiesStore.averageCookiePrice);
 
       return {
         girl,
@@ -101,6 +101,7 @@ export const useAccountsStore = defineStore("accounts", () => {
         numCookiesDistributed,
         cookieTotals,
         estimatedSales,
+        girlPaymentsList,
       };
     });
   });
@@ -112,8 +113,8 @@ export const useAccountsStore = defineStore("accounts", () => {
     const totalPaymentsReceived = balances.reduce((sum, balance) => sum + balance.paymentsReceived, 0);
     const troopBalance = totalPaymentsReceived - totalDistributedValue;
     
-    // Calculate estimated total sales
-    const estimatedTotalSales =  Math.round((totalPaymentsReceived / cookiesStore.averageCookiePrice) * 10) / 10;
+    const numCookiesDistributed = balances.reduce((sum, balance) => sum + (balance.numCookiesDistributed || 0), 0);
+    const estimatedTotalSales =  troopBalance >= 0 ? numCookiesDistributed : Math.round(totalPaymentsReceived / cookiesStore.averageCookiePrice);
     
     // Count active accounts (accounts with any activity)
     const activeAccounts = balances.filter(
@@ -126,7 +127,7 @@ export const useAccountsStore = defineStore("accounts", () => {
       troopBalance,
       estimatedTotalSales,
       activeAccounts,
-      numCookiesDistributed: balances.reduce((sum, balance) => sum + (balance.numCookiesDistributed || 0), 0),
+      numCookiesDistributed: numCookiesDistributed,
       numCookiesRemaining: cookiesStore.allCookiesWithInventoryTotals.reduce((sum, cookie) => sum + (cookie.onHand || 0), 0),
     };
   });

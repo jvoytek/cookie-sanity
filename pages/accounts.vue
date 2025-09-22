@@ -45,7 +45,7 @@ function openNew() {
             <AccountSummaryWidget />
           </div>
 
-          <ScoutAccountBalancesTable />
+          <AccountBalancesTable />
         </TabPanel>
         <TabPanel value="1">
           <div class="flex flex-wrap items-center">
@@ -64,7 +64,15 @@ function openNew() {
             v-if="activeGirlAccount !== null"
             :girl-id="activeGirlAccount"
           />
-          </div>
+
+          <div class="col-span-12">
+            <PaymentsDataTable
+            v-if="activeGirlAccount !== null"
+            :girl-id="activeGirlAccount"
+          />
+          </div>  
+                </div>
+      
         </TabPanel>
       </Tabs>
     </div>

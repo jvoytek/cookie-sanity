@@ -75,7 +75,7 @@ const formatCurrency = (amount: number): string => {
       <p class="text-xl">
         {{ accountsStore.troopAccountSummary.estimatedTotalSales }}<br />
         <span class="text-sm leading-none text-muted-color"
-          >scouts with balances</span
+          >payments received/average cookie price</span
         >
       </p>
     </Fieldset>

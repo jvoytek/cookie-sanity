@@ -44,14 +44,13 @@ export const usePaymentHelpers = () => {
         "show-icon": true,
       },
       {
-        $formkit: "primeInputText",
+        $formkit: "primeTextarea",
         name: "notes",
-        label: "Notes",
-        key: "notes",
-        placeholder: "Enter any notes (optional)",
-        validation: "max:255",
+        label: "Notes (optional)",
+        placeholder: "Notes about this payment",
         class: "w-full",
-      }
+        rows: 2,
+      },
     ];
 
     return baseSchema;
@@ -89,7 +88,7 @@ export const usePaymentHelpers = () => {
 
   async function deletePayment() {
     try {
-      accountsStore.deletePayment(accountsStore.activePayment.id);
+      accountsStore.deletePayment(accountsStore.activePayment);
       accountsStore.deletePaymentDialogVisible = false;
       accountsStore.activePayment = {};
     } catch (error) {
