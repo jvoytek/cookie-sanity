@@ -7,6 +7,7 @@ loading.value = true;
 
 const cookiesStore = useCookiesStore();
 const seasonsStore = useSeasonsStore();
+const formatHelpers = useFormatHelpers();
 
 loading.value = false;
 
@@ -20,15 +21,6 @@ const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 const submitted = ref(false);
-
-function formatCurrency(value) {
-  if (value)
-    return value.toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-    });
-  return;
-}
 
 function openNew() {
   product.value = {};
@@ -139,7 +131,7 @@ async function onRowReorder(event) {
         <Column field="name" header="Name" />
         <Column field="price" header="Price">
           <template #body="slotProps">
-            {{ formatCurrency(slotProps.data.price) }}
+            {{ formatHelpers.formatCurrency(slotProps.data.price) }}
           </template>
         </Column>
         <Column field="color" header="Color">

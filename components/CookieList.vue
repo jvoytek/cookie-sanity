@@ -20,7 +20,7 @@ const totalCookies = (cookies) => {
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-1">
+  <div v-if="cookiesStore.allCookies.length" class="flex flex-wrap gap-1">
     <span
       v-for="cookie in cookiesStore.allCookies.filter(
         (cookie) =>
