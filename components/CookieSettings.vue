@@ -142,6 +142,24 @@ async function onRowReorder(event) {
             />
           </template>
         </Column>
+        <Column field="abbreviation" header="Abbrv." />
+        <Column field="percent_of_sale">
+          <template #header>
+            <strong>% of Sale</strong>
+            <i
+              v-tooltip.bottom="{
+                value:
+                  'Expected percentage of total sale. Used for inventory needs calculations.',
+                showDelay: 500,
+              }"
+              class="pi pi-info-circle ml-2"
+              style="cursor: pointer"
+            />
+          </template>
+          <template #body="slotProps">
+            {{ slotProps.data.percent_of_sale || 0 }}%
+          </template>
+        </Column>
         <Column :exportable="false" nowrap>
           <template #body="slotProps">
             <Button
@@ -202,6 +220,16 @@ async function onRowReorder(event) {
         <div>
           <label for="order" class="block font-bold mb-3">Order</label>
           <InputNumber id="order" v-model.trim="product.order" fluid />
+        </div>
+        <div>
+          <label for="percent_of_sale" class="block font-bold mb-3"
+            >Percent of Sale</label
+          >
+          <InputNumber
+            id="percent_of_sale"
+            v-model.trim="product.percent_of_sale"
+            fluid
+          />
         </div>
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-12">

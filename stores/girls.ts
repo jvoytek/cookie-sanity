@@ -167,6 +167,9 @@ export const useGirlsStore = defineStore("girls", () => {
 
   function findIndexById(id: number) {
     let index = -1;
+    if (typeof id == "string") {
+      id = parseInt(id);
+    }
     for (let i = 0; i < allGirls.value.length; i++) {
       if (allGirls.value[i].id === id) {
         index = i;
@@ -182,10 +185,15 @@ export const useGirlsStore = defineStore("girls", () => {
 
   const getGirlNameById = (id: number) => {
     const theGirl = getGirlById(id);
+    console.log("theGirl", theGirl);
     if (theGirl) {
       return _getGirlDisplayName(theGirl);
     }
     return "No girl found";
+  };
+
+  const getGirlNamesByIdList = (idList: number[]) => {
+    return idList.map((id) => getGirlNameById(id)).join(", ");
   };
 
   return {
@@ -196,5 +204,6 @@ export const useGirlsStore = defineStore("girls", () => {
     upsertGirl,
     deleteGirl,
     getGirlNameById,
+    getGirlNamesByIdList
   };
 });

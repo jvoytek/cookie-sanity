@@ -17,6 +17,7 @@ export const useBoothsStore = defineStore("booths", () => {
 
   /* State */
   const allBoothSales = ref<BoothSale[]>([]);
+  const boothDialogFormSchema = reactive([]);
 
   /* Computed */
 
@@ -73,19 +74,29 @@ export const useBoothsStore = defineStore("booths", () => {
   };
 
   // Calculate predicted cookies based on sales level and available cookies
-  const _calculatePredictedCookies = (expectedSalesLevel: string) => {
+  const _calculatePredictedCookies = (expectedSales: number) => {
     const predictions: Record<string, number> = {};
-    const multipliers = {
-      low: 0.3,
-      medium: 0.5,
-      high: 0.8
-    };
-    
-    const baseAmount = 50; // Base amount per cookie type
-    const multiplier = multipliers[expectedSalesLevel as keyof typeof multipliers] || 0.5;
-    
+    let cookieRatioTotal = cookiesStore.allCookies.reduce((total,cookie) => total + (cookie.percent_of_sale ?? 0), 0);
+    let cookiePercentages: Record<string, number> = {};
+    // If no cookie ratios are defined, use equal distribution
+    if (cookieRatioTotal === 0) {
+      cookieRatioTotal = 100;
+      cookiePercentages = cookiesStore.allCookies.reduce((acc, cookie) => {
+        acc[cookie.abbreviation] = 1 / cookiesStore.allCookies.length;
+        return acc;
+      }
+, {} as Record<string, number>);
+      console.log("No cookie ratios defined, using equal distribution:", cookiePercentages);
+    } else {
+      cookiePercentages = cookiesStore.allCookies.reduce((acc, cookie) => {
+        console.log(`Cookie: ${cookie.name}, Percentage of Sales: ${cookie.percent_of_sale}`);
+        acc[cookie.abbreviation] = cookie.percent_of_sale? cookie.percent_of_sale / cookieRatioTotal : 0;
+        return acc;
+      }, {} as Record<string, number>);
+    }
+    console.log("Cookie Percentages:", cookiePercentages);
     cookiesStore.allCookies.forEach((cookie: Cookie) => {
-      predictions[cookie.id.toString()] = Math.round(baseAmount * multiplier);
+      predictions[cookie.abbreviation] = Math.round(expectedSales * cookiePercentages[cookie.abbreviation]);
     });
     
     return predictions;
@@ -125,7 +136,7 @@ export const useBoothsStore = defineStore("booths", () => {
     
     // Auto-calculate predicted cookies if not provided
     if (!boothSale.predicted_cookies) {
-      boothSale.predicted_cookies = _calculatePredictedCookies(boothSale.expected_sales_level);
+      boothSale.predicted_cookies = _calculatePredictedCookies(boothSale.expected_sales);
     }
     
     try {
@@ -215,9 +226,8 @@ export const useBoothsStore = defineStore("booths", () => {
       if (booth.predicted_cookies) {
         const cookies = booth.predicted_cookies as Record<string, number>;
         // Find cookie by abbreviation
-        const cookie = cookiesStore.allCookies.find(c => c.abbreviation === cookieAbbreviation);
-        if (cookie && cookies[cookie.id.toString()]) {
-          total += cookies[cookie.id.toString()];
+        if (cookies[cookieAbbreviation]) {
+          total += cookies[cookieAbbreviation];
         }
       }
     });
@@ -226,6 +236,7 @@ export const useBoothsStore = defineStore("booths", () => {
 
   return {
     allBoothSales,
+    boothDialogFormSchema,
     upcomingBoothSales,
     troopInventoryBoothSales,
     predictedCookieAmounts,

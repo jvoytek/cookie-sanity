@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS "public"."cookies" (
     "profile" "uuid",
     "order" smallint,
     "abbreviation" character varying NOT NULL,
-    "season" bigint DEFAULT '1'::bigint NOT NULL
+    "season" bigint DEFAULT '1'::bigint NOT NULL,
+    "percent_of_sale" double precision
 );
 
 

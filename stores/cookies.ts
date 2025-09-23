@@ -85,10 +85,13 @@ export const useCookiesStore = defineStore("cookies", () => {
   };
 
   const _updateCookie = (cookie: Cookie) => {
-    //
     const index = allCookies.value.findIndex((c) => c.id === cookie.id);
     if (index !== -1) {
       allCookies.value[index] = cookie;
+    }
+    const seasonIndex = seasonCookies.value.findIndex((c) => c.id === cookie.id);
+    if (seasonIndex !== -1) {
+      seasonCookies.value[seasonIndex] = cookie;
     }
   };
 

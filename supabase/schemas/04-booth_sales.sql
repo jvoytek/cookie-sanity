@@ -5,11 +5,11 @@ create table booth_sales (
   profile uuid references profiles(id) on delete cascade not null,
   season bigint references seasons(id) on delete cascade not null default 1,
   sale_date date not null,
-  sale_time time not null,
+  sale_time text,
   location text not null,
-  scouts_attending text[], -- Array of scout names/IDs attending
+  scouts_attending jsonb, -- Array of scout names/IDs attending
   inventory_type text not null check (inventory_type in ('troop', 'scout')),
-  expected_sales_level text not null check (expected_sales_level in ('low', 'medium', 'high')),
+  expected_sales integer, -- Expected number of cookie boxes to be sold,
   predicted_cookies jsonb, -- Store predicted cookie quantities as JSON
   notes text
 );
