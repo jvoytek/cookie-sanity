@@ -37,6 +37,32 @@ global.useToast = vi.fn(() => ({
   add: vi.fn()
 }))
 
+// Mock helper composables
+global.useFormatHelpers = vi.fn(() => ({
+  formatCurrency: vi.fn((value) => `$${value}`),
+  formatDate: vi.fn((date) => date),
+  formatPercent: vi.fn((value) => `${value}%`)
+}))
+
+global.usePaymentHelpers = vi.fn(() => ({
+  form: { value: null },
+  submitted: { value: false },
+  editPayment: vi.fn(),
+  hideDialog: vi.fn(),
+  savePayment: vi.fn(),
+  deletePayment: vi.fn()
+}))
+
+global.useTransactionHelpers = vi.fn(() => ({
+  form: { value: null },
+  submitted: { value: false },
+  editTransaction: vi.fn(),
+  hideDialog: vi.fn(),
+  saveTransaction: vi.fn(),
+  deleteTransaction: vi.fn(),
+  transactionTypeBadgeSeverity: vi.fn(() => 'info')
+}))
+
 // Mock store composables - these will be overridden in individual tests as needed
 global.useProfileStore = vi.fn(() => ({
   currentProfile: { id: 'test-profile-id' }
@@ -67,7 +93,9 @@ global.useAccountsStore = vi.fn(() => ({
   deletePaymentDialogVisible: false,
   upsertPayment: vi.fn(),
   insertNewPayment: vi.fn(),
-  deletePayment: vi.fn()
+  deletePayment: vi.fn(),
+  troopBalance: { value: 0 },
+  allBalances: []
 }))
 
 global.useGirlsStore = vi.fn(() => ({
@@ -80,4 +108,10 @@ global.useCookiesStore = vi.fn(() => ({
 
 global.useBoothsStore = vi.fn(() => ({
   getPredictedAmountForCookie: vi.fn(() => -9),
+}))
+
+global.useUploadsStore = vi.fn(() => ({
+  allUploads: [],
+  insertUpload: vi.fn(),
+  deleteUpload: vi.fn()
 }))
