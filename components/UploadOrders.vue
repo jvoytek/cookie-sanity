@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { useToast } from "primevue/usetoast";
 import type { SCOrder2025 } from "@/types/types";
 
@@ -37,9 +37,7 @@ const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
   if (!profileStore.currentProfile?.season) return;
 
   try {
-    const sheet = await readExcel(file);
-
-    const jsonData = XLSX.utils.sheet_to_json<SCOrder2025>(sheet);
+    const jsonData = await readExcel(file);
     const orders = jsonData
       .map(ordersStore.convertSCOrderToNewOrder)
       .filter((order): order is NewOrder => order !== undefined);
@@ -68,17 +66,49 @@ const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
   }
 };
 
-const readExcel = (file: File): Promise<XLSX.WorkSheet> => {
+const readExcel = (file: File): Promise<SCOrder2025[]> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: "array", cellDates: true });
+    reader.onload = async (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(data.buffer);
 
-      const sheetName = workbook.SheetNames[0]; // Get the first sheet
-      const sheet = workbook.Sheets[sheetName];
+        const worksheet = workbook.worksheets[0]; // Get the first sheet
+        if (!worksheet) {
+          reject(new Error('No worksheet found in the Excel file'));
+          return;
+        }
 
-      resolve(sheet);
+        // Convert worksheet to JSON format similar to XLSX.utils.sheet_to_json
+        const jsonData: SCOrder2025[] = [];
+        const headerRow = worksheet.getRow(1);
+        const headers: string[] = [];
+        
+        // Extract headers
+        headerRow.eachCell((cell, colNumber) => {
+          headers[colNumber - 1] = cell.value?.toString() || '';
+        });
+
+        // Process data rows
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber > 1) { // Skip header row
+            const rowData: Record<string, unknown> = {};
+            row.eachCell((cell, colNumber) => {
+              const header = headers[colNumber - 1];
+              if (header) {
+                rowData[header] = cell.value;
+              }
+            });
+            jsonData.push(rowData as SCOrder2025);
+          }
+        });
+
+        resolve(jsonData);
+      } catch (error) {
+        reject(error);
+      }
     };
     reader.onerror = (err) => reject(err);
     reader.readAsArrayBuffer(file);
