@@ -74,4 +74,3 @@ describe('AuthForm', () => {
     expect(form.exists()).toBe(true)
   })
 })
-})
