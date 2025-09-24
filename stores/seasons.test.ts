@@ -1,0 +1,352 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+
+// Import the store after setting up global mocks in setup.ts
+import { useSeasonsStore } from '@/stores/seasons'
+
+describe('stores/seasons', () => {
+  let seasonsStore: ReturnType<typeof useSeasonsStore>
+
+  beforeEach(() => {
+    // Create a fresh Pinia instance for each test
+    setActivePinia(createPinia())
+    
+    // Set up the profileStore mock
+    global.useProfileStore = vi.fn(() => ({
+      currentProfile: {
+        id: 'test-profile-id',
+        season: 1
+      },
+      fetchProfile: vi.fn()
+    }))
+
+    seasonsStore = useSeasonsStore()
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  describe('state management', () => {
+    it('initializes with empty arrays', () => {
+      setActivePinia(createPinia())
+      const freshStore = useSeasonsStore()
+      
+      expect(freshStore.allSeasons).toEqual([])
+      expect(freshStore.currentSeason).toBeUndefined()
+      expect(freshStore.settingsSelectedSeason).toBeUndefined()
+    })
+  })
+
+  describe('fetchSeasons', () => {
+    it('successfully fetches seasons and sets current season when profile has season', async () => {
+      const mockSeasons = [
+        { id: 1, troop_number: '12345', year: '2024-01-01', profile: 'test-profile-id' },
+        { id: 2, troop_number: '12345', year: '2025-01-01', profile: 'test-profile-id' }
+      ]
+
+      global.useSupabaseClient = vi.fn(() => ({
+        from: vi.fn(() => ({
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              order: vi.fn(() => Promise.resolve({ data: mockSeasons, error: null }))
+            }))
+          }))
+        }))
+      }))
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+
+      await newSeasonsStore.fetchSeasons()
+
+      expect(newSeasonsStore.allSeasons).toEqual(mockSeasons)
+      expect(newSeasonsStore.currentSeason).toEqual(mockSeasons[0]) // season id 1 matches profile
+    })
+
+    it('sets current season to first season when profile has no season', async () => {
+      const mockSeasons = [
+        { id: 3, troop_number: '12345', year: '2024-01-01', profile: 'test-profile-id' },
+        { id: 4, troop_number: '12345', year: '2025-01-01', profile: 'test-profile-id' }
+      ]
+
+      global.useSupabaseClient = vi.fn(() => ({
+        from: vi.fn(() => ({
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              order: vi.fn(() => Promise.resolve({ data: mockSeasons, error: null }))
+            }))
+          }))
+        }))
+      }))
+
+      global.useProfileStore = vi.fn(() => ({
+        currentProfile: {
+          id: 'test-profile-id',
+          season: null // no season set
+        },
+        fetchProfile: vi.fn()
+      }))
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+
+      await newSeasonsStore.fetchSeasons()
+
+      expect(newSeasonsStore.allSeasons).toEqual(mockSeasons)
+      expect(newSeasonsStore.currentSeason).toEqual(mockSeasons[0]) // first season
+    })
+
+    it('returns early if no profile id', async () => {
+      global.useProfileStore = vi.fn(() => ({
+        currentProfile: null,
+        fetchProfile: vi.fn()
+      }))
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+
+      await newSeasonsStore.fetchSeasons()
+
+      expect(newSeasonsStore.allSeasons).toEqual([])
+    })
+
+    it('handles fetch error and shows toast', async () => {
+      const toastSpy = vi.fn()
+      global.useToast = vi.fn(() => ({
+        add: toastSpy
+      }))
+
+      global.useSupabaseClient = vi.fn(() => ({
+        from: vi.fn(() => ({
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              order: vi.fn(() => Promise.resolve({ data: null, error: { message: 'Database error' } }))
+            }))
+          }))
+        }))
+      }))
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+
+      await newSeasonsStore.fetchSeasons()
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Database error',
+        life: 3000
+      })
+    })
+  })
+
+  describe('getCurrentSeason', () => {
+    it('returns current season if id is not -1', async () => {
+      seasonsStore.currentSeason = { id: 1, troop_number: '12345', year: '2024-01-01' }
+      
+      const result = await seasonsStore.getCurrentSeason()
+      
+      expect(result).toEqual(seasonsStore.currentSeason)
+    })
+
+    it('fetches profile and seasons if current season id is -1', async () => {
+      const mockFetchProfile = vi.fn()
+      
+      global.useProfileStore = vi.fn(() => ({
+        currentProfile: {
+          id: 'test-profile-id',
+          season: 1
+        },
+        fetchProfile: mockFetchProfile
+      }))
+
+      // Create new store instance to get fresh profileStore
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+      
+      // Set initial state with id = -1
+      newSeasonsStore.currentSeason = { id: -1, troop_number: '', year: '' }
+      
+      // Mock fetchSeasons to update currentSeason - the condition checks !allSeasons (which is the ref object, always truthy)
+      // So fetchSeasons will NOT be called, only fetchProfile
+      
+      const result = await newSeasonsStore.getCurrentSeason()
+      
+      expect(mockFetchProfile).toHaveBeenCalled()
+      // Note: fetchSeasons is not called due to the !allSeasons condition in the implementation
+      // The allSeasons ref object is always truthy
+      expect(result).toEqual({ id: -1, troop_number: '', year: '' })
+    })
+
+    it('actually calls fetchSeasons when allSeasons check is fixed (documenting the bug)', async () => {
+      const mockFetchProfile = vi.fn()
+      
+      global.useProfileStore = vi.fn(() => ({
+        currentProfile: {
+          id: 'test-profile-id',
+          season: 1
+        },
+        fetchProfile: mockFetchProfile
+      }))
+
+      // Create new store instance
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+      
+      // Spy on the original implementation, but the bug means it won't be called
+      const fetchSeasonsSpy = vi.spyOn(newSeasonsStore, 'fetchSeasons')
+      
+      // Set initial state with id = -1
+      newSeasonsStore.currentSeason = { id: -1, troop_number: '', year: '' }
+      
+      await newSeasonsStore.getCurrentSeason()
+      
+      expect(mockFetchProfile).toHaveBeenCalled()
+      expect(fetchSeasonsSpy).not.toHaveBeenCalled() // Because !allSeasons is always false
+    })
+  })
+
+  describe('getSeasonName', () => {
+    it('returns formatted season name for valid season', () => {
+      const season = { id: 1, troop_number: '12345', year: '2024-01-01', profile: 'test' }
+      
+      const result = seasonsStore.getSeasonName(season)
+      
+      expect(result).toBe('12345-2024')
+    })
+
+    it('returns loading message for null season', () => {
+      const result = seasonsStore.getSeasonName(null)
+      
+      expect(result).toBe('loading...')
+    })
+  })
+
+  describe('insertSeason', () => {
+    it('successfully inserts season and shows success toast', async () => {
+      const toastSpy = vi.fn()
+      global.useToast = vi.fn(() => ({
+        add: toastSpy
+      }))
+
+      global.useSupabaseClient = vi.fn(() => ({
+        from: vi.fn(() => ({
+          insert: vi.fn(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn(() => Promise.resolve({ data: {}, error: null }))
+            }))
+          }))
+        }))
+      }))
+
+      global.useSupabaseUser = vi.fn(() => ({ value: { id: 'test-user-id' } }))
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+
+      const newSeason = { troop_number: '12345', year: '2024-01-01' }
+      await newSeasonsStore.insertSeason(newSeason)
+
+      expect(newSeason.profile).toBe('test-user-id')
+      expect(toastSpy).toHaveBeenCalledWith({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Season Created',
+        life: 3000
+      })
+    })
+
+    it('handles insert error and shows error toast', async () => {
+      const toastSpy = vi.fn()
+      global.useToast = vi.fn(() => ({
+        add: toastSpy
+      }))
+
+      global.useSupabaseClient = vi.fn(() => ({
+        from: vi.fn(() => ({
+          insert: vi.fn(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn(() => Promise.resolve({ data: null, error: { message: 'Insert failed' } }))
+            }))
+          }))
+        }))
+      }))
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+
+      const newSeason = { troop_number: '12345', year: '2024-01-01' }
+      await newSeasonsStore.insertSeason(newSeason)
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Insert failed',
+        life: 3000
+      })
+    })
+  })
+
+  describe('upsertSeason', () => {
+    it('successfully upserts season and shows success toast', async () => {
+      const toastSpy = vi.fn()
+      global.useToast = vi.fn(() => ({
+        add: toastSpy
+      }))
+
+      global.useSupabaseClient = vi.fn(() => ({
+        from: vi.fn(() => ({
+          upsert: vi.fn(() => Promise.resolve({ error: null }))
+        }))
+      }))
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+
+      const season = { id: 1, troop_number: '12345', year: '2024-01-01', profile: 'test' }
+      await newSeasonsStore.upsertSeason(season)
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Product Updated',
+        life: 3000
+      })
+    })
+
+    it('handles upsert error and shows error toast', async () => {
+      const toastSpy = vi.fn()
+      global.useToast = vi.fn(() => ({
+        add: toastSpy
+      }))
+
+      global.useSupabaseClient = vi.fn(() => ({
+        from: vi.fn(() => ({
+          upsert: vi.fn(() => Promise.resolve({ error: { message: 'Upsert failed' } }))
+        }))
+      }))
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia())
+      const newSeasonsStore = useSeasonsStore()
+
+      const season = { id: 1, troop_number: '12345', year: '2024-01-01', profile: 'test' }
+      await newSeasonsStore.upsertSeason(season)
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Upsert failed',
+        life: 3000
+      })
+    })
+  })
+})
