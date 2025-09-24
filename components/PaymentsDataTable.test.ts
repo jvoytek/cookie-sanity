@@ -7,6 +7,9 @@ describe('PaymentsDataTable', () => {
   it('renders without crashing', () => {
     expect(() => {
       mount(PaymentsDataTable, {
+        props: {
+          girlId: 1
+        },
         global: {
           plugins: [createTestingPinia()],
           stubs: {
@@ -26,6 +29,9 @@ describe('PaymentsDataTable', () => {
 
   it('mounts successfully', () => {
     const wrapper = mount(PaymentsDataTable, {
+      props: {
+        girlId: 1
+      },
       global: {
         plugins: [createTestingPinia()],
         stubs: {

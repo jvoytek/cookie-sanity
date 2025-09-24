@@ -1,7 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import OrdersList from '@/components/OrdersList.vue'
+
+// Mock PrimeVue useToast
+vi.mock('primevue/usetoast', () => ({
+  useToast: () => ({
+    add: vi.fn()
+  })
+}))
 
 describe('OrdersList', () => {
   it('renders without crashing', () => {

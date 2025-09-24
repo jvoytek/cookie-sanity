@@ -1,12 +1,15 @@
 import { vi } from 'vitest'
 import { defineStore } from 'pinia'
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch, onMounted } from 'vue'
 
 // Mock Nuxt global functions and auto-imports
 global.defineStore = defineStore
 global.ref = ref
 global.computed = computed
 global.reactive = reactive
+global.watch = watch
+global.onMounted = onMounted
+global.navigateTo = vi.fn()
 
 // Mock Supabase composables
 global.useSupabaseClient = vi.fn(() => ({
@@ -44,6 +47,14 @@ global.useFormatHelpers = vi.fn(() => ({
   formatPercent: vi.fn((value) => `${value}%`)
 }))
 
+global.useLayout = vi.fn(() => ({
+  getPrimary: { value: 'emerald' },
+  getSurface: { value: null },
+  isDarkTheme: { value: false },
+  layoutConfig: { darkTheme: false },
+  layoutState: { staticMenuDesktopInactive: false }
+}))
+
 global.usePaymentHelpers = vi.fn(() => ({
   form: { value: null },
   submitted: { value: false },
@@ -70,7 +81,8 @@ global.useProfileStore = vi.fn(() => ({
 
 global.useSeasonsStore = vi.fn(() => ({
   currentSeason: { id: 1 },
-  settingsSelectedSeason: { id: 1 }
+  settingsSelectedSeason: { id: 1 },
+  getSeasonName: vi.fn((season) => season ? `${season.year} Season` : '2024 Season')
 }))
 
 global.useOrdersStore = vi.fn(() => ({
@@ -95,7 +107,18 @@ global.useAccountsStore = vi.fn(() => ({
   insertNewPayment: vi.fn(),
   deletePayment: vi.fn(),
   troopBalance: { value: 0 },
-  allBalances: []
+  allBalances: [],
+  getGirlAccountById: vi.fn(() => ({
+    balance: 0,
+    payments: [],
+    girl: { first_name: 'Test Girl', last_name: 'Test' },
+    girlPaymentsList: []
+  })),
+  troopAccountSummary: {
+    troopBalance: 0,
+    totalPaid: 0,
+    totalOwed: 0
+  }
 }))
 
 global.useGirlsStore = vi.fn(() => ({

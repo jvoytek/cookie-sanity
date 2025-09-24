@@ -3,6 +3,13 @@ import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import UploadOrders from '@/components/UploadOrders.vue'
 
+// Mock PrimeVue useToast
+vi.mock('primevue/usetoast', () => ({
+  useToast: () => ({
+    add: vi.fn()
+  })
+}))
+
 // Mock useToast
 const mockToast = {
   add: vi.fn()

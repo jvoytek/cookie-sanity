@@ -7,6 +7,9 @@ describe('AccountDetailWidget', () => {
   it('renders without crashing', () => {
     expect(() => {
       mount(AccountDetailWidget, {
+        props: {
+          girlId: 1
+        },
         global: {
           plugins: [createTestingPinia()],
           stubs: {
@@ -25,6 +28,9 @@ describe('AccountDetailWidget', () => {
 
   it('mounts successfully', () => {
     const wrapper = mount(AccountDetailWidget, {
+      props: {
+        girlId: 1
+      },
       global: {
         plugins: [createTestingPinia()],
         stubs: {
