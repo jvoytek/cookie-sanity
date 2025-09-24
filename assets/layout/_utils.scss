@@ -26,6 +26,7 @@
 
 /* Fix for date picker overlay rendering behind dialog */
 .p-datepicker-panel,
-.p-datepicker-calendar {
+.p-datepicker-calendar,
+.p-multiselect-overlay {
   z-index: 1200 !important;
 }

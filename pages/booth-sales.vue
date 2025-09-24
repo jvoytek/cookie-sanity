@@ -229,7 +229,6 @@ const getBoothSaleDialogFormSchema = () => {
           ref="dt"
           :value="boothsStore.allBoothSales"
           data-key="id"
-          :filters="filters"
           sort-field="sale_date"
         >
 

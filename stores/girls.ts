@@ -167,9 +167,7 @@ export const useGirlsStore = defineStore("girls", () => {
 
   function findIndexById(id: number) {
     let index = -1;
-    if (typeof id == "string") {
-      id = parseInt(id);
-    }
+
     for (let i = 0; i < allGirls.value.length; i++) {
       if (allGirls.value[i].id === id) {
         index = i;
