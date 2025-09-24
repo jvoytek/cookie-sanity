@@ -66,7 +66,10 @@ export const useSeasonsStore = defineStore("seasons", () => {
 
   const getSeasonName = (season: Season | null) => {
     if (!season) return "loading...";
-    return season.troop_number + "-" + new Date(season.year).getFullYear();
+    return season.troop_number + "-" + new Date(season.year).toLocaleDateString("en-US", {
+      year: "numeric",
+      timeZone: 'UTC'
+    });
   };
 
   const insertSeason = async (season: Season) => {

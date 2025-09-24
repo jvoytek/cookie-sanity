@@ -213,8 +213,9 @@ describe('stores/seasons', () => {
 
   describe('getSeasonName', () => {
     it('returns formatted season name for valid season', () => {
-      const season = { id: 1, troop_number: '12345', year: '2024-01-01', profile: 'test' }
-      
+      const season = { id: 1, troop_number: '12345', year: '2024-01-01T00:00:00Z', profile: 'test' }
+          //      expect(helpers2.formatDate(new Date('2024-01-15T00:00:00Z'))).toBe('Jan 15, 2024')
+
       const result = seasonsStore.getSeasonName(season)
       
       expect(result).toBe('12345-2024')
