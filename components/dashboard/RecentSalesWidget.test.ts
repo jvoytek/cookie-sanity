@@ -1,40 +1,40 @@
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
-import RecentSalesWidget from '@/components/dashboard/RecentSalesWidget.vue'
+import { describe, it, expect } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createTestingPinia } from "@pinia/testing";
+import RecentSalesWidget from "@/components/dashboard/RecentSalesWidget.vue";
 
-describe('RecentSalesWidget', () => {
-  it('renders without crashing', () => {
+describe("RecentSalesWidget", () => {
+  it("renders without crashing", () => {
     expect(() => {
       mount(RecentSalesWidget, {
         global: {
           plugins: [createTestingPinia()],
           stubs: {
-            'Card': true,
-            'Button': true,
-            'DataTable': true,
-            'Badge': true,
-            'Rating': true
-          }
-        }
-      })
-    }).not.toThrow()
-  })
+            Card: true,
+            Button: true,
+            DataTable: true,
+            Badge: true,
+            Rating: true,
+          },
+        },
+      });
+    }).not.toThrow();
+  });
 
-  it('mounts successfully', () => {
+  it("mounts successfully", () => {
     const wrapper = mount(RecentSalesWidget, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {
-          'Card': true,
-          'Button': true,
-          'DataTable': true,
-          'Badge': true,
-          'Rating': true
-        }
-      }
-    })
-    
-    expect(wrapper.exists()).toBe(true)
-  })
-})
+          Card: true,
+          Button: true,
+          DataTable: true,
+          Badge: true,
+          Rating: true,
+        },
+      },
+    });
+
+    expect(wrapper.exists()).toBe(true);
+  });
+});

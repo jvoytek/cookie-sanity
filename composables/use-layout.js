@@ -2,9 +2,9 @@ import { computed, reactive } from "vue";
 
 // Initialize dark mode from localStorage if available
 const getInitialDarkMode = () => {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('darkMode');
-    return stored === 'true';
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("darkMode");
+    return stored === "true";
   }
   return false;
 };
@@ -30,7 +30,7 @@ const layoutState = reactive({
 export function useLayout() {
   // Initialize dark mode state on the document element
   const initializeDarkMode = () => {
-    if (typeof window !== 'undefined' && layoutConfig.darkTheme) {
+    if (typeof window !== "undefined" && layoutConfig.darkTheme) {
       document.documentElement.classList.add("app-dark");
     }
   };
@@ -52,10 +52,10 @@ export function useLayout() {
   const executeDarkModeToggle = () => {
     layoutConfig.darkTheme = !layoutConfig.darkTheme;
     document.documentElement.classList.toggle("app-dark");
-    
+
     // Persist to localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('darkMode', layoutConfig.darkTheme.toString());
+    if (typeof window !== "undefined") {
+      localStorage.setItem("darkMode", layoutConfig.darkTheme.toString());
     }
   };
 

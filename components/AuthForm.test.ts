@@ -1,76 +1,76 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
-import AuthForm from '@/components/AuthForm.vue'
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mount } from "@vue/test-utils";
+import AuthForm from "@/components/AuthForm.vue";
 
 // Mock Supabase client
-const mockSignInWithOtp = vi.fn()
+const mockSignInWithOtp = vi.fn();
 const mockSupabaseClient = {
   auth: {
-    signInWithOtp: mockSignInWithOtp
-  }
-}
+    signInWithOtp: mockSignInWithOtp,
+  },
+};
 
-global.useSupabaseClient = vi.fn(() => mockSupabaseClient)
-global.alert = vi.fn()
+global.useSupabaseClient = vi.fn(() => mockSupabaseClient);
+global.alert = vi.fn();
 
-describe('AuthForm', () => {
+describe("AuthForm", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
-  it('renders form element', () => {
+  it("renders form element", () => {
     const wrapper = mount(AuthForm, {
       global: {
         stubs: {
-          'Button': true,
-          'InputText': true
-        }
-      }
-    })
+          Button: true,
+          InputText: true,
+        },
+      },
+    });
 
-    expect(wrapper.find('form').exists()).toBe(true)
-  })
+    expect(wrapper.find("form").exists()).toBe(true);
+  });
 
-  it('renders email label', () => {
+  it("renders email label", () => {
     const wrapper = mount(AuthForm, {
       global: {
         stubs: {
-          'Button': true,
-          'InputText': true
-        }
-      }
-    })
+          Button: true,
+          InputText: true,
+        },
+      },
+    });
 
-    expect(wrapper.find('label[for="email1"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Email')
-  })
+    expect(wrapper.find('label[for="email1"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain("Email");
+  });
 
-  it('renders input and button components', () => {
+  it("renders input and button components", () => {
     const wrapper = mount(AuthForm, {
       global: {
         stubs: {
-          'Button': true,
-          'InputText': true
-        }
-      }
-    })
+          Button: true,
+          InputText: true,
+        },
+      },
+    });
 
-    expect(wrapper.findComponent({ name: 'InputText' }).exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'Button' }).exists()).toBe(true)
-  })
+    expect(wrapper.findComponent({ name: "InputText" }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: "Button" }).exists()).toBe(true);
+  });
 
-  it('has correct form structure', () => {
+  it("has correct form structure", () => {
     const wrapper = mount(AuthForm, {
       global: {
         stubs: {
-          'Button': true,
-          'InputText': true
-        }
-      }
-    })
+          Button: true,
+          InputText: true,
+        },
+      },
+    });
 
     // Form should have submit prevention
-    const form = wrapper.find('form')
-    expect(form.exists()).toBe(true)
-  })
-})
+    const form = wrapper.find("form");
+    expect(form.exists()).toBe(true);
+  });
+});

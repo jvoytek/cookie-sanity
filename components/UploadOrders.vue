@@ -77,7 +77,7 @@ const readExcel = (file: File): Promise<SCOrder2025[]> => {
 
         const worksheet = workbook.worksheets[0]; // Get the first sheet
         if (!worksheet) {
-          reject(new Error('No worksheet found in the Excel file'));
+          reject(new Error("No worksheet found in the Excel file"));
           return;
         }
 
@@ -85,15 +85,16 @@ const readExcel = (file: File): Promise<SCOrder2025[]> => {
         const jsonData: SCOrder2025[] = [];
         const headerRow = worksheet.getRow(1);
         const headers: string[] = [];
-        
+
         // Extract headers
         headerRow.eachCell((cell, colNumber) => {
-          headers[colNumber - 1] = cell.value?.toString() || '';
+          headers[colNumber - 1] = cell.value?.toString() || "";
         });
 
         // Process data rows
         worksheet.eachRow((row, rowNumber) => {
-          if (rowNumber > 1) { // Skip header row
+          if (rowNumber > 1) {
+            // Skip header row
             const rowData: Record<string, unknown> = {};
             row.eachCell((cell, colNumber) => {
               const header = headers[colNumber - 1];

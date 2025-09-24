@@ -1,50 +1,50 @@
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
-import AccountDetailWidget from '@/components/AccountDetailWidget.vue'
+import { describe, it, expect } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createTestingPinia } from "@pinia/testing";
+import AccountDetailWidget from "@/components/AccountDetailWidget.vue";
 
-describe('AccountDetailWidget', () => {
-  it('renders without crashing', () => {
+describe("AccountDetailWidget", () => {
+  it("renders without crashing", () => {
     expect(() => {
       mount(AccountDetailWidget, {
         props: {
-          girlId: 1
+          girlId: 1,
         },
         global: {
           plugins: [createTestingPinia()],
           stubs: {
-            'Card': true,
-            'DataTable': true,
-            'Column': true,
-            'Button': true,
-            'Badge': true,
-            'Dialog': true,
-            'PaymentDialog': true
-          }
-        }
-      })
-    }).not.toThrow()
-  })
+            Card: true,
+            DataTable: true,
+            Column: true,
+            Button: true,
+            Badge: true,
+            Dialog: true,
+            PaymentDialog: true,
+          },
+        },
+      });
+    }).not.toThrow();
+  });
 
-  it('mounts successfully', () => {
+  it("mounts successfully", () => {
     const wrapper = mount(AccountDetailWidget, {
       props: {
-        girlId: 1
+        girlId: 1,
       },
       global: {
         plugins: [createTestingPinia()],
         stubs: {
-          'Card': true,
-          'DataTable': true,
-          'Column': true,
-          'Button': true,
-          'Badge': true,
-          'Dialog': true,
-          'PaymentDialog': true
-        }
-      }
-    })
-    
-    expect(wrapper.exists()).toBe(true)
-  })
-})
+          Card: true,
+          DataTable: true,
+          Column: true,
+          Button: true,
+          Badge: true,
+          Dialog: true,
+          PaymentDialog: true,
+        },
+      },
+    });
+
+    expect(wrapper.exists()).toBe(true);
+  });
+});
