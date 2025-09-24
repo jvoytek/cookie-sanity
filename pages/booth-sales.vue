@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FilterMatchMode } from "@primevue/core/api";
+
 import { useToast } from "primevue/usetoast";
 import type { BoothSale } from "@/types/types";
 
@@ -17,10 +17,6 @@ loading.value = false;
 const toast = useToast();
 const dt = ref();
 const deleteBoothSaleDialog = ref(false);
-const selectedBoothSales = ref();
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
 
 const inventoryTypeOptions = [
   { label: "Troop Inventory", value: "troop" },
@@ -74,14 +70,15 @@ async function deleteBoothSale() {
 }
 
 boothsStore.$subscribe((mutation, _state) => {
-  if (!mutation.events?.oldValue || !mutation.events?.oldValue.expected_sales) return;
+  if (!mutation.events?.oldValue || !mutation.events?.oldValue.expected_sales)
+    return;
   const previousExpectedSales = mutation.events?.oldValue?.expected_sales || 0;
   const newExpectedSales = mutation.events?.newValue?.expected_sales || 0;
 
   if (previousExpectedSales !== newExpectedSales) {
     boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
   }
-   boothsStore.setActiveBoothSaleTotalExpectedSales();
+  boothsStore.setActiveBoothSaleTotalExpectedSales();
 });
 
 const getBoothSaleDialogFormSchema = () => {
@@ -93,8 +90,10 @@ const getBoothSaleDialogFormSchema = () => {
       key: "sale_date",
       placeholder: "Select date",
       validation: "required|date",
-      class: "w-full",
-      type: "date",
+      wrapperClass: "grid grid-cols-4 gap-4 items-center",
+      labelClass: "col-span-1",
+      innerClass: "col-span-3 mt-1 mb-1",
+      class: "w-full",      
       "date-format": "yy-mm-dd",
       "show-icon": true,
     },
@@ -105,8 +104,10 @@ const getBoothSaleDialogFormSchema = () => {
       key: "sale_time",
       placeholder: "Set time",
       validation: "required|time",
+      wrapperClass: "grid grid-cols-4 gap-4 items-center",
+      labelClass: "col-span-1",
+      innerClass: "col-span-3 mt-1 mb-1",
       class: "w-full",
-      type: "time",
     },
     {
       $formkit: "primeInputText",
@@ -115,6 +116,9 @@ const getBoothSaleDialogFormSchema = () => {
       key: "location",
       placeholder: "Walmart, Local Grocery Store, etc.",
       validation: "required",
+      wrapperClass: "grid grid-cols-4 gap-4 items-center",
+      labelClass: "col-span-1",
+      innerClass: "col-span-3 mt-1 mb-1",
       class: "w-full",
     },
     {
@@ -124,6 +128,9 @@ const getBoothSaleDialogFormSchema = () => {
       "option-label": "label",
       "option-value": "value",
       placeholder: "Select scouts",
+      wrapperClass: "grid grid-cols-4 gap-4 items-center",
+      labelClass: "col-span-1",
+      innerClass: "col-span-3 mt-1 mb-1",
       class: "w-full",
       label: "Scouts Attending",
       key: "scouts_attending",
@@ -138,7 +145,10 @@ const getBoothSaleDialogFormSchema = () => {
       placeholder: "Choose a type",
       options: inventoryTypeOptions,
       validation: "required",
-      class: "w-full",
+      wrapperClass: "grid grid-cols-4 gap-4 items-center",
+      labelClass: "col-span-1",
+      innerClass: "col-span-3 mt-1 mb-1",
+      class: "w-full",      
       "option-label": "label",
       "option-value": "value",
     },
@@ -146,27 +156,52 @@ const getBoothSaleDialogFormSchema = () => {
       $formkit: "primeTextarea",
       name: "notes",
       label: "Notes (optional)",
-      placeholder: "Notes about this payment",
+      placeholder: "Notes about this booth sale",
       class: "w-full",
       rows: 2,
     },
     {
+      $el: "h6",
+      children: "Predicted Cookie Demand",
+    },
+    {
+      $el: "p",
+      children:
+        "Enter total estimated sales to auto-calculate cookie variety demand, or manually enter variety estimates. Setup expected cookie variety percentages in Cookie Settings.",
+    },
+    {
+      $formkit: "primeToggleSwitch",
+      name: "auto_calculate_predicted_cookies",
+      label: "Auto-Calculate Predicted Cookies",
+      key: "auto_calculate_predicted_cookies",
+      id: "auto_calculate_predicted_cookies",
+      value: true,
+      wrapperClass: "grid grid-cols-3 gap-4 items-center",
+      labelClass: "col-span-1",
+      innerClass: "col-span-2 mt-1 mb-1",
+      class: "w-full",   
+    },
+    {
       $formkit: "primeInputNumber",
       name: "expected_sales",
-      label: "Expected Sales",
+      label: "Total Estimated Sales",
       key: "expected_sales",
       placeholder: "25, 50, 100, etc.",
       validation: "required|integer|min:0",
+      wrapperClass: "grid grid-cols-3 gap-4 items-center",
+      labelClass: "col-span-1",
+      innerClass: "col-span-2 mt-1 mb-1",
       class: "w-full",
+      disabled: "$get('auto_calculate_predicted_cookies').value === false",
     },
     {
       $formkit: "group",
       name: "predicted_cookies",
       children: cookiesStore.cookieFormFields,
-    }
+      disabled: "$get('auto_calculate_predicted_cookies').value === true",
+    },
   ];
 };
-
 </script>
 
 <template>
@@ -192,26 +227,11 @@ const getBoothSaleDialogFormSchema = () => {
 
         <DataTable
           ref="dt"
-          v-model:selection="selectedBoothSales"
           :value="boothsStore.allBoothSales"
           data-key="id"
           :filters="filters"
           sort-field="sale_date"
         >
-          <template #header>
-            <div class="flex flex-wrap gap-2 items-center justify-between">
-              <h4 class="m-0">Manage Booth Sales</h4>
-              <IconField>
-                <InputIcon>
-                  <i class="pi pi-search" />
-                </InputIcon>
-                <InputText
-                  v-model="filters['global'].value"
-                  placeholder="Search..."
-                />
-              </IconField>
-            </div>
-          </template>
 
           <Column field="sale_date" header="Date" sortable>
             <template #body="slotProps">
@@ -265,7 +285,6 @@ const getBoothSaleDialogFormSchema = () => {
           </Column>
         </DataTable>
 
-        <!-- Create/Edit Dialog -->
         <Dialog
           v-model:visible="boothsStore.boothDialogVisible"
           :style="{ width: '550px' }"
@@ -280,7 +299,6 @@ const getBoothSaleDialogFormSchema = () => {
               :actions="false"
               @submit="saveBoothSale"
             >
-              <!-- Render the dynamic form using the schema -->
               <FormKitSchema
                 :schema="boothsStore.boothDialogFormSchema.value"
               />
@@ -302,7 +320,6 @@ const getBoothSaleDialogFormSchema = () => {
           </template>
         </Dialog>
 
-        <!-- Delete Confirmation Dialog -->
         <Dialog
           v-model:visible="deleteBoothSaleDialog"
           :style="{ width: '450px' }"

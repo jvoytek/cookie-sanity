@@ -50,3 +50,7 @@ global.useOrdersStore = vi.fn(() => ({
   sumOrdersByCookie: vi.fn(() => 0),
   totalTransactionsByStatusAndCookie: vi.fn(() => 0)
 }))
+
+global.useBoothsStore = vi.fn(() => ({
+  getPredictedAmountForCookie: vi.fn(() => -9),
+}))

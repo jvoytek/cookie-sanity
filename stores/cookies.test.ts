@@ -103,23 +103,23 @@ describe('stores/cookies', () => {
 
       expect(inventoryTotals).toHaveLength(5)
 
-      // Test Adventurefuls (ADV): onHand=100, requestedGirl=10, pendingGirl=3, pendingTroop=2
+      // Test Adventurefuls (ADV): onHand=100, requestedGirl=10, pendingGirl=3, pendingTroop=2, pendedBooth=-9
       const advCookie = inventoryTotals.find(c => c.abbreviation === 'ADV')
       expect(advCookie?.onHand).toBe(100)
       expect(advCookie?.requestedGirl).toBe(10)
       expect(advCookie?.pendingGirl).toBe(3)
       expect(advCookie?.pendingTroop).toBe(2)
-      expect(advCookie?.afterPending).toBe(105) // 100 + 3 + 2
-      expect(advCookie?.afterPendingIncludingRequests).toBe(115) // 105 + 10
+      expect(advCookie?.afterPending).toBe(96) // 100 + 3 + 2 -9
+      expect(advCookie?.afterPendingIncludingRequests).toBe(106) // 105 + 10
 
-      // Test Thin Mints (TM): onHand=75, requestedGirl=5, pendingGirl=8, pendingTroop=2
+      // Test Thin Mints (TM): onHand=75, requestedGirl=5, pendingGirl=8, pendingTroop=2, pendedBooth=-9
       const tmCookie = inventoryTotals.find(c => c.abbreviation === 'TM')
       expect(tmCookie?.onHand).toBe(75)
       expect(tmCookie?.requestedGirl).toBe(5)
       expect(tmCookie?.pendingGirl).toBe(8)
       expect(tmCookie?.pendingTroop).toBe(2)
-      expect(tmCookie?.afterPending).toBe(85) // 75 + 8 + 2
-      expect(tmCookie?.afterPendingIncludingRequests).toBe(90) // 85 + 5
+      expect(tmCookie?.afterPending).toBe(76) // 75 + 8 + 2 -9
+      expect(tmCookie?.afterPendingIncludingRequests).toBe(81) // 85 + 5 -9
 
       // Test Lemon-Ups (LEM): onHand=50, requestedGirl=5, pendingGirl=3, pendingTroop=12
       const lemCookie = inventoryTotals.find(c => c.abbreviation === 'LEM')
@@ -127,8 +127,8 @@ describe('stores/cookies', () => {
       expect(lemCookie?.requestedGirl).toBe(5)
       expect(lemCookie?.pendingGirl).toBe(3)
       expect(lemCookie?.pendingTroop).toBe(12)
-      expect(lemCookie?.afterPending).toBe(65) // 50 + 3 + 12
-      expect(lemCookie?.afterPendingIncludingRequests).toBe(70) // 65 + 5
+      expect(lemCookie?.afterPending).toBe(56) // 50 + 3 + 12 -9
+      expect(lemCookie?.afterPendingIncludingRequests).toBe(61) // 65 + 5 -9
     })
 
     it('assigns correct status severity based on afterPending quantity', () => {
@@ -149,15 +149,15 @@ describe('stores/cookies', () => {
       expect(lemCookie?.afterPendingStatusSeverity).toBe('success')
       expect(lemCookie?.afterPendingStatus).toBe('Good')
 
-      // TRE: afterPending=30 (>20 but <=50) should be "warn"/"Ok"
+      // TRE: afterPending=21 (>20 but <=50) should be "warn"/"Ok"
       const treCookie = inventoryTotals.find(c => c.abbreviation === 'TRE')
-      expect(treCookie?.afterPending).toBe(30) // 25 + 3 + 2
+      expect(treCookie?.afterPending).toBe(21) // 25 + 3 + 2 -9
       expect(treCookie?.afterPendingStatusSeverity).toBe('warn')
       expect(treCookie?.afterPendingStatus).toBe('Ok')
 
-      // CD: afterPending=20 (<=20) should be "danger"/"Low"
+      // CD: afterPending=11 (<=20) should be "danger"/"Low"
       const cdCookie = inventoryTotals.find(c => c.abbreviation === 'CD')
-      expect(cdCookie?.afterPending).toBe(20) // 15 + 3 + 2
+      expect(cdCookie?.afterPending).toBe(11) // 15 + 3 + 2 -9
       expect(cdCookie?.afterPendingStatusSeverity).toBe('danger')
       expect(cdCookie?.afterPendingStatus).toBe('Low')
     })
