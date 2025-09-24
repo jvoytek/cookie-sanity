@@ -1,11 +1,12 @@
 import { vi } from 'vitest'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 
 // Mock Nuxt global functions and auto-imports
 global.defineStore = defineStore
 global.ref = ref
 global.computed = computed
+global.reactive = reactive
 
 // Mock Supabase composables
 global.useSupabaseClient = vi.fn(() => ({
