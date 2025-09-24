@@ -127,7 +127,7 @@ describe('useFormatHelpers', () => {
       
       // Test that each instance works correctly
       expect(helpers1.formatCurrency(25.50)).toBe('$25.50')
-      expect(helpers2.formatDate('2024-01-15')).toBe('Jan 15, 2024')
+      expect(helpers2.formatDate(new Date('2024-01-15T00:00:00Z'))).toBe('Jan 15, 2024')
       
       // Test that they return the same results
       expect(helpers1.formatTime('14:30')).toBe(helpers2.formatTime('14:30'))
