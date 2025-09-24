@@ -201,6 +201,6 @@ export const useGirlsStore = defineStore("girls", () => {
     upsertGirl,
     deleteGirl,
     getGirlNameById,
-    getGirlNamesByIdList
+    getGirlNamesByIdList,
   };
 });

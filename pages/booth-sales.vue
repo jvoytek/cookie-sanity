@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { useToast } from "primevue/usetoast";
 import type { BoothSale } from "@/types/types";
 
@@ -93,7 +92,7 @@ const getBoothSaleDialogFormSchema = () => {
       wrapperClass: "grid grid-cols-4 gap-4 items-center",
       labelClass: "col-span-1",
       innerClass: "col-span-3 mt-1 mb-1",
-      class: "w-full",      
+      class: "w-full",
       "date-format": "yy-mm-dd",
       "show-icon": true,
     },
@@ -148,7 +147,7 @@ const getBoothSaleDialogFormSchema = () => {
       wrapperClass: "grid grid-cols-4 gap-4 items-center",
       labelClass: "col-span-1",
       innerClass: "col-span-3 mt-1 mb-1",
-      class: "w-full",      
+      class: "w-full",
       "option-label": "label",
       "option-value": "value",
     },
@@ -179,7 +178,7 @@ const getBoothSaleDialogFormSchema = () => {
       wrapperClass: "grid grid-cols-3 gap-4 items-center",
       labelClass: "col-span-1",
       innerClass: "col-span-2 mt-1 mb-1",
-      class: "w-full",   
+      class: "w-full",
     },
     {
       $formkit: "primeInputNumber",
@@ -231,7 +230,6 @@ const getBoothSaleDialogFormSchema = () => {
           data-key="id"
           sort-field="sale_date"
         >
-
           <Column field="sale_date" header="Date" sortable>
             <template #body="slotProps">
               {{ formatHelpers.formatDate(slotProps.data.sale_date) }}
