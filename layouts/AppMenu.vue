@@ -20,6 +20,11 @@ const model = ref([
       },
       { label: "All Transactions", icon: "pi pi-fw pi-table", to: "/orders" },
       {
+        label: "Booth Sales",
+        icon: "pi pi-fw pi-calendar",
+        to: "/booth-sales",
+      },
+      {
         label: "Account Management",
         icon: "pi pi-fw pi-wallet",
         to: "/accounts",
