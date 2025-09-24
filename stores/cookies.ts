@@ -14,12 +14,27 @@ export const useCookiesStore = defineStore("cookies", () => {
   const profileStore = useProfileStore();
   const seasonsStore = useSeasonsStore();
   const ordersStore = useOrdersStore();
+  const boothsStore = useBoothsStore();
 
   /* State */
   const allCookies = ref<Cookie[]>([]);
   const seasonCookies = ref<Cookie[]>([]);
 
   /* Computed */
+
+  const cookieFormFields = computed(() => {
+    return allCookies.value.map((cookie) => ({
+      $formkit: "primeInputNumber",
+      name: cookie.abbreviation,
+      label: cookie.name,
+      validation: "integer",
+      wrapperClass: "grid grid-cols-3 gap-4 items-center",
+      labelClass: "col-span-1",
+      innerClass: "col-span-2 mt-1 mb-1",
+      class: "w-full",   
+
+    }));
+  });
 
   const averageCookiePrice = computed(() => {
     if (allCookies.value.length === 0) return 0;
@@ -50,7 +65,10 @@ export const useCookiesStore = defineStore("cookies", () => {
         "troop",
         cookie.abbreviation,
       );
-      const afterPending = onHand + pendingGirl + pendingTroop;
+      const pendingBooth = boothsStore.getPredictedAmountForCookie(
+        cookie.abbreviation,
+      );
+      const afterPending = onHand + pendingGirl + pendingTroop + pendingBooth;
       const afterPendingIncludingRequests = afterPending + requestedGirl;
       const afterPendingStatus = _afterPendingStatusSeverity(afterPending);
       const cookieTotals = {
@@ -59,6 +77,7 @@ export const useCookiesStore = defineStore("cookies", () => {
         requestedGirl: requestedGirl,
         pendingGirl: pendingGirl,
         pendingTroop: pendingTroop,
+        pendingBooth: pendingBooth,
         afterPending: afterPending,
         afterPendingIncludingRequests: afterPendingIncludingRequests,
         afterPendingStatusSeverity: afterPendingStatus[0],
@@ -82,10 +101,15 @@ export const useCookiesStore = defineStore("cookies", () => {
   };
 
   const _updateCookie = (cookie: Cookie) => {
-    //
     const index = allCookies.value.findIndex((c) => c.id === cookie.id);
     if (index !== -1) {
       allCookies.value[index] = cookie;
+    }
+    const seasonIndex = seasonCookies.value.findIndex(
+      (c) => c.id === cookie.id,
+    );
+    if (seasonIndex !== -1) {
+      seasonCookies.value[seasonIndex] = cookie;
     }
   };
 
@@ -269,6 +293,7 @@ export const useCookiesStore = defineStore("cookies", () => {
     allCookies,
     allCookiesWithInventoryTotals,
     seasonCookies,
+    cookieFormFields,
     averageCookiePrice,
     fetchSeasonCookies,
     fetchCookies,

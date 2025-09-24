@@ -6,6 +6,7 @@ export type User = Database["public"]["Tables"]["profiles"]["Row"];
 export type Upload = Database["public"]["Tables"]["uploads"]["Row"];
 export type Season = Database["public"]["Tables"]["seasons"]["Row"];
 export type Payment = Database["public"]["Tables"]["payments"]["Row"];
+export type BoothSale = Database["public"]["Tables"]["booth_sales"]["Row"];
 export type SCOrder2025 = {
   DATE: string;
   "ORDER #": number;

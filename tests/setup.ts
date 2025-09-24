@@ -76,3 +76,7 @@ global.useGirlsStore = vi.fn(() => ({
 global.useCookiesStore = vi.fn(() => ({
   allCookies: []
 }))
+
+global.useBoothsStore = vi.fn(() => ({
+  getPredictedAmountForCookie: vi.fn(() => -9),
+}))
