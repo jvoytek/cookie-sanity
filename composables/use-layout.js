@@ -30,7 +30,7 @@ export function useLayout() {
       return;
     }
 
-    document.startViewTransition(() => executeDarkModeToggle(event));
+    document.startViewTransition(() => executeDarkModeToggle());
   };
 
   const executeDarkModeToggle = () => {

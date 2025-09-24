@@ -48,5 +48,31 @@ global.useSeasonsStore = vi.fn(() => ({
 
 global.useOrdersStore = vi.fn(() => ({
   sumOrdersByCookie: vi.fn(() => 0),
-  totalTransactionsByStatusAndCookie: vi.fn(() => 0)
+  totalTransactionsByStatusAndCookie: vi.fn(() => 0),
+  activeTransaction: {},
+  transactionDialogFormSchema: { value: [] },
+  editTransactionDialogVisible: false,
+  deleteTransactionDialogVisible: false,
+  transactionTypeOptions: [],
+  upsertOrder: vi.fn(),
+  insertNewOrderFromOrdersList: vi.fn(),
+  deleteOrder: vi.fn()
+}))
+
+global.useAccountsStore = vi.fn(() => ({
+  activePayment: {},
+  paymentDialogFormSchema: { value: [] },
+  editPaymentDialogVisible: false,
+  deletePaymentDialogVisible: false,
+  upsertPayment: vi.fn(),
+  insertNewPayment: vi.fn(),
+  deletePayment: vi.fn()
+}))
+
+global.useGirlsStore = vi.fn(() => ({
+  girlOptions: []
+}))
+
+global.useCookiesStore = vi.fn(() => ({
+  allCookies: []
 }))
