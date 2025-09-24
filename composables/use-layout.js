@@ -1,10 +1,19 @@
 import { computed, reactive } from "vue";
 
+// Initialize dark mode from localStorage if available
+const getInitialDarkMode = () => {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('darkMode');
+    return stored === 'true';
+  }
+  return false;
+};
+
 const layoutConfig = reactive({
   preset: "Aura",
   primary: "emerald",
   surface: null,
-  darkTheme: false,
+  darkTheme: getInitialDarkMode(),
   menuMode: "static",
 });
 
@@ -19,6 +28,13 @@ const layoutState = reactive({
 });
 
 export function useLayout() {
+  // Initialize dark mode state on the document element
+  const initializeDarkMode = () => {
+    if (typeof window !== 'undefined' && layoutConfig.darkTheme) {
+      document.documentElement.classList.add("app-dark");
+    }
+  };
+
   const setActiveMenuItem = (item) => {
     layoutState.activeMenuItem = item.value || item;
   };
@@ -36,6 +52,11 @@ export function useLayout() {
   const executeDarkModeToggle = () => {
     layoutConfig.darkTheme = !layoutConfig.darkTheme;
     document.documentElement.classList.toggle("app-dark");
+    
+    // Persist to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('darkMode', layoutConfig.darkTheme.toString());
+    }
   };
 
   const toggleMenu = () => {
@@ -71,5 +92,6 @@ export function useLayout() {
     getSurface,
     setActiveMenuItem,
     toggleDarkMode,
+    initializeDarkMode,
   };
 }

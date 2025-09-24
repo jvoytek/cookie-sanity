@@ -48,7 +48,13 @@ loading.value = false;
       <Column field="afterPending" header="After Pending" sortable>
         <template #body="slotProps">
           {{ slotProps.data.afterPending }}
-          <span v-if="slotProps.data.afterPendingIncludingRequests !== 0 && slotProps.data.afterPendingIncludingRequests !== slotProps.data.afterPending">
+          <span
+            v-if="
+              slotProps.data.afterPendingIncludingRequests !== 0 &&
+              slotProps.data.afterPendingIncludingRequests !==
+                slotProps.data.afterPending
+            "
+          >
             ({{ slotProps.data.afterPendingIncludingRequests }})
           </span>
         </template>

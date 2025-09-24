@@ -31,8 +31,7 @@ export const useCookiesStore = defineStore("cookies", () => {
       wrapperClass: "grid grid-cols-3 gap-4 items-center",
       labelClass: "col-span-1",
       innerClass: "col-span-2 mt-1 mb-1",
-      class: "w-full",   
-
+      class: "w-full",
     }));
   });
 

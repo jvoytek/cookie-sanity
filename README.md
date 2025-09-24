@@ -135,16 +135,19 @@ Cookie Sanity includes unit tests using Vitest, a fast and modern testing framew
 ### Running Tests
 
 **Run all tests:**
+
 ```bash
 npm test
 ```
 
 **Run tests in watch mode:**
+
 ```bash
 npm run test:watch
 ```
 
 **Run tests with coverage:**
+
 ```bash
 npm run test:coverage
 ```
@@ -160,6 +163,7 @@ The test suite includes:
 ### Test Dependencies
 
 The testing setup includes:
+
 - **Vitest**: Modern testing framework with excellent Vue support
 - **@vue/test-utils**: Vue component testing utilities
 - **@vitejs/plugin-vue**: Vue support for Vite/Vitest
@@ -174,34 +178,37 @@ When adding new features, include appropriate tests:
 3. **Integration tests** for connected functionality
 
 Example unit test:
-```typescript
-import { describe, it, expect } from 'vitest'
-import { calculateTotal } from '../../utils/helpers'
 
-describe('calculateTotal', () => {
-  it('calculates correct total', () => {
-    expect(calculateTotal(5, 4.00)).toBe(20.00)
-  })
-})
+```typescript
+import { describe, it, expect } from "vitest";
+import { calculateTotal } from "../../utils/helpers";
+
+describe("calculateTotal", () => {
+  it("calculates correct total", () => {
+    expect(calculateTotal(5, 4.0)).toBe(20.0);
+  });
+});
 ```
 
 Example component test:
-```typescript
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import MyComponent from '~/components/MyComponent.vue'
 
-describe('MyComponent', () => {
-  it('renders correctly', () => {
-    const wrapper = mount(MyComponent)
-    expect(wrapper.text()).toContain('Expected text')
-  })
-})
+```typescript
+import { describe, it, expect } from "vitest";
+import { mount } from "@vue/test-utils";
+import MyComponent from "~/components/MyComponent.vue";
+
+describe("MyComponent", () => {
+  it("renders correctly", () => {
+    const wrapper = mount(MyComponent);
+    expect(wrapper.text()).toContain("Expected text");
+  });
+});
 ```
 
 ### Testing Environment
 
 Tests run in a fast, isolated environment that:
+
 - Uses happy-dom for DOM simulation
 - Supports Vue 3 component mounting and testing
 - Includes TypeScript support
@@ -211,6 +218,7 @@ Tests run in a fast, isolated environment that:
 ### Future Enhancements
 
 The testing framework is set up to support:
+
 - End-to-end testing with Playwright (planned)
 - Visual regression testing (planned)
 - Component integration testing with Nuxt runtime (planned)

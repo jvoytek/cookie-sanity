@@ -1,14 +1,19 @@
 <script setup>
 import { useLayout } from "@/composables/use-layout";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import AppFooter from "./AppFooter.vue";
 import AppSidebar from "./AppSidebar.vue";
 import AppTopbar from "./AppTopbar.vue";
 
-const { layoutConfig, layoutState, isSidebarActive } = useLayout();
+const { layoutConfig, layoutState, isSidebarActive, initializeDarkMode } = useLayout();
 
 const outsideClickListener = ref(null);
 const user = useSupabaseUser();
+
+// Initialize dark mode on mount
+onMounted(() => {
+  initializeDarkMode();
+});
 
 watch(isSidebarActive, (newVal) => {
   if (newVal) {
