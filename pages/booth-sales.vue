@@ -2,13 +2,13 @@
 import { FilterMatchMode } from "@primevue/core/api";
 import { useToast } from "primevue/usetoast";
 import type { BoothSale } from "@/types/types";
-import CookieList from "@/components/CookieList.vue";
 
 const loading = ref(true);
 loading.value = true;
 
 const boothsStore = useBoothsStore();
 const girlsStore = useGirlsStore();
+const cookiesStore = useCookiesStore();
 const formatHelpers = useFormatHelpers();
 const myForm = ref<FormInstance | null>(null);
 
@@ -16,9 +16,7 @@ loading.value = false;
 
 const toast = useToast();
 const dt = ref();
-const boothSaleDialog = ref(false);
 const deleteBoothSaleDialog = ref(false);
-const boothSale = ref<Partial<BoothSale>>({});
 const selectedBoothSales = ref();
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -29,12 +27,6 @@ const inventoryTypeOptions = [
   { label: "Scout Inventory", value: "scout" },
 ];
 
-const salesLevelOptions = [
-  { label: "Low", value: "low" },
-  { label: "Medium", value: "medium" },
-  { label: "High", value: "high" },
-];
-
 function openNew() {
   editBoothSale({
     scouts_attending: [],
@@ -42,35 +34,35 @@ function openNew() {
 }
 
 function hideDialog() {
-  boothSaleDialog.value = false;
+  boothsStore.boothDialogVisible = false;
 }
 
 async function saveBoothSale() {
-    if (boothSale.value.id) {
-      boothsStore.upsertBoothSale(boothSale.value as BoothSale);
-    } else {
-      boothsStore.insertBoothSale(boothSale.value as BoothSale);
-    }
-    boothSaleDialog.value = false;
-    boothSale.value = {};
+  if (boothsStore.activeBoothSale.id) {
+    boothsStore.upsertBoothSale(boothsStore.activeBoothSale);
+  } else {
+    boothsStore.insertBoothSale(boothsStore.activeBoothSale);
+  }
+  boothsStore.boothDialogVisible = false;
+  boothsStore.activeBoothSale = {};
 }
 
 function editBoothSale(sale: BoothSale) {
   boothsStore.boothDialogFormSchema.value = getBoothSaleDialogFormSchema();
-  boothSale.value = { ...sale };
-  boothSaleDialog.value = true;
+  boothsStore.activeBoothSale = { ...sale };
+  boothsStore.boothDialogVisible = true;
 }
 
 function confirmDeleteBoothSale(sale: BoothSale) {
-  boothSale.value = sale;
+  boothsStore.activeBoothSale = sale;
   deleteBoothSaleDialog.value = true;
 }
 
 async function deleteBoothSale() {
   try {
-    boothsStore.deleteBoothSale(boothSale.value as BoothSale);
+    boothsStore.deleteBoothSale(boothsStore.activeBoothSale);
     deleteBoothSaleDialog.value = false;
-    boothSale.value = {};
+    boothsStore.activeBoothSale = {};
   } catch (error) {
     toast.add({
       severity: "error",
@@ -81,106 +73,100 @@ async function deleteBoothSale() {
   }
 }
 
-function getSalesLevelSeverity(level: string) {
-  switch (level) {
-    case "high":
-      return "success";
-    case "medium":
-      return "warn";
-    case "low":
-      return "secondary";
-    default:
-      return "secondary";
+boothsStore.$subscribe((mutation, _state) => {
+  if (!mutation.events?.oldValue || !mutation.events?.oldValue.expected_sales) return;
+  const previousExpectedSales = mutation.events?.oldValue?.expected_sales || 0;
+  const newExpectedSales = mutation.events?.newValue?.expected_sales || 0;
+
+  if (previousExpectedSales !== newExpectedSales) {
+    boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
   }
-}
+   boothsStore.setActiveBoothSaleTotalExpectedSales();
+});
 
 const getBoothSaleDialogFormSchema = () => {
-  return [{
-    $formkit: "primeDatePicker",
-    name: "sale_date",
-    label: "Date",
-    key: "sale_date",
-    placeholder: "Select date",
-    validation: "required|date",
-    class: "w-full",
-    type: "date",
-    "date-format": "yy-mm-dd",
-    "show-icon": true,
-  },  
-  {
-    $formkit: "primeInputText",
-    name: "sale_time",
-    label: "Time",
-    key: "sale_time",
-    placeholder: "Set time",
-    validation: "required|time",
-    class: "w-full",
-    type: "time",
-  }, 
-  {
-    $formkit: "primeInputText",
-    name: "location",
-    label: "Location",
-    key: "location",
-    placeholder: "Walmart, Local Grocery Store, etc.",
-    validation: "required",
-    class: "w-full",
-  }, 
-  {
-    $formkit: "primeMultiSelect",
-    name: "scouts_attending",
-    options: girlsStore.girlOptions,
-     "option-label":"label",
-    "option-value": "value",
-     placeholder: "Select scouts",
-     class: "w-full",
-    label: "Scouts Attending",
-    key: "scouts_attending",
-    showToggleAll: false,
-  },
+  return [
+    {
+      $formkit: "primeDatePicker",
+      name: "sale_date",
+      label: "Date",
+      key: "sale_date",
+      placeholder: "Select date",
+      validation: "required|date",
+      class: "w-full",
+      type: "date",
+      "date-format": "yy-mm-dd",
+      "show-icon": true,
+    },
+    {
+      $formkit: "primeInputText",
+      name: "sale_time",
+      label: "Time",
+      key: "sale_time",
+      placeholder: "Set time",
+      validation: "required|time",
+      class: "w-full",
+      type: "time",
+    },
+    {
+      $formkit: "primeInputText",
+      name: "location",
+      label: "Location",
+      key: "location",
+      placeholder: "Walmart, Local Grocery Store, etc.",
+      validation: "required",
+      class: "w-full",
+    },
+    {
+      $formkit: "primeMultiSelect",
+      name: "scouts_attending",
+      options: girlsStore.girlOptions,
+      "option-label": "label",
+      "option-value": "value",
+      placeholder: "Select scouts",
+      class: "w-full",
+      label: "Scouts Attending",
+      key: "scouts_attending",
+      showToggleAll: false,
+    },
 
-  {
-  $formkit: "primeSelect",
-    name: "inventory_type",
-    label: "Inventory Type",
-    key: "inventory_type",
-    placeholder: "Choose a type",
-    options: inventoryTypeOptions,
-    validation: "required",
-    class: "w-full",
-    "option-label": "label",
-    "option-value": "value",
-  },
-  {
-    $formkit: "primeTextarea",
-    name: "notes",
-    label: "Notes (optional)",
-    placeholder: "Notes about this payment",
-    class: "w-full",
-    rows: 2,
-  },
-  {    
-    $formkit: "primeInputNumber",
-    name: "expected_sales",
-    label: "Expected Sales",
-    key: "expected_sales",
-    placeholder: "25, 50, 100, etc.",
-    validation: "required|integer|min:0",
-    class: "w-full",
-  },
-  {
-    $cmp: "CookieList",
-    if: "$predicted_cookies && Object.keys($predicted_cookies).length > 0",
-    props: {
-      cookies: "$predicted_cookies",
+    {
+      $formkit: "primeSelect",
+      name: "inventory_type",
+      label: "Inventory Type",
+      key: "inventory_type",
+      placeholder: "Choose a type",
+      options: inventoryTypeOptions,
+      validation: "required",
+      class: "w-full",
+      "option-label": "label",
+      "option-value": "value",
+    },
+    {
+      $formkit: "primeTextarea",
+      name: "notes",
+      label: "Notes (optional)",
+      placeholder: "Notes about this payment",
+      class: "w-full",
+      rows: 2,
+    },
+    {
+      $formkit: "primeInputNumber",
+      name: "expected_sales",
+      label: "Expected Sales",
+      key: "expected_sales",
+      placeholder: "25, 50, 100, etc.",
+      validation: "required|integer|min:0",
+      class: "w-full",
+    },
+    {
+      $formkit: "group",
+      name: "predicted_cookies",
+      children: cookiesStore.cookieFormFields,
     }
-  }
+  ];
+};
 
-]};
-
-const library = markRaw({
-  CookieList: CookieList
-})
 </script>
 
 <template>
@@ -240,7 +226,9 @@ const library = markRaw({
           <Column field="location" header="Location" sortable />
           <Column field="scouts_attending" header="Scouts">
             <template #body="slotProps">
-              {{ girlsStore.getGirlNamesByIdList(slotProps.data.scouts_attending) }}
+              {{
+                girlsStore.getGirlNamesByIdList(slotProps.data.scouts_attending)
+              }}
             </template>
           </Column>
           <Column field="inventory_type" header="Inventory Type" sortable>
@@ -279,7 +267,7 @@ const library = markRaw({
 
         <!-- Create/Edit Dialog -->
         <Dialog
-          v-model:visible="boothSaleDialog"
+          v-model:visible="boothsStore.boothDialogVisible"
           :style="{ width: '550px' }"
           header="Booth Sale Details"
           :modal="true"
@@ -287,7 +275,7 @@ const library = markRaw({
           <div class="flex flex-col gap-6">
             <FormKit
               ref="myForm"
-              v-model="boothSale"
+              v-model="boothsStore.activeBoothSale"
               type="form"
               :actions="false"
               @submit="saveBoothSale"
@@ -295,8 +283,6 @@ const library = markRaw({
               <!-- Render the dynamic form using the schema -->
               <FormKitSchema
                 :schema="boothsStore.boothDialogFormSchema.value"
-                :library="library"
-                :data="boothSale"
               />
             </FormKit>
           </div>
@@ -308,7 +294,11 @@ const library = markRaw({
               outlined
               @click="hideDialog"
             />
-            <Button label="Save" icon="pi pi-check" @click="myForm.node.submit()" />
+            <Button
+              label="Save"
+              icon="pi pi-check"
+              @click="myForm.node.submit()"
+            />
           </template>
         </Dialog>
 
@@ -321,10 +311,12 @@ const library = markRaw({
         >
           <div class="flex items-center gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
-            <span v-if="boothSale">
+            <span v-if="boothsStore.activeBoothSale">
               Are you sure you want to delete the booth sale at
-              <b>{{ boothSale.location }}</b> on
-              <b>{{ formatHelpers.formatDate(boothSale.sale_date) }}</b
+              <b>{{ boothsStore.activeBoothSale.location }}</b> on
+              <b>{{
+                formatHelpers.formatDate(boothsStore.activeBoothSale.sale_date)
+              }}</b
               >?
             </span>
           </div>

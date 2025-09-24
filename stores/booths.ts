@@ -18,6 +18,8 @@ export const useBoothsStore = defineStore("booths", () => {
   /* State */
   const allBoothSales = ref<BoothSale[]>([]);
   const boothDialogFormSchema = reactive([]);
+  const activeBoothSale = ref<BoothSale>({});
+  const boothDialogVisible = ref(false);
 
   /* Computed */
 
@@ -86,23 +88,56 @@ export const useBoothsStore = defineStore("booths", () => {
         return acc;
       }
 , {} as Record<string, number>);
-      console.log("No cookie ratios defined, using equal distribution:", cookiePercentages);
     } else {
       cookiePercentages = cookiesStore.allCookies.reduce((acc, cookie) => {
-        console.log(`Cookie: ${cookie.name}, Percentage of Sales: ${cookie.percent_of_sale}`);
         acc[cookie.abbreviation] = cookie.percent_of_sale? cookie.percent_of_sale / cookieRatioTotal : 0;
         return acc;
       }, {} as Record<string, number>);
     }
-    console.log("Cookie Percentages:", cookiePercentages);
-    cookiesStore.allCookies.forEach((cookie: Cookie) => {
-      predictions[cookie.abbreviation] = Math.round(expectedSales * cookiePercentages[cookie.abbreviation]);
-    });
-    
+    const predictionCalculations = cookiesStore.allCookies.map((cookie) => {
+      const predictedExact = expectedSales * cookiePercentages[cookie.abbreviation];
+      const predictedFloor = Math.floor(predictedExact);
+      return {
+        [cookie.abbreviation]: {
+          exact: predictedExact,
+          floor: predictedFloor,
+          remainder: predictedExact - predictedFloor,
+          final: predictedFloor // Final value to be adjusted later
+        }
+      };
+    }).reduce((acc, curr) => ({...acc, ...curr}), {} as Record<string, number>);
+    const totalFloored = Object.values(predictionCalculations).reduce((sum, val) => sum + val.floor, 0);
+    let remainderToDistribute = expectedSales - totalFloored;
+    // Distribute the remainder based on the highest remainders
+    while (remainderToDistribute > 0) {
+      const sortedByRemainder = Object.entries(predictionCalculations).sort((a, b) => b[1].remainder - a[1].remainder);
+      sortedByRemainder.forEach(([_key,prediction]) => {
+        if (remainderToDistribute > 0) {
+          prediction.final += 1;
+          remainderToDistribute -= 1;
+        }
+      });
+    }
+    Object.entries(predictionCalculations).forEach(([cookieAbbr, calc]) => {
+      predictions[cookieAbbr] = calc.final;
+    });    
     return predictions;
   };
 
   /* Actions */
+
+  const setActiveBoothSalePredictedCookies = (expectedSales: number) => {
+    activeBoothSale.value.predicted_cookies = _calculatePredictedCookies(expectedSales);
+  };
+
+  const setActiveBoothSaleTotalExpectedSales = () => {
+    if (activeBoothSale.value.predicted_cookies) {
+      const total = Object.values(activeBoothSale.value.predicted_cookies as Record<string, number>).reduce((sum, val) => sum + val, 0);
+      if (activeBoothSale.value.expected_sales !== total) activeBoothSale.value.expected_sales = total;
+    } else {
+      activeBoothSale.value.expected_sales = 0;
+    }
+  };
 
   const fetchBoothSales = async () => {
     try {
@@ -231,12 +266,16 @@ export const useBoothsStore = defineStore("booths", () => {
         }
       }
     });
-    return total;
+    return total * -1; // Return negative for inventory purposes
   };
 
   return {
     allBoothSales,
     boothDialogFormSchema,
+    activeBoothSale,
+    boothDialogVisible,
+    setActiveBoothSalePredictedCookies,
+    setActiveBoothSaleTotalExpectedSales,
     upcomingBoothSales,
     troopInventoryBoothSales,
     predictedCookieAmounts,

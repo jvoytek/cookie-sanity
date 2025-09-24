@@ -22,6 +22,16 @@ export const useCookiesStore = defineStore("cookies", () => {
 
   /* Computed */
 
+  const cookieFormFields = computed(() => {
+    return allCookies.value.map((cookie) => ({
+      $formkit: "primeInputNumber",
+      name: cookie.abbreviation,
+      label: cookie.name,
+      validation: "integer",
+      class: "w-full"
+    }));
+  });
+
   const averageCookiePrice = computed(() => {
     if (allCookies.value.length === 0) return 0;
     const total = allCookies.value.reduce(
@@ -51,7 +61,9 @@ export const useCookiesStore = defineStore("cookies", () => {
         "troop",
         cookie.abbreviation,
       );
-      const pendingBooth = boothsStore.getPredictedAmountForCookie(cookie.abbreviation);
+      const pendingBooth = boothsStore.getPredictedAmountForCookie(
+        cookie.abbreviation,
+      );
       const afterPending = onHand + pendingGirl + pendingTroop + pendingBooth;
       const afterPendingIncludingRequests = afterPending + requestedGirl;
       const afterPendingStatus = _afterPendingStatusSeverity(afterPending);
@@ -89,7 +101,9 @@ export const useCookiesStore = defineStore("cookies", () => {
     if (index !== -1) {
       allCookies.value[index] = cookie;
     }
-    const seasonIndex = seasonCookies.value.findIndex((c) => c.id === cookie.id);
+    const seasonIndex = seasonCookies.value.findIndex(
+      (c) => c.id === cookie.id,
+    );
     if (seasonIndex !== -1) {
       seasonCookies.value[seasonIndex] = cookie;
     }
@@ -275,6 +289,7 @@ export const useCookiesStore = defineStore("cookies", () => {
     allCookies,
     allCookiesWithInventoryTotals,
     seasonCookies,
+    cookieFormFields,
     averageCookiePrice,
     fetchSeasonCookies,
     fetchCookies,

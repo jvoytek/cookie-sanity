@@ -23,16 +23,6 @@ export const useTransactionHelpers = () => {
     }
   };
 
-  const getCookieFields = () => {
-    return cookiesStore.allCookies.map((cookie) => ({
-      $formkit: "primeInputNumber",
-      name: cookie.abbreviation,
-      label: cookie.name,
-      validation: "integer",
-      class: "w-full",
-    }));
-  };
-
   const getTransactionDialogFormSchema = (dialogType: string) => {
     const baseSchema = [
       {
@@ -241,7 +231,7 @@ export const useTransactionHelpers = () => {
       {
         $formkit: "group",
         name: "cookies",
-        children: getCookieFields(),
+        children: cookiesStore.cookieFormFields,
         if: "$get('transaction-type').value",
       },
     ];

@@ -185,7 +185,6 @@ export const useGirlsStore = defineStore("girls", () => {
 
   const getGirlNameById = (id: number) => {
     const theGirl = getGirlById(id);
-    console.log("theGirl", theGirl);
     if (theGirl) {
       return _getGirlDisplayName(theGirl);
     }

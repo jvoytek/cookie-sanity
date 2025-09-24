@@ -6,8 +6,6 @@ const props = defineProps<{
   cookies: Json;
 }>();
 
-console.log(props.cookies);
-
 const totalCookies = (cookies) => {
   return cookiesStore.allCookies
     .filter(

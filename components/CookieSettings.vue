@@ -229,6 +229,7 @@ async function onRowReorder(event) {
             id="percent_of_sale"
             v-model.trim="product.percent_of_sale"
             fluid
+            :max-fraction-digits="5"
           />
         </div>
         <div class="grid grid-cols-12 gap-4">
