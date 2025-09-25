@@ -1,15 +1,32 @@
 import { computed, reactive } from "vue";
 
-// Initialize dark mode from localStorage if available
-const getInitialDarkMode = () => {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('darkMode');
-    return stored === 'true';
+type LayoutConfig = {
+  preset: string;
+  primary: string;
+  surface: string | null;
+  darkTheme: boolean;
+  menuMode: "static" | "overlay";
+};
+
+type LayoutState = {
+  staticMenuDesktopInactive: boolean;
+  overlayMenuActive: boolean;
+  profileSidebarVisible: boolean;
+  configSidebarVisible: boolean;
+  staticMenuMobileActive: boolean;
+  menuHoverActive: boolean;
+  activeMenuItem: string | null;
+};
+
+const getInitialDarkMode = (): boolean => {
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("darkMode");
+    return stored === "true";
   }
   return false;
 };
 
-const layoutConfig = reactive({
+const layoutConfig = reactive<LayoutConfig>({
   preset: "Aura",
   primary: "emerald",
   surface: null,
@@ -17,7 +34,7 @@ const layoutConfig = reactive({
   menuMode: "static",
 });
 
-const layoutState = reactive({
+const layoutState = reactive<LayoutState>({
   staticMenuDesktopInactive: false,
   overlayMenuActive: false,
   profileSidebarVisible: false,
@@ -29,37 +46,36 @@ const layoutState = reactive({
 
 export function useLayout() {
   // Initialize dark mode state on the document element
-  const initializeDarkMode = () => {
-    if (typeof window !== 'undefined' && layoutConfig.darkTheme) {
+  const initializeDarkMode = (): void => {
+    if (typeof window !== "undefined" && layoutConfig.darkTheme) {
       document.documentElement.classList.add("app-dark");
     }
   };
 
-  const setActiveMenuItem = (item) => {
-    layoutState.activeMenuItem = item.value || item;
+  const setActiveMenuItem = (item: string | { value: string }): void => {
+    layoutState.activeMenuItem = typeof item === "string" ? item : item.value;
   };
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = (): void => {
     if (!document.startViewTransition) {
       executeDarkModeToggle();
-
       return;
     }
 
     document.startViewTransition(() => executeDarkModeToggle());
   };
 
-  const executeDarkModeToggle = () => {
+  const executeDarkModeToggle = (): void => {
     layoutConfig.darkTheme = !layoutConfig.darkTheme;
     document.documentElement.classList.toggle("app-dark");
-    
+
     // Persist to localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('darkMode', layoutConfig.darkTheme.toString());
+    if (typeof window !== "undefined") {
+      localStorage.setItem("darkMode", layoutConfig.darkTheme.toString());
     }
   };
 
-  const toggleMenu = () => {
+  const toggleMenu = (): void => {
     if (layoutConfig.menuMode === "overlay") {
       layoutState.overlayMenuActive = !layoutState.overlayMenuActive;
     }
@@ -73,14 +89,15 @@ export function useLayout() {
   };
 
   const isSidebarActive = computed(
-    () => layoutState.overlayMenuActive || layoutState.staticMenuMobileActive,
+    (): boolean =>
+      layoutState.overlayMenuActive || layoutState.staticMenuMobileActive,
   );
 
-  const isDarkTheme = computed(() => layoutConfig.darkTheme);
+  const isDarkTheme = computed((): boolean => layoutConfig.darkTheme);
 
-  const getPrimary = computed(() => layoutConfig.primary);
+  const getPrimary = computed((): string => layoutConfig.primary);
 
-  const getSurface = computed(() => layoutConfig.surface);
+  const getSurface = computed((): string | null => layoutConfig.surface);
 
   return {
     layoutConfig,

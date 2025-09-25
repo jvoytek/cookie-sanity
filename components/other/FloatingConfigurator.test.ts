@@ -6,7 +6,7 @@ import FloatingConfigurator from '@/components/FloatingConfigurator.vue'
 const mockToggleDarkMode = vi.fn()
 const mockIsDarkTheme = { value: false }
 
-vi.mock('@/composables/use-layout', () => ({
+vi.mock('@/composables/useLayout', () => ({
   useLayout: () => ({
     toggleDarkMode: mockToggleDarkMode,
     isDarkTheme: mockIsDarkTheme

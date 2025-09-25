@@ -1,5 +1,5 @@
 <script setup>
-import { useLayout } from "@/composables/use-layout";
+import { useLayout } from "@/composables/useLayout";
 import { $t, updatePreset, updateSurfacePalette } from "@primevue/themes";
 import Aura from "@primevue/themes/aura";
 import Lara from "@primevue/themes/lara";

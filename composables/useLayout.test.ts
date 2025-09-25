@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useLayout } from "@/composables/use-layout.js";
+import { useLayout } from "@/composables/useLayout";
 
 // Mock DOM API
 Object.defineProperty(window, "innerWidth", {
@@ -135,7 +135,7 @@ describe("useLayout", () => {
     });
 
     it("toggles dark mode multiple times correctly", () => {
-      const { toggleDarkMode, layoutConfig, isDarkTheme } = useLayout();
+      const { toggleDarkMode, _layoutConfig, isDarkTheme } = useLayout();
 
       expect(isDarkTheme.value).toBe(false);
 

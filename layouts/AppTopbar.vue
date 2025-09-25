@@ -1,5 +1,5 @@
 <script setup>
-import { useLayout } from "@/composables/use-layout";
+import { useLayout } from "@/composables/useLayout";
 import AppConfigurator from "./AppConfigurator.vue";
 const supabase = useSupabaseClient();
 

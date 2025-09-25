@@ -45,4 +45,10 @@ export default defineNuxtConfig({
       },
     },
   },
+  components: [
+    {
+      path: '~/components', // will get any components nested in let's say /components/test too
+      pathPrefix: false,
+    },
+  ]
 });
