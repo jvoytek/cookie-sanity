@@ -74,6 +74,11 @@ global.useTransactionHelpers = vi.fn(() => ({
   transactionTypeBadgeSeverity: vi.fn(() => 'info')
 }))
 
+global.useNotificationHelpers = vi.fn(() => ({
+  addError: vi.fn(),
+  addSuccess: vi.fn()
+}))
+
 // Mock store composables - these will be overridden in individual tests as needed
 global.useProfileStore = vi.fn(() => ({
   currentProfile: { id: 'test-profile-id' }
@@ -143,7 +148,7 @@ global.useGirlsStore = vi.fn(() => ({
 }))
 
 global.useCookiesStore = vi.fn(() => ({
-  allCookies: [{ abbreviation: "ABC", price: 5 }, { abbreviation: "DEF", price: 5 }],
+  allCookies: [{ abbreviation: "ABC", price: 5,  percent_of_sale: 20}, { abbreviation: "DEF", price: 5,  percent_of_sale: 80 }],
   averageCookiePrice: 5,
   allCookiesWithInventoryTotals: [{ onHand: 10 }],
 }))

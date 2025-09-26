@@ -195,8 +195,8 @@ describe("stores/booths", () => {
 
     it("handles fetch error and shows toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -223,10 +223,7 @@ describe("stores/booths", () => {
       await newBoothsStore.fetchBoothSales();
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Fetch failed",
-        life: 3000,
+        message: "Fetch failed",
       });
     });
   });
@@ -234,8 +231,8 @@ describe("stores/booths", () => {
   describe("insertBoothSale", () => {
     it("successfully inserts booth sale with auto-calculated predictions", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       const mockBoothSale = {
@@ -279,12 +276,7 @@ describe("stores/booths", () => {
       expect(mockBoothSale.predicted_cookies).toEqual(expectedPredictions);
       expect(newBoothsStore.allBoothSales).toHaveLength(1);
       expect(newBoothsStore.allBoothSales[0]).toEqual(mockInsertedSale);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Booth Sale Created",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith("Booth Sale Created");
     });
 
     it("returns early if no current season", async () => {
@@ -304,8 +296,8 @@ describe("stores/booths", () => {
 
     it("preserves existing predicted cookies if provided", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       const customPredictions = { TM: 50, SM: 25, TS: 25 };
@@ -380,8 +372,8 @@ describe("stores/booths", () => {
 
     it("handles insert error and shows error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -409,10 +401,7 @@ describe("stores/booths", () => {
       await newBoothsStore.insertBoothSale(mockBoothSale);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Insert failed",
-        life: 3000,
+        message: "Insert failed",
       });
     });
   });
@@ -431,8 +420,8 @@ describe("stores/booths", () => {
 
     it("successfully upserts booth sale and shows success toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -462,18 +451,13 @@ describe("stores/booths", () => {
       await newBoothsStore.upsertBoothSale(updatedSale);
 
       expect(newBoothsStore.allBoothSales[0].expected_sales).toBe(150);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Booth Sale Updated",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith("Booth Sale Updated");
     });
 
     it("handles upsert error and shows error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -496,10 +480,7 @@ describe("stores/booths", () => {
       await newBoothsStore.upsertBoothSale(updatedSale);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Upsert failed",
-        life: 3000,
+        message: "Upsert failed",
       });
     });
   });
@@ -514,8 +495,8 @@ describe("stores/booths", () => {
 
     it("successfully deletes booth sale and shows success toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -543,18 +524,13 @@ describe("stores/booths", () => {
 
       expect(newBoothsStore.allBoothSales).toHaveLength(1);
       expect(newBoothsStore.allBoothSales[0].id).toBe(2);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Booth Sale Deleted",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith("Booth Sale Deleted");
     });
 
     it("handles delete error and shows error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -579,11 +555,156 @@ describe("stores/booths", () => {
       await newBoothsStore.deleteBoothSale(saleToDelete);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Delete failed",
-        life: 3000,
+        message: "Delete failed",
       });
+    });
+  });
+
+  describe("getPredictedCookiesFromExpectedSales", () => {
+    beforeEach(() => {
+      global.useCookiesStore = vi.fn(() => ({
+        allCookies: [
+          { id: 1, abbreviation: "TM", percent_of_sale: 50 },
+          { id: 2, abbreviation: "SM", percent_of_sale: 30 },
+          { id: 3, abbreviation: "TS", percent_of_sale: 20 },
+        ],
+      }));
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      boothsStore = useBoothsStore();
+    });
+
+    it("returns 1 cookie for the cookie type with highest percentage when expected sales is 1", () => {
+      const predictions = boothsStore.getPredictedCookiesFromExpectedSales(1);
+      expect(predictions).toEqual({ TM: 1, SM: 0, TS: 0 });
+    });
+
+    it("returns 1 cookie for top two cookie types when expected sales is 2", () => {
+      const predictions = boothsStore.getPredictedCookiesFromExpectedSales(2);
+      expect(predictions).toEqual({ TM: 1, SM: 1, TS: 0});
+    });
+
+    it("returns 1 cookie for the first 2 cookies in the list when percentages are equal and expected sales is 2", () => {
+      global.useCookiesStore = vi.fn(() => ({
+        allCookies: [
+          { id: 1, abbreviation: "CA", percent_of_sale: 20 },
+          { id: 2, abbreviation: "CB", percent_of_sale: 20 },
+          { id: 3, abbreviation: "CC", percent_of_sale: 20 },
+          { id: 3, abbreviation: "CD", percent_of_sale: 20 },
+          { id: 3, abbreviation: "CE", percent_of_sale: 20 },
+        ],
+      }));
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+      const predictions = newBoothsStore.getPredictedCookiesFromExpectedSales(2);
+      expect(predictions).toEqual({ CA: 1, CB: 1, CC: 0, CD: 0, CE: 0 });
+    });
+
+    it("returns 1 cookie for the first cookies in the list with the largest percentage when cookies are tied", () => {
+      global.useCookiesStore = vi.fn(() => ({
+        allCookies: [
+          { id: 1, abbreviation: "CA", percent_of_sale: 20 },
+          { id: 2, abbreviation: "CB", percent_of_sale: 40 },
+          { id: 3, abbreviation: "CC", percent_of_sale: 40 },
+          { id: 3, abbreviation: "CD", percent_of_sale: 10 },
+          { id: 3, abbreviation: "CE", percent_of_sale: 10 },
+        ],
+      }));
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+      const predictions = newBoothsStore.getPredictedCookiesFromExpectedSales(1);
+      expect(predictions).toEqual({ CA: 0, CB: 1, CC: 0, CD: 0, CE: 0 });
+    });
+
+    it("returns 1 cookie for all three types when expected sales is 3", () => {
+      const predictions = boothsStore.getPredictedCookiesFromExpectedSales(3);
+      expect(predictions).toEqual({ TM: 1, SM: 1, TS: 1 });
+    });
+
+    it("returns 2 cookies for TM, 1 for SM, and 1 for TS when expected sales is 4", () => {
+      const predictions = boothsStore.getPredictedCookiesFromExpectedSales(4);
+      expect(predictions).toEqual({ TM: 2, SM: 1, TS: 1 });
+    });
+
+    it("returns correct distribution for expected sales of 10", () => {
+      const predictions = boothsStore.getPredictedCookiesFromExpectedSales(10);
+      expect(predictions).toEqual({ TM: 5, SM: 3, TS: 2 });
+    });
+
+    it("returns 0 when expected sales is 0", () => {
+      const predictions = boothsStore.getPredictedCookiesFromExpectedSales(0);
+      expect(predictions).toEqual({TM: 0, SM: 0, TS: 0});
+    });
+
+    it("handles rounding correctly for expected sales of 7", () => {
+      const predictions = boothsStore.getPredictedCookiesFromExpectedSales(7);
+      expect(predictions).toEqual({ TM: 4, SM: 2, TS: 1 });
+    });
+
+    it("returns an even distribution when no cookies have percentage_of_sale", () => {
+      global.useCookiesStore = vi.fn(() => ({
+        allCookies: [
+          { id: 1, abbreviation: "TM" }, // No percent_of_sale
+          { id: 2, abbreviation: "SM" },
+          { id: 3, abbreviation: "TS" },
+        ],
+      }));
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+
+      const predictions = newBoothsStore.getPredictedCookiesFromExpectedSales(6);
+      expect(predictions).toEqual({ TM: 2, SM: 2, TS: 2 });
+    });
+
+    it("prefers cookies with percentage_of_sale when some have it and some don't", () => {
+      global.useCookiesStore = vi.fn(() => ({
+        allCookies: [
+          { id: 1, abbreviation: "TM", percent_of_sale: 70 },
+          { id: 2, abbreviation: "SM", percent_of_sale: 30}, // No percent_of_sale
+          { id: 3, abbreviation: "TS" }, // No percent_of_sale
+        ],
+      }));
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+
+      const predictions = newBoothsStore.getPredictedCookiesFromExpectedSales(100);
+      expect(predictions).toEqual({ TM: 70, SM: 30, TS: 0 }); // TM gets majority due to percent_of_sale
+    });
+
+    it("returns the correct number of cookies when percent_of_sale sums to less than 100", () => {
+      global.useCookiesStore = vi.fn(() => ({
+        allCookies: [
+          { id: 1, abbreviation: "TM", percent_of_sale: 20 },
+          { id: 2, abbreviation: "SM", percent_of_sale: 30 },
+          { id: 3, abbreviation: "TS", percent_of_sale: 10 }, // Sums to 60
+        ],
+      }));
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+
+      const predictions = newBoothsStore.getPredictedCookiesFromExpectedSales(100);
+      expect(predictions).toEqual({ TM: 33, SM: 50, TS: 17 }); // Total still equals expected sales
+    });
+
+    it("returns the correct number of cookies when percent_of_sale sums to more than 100", () => {
+      global.useCookiesStore = vi.fn(() => ({
+        allCookies: [
+          { id: 1, abbreviation: "TM", percent_of_sale: 50 },
+          { id: 2, abbreviation: "SM", percent_of_sale: 40 },
+          { id: 3, abbreviation: "TS", percent_of_sale: 30 }, // Sums to 120
+        ],
+      }));
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+
+      const predictions = newBoothsStore.getPredictedCookiesFromExpectedSales(100);
+      expect(predictions).toEqual({ TM: 42, SM: 33, TS: 25 }); // Total still equals expected sales
     });
   });
 
@@ -668,7 +789,7 @@ describe("stores/booths", () => {
 
       // Should distribute 99 equally across 3 cookies: 33, 33, 33
       const predictions = newBoothsStore.activeBoothSale.predicted_cookies;
-      expect(Object.values(predictions).reduce((a, b) => a + b, 0)).toBe(99);
+      expect(predictions).toEqual({ TM: 33, SM: 33, TS: 33 });
       expect(Object.keys(predictions)).toHaveLength(3);
     });
   });
@@ -676,8 +797,8 @@ describe("stores/booths", () => {
   describe("private functions integration", () => {
     it("sorts booth sales by date and time correctly", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       // Add a booth sale that should sort first chronologically

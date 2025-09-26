@@ -1,5 +1,5 @@
 import type { Database } from "@/types/supabase";
-import type { BoothSale } from "@/types/types";
+import type { BoothSale, Cookie } from "@/types/types";
 
 /*
 ref()s become state properties
@@ -10,10 +10,10 @@ function()s become actions
 export const useBoothsStore = defineStore("booths", () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
-  const toast = useToast();
   const profileStore = useProfileStore();
   const seasonsStore = useSeasonsStore();
   const cookiesStore = useCookiesStore();
+  const notificationHelpers = useNotificationHelpers();
 
   /* State */
   const allBoothSales = ref<BoothSale[]>([]);
@@ -34,7 +34,6 @@ export const useBoothsStore = defineStore("booths", () => {
     );
   });
 
-  // Calculate predicted cookie amounts for troop inventory booth sales
   const predictedCookieAmounts = computed(() => {
     const predictions: Record<string, number> = {};
 
@@ -78,93 +77,154 @@ export const useBoothsStore = defineStore("booths", () => {
     }
   };
 
-  // Calculate predicted cookies based on sales level and available cookies
-  const _calculatePredictedCookies = (expectedSales: number) => {
-    const predictions: Record<string, number> = {};
-    let cookieRatioTotal = cookiesStore.allCookies.reduce(
+  const _getCookiePercentages = (
+    cookieRatioTotal?: number,
+  ): Record<string, number> => {
+    return cookiesStore.allCookies.reduce(
+      (acc, cookie) => {
+        const percentOfSale =
+          cookieRatioTotal > 0 ? (cookie.percent_of_sale ?? 0) : 1;
+        acc[cookie.abbreviation] =
+          cookieRatioTotal > 0
+            ? percentOfSale / cookieRatioTotal
+            : percentOfSale / cookiesStore.allCookies.length;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+  };
+
+  const _getTotalPercentOfSale = (): number => {
+    return cookiesStore.allCookies.reduce(
       (total, cookie) => total + (cookie.percent_of_sale ?? 0),
       0,
     );
-    let cookiePercentages: Record<string, number> = {};
-    // If no cookie ratios are defined, use equal distribution
-    if (cookieRatioTotal === 0) {
-      cookieRatioTotal = 100;
-      cookiePercentages = cookiesStore.allCookies.reduce(
-        (acc, cookie) => {
-          acc[cookie.abbreviation] = 1 / cookiesStore.allCookies.length;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-    } else {
-      cookiePercentages = cookiesStore.allCookies.reduce(
-        (acc, cookie) => {
-          acc[cookie.abbreviation] = cookie.percent_of_sale
-            ? cookie.percent_of_sale / cookieRatioTotal
-            : 0;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-    }
-    const predictionCalculations = cookiesStore.allCookies
-      .map((cookie) => {
-        const predictedExact =
-          expectedSales * cookiePercentages[cookie.abbreviation];
-        const predictedFloor = Math.floor(predictedExact);
-        return {
-          [cookie.abbreviation]: {
-            exact: predictedExact,
-            floor: predictedFloor,
-            remainder: predictedExact - predictedFloor,
-            final: predictedFloor, // Final value to be adjusted later
-          },
-        };
-      })
-      .reduce(
-        (acc, curr) => ({ ...acc, ...curr }),
-        {} as Record<string, number>,
-      );
-    const totalFloored = Object.values(predictionCalculations).reduce(
-      (sum, val) => sum + val.floor,
-      0,
-    );
-    let remainderToDistribute = expectedSales - totalFloored;
-    // Distribute the remainder based on the highest remainders
-    while (remainderToDistribute > 0) {
-      const sortedByRemainder = Object.entries(predictionCalculations).sort(
-        (a, b) => b[1].remainder - a[1].remainder,
-      );
-      sortedByRemainder.forEach(([_key, prediction]) => {
-        if (remainderToDistribute > 0) {
+  };
+
+  const _getBaseCookiePredictions = (
+    cookie: Cookie,
+    expectedSales: number,
+    cookiePercentages: Record<string, number>,
+  ): Record<
+    string,
+    { exact: number; floor: number; remainder: number; final: number }
+  > => {
+    const predictedExact =
+      expectedSales * cookiePercentages[cookie.abbreviation];
+    const predictedFloor = Math.floor(predictedExact);
+    return {
+      [cookie.abbreviation]: {
+        exact: predictedExact,
+        floor: predictedFloor,
+        remainder: predictedExact - predictedFloor,
+        final: predictedFloor, // Final value to be adjusted later
+      },
+    };
+  };
+
+  const _getTotalFloored = (
+    predictions: Record<
+      string,
+      { floor: number; remainder: number; final: number; exact: number }
+    >,
+  ): number => {
+    return Object.values(predictions).reduce((sum, val) => sum + val.floor, 0);
+  };
+
+  const _distributeRemainder = (
+    predictions: Record<
+      string,
+      { floor: number; remainder: number; final: number; exact: number }
+    >,
+    remainder: number,
+  ): Record<
+    string,
+    { floor: number; remainder: number; final: number; exact: number }
+  > => {
+    Object.entries(predictions)
+      .sort((a, b) => b[1].remainder - a[1].remainder)
+      .forEach(([_key, prediction]) => {
+        if (remainder > 0) {
           prediction.final += 1;
-          remainderToDistribute -= 1;
+          remainder -= 1;
         }
       });
-    }
-    Object.entries(predictionCalculations).forEach(([cookieAbbr, calc]) => {
-      predictions[cookieAbbr] = calc.final;
-    });
     return predictions;
+  };
+
+  const _supabaseSelectBoothSales = async () => {
+    return await supabaseClient
+      .from("booth_sales")
+      .select(`*`)
+      .eq("profile", profileStore.currentProfile.id)
+      .eq("season", seasonsStore.currentSeason.id)
+      .order("sale_date", { ascending: true });
+  };
+
+  const _supabaseInsertBoothSale = async (boothSale: BoothSale) => {
+    return await supabaseClient
+      .from("booth_sales")
+      .insert(boothSale)
+      .select()
+      .single();
+  };
+
+  const _supabaseUpsertBoothSale = async (boothSale: BoothSale) => {
+    return await supabaseClient
+      .from("booth_sales")
+      .upsert(boothSale);
+  };
+
+  const _supabaseDeleteBoothSale = async (boothSale: BoothSale) => {
+    return await supabaseClient
+    .from("booth_sales")
+    .delete()
+    .eq("id", boothSale.id);
   };
 
   /* Actions */
 
+  const getPredictedCookiesFromExpectedSales = (
+    expectedSales: number,
+  ): Record<string, number> => {
+    const predictions: Record<string, number> = {};
+
+    const cookieRatioTotal = _getTotalPercentOfSale();
+    const cookiePercentages = _getCookiePercentages(cookieRatioTotal);
+
+    const predictionCalculations = cookiesStore.allCookies
+      .map((cookie) =>
+        _getBaseCookiePredictions(cookie, expectedSales, cookiePercentages),
+      )
+      .reduce(
+        (acc, curr) => ({ ...acc, ...curr }),
+        {} as Record<string, number>,
+      );
+
+    const totalFloored = _getTotalFloored(predictionCalculations);
+
+    const predictionsWithRemainder = _distributeRemainder(
+      predictionCalculations,
+      expectedSales - totalFloored,
+    );
+
+    Object.keys(predictionsWithRemainder).forEach((cookieAbbr) => {
+      predictions[cookieAbbr] = predictionCalculations[cookieAbbr].final;
+    });
+
+    return predictions;
+  };
+
   const setActiveBoothSalePredictedCookies = (expectedSales: number) => {
     activeBoothSale.value.predicted_cookies =
-      _calculatePredictedCookies(expectedSales);
+      getPredictedCookiesFromExpectedSales(expectedSales);
   };
 
   const setActiveBoothSaleTotalExpectedSales = () => {
-    if (activeBoothSale.value.predicted_cookies) {
-      const total = Object.values(
-        activeBoothSale.value.predicted_cookies as Record<string, number>,
-      ).reduce((sum, val) => sum + val, 0);
-      if (activeBoothSale.value.expected_sales !== total)
-        activeBoothSale.value.expected_sales = total;
-    } else {
-      activeBoothSale.value.expected_sales = 0;
-    }
+    const predictedCookies = activeBoothSale.value.predicted_cookies || {};
+    activeBoothSale.value.expected_sales = Object.values(
+      predictedCookies,
+    ).reduce((sum, val) => sum + val, 0);
   };
 
   const fetchBoothSales = async () => {
@@ -172,22 +232,12 @@ export const useBoothsStore = defineStore("booths", () => {
       if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
         return;
 
-      const { data, error } = await supabaseClient
-        .from("booth_sales")
-        .select(`*`)
-        .eq("profile", profileStore.currentProfile.id)
-        .eq("season", seasonsStore.currentSeason.id)
-        .order("sale_date", { ascending: true });
+      const { data, error } = await _supabaseSelectBoothSales();
 
       if (error) throw error;
       allBoothSales.value = data ?? [];
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -197,42 +247,25 @@ export const useBoothsStore = defineStore("booths", () => {
     boothSale.profile = user.value.id;
     boothSale.season = seasonsStore.currentSeason.id;
 
-    // Auto-calculate predicted cookies if not provided
     if (!boothSale.predicted_cookies) {
-      boothSale.predicted_cookies = _calculatePredictedCookies(
+      boothSale.predicted_cookies = getPredictedCookiesFromExpectedSales(
         boothSale.expected_sales,
       );
     }
 
-    // Remove auto_calculate_predicted_cookies if it exists
     if (boothSale.auto_calculate_predicted_cookies)
       delete boothSale.auto_calculate_predicted_cookies;
 
     try {
-      const { data, error } = await supabaseClient
-        .from("booth_sales")
-        .insert(boothSale)
-        .select()
-        .single();
+      const { data, error } = await _supabaseInsertBoothSale(boothSale);
 
       if (error) throw error;
 
       _addBoothSale(data as BoothSale);
       _sortBoothSales();
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Booth Sale Created",
-        life: 3000,
-      });
+      notificationHelpers.addSuccess("Booth Sale Created");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -240,7 +273,7 @@ export const useBoothsStore = defineStore("booths", () => {
     try {
       // Auto-calculate predicted cookies if not provided
       if (!boothSale.predicted_cookies) {
-        boothSale.predicted_cookies = _calculatePredictedCookies(
+        boothSale.predicted_cookies = getPredictedCookiesFromExpectedSales(
           boothSale.expected_sales,
         );
       }
@@ -249,55 +282,28 @@ export const useBoothsStore = defineStore("booths", () => {
       if (boothSale.auto_calculate_predicted_cookies)
         delete boothSale.auto_calculate_predicted_cookies;
 
-      const { error } = await supabaseClient
-        .from("booth_sales")
-        .upsert(boothSale);
+      const { error } = await _supabaseUpsertBoothSale(boothSale);
 
       if (error) throw error;
 
       _updateBoothSale(boothSale);
       _sortBoothSales();
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Booth Sale Updated",
-        life: 3000,
-      });
+      notificationHelpers.addSuccess("Booth Sale Updated");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
   const deleteBoothSale = async (boothSale: BoothSale) => {
     try {
-      const { error } = await supabaseClient
-        .from("booth_sales")
-        .delete()
-        .eq("id", boothSale.id);
+      const { error } = await _supabaseDeleteBoothSale(boothSale);
 
       if (error) throw error;
 
       _removeBoothSale(boothSale);
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Booth Sale Deleted",
-        life: 3000,
-      });
+      notificationHelpers.addSuccess("Booth Sale Deleted");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -323,6 +329,7 @@ export const useBoothsStore = defineStore("booths", () => {
     boothDialogVisible,
     setActiveBoothSalePredictedCookies,
     setActiveBoothSaleTotalExpectedSales,
+    getPredictedCookiesFromExpectedSales,
     upcomingBoothSales,
     troopInventoryBoothSales,
     predictedCookieAmounts,

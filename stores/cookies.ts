@@ -286,6 +286,10 @@ export const useCookiesStore = defineStore("cookies", () => {
     }
   };
 
+  const getCookieByAbbreviation = (abbreviation: string) => {
+    return allCookies.value.find((cookie) => cookie.abbreviation === abbreviation);
+  };
+
   //fetchCookies();
 
   return {
@@ -296,6 +300,7 @@ export const useCookiesStore = defineStore("cookies", () => {
     averageCookiePrice,
     fetchSeasonCookies,
     fetchCookies,
+    getCookieByAbbreviation,
     insertCookie,
     upsertCookie,
     deleteCookie,

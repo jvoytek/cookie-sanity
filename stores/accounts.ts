@@ -15,6 +15,7 @@ export const useAccountsStore = defineStore("accounts", () => {
   const girlsStore = useGirlsStore();
   const cookiesStore = useCookiesStore();
   const ordersStore = useOrdersStore();
+  const notificationHelpers = useNotificationHelpers();
 
   /* State */
   const allPayments = ref<Payment[]>([]);
@@ -200,24 +201,6 @@ export const useAccountsStore = defineStore("accounts", () => {
     .eq("id", payment.id);
   };
 
-  const _toastAddError = (error: Error) => {
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: error.message,
-      life: 3000,
-    });
-  };
-
-  const _toastSuccess = (message: string) => {
-    toast.add({
-      severity: "success",
-      summary: "Successful",
-      detail: message,
-      life: 3000,
-    });
-  };
-
   /* Actions */
 
   const fetchPayments = async () => {
@@ -227,7 +210,7 @@ export const useAccountsStore = defineStore("accounts", () => {
       if (error) throw error;
       allPayments.value = data ?? [];
     } catch (error) {
-      _toastAddError(error);
+      notificationHelpers.addError(error);
     }
   };
 
@@ -244,9 +227,9 @@ export const useAccountsStore = defineStore("accounts", () => {
 
       if (error) throw error;
       _addPayment(data);
-      _toastSuccess("Payment Added");
+      notificationHelpers.addSuccess("Payment Added");
     } catch (error) {
-      _toastAddError(error);
+      notificationHelpers.addError(error);
     }
   };
 
@@ -257,9 +240,9 @@ export const useAccountsStore = defineStore("accounts", () => {
       if (error) throw error;
 
       _updatePayment(data);
-      _toastSuccess("Payment Updated");
+      notificationHelpers.addSuccess("Payment Updated");
     } catch (error) {
-      _toastAddError(error);
+      notificationHelpers.addError(error);
     }
   };
 
@@ -270,9 +253,9 @@ export const useAccountsStore = defineStore("accounts", () => {
       if (error) throw error;
 
       _removePayment(payment);
-      _toastSuccess("Payment Deleted");
+      notificationHelpers.addSuccess("Payment Deleted");
     } catch (error) {
-      _toastAddError(error);
+      notificationHelpers.addError(error);
     }
   };
 
