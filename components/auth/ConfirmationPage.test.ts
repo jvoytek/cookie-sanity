@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ConfirmationPage from '@/components/ConfirmationPage.vue'
+import ConfirmationPage from '@/components/auth/ConfirmationPage.vue'
 
 describe('ConfirmationPage', () => {
   it('renders without crashing', () => {

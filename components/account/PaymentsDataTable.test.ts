@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import PaymentsDataTable from '@/components/PaymentsDataTable.vue'
+import PaymentsDataTable from '@/components/account/PaymentsDataTable.vue'
 
 describe('PaymentsDataTable', () => {
   it('renders without crashing', () => {

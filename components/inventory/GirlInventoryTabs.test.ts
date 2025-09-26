@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import GirlInventoryTabs from '@/components/GirlInventoryTabs.vue'
+import GirlInventoryTabs from '@/components/inventory/GirlInventoryTabs.vue'
 
 describe('GirlInventoryTabs', () => {
   it('renders without crashing', () => {

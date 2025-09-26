@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import AccountDetailWidget from '@/components/AccountDetailWidget.vue'
+import AccountDetailWidget from '@/components/account/AccountDetailWidget.vue'
 
 describe('AccountDetailWidget', () => {
   it('renders without crashing', () => {

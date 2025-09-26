@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import SeasonSettings from '@/components/SeasonSettings.vue'
+import SeasonSettings from '@/components/settings/SeasonSettings.vue'
 
 describe('SeasonSettings', () => {
   it('renders without crashing', () => {

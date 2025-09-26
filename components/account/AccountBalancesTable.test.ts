@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import AccountBalancesTable from '@/components/AccountBalancesTable.vue'
+import AccountBalancesTable from '@/components/account/AccountBalancesTable.vue'
 
 describe('AccountBalancesTable', () => {
   it('renders without crashing', () => {

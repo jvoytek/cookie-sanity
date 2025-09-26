@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import GirlList from '@/components/GirlList.vue'
+import GirlList from '@/components/settings/GirlList.vue'
 
 // Mock PrimeVue useToast
 vi.mock('primevue/usetoast', () => ({

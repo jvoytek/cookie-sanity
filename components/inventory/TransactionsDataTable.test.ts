@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import TransactionsDataTable from '@/components/TransactionsDataTable.vue'
+import TransactionsDataTable from '@/components/inventory/TransactionsDataTable.vue'
 
 describe('TransactionsDataTable', () => {
   it('renders without crashing', () => {

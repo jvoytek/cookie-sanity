@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import TroopCurrentInventoryDataTable from '@/components/TroopCurrentInventoryDataTable.vue'
+import TroopCurrentInventoryDataTable from '@/components/inventory/TroopCurrentInventoryDataTable.vue'
 
 describe('TroopCurrentInventoryDataTable', () => {
   it('renders without crashing', () => {

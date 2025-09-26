@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import AccountCard from '@/components/AccountCard.vue'
+import AccountCard from '@/components/account/AccountCard.vue'
 
 // Mock the stores and composables
 const mockUpdateProfile = vi.fn()

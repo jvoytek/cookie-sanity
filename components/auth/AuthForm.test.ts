@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import AuthForm from '@/components/AuthForm.vue'
+import AuthForm from '@/components/auth/AuthForm.vue'
 
 // Mock Supabase client
 const mockSignInWithOtp = vi.fn()

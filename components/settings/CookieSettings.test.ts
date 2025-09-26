@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import CookieSettings from '@/components/CookieSettings.vue'
+import CookieSettings from '@/components/settings/CookieSettings.vue'
 
 // Mock PrimeVue useToast
 vi.mock('primevue/usetoast', () => ({

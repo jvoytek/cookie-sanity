@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import TransactionDialog from '@/components/TransactionDialog.vue'
+import TransactionDialog from '@/components/inventory/TransactionDialog.vue'
 
 describe('TransactionDialog', () => {
   it('renders without crashing', () => {

@@ -82,7 +82,8 @@ global.useProfileStore = vi.fn(() => ({
 global.useSeasonsStore = vi.fn(() => ({
   currentSeason: { id: 1 },
   settingsSelectedSeason: { id: 1 },
-  getSeasonName: vi.fn((season) => season ? `${season.year} Season` : '2024 Season')
+  getSeasonName: vi.fn((season) => season ? `${season.year} Season` : '2024 Season'),
+  allSeasons: [{ id: 1 }],
 }))
 
 global.useOrdersStore = vi.fn(() => ({
@@ -95,7 +96,19 @@ global.useOrdersStore = vi.fn(() => ({
   transactionTypeOptions: [],
   upsertOrder: vi.fn(),
   insertNewOrderFromOrdersList: vi.fn(),
-  deleteOrder: vi.fn()
+  deleteOrder: vi.fn(),
+  allOrders: [
+    {
+        to: 1,
+        status: "complete",
+        cookies: { ABC: -2 },
+    },
+    {
+      to: 2,
+      status: "complete",
+      cookies: { DEF: -5 },
+  },
+],
 }))
 
 global.useAccountsStore = vi.fn(() => ({
@@ -122,11 +135,17 @@ global.useAccountsStore = vi.fn(() => ({
 }))
 
 global.useGirlsStore = vi.fn(() => ({
-  girlOptions: []
+  girlOptions: [],
+  allGirls: [
+    { id: 1, name: "Test Girl" },
+    { id: 2, name: "Test Girl 2" }
+  ],
 }))
 
 global.useCookiesStore = vi.fn(() => ({
-  allCookies: []
+  allCookies: [{ abbreviation: "ABC", price: 5 }, { abbreviation: "DEF", price: 5 }],
+  averageCookiePrice: 5,
+  allCookiesWithInventoryTotals: [{ onHand: 10 }],
 }))
 
 global.useBoothsStore = vi.fn(() => ({

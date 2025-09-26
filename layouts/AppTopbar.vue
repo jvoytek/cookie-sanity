@@ -10,8 +10,6 @@ loading.value = false;
 const profileStore = useProfileStore();
 const seasonsStore = useSeasonsStore();
 
-//const currentSeason = ref();
-
 const menu = ref(null);
 const userMenuItems = ref([
   {

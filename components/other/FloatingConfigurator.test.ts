@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import FloatingConfigurator from '@/components/FloatingConfigurator.vue'
+import FloatingConfigurator from '@/components/other/FloatingConfigurator.vue'
 
 // Mock the layout composable
 const mockToggleDarkMode = vi.fn()

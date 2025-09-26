@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
-import CookieList from "@/components/CookieList.vue";
+import CookieList from "@/components/other/CookieList.vue";
 
 describe("CookieList Component", () => {
   it("renders the total cookies correctly", () => {

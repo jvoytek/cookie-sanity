@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import OriginalDataTable from '@/components/OriginalDataTable.vue'
+import OriginalDataTable from '@/components/inventory/OriginalDataTable.vue'
 
 describe('OriginalDataTable', () => {
   it('renders without crashing', () => {

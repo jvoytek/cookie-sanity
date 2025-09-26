@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import PaymentDialog from '@/components/PaymentDialog.vue'
+import PaymentDialog from '@/components/account/PaymentDialog.vue'
 
 describe('PaymentDialog', () => {
   it('renders without crashing', () => {
