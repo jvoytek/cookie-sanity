@@ -1,29 +1,11 @@
 import type { Database } from "@/types/supabase";
-import type { Payment, Girl } from "@/types/types";
+import type { Order, Payment, AccountBalance, TroopAccountSummary } from "@/types/types";
 
 /*
 ref()s become state properties
 computed()s become getters
 function()s become actions
 */
-
-export interface AccountBalance {
-  girl: Girl;
-  distributedValue: number;
-  paymentsReceived: number;
-  balance: number;
-  status: string;
-  cookieTotals: Record<string, number>;
-  estimatedSales: Record<string, number>;
-}
-
-export interface TroopAccountSummary {
-  totalDistributedValue: number;
-  totalPaymentsReceived: number;
-  troopBalance: number;
-  estimatedTotalSales: Record<string, number>;
-  activeAccounts: number;
-}
 
 export const useAccountsStore = defineStore("accounts", () => {
   const supabaseClient = useSupabaseClient<Database>();
@@ -43,63 +25,19 @@ export const useAccountsStore = defineStore("accounts", () => {
   /* Computed */
 
   const girlAccountBalances = computed((): AccountBalance[] => {
-    if (
-      !girlsStore.allGirls ||
-      !cookiesStore.allCookies ||
-      !ordersStore.allOrders
-    ) {
-      return [];
-    }
 
     return girlsStore.allGirls.map((girl) => {
-      // Calculate distributed value from completed orders to this girl
-      const distributedOrders = ordersStore.allOrders.filter(
-        (order) => order.to === girl.id && order.status === "complete",
-      );
 
-      let distributedValue = 0;
-      const cookieTotals: Record<string, number> = {};
-      let numCookiesDistributed = 0;
-      distributedOrders.forEach((order) => {
-        if (order.cookies) {
-          cookiesStore.allCookies.forEach((cookie) => {
-            const cookieAbbr = cookie.abbreviation;
-            const cookieValue = order.cookies![cookieAbbr];
-            const quantity = typeof cookieValue === "number" ? cookieValue : 0;
-            if (quantity !== 0) {
-              const value = quantity * (cookie.price || 0) * -1;
-              numCookiesDistributed += quantity * -1;
-              distributedValue += value;
-              cookieTotals[cookieAbbr] =
-                (cookieTotals[cookieAbbr] || 0) + quantity;
-            }
-          });
-        }
-      });
-
-      // Calculate payments received for this girl
-      const girlPaymentsList = allPayments.value.filter(
-        (p) => p.seller_id === girl.id,
-      );
-      const paymentsReceived = girlPaymentsList.reduce(
-        (sum, payment) => sum + payment.amount,
-        0,
-      );
-
-      // Calculate balance
+      const completedTransactions = _getCompletedTransactionsForGirl(girl.id);
+      const {
+        distributedValue,
+        cookieTotals,
+        numCookiesDistributed,
+      } = _getTotalsFromTransactionList(completedTransactions);
+      const girlPaymentsList = _getPaymentsForGirl(girl.id);
+      const paymentsReceived = _getTotalofPayments(girlPaymentsList);
       const balance = paymentsReceived - distributedValue;
-
-      // Determine status
-      let status = "";
-      if (balance < 0) {
-        status = `Balance Due`;
-      } else if (balance > 0) {
-        status = "Overpaid";
-      } else {
-        status = "Paid in Full";
-      }
-
-      // Calculate estimated sales based on average prices
+      const status = _getStatus(balance);
       const estimatedSales =
         balance >= 0
           ? numCookiesDistributed
@@ -162,6 +100,56 @@ export const useAccountsStore = defineStore("accounts", () => {
 
   /* Private Functions */
 
+  const _getTotalofPayments = (payments: Payment[]) => {
+    return payments.reduce(
+      (sum, payment) => sum + payment.amount,
+      0,
+    );
+  };
+
+  const _getPaymentsForGirl = (girlId: number): Payment[] => {
+    return allPayments.value.filter(
+      (p) => p.seller_id === girlId,
+    );
+  };
+
+  const _getCompletedTransactionsForGirl = (girlId: number): Order[] => {
+    return ordersStore.allOrders.filter(
+      (order) => order.to === girlId && order.status === "complete",
+    );
+  };
+
+  const _getTotalsFromTransactionList = (transactionList: Order[]) => {
+   return transactionList.reduce(
+      (totals, { cookies }) => {
+        for (const { abbreviation, price = 0 } of cookiesStore.allCookies) {
+          const quantity = cookies[abbreviation] || 0;
+          if (quantity) {
+            totals.distributedValue -= quantity * price;
+            totals.numCookiesDistributed -= quantity;
+            totals.cookieTotals[abbreviation] = (totals.cookieTotals[abbreviation] || 0) + quantity;
+          }
+        }
+        return totals;
+      },
+      {
+        distributedValue: 0,
+        numCookiesDistributed: 0,
+        cookieTotals: {} as Record<string, number>,
+      },
+    );
+  };
+
+  const _getStatus = (balance: number): string => {
+    if (balance < 0) {
+      return `Balance Due`;
+    } else if (balance > 0) {
+      return "Overpaid";
+    } else {
+      return "Paid in Full";
+    }
+  };
+
   const _addPayment = (payment: Payment) => {
     allPayments.value.push(payment);
   };
@@ -180,33 +168,71 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   };
 
+  const _supabaseGetPayments = async () => {
+    return await supabaseClient
+    .from("payments")
+    .select(`*`)
+    .eq("profile", profileStore.currentProfile.id)
+    .eq("season", seasonsStore.currentSeason.id)
+    .order("payment_date", { ascending: false });
+  };
+
+  const _supabaseInsertNewPayment = async (payment: Omit<Payment, "id" | "created_at" | "profile" | "season">) => {
+    return await supabaseClient
+        .from("payments")
+        .insert(payment)
+        .select()
+        .single();
+  };
+
+  const _supabaseUpsertPayment = async (payment: Payment) => {
+    return await supabaseClient
+    .from("payments")
+    .upsert(payment)
+    .select()
+    .single();
+  };
+
+  const _supabaseDeletePayment = async (payment: Payment) => {
+    await supabaseClient
+    .from("payments")
+    .delete()
+    .eq("id", payment.id);
+  };
+
+  const _toastAddError = (error: Error) => {
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: error.message,
+      life: 3000,
+    });
+  };
+
+  const _toastSuccess = (message: string) => {
+    toast.add({
+      severity: "success",
+      summary: "Successful",
+      detail: message,
+      life: 3000,
+    });
+  };
+
   /* Actions */
 
   const fetchPayments = async () => {
     try {
-      if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
-        return;
-
-      const { data, error } = await supabaseClient
-        .from("payments")
-        .select(`*`)
-        .eq("profile", profileStore.currentProfile.id)
-        .eq("season", seasonsStore.currentSeason.id)
-        .order("payment_date", { ascending: false });
+      if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id) return;
+      const { data, error } = await _supabaseGetPayments();
       if (error) throw error;
       allPayments.value = data ?? [];
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      _toastAddError(error);
     }
   };
 
   const insertNewPayment = async (
-    payment: Omit<Payment, "id" | "created_at">,
+    payment: Omit<Payment, "id" | "created_at" | "profile" | "season">,
   ) => {
     if (!profileStore.currentProfile) return;
     payment.profile = profileStore.currentProfile.id;
@@ -214,94 +240,45 @@ export const useAccountsStore = defineStore("accounts", () => {
       profileStore.currentProfile.season || seasonsStore.allSeasons[0].id;
 
     try {
-      const { data, error } = await supabaseClient
-        .from("payments")
-        .insert(payment)
-        .select()
-        .single();
+      const { data, error } = await _supabaseInsertNewPayment(payment);
 
       if (error) throw error;
-
       _addPayment(data);
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Payment Added",
-        life: 3000,
-      });
+      _toastSuccess("Payment Added");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      _toastAddError(error);
     }
   };
 
   const upsertPayment = async (payment: Payment) => {
     try {
-      const { data, error } = await supabaseClient
-        .from("payments")
-        .upsert(payment)
-        .select()
-        .single();
+      const { data, error } = await _supabaseUpsertPayment(payment);
 
       if (error) throw error;
 
       _updatePayment(data);
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Payment Updated",
-        life: 3000,
-      });
+      _toastSuccess("Payment Updated");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      _toastAddError(error);
     }
   };
 
   const deletePayment = async (payment: Payment) => {
     try {
-      const { error } = await supabaseClient
-        .from("payments")
-        .delete()
-        .eq("id", payment.id);
+      const error = await _supabaseDeletePayment(payment);
 
       if (error) throw error;
 
       _removePayment(payment);
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Payment Deleted",
-        life: 3000,
-      });
+      _toastSuccess("Payment Deleted");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      _toastAddError(error);
     }
   };
 
-  function getGirlAccountById(id: number) {
-    for (let i = 0; i < girlAccountBalances.value.length; i++) {
-      if (girlAccountBalances.value[i].girl.id === id) {
-        return girlAccountBalances.value[i];
-      }
-    }
-  }
+  const getGirlAccountById = (id: number) => {
+    return girlAccountBalances.value.find((account) => account.girl.id === id);
+  };
 
   return {
     allPayments,
