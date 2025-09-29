@@ -940,7 +940,7 @@ describe("Orders Store", () => {
     describe("returnDateStringOrNull", () => {
       it("should handle Date object", () => {
         const order = {
-          order_date: new Date("2024-01-15"),
+          order_date: new Date("2024-01-15T00:00:00Z"),
           order_num: "12345",
           to: 1,
           cookies: {},
