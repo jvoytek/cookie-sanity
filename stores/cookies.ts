@@ -10,7 +10,6 @@ function()s become actions
 export const useCookiesStore = defineStore("cookies", () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
-  const toast = useToast();
   const profileStore = useProfileStore();
   const seasonsStore = useSeasonsStore();
   const ordersStore = useOrdersStore();
