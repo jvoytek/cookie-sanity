@@ -148,8 +148,8 @@ describe("stores/girls", () => {
 
     it("handles fetch error and shows toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -176,10 +176,7 @@ describe("stores/girls", () => {
       await newGirlsStore.fetchGirls();
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Fetch failed",
-        life: 3000,
+        message: "Fetch failed",
       });
     });
   });
@@ -187,8 +184,8 @@ describe("stores/girls", () => {
   describe("insertGirl", () => {
     it("successfully inserts girl and shows success toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       const mockGirl = { first_name: "Charlie", last_name: "Brown", season: 1 };
@@ -217,18 +214,13 @@ describe("stores/girls", () => {
       expect(mockGirl.profile).toBe("test-user-id");
       expect(newGirlsStore.allGirls).toHaveLength(1);
       expect(newGirlsStore.allGirls[0]).toEqual(mockInsertedGirl);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Girl Created",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith("Girl Created");
     });
 
     it("handles insert error and shows error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -256,10 +248,7 @@ describe("stores/girls", () => {
       await newGirlsStore.insertGirl(mockGirl);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Insert failed",
-        life: 3000,
+        message: "Insert failed",
       });
     });
   });
@@ -279,8 +268,8 @@ describe("stores/girls", () => {
 
     it("successfully upserts girl and shows success toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -312,18 +301,13 @@ describe("stores/girls", () => {
       await newGirlsStore.upsertGirl(updatedGirl);
 
       expect(newGirlsStore.allGirls[0].first_name).toBe("Alice Updated");
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Girl Updated",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith("Girl Updated");
     });
 
     it("handles upsert error and shows error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -348,10 +332,7 @@ describe("stores/girls", () => {
       await newGirlsStore.upsertGirl(updatedGirl);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Upsert failed",
-        life: 3000,
+        message: "Upsert failed",
       });
     });
   });
@@ -378,8 +359,8 @@ describe("stores/girls", () => {
 
     it("successfully deletes girl and shows success toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -421,18 +402,13 @@ describe("stores/girls", () => {
 
       expect(newGirlsStore.allGirls).toHaveLength(1);
       expect(newGirlsStore.allGirls[0].id).toBe(2);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Girl Deleted",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith("Girl Deleted");
     });
 
     it("handles delete error and shows error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -459,10 +435,7 @@ describe("stores/girls", () => {
       await newGirlsStore.deleteGirl(girlToDelete);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Delete failed",
-        life: 3000,
+        message: "Delete failed",
       });
     });
   });
