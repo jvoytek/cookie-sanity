@@ -286,8 +286,6 @@ export const useTransactionHelpers = () => {
   }
 
   return {
-    //dialogType,
-    //cookieFormSchema,
     form,
     submitted,
     editTransaction,

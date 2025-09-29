@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import OrdersList from '@/components/inventory/OrdersList.vue'
+import AllTransactions from '@/components/inventory/AllTransactions.vue'
 
 // Mock PrimeVue useToast
 vi.mock('primevue/usetoast', () => ({
@@ -10,10 +10,10 @@ vi.mock('primevue/usetoast', () => ({
   })
 }))
 
-describe('OrdersList', () => {
+describe('AllTransactions', () => {
   it('renders without crashing', () => {
     expect(() => {
-      mount(OrdersList, {
+      mount(AllTransactions, {
         global: {
           plugins: [createTestingPinia()],
           stubs: {
@@ -32,7 +32,7 @@ describe('OrdersList', () => {
   })
 
   it('mounts successfully', () => {
-    const wrapper = mount(OrdersList, {
+    const wrapper = mount(AllTransactions, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {

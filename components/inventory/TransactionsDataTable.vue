@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   orders: Json[];
-  transactionTypes: "troop" | "girl";
+  transactionTypes: "troop" | "girl" | "all";
   paginated?: boolean;
 }>();
 
@@ -22,14 +22,14 @@ const transactionHelpers = useTransactionHelpers();
     size="small"
   >
     <Column
-      v-if="props.transactionTypes === 'troop'"
+      v-if="props.transactionTypes === 'troop' || props.transactionTypes === 'all'"
       field="supplier"
       header="Supplier"
       sortable
     />
     <Column field="order_num" header="Transaction #" sortable />
     <Column
-      v-if="props.transactionTypes === 'girl'"
+      v-if="props.transactionTypes === 'girl' || props.transactionTypes === 'all'"
       field="from"
       header="From"
       sortable
@@ -43,7 +43,7 @@ const transactionHelpers = useTransactionHelpers();
       </template>
     </Column>
     <Column
-      v-if="props.transactionTypes === 'girl'"
+      v-if="props.transactionTypes === 'girl' || props.transactionTypes === 'all'"
       field="to"
       header="To"
       sortable
@@ -86,7 +86,7 @@ const transactionHelpers = useTransactionHelpers();
     </Column>
     <Column field="order_date" header="Expected" sortable />
     <Column
-      v-if="props.transactionTypes === 'girl'"
+      v-if="props.transactionTypes === 'girl' || props.transactionTypes === 'all'"
       field="completed_date"
       header="Completed"
       sortable
@@ -104,7 +104,7 @@ const transactionHelpers = useTransactionHelpers();
     <Column field="actions" header="Actions" style="min-width: 140px">
       <template #body="slotProps">
         <Button
-          v-if="slotProps.data.status === 'pending'"
+          v-if="props.transactionTypes !== 'all' && slotProps.data.status === 'pending'"
           v-tooltip.bottom="{
             value: 'Click this when physical inventory has changed hands',
             showDelay: 500,
@@ -116,7 +116,7 @@ const transactionHelpers = useTransactionHelpers();
           @click="ordersStore.updateOrderStatus(slotProps.data.id, 'complete')"
         />
         <Button
-          v-if="slotProps.data.status === 'requested'"
+          v-if="props.transactionTypes !== 'all' && slotProps.data.status === 'requested'"
           v-tooltip.bottom="{
             value: 'Click this to approve this request and mark as pending',
             showDelay: 500,
@@ -130,6 +130,7 @@ const transactionHelpers = useTransactionHelpers();
         />
         <Button
           v-if="
+            props.transactionTypes !== 'all' && 
             slotProps.data.status === 'complete' ||
             slotProps.data.status === 'rejected'
           "
@@ -160,6 +161,7 @@ const transactionHelpers = useTransactionHelpers();
         />
         <Button
           v-if="
+            props.transactionTypes === 'all' || 
             props.transactionTypes === 'troop' ||
             (props.transactionTypes === 'girl' &&
               (slotProps.data.status === 'rejected' ||
@@ -175,7 +177,8 @@ const transactionHelpers = useTransactionHelpers();
         />
         <Button
           v-if="
-            props.transactionTypes === 'girl' &&
+            props.transactionTypes !== 'all' && 
+            (props.transactionTypes === 'girl') &&
             (slotProps.data.status === 'requested' ||
               slotProps.data.status === 'pending')
           "

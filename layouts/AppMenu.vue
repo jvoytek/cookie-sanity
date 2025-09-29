@@ -18,7 +18,7 @@ const model = ref([
         icon: "pi pi-fw pi-arrow-right-arrow-left",
         to: "/girl-inventory",
       },
-      { label: "All Transactions", icon: "pi pi-fw pi-table", to: "/orders" },
+      { label: "All Transactions", icon: "pi pi-fw pi-table", to: "/all-transactions" },
       {
         label: "Booth Sales",
         icon: "pi pi-fw pi-calendar",

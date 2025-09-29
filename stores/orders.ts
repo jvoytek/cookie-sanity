@@ -14,20 +14,8 @@ export const useOrdersStore = defineStore("orders", () => {
   const seasonsStore = useSeasonsStore();
   const girlsStore = useGirlsStore();
 
-  const emptyOrder: Order = {
-    season: -1,
-    profile: "",
-    id: -1,
-    created_at: "",
-    order_date: returnDateStringOrNull(new Date()),
-    order_num: "",
-    to: 0,
-    cookies: {},
-  };
-
   /* State */
   const allOrders: Ref<Order[]> = ref([]);
-  const editingRows: Ref<Order[]> = ref([]);
   const transactionDialogFormSchema = reactive([]);
 
   const activeTransaction: ref<Json> = ref({});
@@ -160,25 +148,6 @@ export const useOrdersStore = defineStore("orders", () => {
     return ["T2T", "C2T"].includes(type.slice(0, 3));
   };
 
-  const friendlyTransactionTypes = (type: string): string => {
-    switch (type) {
-      case "T2G":
-        return "Troop to Girl";
-      case "G2G":
-        return "Girl to Girl";
-      case "G2T":
-        return "Girl to Troop";
-      case "T2T":
-        return "Troop to Troop";
-      case "C2T":
-        return "Council to Troop";
-      case "COOKIE_SHARE":
-        return "Cookie Share";
-      default:
-        return type;
-    }
-  };
-
   const _updateOrder = (order: Order) => {
     //
     const index = allOrders.value.findIndex((o) => o.id === order.id);
@@ -193,10 +162,6 @@ export const useOrdersStore = defineStore("orders", () => {
 
   const _addOrder = (order: Order) => {
     allOrders.value.unshift(order);
-  };
-
-  const _removeTemporaryOrder = () => {
-    allOrders.value.splice(0, 1);
   };
 
   const _removeOrder = (order: Order | number) => {
@@ -240,7 +205,7 @@ export const useOrdersStore = defineStore("orders", () => {
     }
   }
 
-  function returnDateStringOrNull(date: Date | string | null) {
+  function _returnDateStringOrNull(date: Date | string | null) {
     if (!date || typeof date === "string") {
       return date;
     } else {
@@ -268,6 +233,25 @@ export const useOrdersStore = defineStore("orders", () => {
   };
 
   /* Actions */
+  
+  const friendlyTransactionTypes = (type: string): string => {
+    switch (type) {
+      case "T2G":
+        return "Troop to Girl";
+      case "G2G":
+        return "Girl to Girl";
+      case "G2T":
+        return "Girl to Troop";
+      case "T2T":
+        return "Troop to Troop";
+      case "C2T":
+        return "Council to Troop";
+      case "COOKIE_SHARE":
+        return "Cookie Share";
+      default:
+        return type;
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -303,7 +287,7 @@ export const useOrdersStore = defineStore("orders", () => {
     order.profile = profileStore.currentProfile.id;
     order.season =
       profileStore.currentProfile.season || seasonsStore.allSeasons[0].id;
-    order.order_date = returnDateStringOrNull(order.order_date);
+    order.order_date = _returnDateStringOrNull(order.order_date);
     order.cookies = _invertCookieQuantities(order.cookies);
 
     try {
@@ -315,7 +299,6 @@ export const useOrdersStore = defineStore("orders", () => {
 
       if (error) throw error;
 
-      if (allOrders.value[0]?.id === -1) _removeTemporaryOrder();
       data.cookies = _invertCookieQuantities(data.cookies);
       _addOrder(data);
       _sortOrders();
@@ -342,12 +325,6 @@ export const useOrdersStore = defineStore("orders", () => {
       .insert(ordersList)
       .select();
     if (error) throw error;
-  };
-
-  const addTemporaryOrder = () => {
-    const order = { ...emptyOrder };
-    _addOrder(order);
-    editingRows.value.push(order);
   };
 
   const upsertOrder = async (order: Order) => {
@@ -430,7 +407,7 @@ export const useOrdersStore = defineStore("orders", () => {
     const fromGirlId = _getGirlId(obj.FROM);
     return {
       profile: profileStore.currentProfile?.id,
-      order_date: returnDateStringOrNull(obj.DATE),
+      order_date: _returnDateStringOrNull(obj.DATE),
       order_num: obj["ORDER #"].toString(),
       to: toGirlId || null,
       from: fromGirlId || null,
@@ -472,7 +449,6 @@ export const useOrdersStore = defineStore("orders", () => {
   return {
     allOrders,
     sumOrdersByCookie,
-    editingRows,
     activeTransaction,
     transactionDialogFormSchema,
     editTransactionDialogVisible,
@@ -494,8 +470,6 @@ export const useOrdersStore = defineStore("orders", () => {
     insertOrders,
     insertNewOrderFromOrdersList,
     upsertOrder,
-    returnDateStringOrNull,
-    addTemporaryOrder,
     deleteOrder,
     convertSCOrderToNewOrder,
     updateOrderStatus,
