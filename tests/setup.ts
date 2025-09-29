@@ -154,7 +154,7 @@ global.useCookiesStore = vi.fn(() => ({
 }))
 
 global.useBoothsStore = vi.fn(() => ({
-  getPredictedAmountForCookie: vi.fn(() => -9),
+  getPredictedBoothSaleQuantityByCookie: vi.fn(() => -9),
 }))
 
 global.useUploadsStore = vi.fn(() => ({

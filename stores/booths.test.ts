@@ -92,7 +92,7 @@ describe("stores/booths", () => {
     });
 
     it("filters troop inventory booth sales correctly", () => {
-      const troopSales = boothsStore.troopInventoryBoothSales;
+      const troopSales = boothsStore.boothSalesUsingTroopInventory;
       expect(troopSales).toHaveLength(1);
       expect(troopSales[0].inventory_type).toBe("troop");
     });
@@ -709,7 +709,7 @@ describe("stores/booths", () => {
   });
 
   describe("utility functions", () => {
-    it("getPredictedAmountForCookie returns correct negative total", () => {
+    it("getPredictedBoothSaleQuantityByCookie returns correct negative total", () => {
       boothsStore.allBoothSales = [
         {
           id: 1,
@@ -723,11 +723,11 @@ describe("stores/booths", () => {
         },
       ];
 
-      const predicted = boothsStore.getPredictedAmountForCookie("TM");
+      const predicted = boothsStore.getPredictedBoothSaleQuantityByCookie("TM");
       expect(predicted).toBe(-25); // Negative for inventory purposes
     });
 
-    it("getPredictedAmountForCookie returns 0 for non-existent cookie", () => {
+    it("getPredictedBoothSaleQuantityByCookie returns 0 for non-existent cookie", () => {
       boothsStore.allBoothSales = [
         {
           id: 1,
@@ -736,7 +736,7 @@ describe("stores/booths", () => {
         },
       ];
 
-      const predicted = boothsStore.getPredictedAmountForCookie("NONEXISTENT");
+      const predicted = boothsStore.getPredictedBoothSaleQuantityByCookie("NONEXISTENT");
       expect(predicted).toBe(-0); // The function returns total * -1, so 0 * -1 = -0
     });
 

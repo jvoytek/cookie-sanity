@@ -64,7 +64,7 @@ export const useCookiesStore = defineStore("cookies", () => {
         "troop",
         cookie.abbreviation,
       );
-      const pendingBooth = boothsStore.getPredictedAmountForCookie(
+      const pendingBooth = boothsStore.getPredictedBoothSaleQuantityByCookie(
         cookie.abbreviation,
       );
       const afterPending = onHand + pendingGirl + pendingTroop + pendingBooth;

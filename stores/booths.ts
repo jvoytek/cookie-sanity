@@ -28,7 +28,7 @@ export const useBoothsStore = defineStore("booths", () => {
     return allBoothSales.value.filter((booth) => booth.sale_date >= today);
   });
 
-  const troopInventoryBoothSales = computed(() => {
+  const boothSalesUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
       (booth) => booth.inventory_type === "troop",
     );
@@ -37,7 +37,7 @@ export const useBoothsStore = defineStore("booths", () => {
   const predictedCookieAmounts = computed(() => {
     const predictions: Record<string, number> = {};
 
-    troopInventoryBoothSales.value.forEach((booth) => {
+    boothSalesUsingTroopInventory.value.forEach((booth) => {
       if (booth.predicted_cookies) {
         const cookies = booth.predicted_cookies as Record<string, number>;
         Object.entries(cookies).forEach(([cookieId, amount]) => {
@@ -307,10 +307,9 @@ export const useBoothsStore = defineStore("booths", () => {
     }
   };
 
-  // Get predicted amount for a specific cookie
-  const getPredictedAmountForCookie = (cookieAbbreviation: string): number => {
+  const getPredictedBoothSaleQuantityByCookie = (cookieAbbreviation: string): number => {
     let total = 0;
-    troopInventoryBoothSales.value.forEach((booth) => {
+    boothSalesUsingTroopInventory.value.forEach((booth) => {
       if (booth.predicted_cookies) {
         const cookies = booth.predicted_cookies as Record<string, number>;
         // Find cookie by abbreviation
@@ -331,12 +330,12 @@ export const useBoothsStore = defineStore("booths", () => {
     setActiveBoothSaleTotalExpectedSales,
     getPredictedCookiesFromExpectedSales,
     upcomingBoothSales,
-    troopInventoryBoothSales,
+    boothSalesUsingTroopInventory,
     predictedCookieAmounts,
     fetchBoothSales,
     insertBoothSale,
     upsertBoothSale,
     deleteBoothSale,
-    getPredictedAmountForCookie,
+    getPredictedBoothSaleQuantityByCookie,
   };
 });

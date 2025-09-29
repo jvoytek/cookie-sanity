@@ -25,6 +25,7 @@ const inventoryTypeOptions = [
 function openNew() {
   editBoothSale({
     scouts_attending: [],
+    expected_sales: 0,
   });
 }
 
@@ -69,14 +70,18 @@ async function deleteBoothSale() {
 }
 
 boothsStore.$subscribe((mutation, _state) => {
-  if (!mutation.events?.oldValue || !mutation.events?.oldValue.expected_sales)
-    return;
+  if (mutation.events?.oldValue.length === 0 || mutation.events?.oldValue.expected_sales === undefined) return;
+
   const previousExpectedSales = mutation.events?.oldValue?.expected_sales || 0;
   const newExpectedSales = mutation.events?.newValue?.expected_sales || 0;
+  
+  if (previousExpectedSales === 0 && newExpectedSales === 0) {
+    return;
+  }
 
   if (previousExpectedSales !== newExpectedSales) {
     boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
-  }
+  } 
   boothsStore.setActiveBoothSaleTotalExpectedSales();
 });
 
