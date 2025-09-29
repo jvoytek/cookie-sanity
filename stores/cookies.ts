@@ -15,6 +15,7 @@ export const useCookiesStore = defineStore("cookies", () => {
   const seasonsStore = useSeasonsStore();
   const ordersStore = useOrdersStore();
   const boothsStore = useBoothsStore();
+  const notificationHelpers = useNotificationHelpers();
 
   /* State */
   const allCookies = ref<Cookie[]>([]);
@@ -49,34 +50,36 @@ export const useCookiesStore = defineStore("cookies", () => {
     if (!seasonsStore.currentSeason) return stock;
     allCookies.value.forEach((cookie) => {
       const onHand = ordersStore.sumOrdersByCookie(cookie.abbreviation);
-      const requestedGirl = ordersStore.totalTransactionsByStatusAndCookie(
-        "requested",
-        "girl",
-        cookie.abbreviation,
-      );
-      const pendingGirl = ordersStore.totalTransactionsByStatusAndCookie(
-        "pending",
-        "girl",
-        cookie.abbreviation,
-      );
-      const pendingTroop = ordersStore.totalTransactionsByStatusAndCookie(
-        "pending",
-        "troop",
-        cookie.abbreviation,
-      );
-      const pendingBooth = boothsStore.getPredictedBoothSaleQuantityByCookie(
-        cookie.abbreviation,
-      );
-      const afterPending = onHand + pendingGirl + pendingTroop + pendingBooth;
-      const afterPendingIncludingRequests = afterPending + requestedGirl;
+      const requestedGirlTransactions =
+        ordersStore.totalTransactionsByStatusAndCookie(
+          "requested",
+          "girl",
+          cookie.abbreviation,
+        );
+      const pendingGirlTransactions =
+        ordersStore.totalTransactionsByStatusAndCookie(
+          "pending",
+          "girl",
+          cookie.abbreviation,
+        );
+      const pendingTroopTransactions =
+        ordersStore.totalTransactionsByStatusAndCookie(
+          "pending",
+          "troop",
+          cookie.abbreviation,
+        );
+      const pendingBoothQuantities =
+        boothsStore.getPredictedBoothSaleQuantityByCookie(cookie.abbreviation);
+      const afterPending = onHand + pendingGirlTransactions + pendingTroopTransactions + pendingBoothQuantities;
+      const afterPendingIncludingRequests = afterPending + requestedGirlTransactions;
       const afterPendingStatus = _afterPendingStatusSeverity(afterPending);
       const cookieTotals = {
         ...cookie,
         onHand: onHand,
-        requestedGirl: requestedGirl,
-        pendingGirl: pendingGirl,
-        pendingTroop: pendingTroop,
-        pendingBooth: pendingBooth,
+        requestedGirl: requestedGirlTransactions,
+        pendingGirl: pendingGirlTransactions,
+        pendingTroop: pendingTroopTransactions,
+        pendingBooth: pendingBoothQuantities,
         afterPending: afterPending,
         afterPendingIncludingRequests: afterPendingIncludingRequests,
         afterPendingStatusSeverity: afterPendingStatus[0],
@@ -127,27 +130,51 @@ export const useCookiesStore = defineStore("cookies", () => {
     }
   };
 
+  const _supabaseFetchCookies = async () => {
+    return await supabaseClient
+      .from("cookies")
+      .select(`*`)
+      .eq("profile", profileStore.currentProfile.id)
+      .eq("season", seasonsStore.currentSeason.id)
+      .order("order");
+  };
+
+  const _supabaseFetchSeasonCookies = async () => {
+    return await supabaseClient
+      .from("cookies")
+      .select(`*`)
+      .eq("profile", user.value.id)
+      .eq("season", seasonsStore.settingsSelectedSeason.id)
+      .order("order");
+  };
+
+  const _supabaseInsertCookie = async (cookie: Cookie) => {
+    return await supabaseClient
+      .from("cookies")
+      .insert(cookie)
+      .select()
+      .single();
+  };
+
+  const _supabaseDeleteCookie = async (cookie: Cookie) => {
+    return await supabaseClient.from("cookies").delete().eq("id", cookie.id);
+  };
+
+  const _supabaseUpdateAllCookies = async () => {
+    return await supabaseClient.from("cookies").upsert(allCookies.value);
+  };
+
   /* Actions */
 
   const fetchCookies = async () => {
     try {
       if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
         return;
-      const { data, error } = await supabaseClient
-        .from("cookies")
-        .select(`*`)
-        .eq("profile", profileStore.currentProfile.id)
-        .eq("season", seasonsStore.currentSeason.id)
-        .order("order");
+      const { data, error } = await _supabaseFetchCookies();
       if (error) throw error;
       allCookies.value = data ?? [];
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -155,21 +182,11 @@ export const useCookiesStore = defineStore("cookies", () => {
     try {
       if (!seasonsStore.settingsSelectedSeason) return;
 
-      const { data, error } = await supabaseClient
-        .from("cookies")
-        .select(`*`)
-        .eq("profile", user.value.id)
-        .eq("season", seasonsStore.settingsSelectedSeason.id)
-        .order("order");
+      const { data, error } = await _supabaseFetchSeasonCookies();
       if (error) throw error;
       seasonCookies.value = data ?? [];
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -178,30 +195,15 @@ export const useCookiesStore = defineStore("cookies", () => {
     cookie.profile = user.value.id;
     cookie.season = seasonsStore.settingsSelectedSeason.id;
     try {
-      const { data, error } = await supabaseClient
-        .from("cookies")
-        .insert(cookie)
-        .select()
-        .single();
+      const { data, error } = await _supabaseInsertCookie(cookie);
 
       if (error) throw error;
 
       _addCookie(data as Cookie);
       _sortCookies();
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Cookie Created",
-        life: 3000,
-      });
+      notificationHelpers.addSuccess("Cookie Created");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: error.message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -213,48 +215,23 @@ export const useCookiesStore = defineStore("cookies", () => {
 
       _updateCookie(cookie);
       _sortCookies();
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Product Updated",
-        life: 3000,
-      });
+      notificationHelpers.addSuccess("Cookie Updated");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: error.message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
   const deleteCookie = async (cookie: Cookie) => {
     try {
-      const { error } = await supabaseClient
-        .from("cookies")
-        .delete()
-        .eq("id", cookie.id);
+      const { error } = await _supabaseDeleteCookie(cookie);
 
       if (error) throw error;
 
       _removeCookie(cookie);
       reorderCookies(allCookies.value);
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: "Cookie Deleted",
-        life: 3000,
-      });
+      notificationHelpers.addSuccess("Cookie Deleted");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: error.message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -267,30 +244,19 @@ export const useCookiesStore = defineStore("cookies", () => {
     _sortCookies();
 
     try {
-      const { error } = await supabaseClient
-        .from("cookies")
-        .upsert(allCookies.value);
+      const { error } = await _supabaseUpdateAllCookies();
       if (error) throw error;
-      toast.add({
-        severity: "success",
-        summary: "Cookies Reordered",
-        life: 3000,
-      });
+      notificationHelpers.addSuccess("Cookies Reordered");
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: error.message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
   const getCookieByAbbreviation = (abbreviation: string) => {
-    return allCookies.value.find((cookie) => cookie.abbreviation === abbreviation);
+    return allCookies.value.find(
+      (cookie) => cookie.abbreviation === abbreviation,
+    );
   };
-
-  //fetchCookies();
 
   return {
     allCookies,
