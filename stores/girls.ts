@@ -1,5 +1,5 @@
-import type { Database } from "@/types/supabase";
-import type { Girl } from "@/types/types";
+import type { Database } from '@/types/supabase';
+import type { Girl } from '@/types/types';
 
 /*
 ref()s become state properties
@@ -7,7 +7,7 @@ computed()s become getters
 function()s become actions
 */
 
-export const useGirlsStore = defineStore("girls", () => {
+export const useGirlsStore = defineStore('girls', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
   const profileStore = useProfileStore();
@@ -30,7 +30,7 @@ export const useGirlsStore = defineStore("girls", () => {
   /* Private Functions */
 
   const _getGirlDisplayName = (girl: Girl) => {
-    return girl.first_name + " " + girl.last_name[0] + ".";
+    return girl.first_name + ' ' + girl.last_name[0] + '.';
   };
 
   const _updateGirl = (girl: Girl) => {
@@ -58,20 +58,23 @@ export const useGirlsStore = defineStore("girls", () => {
   };
 
   const _supabaseFetchGirls = async () => {
+    if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
+      return { data: [], error: { message: 'Profile or season not found' } };
+
     return await supabaseClient
-      .from("sellers")
+      .from('sellers')
       .select(`*`)
-      .eq("profile", profileStore.currentProfile.id)
-      .eq("season", seasonsStore.currentSeason.id)
-      .order("first_name");
+      .eq('profile', profileStore.currentProfile.id)
+      .eq('season', seasonsStore.currentSeason.id)
+      .order('first_name');
   };
 
   const _supabaseInsertGirl = async (girl: Girl) => {
-    return await supabaseClient.from("sellers").insert(girl).select().single();
+    return await supabaseClient.from('sellers').insert(girl).select().single();
   };
 
   const _supabaseDeleteGirl = async (girl: Girl) => {
-    return await supabaseClient.from("sellers").delete().eq("id", girl.id);
+    return await supabaseClient.from('sellers').delete().eq('id', girl.id);
   };
 
   function _findIndexById(id: number) {
@@ -102,6 +105,11 @@ export const useGirlsStore = defineStore("girls", () => {
   };
 
   const insertGirl = async (girl: Girl) => {
+    if (!user.value?.id) {
+      notificationHelpers.addError(new Error('No user found'));
+      return;
+    }
+
     girl.profile = user.value.id;
     try {
       const { data, error } = await _supabaseInsertGirl(girl);
@@ -110,7 +118,7 @@ export const useGirlsStore = defineStore("girls", () => {
 
       _addGirl(data as Girl);
       _sortGirls();
-      notificationHelpers.addSuccess("Girl Created");
+      notificationHelpers.addSuccess('Girl Created');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -118,13 +126,13 @@ export const useGirlsStore = defineStore("girls", () => {
 
   const upsertGirl = async (girl: Girl) => {
     try {
-      const { error } = await supabaseClient.from("sellers").upsert(girl);
+      const { error } = await supabaseClient.from('sellers').upsert(girl);
 
       if (error) throw error;
 
       _updateGirl(girl);
       _sortGirls();
-      notificationHelpers.addSuccess("Girl Updated");
+      notificationHelpers.addSuccess('Girl Updated');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -137,7 +145,7 @@ export const useGirlsStore = defineStore("girls", () => {
       if (error) throw error;
 
       _removeGirl(girl);
-      notificationHelpers.addSuccess("Girl Deleted");
+      notificationHelpers.addSuccess('Girl Deleted');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -152,11 +160,11 @@ export const useGirlsStore = defineStore("girls", () => {
     if (theGirl) {
       return _getGirlDisplayName(theGirl);
     }
-    return "No girl found";
+    return 'No girl found';
   };
 
   const getGirlNamesByIdList = (idList: number[]) => {
-    return idList.map((id) => getGirlNameById(id)).join(", ");
+    return idList.map((id) => getGirlNameById(id)).join(', ');
   };
 
   return {
