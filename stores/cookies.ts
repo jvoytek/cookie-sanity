@@ -1,5 +1,5 @@
-import type { Database } from "@/types/supabase";
-import type { Cookie } from "@/types/types";
+import type { Database } from '@/types/supabase';
+import type { Cookie } from '@/types/types';
 
 /*
 ref()s become state properties
@@ -7,7 +7,7 @@ computed()s become getters
 function()s become actions
 */
 
-export const useCookiesStore = defineStore("cookies", () => {
+export const useCookiesStore = defineStore('cookies', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
   const profileStore = useProfileStore();
@@ -24,14 +24,14 @@ export const useCookiesStore = defineStore("cookies", () => {
 
   const cookieFormFields = computed(() => {
     return allCookies.value.map((cookie) => ({
-      $formkit: "primeInputNumber",
+      $formkit: 'primeInputNumber',
       name: cookie.abbreviation,
       label: cookie.name,
-      validation: "integer",
-      wrapperClass: "grid grid-cols-3 gap-4 items-center",
-      labelClass: "col-span-1",
-      innerClass: "col-span-2 mt-1 mb-1",
-      class: "w-full",
+      validation: 'integer',
+      wrapperClass: 'grid grid-cols-3 gap-4 items-center',
+      labelClass: 'col-span-1',
+      innerClass: 'col-span-2 mt-1 mb-1',
+      class: 'w-full',
     }));
   });
 
@@ -45,59 +45,57 @@ export const useCookiesStore = defineStore("cookies", () => {
   });
 
   const allCookiesWithInventoryTotals = computed(() => {
-    const stock = [];
-    if (!seasonsStore.currentSeason) return stock;
-    allCookies.value.forEach((cookie) => {
+    if (!seasonsStore.currentSeason) return [];
+    const requestedGirlMap = ordersStore.totalTransactionsByStatusAllCookies(
+      'requested',
+      'girl',
+    );
+    const pendingGirlMap = ordersStore.totalTransactionsByStatusAllCookies(
+      'pending',
+      'girl',
+    );
+    const pendingTroopMap = ordersStore.totalTransactionsByStatusAllCookies(
+      'pending',
+      'troop',
+    );
+
+    return allCookies.value.map((cookie) => {
       const onHand = ordersStore.sumTransactionsByCookie(cookie.abbreviation);
-      const requestedGirlTransactions =
-        ordersStore.totalTransactionsByStatusAndCookie(
-          "requested",
-          "girl",
-          cookie.abbreviation,
-        );
-      const pendingGirlTransactions =
-        ordersStore.totalTransactionsByStatusAndCookie(
-          "pending",
-          "girl",
-          cookie.abbreviation,
-        );
-      const pendingTroopTransactions =
-        ordersStore.totalTransactionsByStatusAndCookie(
-          "pending",
-          "troop",
-          cookie.abbreviation,
-        );
-      const pendingBoothQuantities =
-        boothsStore.getPredictedBoothSaleQuantityByCookie(cookie.abbreviation);
-      const afterPending = onHand + pendingGirlTransactions + pendingTroopTransactions + pendingBoothQuantities;
-      const afterPendingIncludingRequests = afterPending + requestedGirlTransactions;
-      const afterPendingStatus = _afterPendingStatusSeverity(afterPending);
-      const cookieTotals = {
+      const requestedGirl = requestedGirlMap[cookie.abbreviation];
+      const pendingGirl = pendingGirlMap[cookie.abbreviation];
+      const pendingTroop = pendingTroopMap[cookie.abbreviation];
+      const pendingBooth = boothsStore.getPredictedBoothSaleQuantityByCookie(
+        cookie.abbreviation,
+      );
+      const afterPending = onHand + pendingGirl + pendingTroop + pendingBooth;
+      const afterPendingIncludingRequests = afterPending + requestedGirl;
+      const [afterPendingStatusSeverity, afterPendingStatus] =
+        _afterPendingStatusSeverity(afterPending);
+
+      return {
         ...cookie,
-        onHand: onHand,
-        requestedGirl: requestedGirlTransactions,
-        pendingGirl: pendingGirlTransactions,
-        pendingTroop: pendingTroopTransactions,
-        pendingBooth: pendingBoothQuantities,
-        afterPending: afterPending,
-        afterPendingIncludingRequests: afterPendingIncludingRequests,
-        afterPendingStatusSeverity: afterPendingStatus[0],
-        afterPendingStatus: afterPendingStatus[1],
+        onHand,
+        requestedGirl,
+        pendingGirl,
+        pendingTroop,
+        pendingBooth,
+        afterPending,
+        afterPendingIncludingRequests,
+        afterPendingStatusSeverity,
+        afterPendingStatus,
       };
-      stock.push(cookieTotals);
     });
-    return stock;
   });
 
   /* Private Functions */
 
   const _afterPendingStatusSeverity = (quantity: number) => {
     if (quantity > 50) {
-      return ["success", "Good"];
+      return ['success', 'Good'];
     } else if (quantity > 20) {
-      return ["warn", "Ok"];
+      return ['warn', 'Ok'];
     } else {
-      return ["danger", "Low"];
+      return ['danger', 'Low'];
     }
   };
 
@@ -115,7 +113,9 @@ export const useCookiesStore = defineStore("cookies", () => {
   };
 
   const _sortCookies = () => {
-    allCookies.value.sort((a, b) => a.order - b.order);
+    allCookies.value.sort(
+      (a: Cookie, b: Cookie) => (a.order ?? 0) - (b.order ?? 0),
+    );
   };
 
   const _addCookie = (cookie: Cookie) => {
@@ -130,37 +130,49 @@ export const useCookiesStore = defineStore("cookies", () => {
   };
 
   const _supabaseFetchCookies = async () => {
+    if (
+      profileStore.currentProfile == null ||
+      seasonsStore.currentSeason == null
+    )
+      return {
+        data: null,
+        error: { message: 'No profile or season selected' },
+      };
+
     return await supabaseClient
-      .from("cookies")
+      .from('cookies')
       .select(`*`)
-      .eq("profile", profileStore.currentProfile.id)
-      .eq("season", seasonsStore.currentSeason.id)
-      .order("order");
+      .eq('profile', profileStore.currentProfile.id)
+      .eq('season', seasonsStore.currentSeason.id)
+      .order('order');
   };
 
   const _supabaseFetchSeasonCookies = async () => {
+    if (user.value == null || seasonsStore.settingsSelectedSeason == null)
+      return { data: null, error: { message: 'No user or season selected' } };
+
     return await supabaseClient
-      .from("cookies")
+      .from('cookies')
       .select(`*`)
-      .eq("profile", user.value.id)
-      .eq("season", seasonsStore.settingsSelectedSeason.id)
-      .order("order");
+      .eq('profile', user.value.id)
+      .eq('season', seasonsStore.settingsSelectedSeason.id)
+      .order('order');
   };
 
   const _supabaseInsertCookie = async (cookie: Cookie) => {
     return await supabaseClient
-      .from("cookies")
+      .from('cookies')
       .insert(cookie)
       .select()
       .single();
   };
 
   const _supabaseDeleteCookie = async (cookie: Cookie) => {
-    return await supabaseClient.from("cookies").delete().eq("id", cookie.id);
+    return await supabaseClient.from('cookies').delete().eq('id', cookie.id);
   };
 
   const _supabaseUpdateAllCookies = async () => {
-    return await supabaseClient.from("cookies").upsert(allCookies.value);
+    return await supabaseClient.from('cookies').upsert(allCookies.value);
   };
 
   /* Actions */
@@ -190,7 +202,7 @@ export const useCookiesStore = defineStore("cookies", () => {
   };
 
   const insertCookie = async (cookie: Cookie) => {
-    if (!seasonsStore.settingsSelectedSeason) return;
+    if (!seasonsStore.settingsSelectedSeason || !user.value) return;
     cookie.profile = user.value.id;
     cookie.season = seasonsStore.settingsSelectedSeason.id;
     try {
@@ -200,7 +212,7 @@ export const useCookiesStore = defineStore("cookies", () => {
 
       _addCookie(data as Cookie);
       _sortCookies();
-      notificationHelpers.addSuccess("Cookie Created");
+      notificationHelpers.addSuccess('Cookie Created');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -208,13 +220,13 @@ export const useCookiesStore = defineStore("cookies", () => {
 
   const upsertCookie = async (cookie: Cookie) => {
     try {
-      const { error } = await supabaseClient.from("cookies").upsert(cookie);
+      const { error } = await supabaseClient.from('cookies').upsert(cookie);
 
       if (error) throw error;
 
       _updateCookie(cookie);
       _sortCookies();
-      notificationHelpers.addSuccess("Cookie Updated");
+      notificationHelpers.addSuccess('Cookie Updated');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -228,7 +240,7 @@ export const useCookiesStore = defineStore("cookies", () => {
 
       _removeCookie(cookie);
       reorderCookies(allCookies.value);
-      notificationHelpers.addSuccess("Cookie Deleted");
+      notificationHelpers.addSuccess('Cookie Deleted');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -245,7 +257,7 @@ export const useCookiesStore = defineStore("cookies", () => {
     try {
       const { error } = await _supabaseUpdateAllCookies();
       if (error) throw error;
-      notificationHelpers.addSuccess("Cookies Reordered");
+      notificationHelpers.addSuccess('Cookies Reordered');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }

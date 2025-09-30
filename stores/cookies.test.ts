@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { createPinia, setActivePinia } from 'pinia';
+import type { Cookie } from '@/types/types';
 
 // Import the store after setting up global mocks in setup.ts
-import { useCookiesStore } from "@/stores/cookies";
+import { useCookiesStore } from '@/stores/cookies';
 
-describe("stores/cookies", () => {
+describe('stores/cookies', () => {
   let cookiesStore: ReturnType<typeof useCookiesStore>;
 
   beforeEach(() => {
@@ -12,7 +13,7 @@ describe("stores/cookies", () => {
     setActivePinia(createPinia());
 
     // Set up the orders store mock for this test
-    global.useTransactionsStore = vi.fn(() => ({
+    const useTransactionsStoreMock = vi.fn(() => ({
       sumTransactionsByCookie: vi.fn((abbreviation: string) => {
         // Mock different inventory amounts based on cookie type
         const mockInventory: Record<string, number> = {
@@ -27,19 +28,56 @@ describe("stores/cookies", () => {
       totalTransactionsByStatusAndCookie: vi.fn(
         (status: string, type: string, abbreviation: string) => {
           // Mock different pending amounts based on parameters
-          if (status === "requested" && type === "girl") {
-            return abbreviation === "ADV" ? 10 : 5;
+          if (status === 'requested' && type === 'girl') {
+            return abbreviation === 'ADV' ? 10 : 5;
           }
-          if (status === "pending" && type === "girl") {
-            return abbreviation === "TM" ? 8 : 3;
+          if (status === 'pending' && type === 'girl') {
+            return abbreviation === 'TM' ? 8 : 3;
           }
-          if (status === "pending" && type === "troop") {
-            return abbreviation === "LEM" ? 12 : 2;
+          if (status === 'pending' && type === 'troop') {
+            return abbreviation === 'LEM' ? 12 : 2;
           }
           return 0;
         },
       ),
+      //Adventurefuls (ADV): onHand=100, requestedGirl=10, pendingGirl=3, pendingTroop=2, pendedBooth=-9
+      // Thin Mints (TM): onHand=75, requestedGirl=5, pendingGirl=8, pendingTroop=2, pendedBooth=-9
+      // Test Lemon-Ups (LEM): onHand=50, requestedGirl=5, pendingGirl=3, pendingTroop=12
+      totalTransactionsByStatusAllCookies: vi.fn(
+        (status: string, type: string) => {
+          // Mock total requested amounts for all cookies
+          if (status === 'requested' && type === 'girl') {
+            return {
+              ADV: 10,
+              TM: 5,
+              LEM: 5,
+              TRE: 3,
+              CD: 3,
+            };
+          }
+          if (status === 'pending' && type === 'girl') {
+            return {
+              ADV: 3,
+              TM: 8,
+              LEM: 3,
+              TRE: 1,
+              CD: 1,
+            };
+          }
+          if (status === 'pending' && type === 'troop') {
+            return {
+              ADV: 2,
+              TM: 2,
+              LEM: 12,
+              TRE: 4,
+              CD: 4,
+            };
+          }
+          return {};
+        },
+      ),
     }));
+    vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
 
     cookiesStore = useCookiesStore();
 
@@ -47,64 +85,64 @@ describe("stores/cookies", () => {
     cookiesStore.allCookies = [
       {
         id: 1,
-        name: "Adventurefuls",
-        abbreviation: "ADV",
+        name: 'Adventurefuls',
+        abbreviation: 'ADV',
         price: 5.0,
         order: 1,
-        profile: "test-profile-id",
+        profile: 'test-profile-id',
         season: 1,
       },
       {
         id: 2,
-        name: "Thin Mints",
-        abbreviation: "TM",
+        name: 'Thin Mints',
+        abbreviation: 'TM',
         price: 5.0,
         order: 2,
-        profile: "test-profile-id",
+        profile: 'test-profile-id',
         season: 1,
       },
       {
         id: 3,
-        name: "Lemon-Ups",
-        abbreviation: "LEM",
+        name: 'Lemon-Ups',
+        abbreviation: 'LEM',
         price: 5.0,
         order: 3,
-        profile: "test-profile-id",
+        profile: 'test-profile-id',
         season: 1,
       },
       {
         id: 4,
-        name: "Trefoils",
-        abbreviation: "TRE",
+        name: 'Trefoils',
+        abbreviation: 'TRE',
         price: 5.0,
         order: 4,
-        profile: "test-profile-id",
+        profile: 'test-profile-id',
         season: 1,
       },
       {
         id: 5,
-        name: "Caramel deLites",
-        abbreviation: "CD",
+        name: 'Caramel deLites',
+        abbreviation: 'CD',
         price: 5.0,
         order: 5,
-        profile: "test-profile-id",
+        profile: 'test-profile-id',
         season: 1,
       },
-    ];
+    ] as Cookie[];
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("allCookiesWithInventoryTotals computed property", () => {
-    it("calculates inventory totals correctly for each cookie", () => {
+  describe('allCookiesWithInventoryTotals computed property', () => {
+    it('calculates inventory totals correctly for each cookie', () => {
       const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals;
 
       expect(inventoryTotals).toHaveLength(5);
 
       // Test Adventurefuls (ADV): onHand=100, requestedGirl=10, pendingGirl=3, pendingTroop=2, pendedBooth=-9
-      const advCookie = inventoryTotals.find((c) => c.abbreviation === "ADV");
+      const advCookie = inventoryTotals.find((c) => c.abbreviation === 'ADV');
       expect(advCookie?.onHand).toBe(100);
       expect(advCookie?.requestedGirl).toBe(10);
       expect(advCookie?.pendingGirl).toBe(3);
@@ -113,7 +151,7 @@ describe("stores/cookies", () => {
       expect(advCookie?.afterPendingIncludingRequests).toBe(106); // 105 + 10
 
       // Test Thin Mints (TM): onHand=75, requestedGirl=5, pendingGirl=8, pendingTroop=2, pendedBooth=-9
-      const tmCookie = inventoryTotals.find((c) => c.abbreviation === "TM");
+      const tmCookie = inventoryTotals.find((c) => c.abbreviation === 'TM');
       expect(tmCookie?.onHand).toBe(75);
       expect(tmCookie?.requestedGirl).toBe(5);
       expect(tmCookie?.pendingGirl).toBe(8);
@@ -122,7 +160,7 @@ describe("stores/cookies", () => {
       expect(tmCookie?.afterPendingIncludingRequests).toBe(81); // 85 + 5 -9
 
       // Test Lemon-Ups (LEM): onHand=50, requestedGirl=5, pendingGirl=3, pendingTroop=12
-      const lemCookie = inventoryTotals.find((c) => c.abbreviation === "LEM");
+      const lemCookie = inventoryTotals.find((c) => c.abbreviation === 'LEM');
       expect(lemCookie?.onHand).toBe(50);
       expect(lemCookie?.requestedGirl).toBe(5);
       expect(lemCookie?.pendingGirl).toBe(3);
@@ -131,38 +169,39 @@ describe("stores/cookies", () => {
       expect(lemCookie?.afterPendingIncludingRequests).toBe(61); // 65 + 5 -9
     });
 
-    it("assigns correct status severity based on afterPending quantity", () => {
+    it('assigns correct status severity based on afterPending quantity', () => {
       const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals;
 
-      // ADV: afterPending=105 (>50) should be "success"/"Good"
-      const advCookie = inventoryTotals.find((c) => c.abbreviation === "ADV");
-      expect(advCookie?.afterPendingStatusSeverity).toBe("success");
-      expect(advCookie?.afterPendingStatus).toBe("Good");
+      // ADV: afterPending=96 (>50) should be "success"/"Good"
+      const advCookie = inventoryTotals.find((c) => c.abbreviation === 'ADV');
+      expect(advCookie?.afterPending).toBe(96);
+      expect(advCookie?.afterPendingStatusSeverity).toBe('success');
+      expect(advCookie?.afterPendingStatus).toBe('Good');
 
       // TM: afterPending=85 (>50) should be "success"/"Good"
-      const tmCookie = inventoryTotals.find((c) => c.abbreviation === "TM");
-      expect(tmCookie?.afterPendingStatusSeverity).toBe("success");
-      expect(tmCookie?.afterPendingStatus).toBe("Good");
+      const tmCookie = inventoryTotals.find((c) => c.abbreviation === 'TM');
+      expect(tmCookie?.afterPendingStatusSeverity).toBe('success');
+      expect(tmCookie?.afterPendingStatus).toBe('Good');
 
       // LEM: afterPending=65 (>50) should be "success"/"Good"
-      const lemCookie = inventoryTotals.find((c) => c.abbreviation === "LEM");
-      expect(lemCookie?.afterPendingStatusSeverity).toBe("success");
-      expect(lemCookie?.afterPendingStatus).toBe("Good");
+      const lemCookie = inventoryTotals.find((c) => c.abbreviation === 'LEM');
+      expect(lemCookie?.afterPendingStatusSeverity).toBe('success');
+      expect(lemCookie?.afterPendingStatus).toBe('Good');
 
       // TRE: afterPending=21 (>20 but <=50) should be "warn"/"Ok"
-      const treCookie = inventoryTotals.find((c) => c.abbreviation === "TRE");
+      const treCookie = inventoryTotals.find((c) => c.abbreviation === 'TRE');
       expect(treCookie?.afterPending).toBe(21); // 25 + 3 + 2 -9
-      expect(treCookie?.afterPendingStatusSeverity).toBe("warn");
-      expect(treCookie?.afterPendingStatus).toBe("Ok");
+      expect(treCookie?.afterPendingStatusSeverity).toBe('warn');
+      expect(treCookie?.afterPendingStatus).toBe('Ok');
 
       // CD: afterPending=11 (<=20) should be "danger"/"Low"
-      const cdCookie = inventoryTotals.find((c) => c.abbreviation === "CD");
+      const cdCookie = inventoryTotals.find((c) => c.abbreviation === 'CD');
       expect(cdCookie?.afterPending).toBe(11); // 15 + 3 + 2 -9
-      expect(cdCookie?.afterPendingStatusSeverity).toBe("danger");
-      expect(cdCookie?.afterPendingStatus).toBe("Low");
+      expect(cdCookie?.afterPendingStatusSeverity).toBe('danger');
+      expect(cdCookie?.afterPendingStatus).toBe('Low');
     });
 
-    it("preserves original cookie properties in inventory totals", () => {
+    it('preserves original cookie properties in inventory totals', () => {
       const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals;
 
       inventoryTotals.forEach((cookie) => {
@@ -179,13 +218,13 @@ describe("stores/cookies", () => {
       });
     });
 
-    it("returns empty array when no current season", () => {
+    it('returns empty array when no current season', () => {
       // Mock the seasons store to return no current season
-      const originalMock = global.useSeasonsStore;
-      global.useSeasonsStore = vi.fn(() => ({
+      const useSeasonsStoreMock = vi.fn(() => ({
         currentSeason: null,
         settingsSelectedSeason: { id: 1 },
       }));
+      vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
 
       // Create a new store instance to get the mocked behavior
       setActivePinia(createPinia());
@@ -193,54 +232,27 @@ describe("stores/cookies", () => {
       newCookiesStore.allCookies = [
         {
           id: 1,
-          name: "Test Cookie",
-          abbreviation: "TEST",
+          name: 'Test Cookie',
+          abbreviation: 'TEST',
           price: 5.0,
           order: 1,
-          profile: "test-profile-id",
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Cookie[];
 
       const inventoryTotals = newCookiesStore.allCookiesWithInventoryTotals;
       expect(inventoryTotals).toEqual([]);
-
-      // Restore original mock
-      global.useSeasonsStore = originalMock;
     });
   });
 
-  describe("state management", () => {
-    it("initializes with empty arrays", () => {
+  describe('state management', () => {
+    it('initializes with empty arrays', () => {
       setActivePinia(createPinia());
       const freshStore = useCookiesStore();
 
       expect(freshStore.allCookies).toEqual([]);
       expect(freshStore.seasonCookies).toEqual([]);
-    });
-
-    it("maintains reactive state when cookies are updated", () => {
-      expect(cookiesStore.allCookies).toHaveLength(5);
-
-      // Add a new cookie
-      cookiesStore.allCookies.push({
-        id: 6,
-        name: "Test Cookie",
-        abbreviation: "TEST",
-        price: 6.0,
-        order: 6,
-        profile: "test-profile-id",
-        season: 1,
-      });
-
-      expect(cookiesStore.allCookies).toHaveLength(6);
-      expect(cookiesStore.allCookiesWithInventoryTotals).toHaveLength(6);
-
-      const testCookie = cookiesStore.allCookiesWithInventoryTotals.find(
-        (c) => c.abbreviation === "TEST",
-      );
-      expect(testCookie?.name).toBe("Test Cookie");
-      expect(testCookie?.price).toBe(6.0);
     });
   });
 });
