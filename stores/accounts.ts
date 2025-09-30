@@ -1,5 +1,5 @@
 import type { Database } from "@/types/supabase";
-import type { Order, Payment, AccountBalance, TroopAccountSummary } from "@/types/types";
+import type { Order, Payment, AccountBalance, TroopAccountSummary, Girl } from "@/types/types";
 
 /*
 ref()s become state properties
@@ -9,25 +9,24 @@ function()s become actions
 
 export const useAccountsStore = defineStore("accounts", () => {
   const supabaseClient = useSupabaseClient<Database>();
-  const toast = useToast();
   const profileStore = useProfileStore();
   const seasonsStore = useSeasonsStore();
   const girlsStore = useGirlsStore();
   const cookiesStore = useCookiesStore();
-  const ordersStore = useOrdersStore();
+  const ordersStore = useTransactionsStore();
   const notificationHelpers = useNotificationHelpers();
 
   /* State */
   const allPayments = ref<Payment[]>([]);
-  const editPaymentDialogVisible: ref<boolean> = ref(false);
-  const activePayment: ref<Payment> = ref({});
+  const editPaymentDialogVisible = ref<boolean>(false);
+  const activePayment = ref<Payment>({});
   const paymentDialogFormSchema = reactive([]);
 
   /* Computed */
 
   const girlAccountBalances = computed((): AccountBalance[] => {
 
-    return girlsStore.allGirls.map((girl) => {
+    return girlsStore.allGirls.map((girl: Girl) => {
 
       const completedTransactions = _getCompletedTransactionsForGirl(girl.id);
       const {
@@ -110,12 +109,12 @@ export const useAccountsStore = defineStore("accounts", () => {
 
   const _getPaymentsForGirl = (girlId: number): Payment[] => {
     return allPayments.value.filter(
-      (p) => p.seller_id === girlId,
+      (p: Payment) => p.seller_id === girlId,
     );
   };
 
   const _getCompletedTransactionsForGirl = (girlId: number): Order[] => {
-    return ordersStore.allOrders.filter(
+    return ordersStore.allTransactions.filter(
       (order) => order.to === girlId && order.status === "complete",
     );
   };
@@ -156,14 +155,14 @@ export const useAccountsStore = defineStore("accounts", () => {
   };
 
   const _updatePayment = (payment: Payment) => {
-    const index = allPayments.value.findIndex((p) => p.id === payment.id);
+    const index = allPayments.value.findIndex((p:Payment) => p.id === payment.id);
     if (index !== -1) {
       allPayments.value[index] = payment;
     }
   };
 
   const _removePayment = (payment: Payment) => {
-    const index = allPayments.value.findIndex((p) => p.id === payment.id);
+    const index = allPayments.value.findIndex((p:Payment) => p.id === payment.id);
     if (index !== -1) {
       allPayments.value.splice(index, 1);
     }
@@ -178,10 +177,10 @@ export const useAccountsStore = defineStore("accounts", () => {
     .order("payment_date", { ascending: false });
   };
 
-  const _supabaseInsertNewPayment = async (payment: Omit<Payment, "id" | "created_at" | "profile" | "season">) => {
+  const _supabaseInsertNewPayment = async (payment: Payment) => {
     return await supabaseClient
         .from("payments")
-        .insert(payment)
+        .insert([payment])
         .select()
         .single();
   };
@@ -195,7 +194,7 @@ export const useAccountsStore = defineStore("accounts", () => {
   };
 
   const _supabaseDeletePayment = async (payment: Payment) => {
-    await supabaseClient
+    return await supabaseClient
     .from("payments")
     .delete()
     .eq("id", payment.id);
@@ -210,7 +209,7 @@ export const useAccountsStore = defineStore("accounts", () => {
       if (error) throw error;
       allPayments.value = data ?? [];
     } catch (error) {
-      notificationHelpers.addError(error);
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -229,7 +228,7 @@ export const useAccountsStore = defineStore("accounts", () => {
       _addPayment(data);
       notificationHelpers.addSuccess("Payment Added");
     } catch (error) {
-      notificationHelpers.addError(error);
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -242,20 +241,21 @@ export const useAccountsStore = defineStore("accounts", () => {
       _updatePayment(data);
       notificationHelpers.addSuccess("Payment Updated");
     } catch (error) {
-      notificationHelpers.addError(error);
+      notificationHelpers.addError(error as Error);
     }
   };
 
   const deletePayment = async (payment: Payment) => {
     try {
-      const error = await _supabaseDeletePayment(payment);
+      const { error } = await _supabaseDeletePayment(payment);
 
       if (error) throw error;
 
       _removePayment(payment);
       notificationHelpers.addSuccess("Payment Deleted");
     } catch (error) {
-      notificationHelpers.addError(error);
+      console.log(error)
+      notificationHelpers.addError(error as Error);
     }
   };
 

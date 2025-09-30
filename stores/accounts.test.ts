@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useAccountsStore } from "./accounts";
 
-
 describe("Accounts Store", () => {
     beforeEach(() => {
         setActivePinia(createPinia());
@@ -25,7 +24,7 @@ describe("Accounts Store", () => {
             },
         ];
 
-        global.useSupabaseClient = vi.fn(() => ({
+        const useSupabaseClientMock = vi.fn(() => ({
             from: vi.fn(() => ({
                 select: vi.fn(() => ({
                     eq: vi.fn(() => ({
@@ -39,6 +38,8 @@ describe("Accounts Store", () => {
                 })),
             })),
           }));
+        
+        vi.stubGlobal("useSupabaseClient", useSupabaseClientMock);
 
         const store = useAccountsStore();
         await store.fetchPayments();
@@ -70,7 +71,7 @@ describe("Accounts Store", () => {
             },
         ];
 
-        global.useSupabaseClient = vi.fn(() => ({
+        const useSupabaseClientMock = vi.fn(() => ({
             from: vi.fn(() => ({
                 select: vi.fn(() => ({
                     eq: vi.fn(() => ({
@@ -84,6 +85,7 @@ describe("Accounts Store", () => {
                 })),
             })),
           }));
+        vi.stubGlobal("useSupabaseClient", useSupabaseClientMock);
 
         const store = useAccountsStore();
         await store.fetchPayments();
@@ -102,7 +104,7 @@ describe("Accounts Store", () => {
     it("should fetch payments from Supabase", async () => {
         const mockData = [{ id: 1, amount: 100 }];
 
-        global.useSupabaseClient = vi.fn(() => ({
+        const useSupabaseClientMock = vi.fn(() => ({
             from: vi.fn(() => ({
                 select: vi.fn(() => ({
                     eq: vi.fn(() => ({
@@ -116,6 +118,7 @@ describe("Accounts Store", () => {
                 })),
             })),
           }));
+        vi.stubGlobal("useSupabaseClient", useSupabaseClientMock);
 
         const store = useAccountsStore();
         await store.fetchPayments();
@@ -124,7 +127,7 @@ describe("Accounts Store", () => {
 
     it("should handle errors when fetching payments", async () => {
 
-        global.useSupabaseClient = vi.fn(() => ({
+        const useSupabaseClientMock = vi.fn(() => ({
             from: vi.fn(() => ({
                 select: vi.fn(() => ({
                     eq: vi.fn(() => ({
@@ -138,6 +141,7 @@ describe("Accounts Store", () => {
                 })),
             })),
           }));
+        vi.stubGlobal("useSupabaseClient", useSupabaseClientMock);
 
         const store = useAccountsStore();
         await store.fetchPayments();
@@ -147,7 +151,7 @@ describe("Accounts Store", () => {
     it("should insert a new payment", async () => {
         const newPayment = { amount: 50, seller_id: 1 };
 
-        global.useSupabaseClient = vi.fn(() => ({
+        const useSupabaseClientMock = vi.fn(() => ({
             from: vi.fn(() => ({
                 insert: vi.fn(() => ({
                     select: vi.fn(() => ({
@@ -159,6 +163,7 @@ describe("Accounts Store", () => {
                 })),
             })),
           }));
+        vi.stubGlobal("useSupabaseClient", useSupabaseClientMock);
 
         const store = useAccountsStore();
         await store.insertNewPayment(newPayment);
@@ -168,7 +173,7 @@ describe("Accounts Store", () => {
     it("should update an existing payment", async () => {
         const updatedPayment = { id: 1, amount: 75, seller_id: 1 };
 
-        global.useSupabaseClient = vi.fn(() => ({
+        const useSupabaseClientMock = vi.fn(() => ({
             from: vi.fn(() => ({
                 upsert: vi.fn(() => ({
                     select: vi.fn(() => ({
@@ -180,6 +185,7 @@ describe("Accounts Store", () => {
                 })),
             }))
           }));
+        vi.stubGlobal("useSupabaseClient", useSupabaseClientMock);
 
         const store = useAccountsStore();
         store.allPayments.push({ id: 1, amount: 50, seller_id: 1 });
@@ -190,7 +196,7 @@ describe("Accounts Store", () => {
     it("should delete a payment", async () => {
         const paymentToDelete = { id: 1, amount: 50, seller_id: 1 };
 
-        global.useSupabaseClient = vi.fn(() => ({
+        const useSupabaseClientMock = vi.fn(() => ({
             from: vi.fn(() => ({
                 delete: vi.fn(() => ({
                     eq: vi.fn(() => ({
@@ -199,6 +205,7 @@ describe("Accounts Store", () => {
                 })),
             })),
           }));
+        vi.stubGlobal("useSupabaseClient", useSupabaseClientMock);
 
         const store = useAccountsStore();
         store.allPayments.push(paymentToDelete);

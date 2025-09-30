@@ -2,17 +2,21 @@ import { vi } from 'vitest'
 import { defineStore } from 'pinia'
 import { ref, computed, reactive, watch, onMounted } from 'vue'
 
+
+
 // Mock Nuxt global functions and auto-imports
-global.defineStore = defineStore
-global.ref = ref
-global.computed = computed
-global.reactive = reactive
-global.watch = watch
-global.onMounted = onMounted
-global.navigateTo = vi.fn()
+//global.defineStore = defineStore
+vi.stubGlobal('defineStore', defineStore);
+vi.stubGlobal('ref', ref);
+vi.stubGlobal('computed', computed);
+vi.stubGlobal('reactive', reactive);
+vi.stubGlobal('watch', watch);
+vi.stubGlobal('onMounted', onMounted);
+vi.stubGlobal('navigateTo', vi.fn());
 
 // Mock Supabase composables
-global.useSupabaseClient = vi.fn(() => ({
+
+const useSupabaseClientMock = vi.fn(() => ({
   from: vi.fn(() => ({
     select: vi.fn(() => ({
       eq: vi.fn(() => ({
@@ -31,40 +35,48 @@ global.useSupabaseClient = vi.fn(() => ({
       }))
     }))
   }))
-}))
+}));
 
-global.useSupabaseUser = vi.fn(() => ({ value: { id: 'test-user-id' } }))
+vi.stubGlobal('useSupabaseClient', useSupabaseClientMock)
+
+
+const useSupabaseUserMock = vi.fn(() => ({ value: { id: 'test-user-id' } }));
+vi.stubGlobal('useSupabaseUser', useSupabaseUserMock)
 
 // Mock other Nuxt composables
-global.useToast = vi.fn(() => ({
+const useToastMock = vi.fn(() => ({
   add: vi.fn()
-}))
+}));
+vi.stubGlobal('useToast', useToastMock);
 
 // Mock helper composables
-global.useFormatHelpers = vi.fn(() => ({
+const useFormatHelpersMock = vi.fn(() => ({
   formatCurrency: vi.fn((value) => `$${value}`),
   formatDate: vi.fn((date) => date),
   formatPercent: vi.fn((value) => `${value}%`)
-}))
+}));
+vi.stubGlobal('useFormatHelpers', useFormatHelpersMock);
 
-global.useLayout = vi.fn(() => ({
+const useLayoutMock = vi.fn(() => ({
   getPrimary: { value: 'emerald' },
   getSurface: { value: null },
   isDarkTheme: { value: false },
   layoutConfig: { darkTheme: false },
   layoutState: { staticMenuDesktopInactive: false }
-}))
+}));
+vi.stubGlobal('useLayout', useLayoutMock);
 
-global.usePaymentHelpers = vi.fn(() => ({
+const usePaymentHelpersMock = vi.fn(() => ({
   form: { value: null },
   submitted: { value: false },
   editPayment: vi.fn(),
   hideDialog: vi.fn(),
   savePayment: vi.fn(),
   deletePayment: vi.fn()
-}))
+}));
+vi.stubGlobal('usePaymentHelpers', usePaymentHelpersMock);
 
-global.useTransactionHelpers = vi.fn(() => ({
+const useTransactionHelpersMock = vi.fn(() => ({
   form: { value: null },
   submitted: { value: false },
   editTransaction: vi.fn(),
@@ -72,26 +84,32 @@ global.useTransactionHelpers = vi.fn(() => ({
   saveTransaction: vi.fn(),
   deleteTransaction: vi.fn(),
   transactionTypeBadgeSeverity: vi.fn(() => 'info')
-}))
+}));
+vi.stubGlobal('useTransactionHelpers', useTransactionHelpersMock);
 
-global.useNotificationHelpers = vi.fn(() => ({
+const useNotificationHelpersMock = vi.fn(() => ({
   addError: vi.fn(),
   addSuccess: vi.fn()
-}))
+}));
+vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
+
 
 // Mock store composables - these will be overridden in individual tests as needed
-global.useProfileStore = vi.fn(() => ({
+const useProfileStoreMock = vi.fn(() => ({
   currentProfile: { id: 'test-profile-id' }
-}))
+}));
 
-global.useSeasonsStore = vi.fn(() => ({
+vi.stubGlobal('useProfileStore', useProfileStoreMock);
+
+const useSeasonsStoreMock = vi.fn(() => ({
   currentSeason: { id: 1 },
   settingsSelectedSeason: { id: 1 },
   getSeasonName: vi.fn((season) => season ? `${season.year} Season` : '2024 Season'),
   allSeasons: [{ id: 1 }],
-}))
+}));
+vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
 
-global.useTransactionsStore = vi.fn(() => ({
+const useTransactionsStoreMock = vi.fn(() => ({
   sumTransactionsByCookie: vi.fn(() => 0),
   totalTransactionsByStatusAndCookie: vi.fn(() => 0),
   activeTransaction: {},
@@ -114,9 +132,10 @@ global.useTransactionsStore = vi.fn(() => ({
       cookies: { DEF: -5 },
   },
 ],
-}))
+}));
+vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
 
-global.useAccountsStore = vi.fn(() => ({
+const useAccountsStoreMock = vi.fn(() => ({
   activePayment: {},
   paymentDialogFormSchema: { value: [] },
   editPaymentDialogVisible: false,
@@ -137,28 +156,34 @@ global.useAccountsStore = vi.fn(() => ({
     totalPaid: 0,
     totalOwed: 0
   }
-}))
+}));
+vi.stubGlobal('useAccountsStore', useAccountsStoreMock);
 
-global.useGirlsStore = vi.fn(() => ({
+const useGirlsStoreMock = vi.fn(() => ({
   girlOptions: [],
   allGirls: [
     { id: 1, name: "Test Girl" },
     { id: 2, name: "Test Girl 2" }
   ],
-}))
+}));
 
-global.useCookiesStore = vi.fn(() => ({
+vi.stubGlobal('useGirlsStore', useGirlsStoreMock);
+
+const useCookiesStoreMock = vi.fn(() => ({
   allCookies: [{ abbreviation: "ABC", price: 5,  percent_of_sale: 20}, { abbreviation: "DEF", price: 5,  percent_of_sale: 80 }],
   averageCookiePrice: 5,
   allCookiesWithInventoryTotals: [{ onHand: 10 }],
-}))
+}));
+vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 
-global.useBoothsStore = vi.fn(() => ({
+const useBoothsStoreMock = vi.fn(() => ({
   getPredictedBoothSaleQuantityByCookie: vi.fn(() => -9),
-}))
+}));
+vi.stubGlobal('useBoothsStore', useBoothsStoreMock);
 
-global.useUploadsStore = vi.fn(() => ({
+const useUploadsStoreMock = vi.fn(() => ({
   allUploads: [],
   insertUpload: vi.fn(),
   deleteUpload: vi.fn()
-}))
+}));
+vi.stubGlobal('useUploadsStore', useUploadsStoreMock);
