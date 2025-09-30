@@ -3,7 +3,7 @@ const loading = ref(true);
 
 loading.value = true;
 
-const ordersStore = useOrdersStore();
+const ordersStore = useTransactionsStore();
 
 loading.value = false;
 
@@ -44,48 +44,48 @@ function openNew() {
         <TabList>
           <Tab value="0" class="flex items-center gap-2"
             ><i class="pi pi-envelope" />Requests ({{
-              ordersStore.requestedOrderListCount
+              ordersStore.requestedGirlTransactionrListCount
             }})</Tab
           >
           <Tab value="1" class="flex items-center gap-2"
             ><i class="pi pi-exclamation-triangle" />Pending ({{
-              ordersStore.pendingOrderListCount
+              ordersStore.pendingGirlTransactionListCount
             }})</Tab
           >
           <Tab value="2" class="flex items-center gap-2"
             ><i class="pi pi-check" />Completed ({{
-              ordersStore.completedOrderListCount
+              ordersStore.completedGirlTransactionListCount
             }})</Tab
           >
           <Tab value="3" class="flex items-center gap-2"
             ><i class="pi pi-times" />Rejected ({{
-              ordersStore.rejectedOrderListCount
+              ordersStore.rejectedGirlTransactionListCount
             }})</Tab
           >
         </TabList>
         <TabPanels>
           <TabPanel value="0">
             <TransactionsDataTable
-              :orders="ordersStore.requestedOrderList"
+              :orders="ordersStore.requestedGirlTransactionrList"
               transaction-types="girl"
             />
           </TabPanel>
           <TabPanel value="1">
             <TransactionsDataTable
-              :orders="ordersStore.pendingOrderList"
+              :orders="ordersStore.pendingGirlTransactionList"
               transaction-types="girl"
             />
           </TabPanel>
           <TabPanel value="2">
             <TransactionsDataTable
-              :orders="ordersStore.completedOrderList"
+              :orders="ordersStore.completedGirlTransactionList"
               transaction-types="girl"
               :paginated="true"
             />
           </TabPanel>
           <TabPanel value="3">
             <TransactionsDataTable
-              :orders="ordersStore.rejectedOrderList"
+              :orders="ordersStore.rejectedGirlTransactionList"
               transaction-types="girl"
             />
           </TabPanel>

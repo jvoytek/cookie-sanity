@@ -5,7 +5,7 @@ const loading = ref(true);
 
 loading.value = true;
 
-const ordersStore = useOrdersStore();
+const ordersStore = useTransactionsStore();
 const transactionHelpers = useTransactionHelpers();
 
 loading.value = false;
@@ -44,7 +44,7 @@ function openNew() {
           </Toolbar>
 
           <TransactionsDataTable
-            :orders="ordersStore.allOrders"
+            :orders="ordersStore.allTransactions"
             transaction-types="all"
             :paginated="true"
           />

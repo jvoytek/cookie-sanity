@@ -10,7 +10,7 @@ function()s become actions
 export const useUploadsStore = defineStore("uploads", () => {
   const supabaseClient = useSupabaseClient<Database>();
 
-  const ordersStore = useOrdersStore();
+  const ordersStore = useTransactionsStore();
   const profileStore = useProfileStore();
 
   /* State */
@@ -48,7 +48,7 @@ export const useUploadsStore = defineStore("uploads", () => {
       (order) => order["TO"].indexOf && order["TO"].indexOf(" ") >= 0,
     );
     return girlData
-      .map(ordersStore.convertSCOrderToNewOrder)
+      .map(ordersStore.convertSCOrderToNewTransaction)
       .filter((order) => order.to !== 0);
   };
 

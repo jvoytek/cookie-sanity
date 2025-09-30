@@ -91,18 +91,18 @@ global.useSeasonsStore = vi.fn(() => ({
   allSeasons: [{ id: 1 }],
 }))
 
-global.useOrdersStore = vi.fn(() => ({
-  sumOrdersByCookie: vi.fn(() => 0),
+global.useTransactionsStore = vi.fn(() => ({
+  sumTransactionsByCookie: vi.fn(() => 0),
   totalTransactionsByStatusAndCookie: vi.fn(() => 0),
   activeTransaction: {},
   transactionDialogFormSchema: { value: [] },
   editTransactionDialogVisible: false,
   deleteTransactionDialogVisible: false,
   transactionTypeOptions: [],
-  upsertOrder: vi.fn(),
-  insertNewOrderFromOrdersList: vi.fn(),
-  deleteOrder: vi.fn(),
-  allOrders: [
+  upsertTransaction: vi.fn(),
+  insertNewTransaction: vi.fn(),
+  deleteTransaction: vi.fn(),
+  allTransactions: [
     {
         to: 1,
         status: "complete",

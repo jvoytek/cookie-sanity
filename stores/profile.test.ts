@@ -25,8 +25,8 @@ describe("stores/profile", () => {
       fetchGirls: vi.fn(),
     }));
 
-    global.useOrdersStore = vi.fn(() => ({
-      fetchOrders: vi.fn(),
+    global.useTransactionsStore = vi.fn(() => ({
+      fetchTransactions: vi.fn(),
     }));
 
     global.useAccountsStore = vi.fn(() => ({
@@ -67,7 +67,7 @@ describe("stores/profile", () => {
       const fetchSeasonsSpy = vi.fn();
       const fetchCookiesSpy = vi.fn();
       const fetchGirlsSpy = vi.fn();
-      const fetchOrdersSpy = vi.fn();
+      const fetchTransactionsSpy = vi.fn();
       const fetchPaymentsSpy = vi.fn();
       const fetchBoothSalesSpy = vi.fn();
 
@@ -83,8 +83,8 @@ describe("stores/profile", () => {
         fetchGirls: fetchGirlsSpy,
       }));
 
-      global.useOrdersStore = vi.fn(() => ({
-        fetchOrders: fetchOrdersSpy,
+      global.useTransactionsStore = vi.fn(() => ({
+        fetchTransactions: fetchTransactionsSpy,
       }));
 
       global.useAccountsStore = vi.fn(() => ({
@@ -121,7 +121,7 @@ describe("stores/profile", () => {
       expect(fetchSeasonsSpy).toHaveBeenCalled();
       expect(fetchCookiesSpy).toHaveBeenCalled();
       expect(fetchGirlsSpy).toHaveBeenCalled();
-      expect(fetchOrdersSpy).toHaveBeenCalled();
+      expect(fetchTransactionsSpy).toHaveBeenCalled();
       expect(fetchPaymentsSpy).toHaveBeenCalled();
       expect(fetchBoothSalesSpy).toHaveBeenCalled();
     });

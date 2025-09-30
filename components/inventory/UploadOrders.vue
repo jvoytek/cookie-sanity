@@ -7,7 +7,7 @@ const loading = ref(true);
 
 loading.value = true;
 const toast = useToast();
-const ordersStore = useOrdersStore();
+const ordersStore = useTransactionsStore();
 const uploadsStore = useUploadsStore();
 const profileStore = useProfileStore();
 
@@ -41,19 +41,19 @@ const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
 
     const jsonData = XLSX.utils.sheet_to_json<SCOrder2025>(sheet);
     const orders = jsonData
-      .map(ordersStore.convertSCOrderToNewOrder)
+      .map(ordersStore.convertSCOrderToNewTransaction)
       .filter((order): order is NewOrder => order !== undefined);
 
     // Save all of the uploaded orders as JSON
     await uploadsStore.insertUpload(jsonData);
 
     // Insert into orders table
-    await ordersStore.insertOrders(orders);
+    await ordersStore.insertNewTransactionFromUploads(orders);
 
     // Clear the file input
     event.files = [];
 
-    ordersStore.fetchOrders();
+    ordersStore.fetchTransactions();
 
     // Set success message
     showToast(

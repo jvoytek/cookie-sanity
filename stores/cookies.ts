@@ -12,7 +12,7 @@ export const useCookiesStore = defineStore("cookies", () => {
   const user = useSupabaseUser();
   const profileStore = useProfileStore();
   const seasonsStore = useSeasonsStore();
-  const ordersStore = useOrdersStore();
+  const ordersStore = useTransactionsStore();
   const boothsStore = useBoothsStore();
   const notificationHelpers = useNotificationHelpers();
 
@@ -48,7 +48,7 @@ export const useCookiesStore = defineStore("cookies", () => {
     const stock = [];
     if (!seasonsStore.currentSeason) return stock;
     allCookies.value.forEach((cookie) => {
-      const onHand = ordersStore.sumOrdersByCookie(cookie.abbreviation);
+      const onHand = ordersStore.sumTransactionsByCookie(cookie.abbreviation);
       const requestedGirlTransactions =
         ordersStore.totalTransactionsByStatusAndCookie(
           "requested",

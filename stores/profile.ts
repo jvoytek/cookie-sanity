@@ -14,7 +14,7 @@ export const useProfileStore = defineStore("profile", () => {
   const seasonsStore = useSeasonsStore();
   const cookiesStore = useCookiesStore();
   const girlsStore = useGirlsStore();
-  const ordersStore = useOrdersStore();
+  const ordersStore = useTransactionsStore();
   const accountsStore = useAccountsStore();
   const boothsStore = useBoothsStore();
 
@@ -49,7 +49,7 @@ export const useProfileStore = defineStore("profile", () => {
       await seasonsStore.fetchSeasons();
       await cookiesStore.fetchCookies();
       await girlsStore.fetchGirls();
-      await ordersStore.fetchOrders();
+      await ordersStore.fetchTransactions();
       await accountsStore.fetchPayments();
       await boothsStore.fetchBoothSales();
     } catch (error) {

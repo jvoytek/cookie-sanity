@@ -15,9 +15,9 @@ const mockOrdersStore = {
     { label: "Girl to Troop", value: "G2T" },
     { label: "Girl to Girl", value: "G2G" },
   ],
-  upsertOrder: vi.fn(),
-  insertNewOrderFromOrdersList: vi.fn(),
-  deleteOrder: vi.fn(),
+  upsertTransaction: vi.fn(),
+  insertNewTransaction: vi.fn(),
+  deleteTransaction: vi.fn(),
 };
 
 const mockCookiesStore = {
@@ -39,7 +39,7 @@ const mockToast = {
 };
 
 // Mock the global functions
-vi.mocked(useOrdersStore).mockReturnValue(mockOrdersStore);
+vi.mocked(useTransactionsStore).mockReturnValue(mockOrdersStore);
 vi.mocked(useCookiesStore).mockReturnValue(mockCookiesStore);
 vi.mocked(useGirlsStore).mockReturnValue(mockGirlsStore);
 vi.mocked(useToast).mockReturnValue(mockToast);
@@ -120,7 +120,7 @@ describe("useTransactionHelpers", () => {
   });
 
   describe("saveTransaction", () => {
-    it("calls upsertOrder when transaction has an id", async () => {
+    it("calls upsertTransaction when transaction has an id", async () => {
       const { saveTransaction, submitted } = useTransactionHelpers();
 
       const testTransaction = { id: 1, order_num: "TEST123" } as Order;
@@ -130,16 +130,16 @@ describe("useTransactionHelpers", () => {
 
       await saveTransaction();
 
-      expect(mockOrdersStore.upsertOrder).toHaveBeenCalledWith(testTransaction);
+      expect(mockOrdersStore.upsertTransaction).toHaveBeenCalledWith(testTransaction);
       expect(
-        mockOrdersStore.insertNewOrderFromOrdersList,
+        mockOrdersStore.insertNewTransaction,
       ).not.toHaveBeenCalled();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
       expect(mockOrdersStore.activeTransaction).toEqual({});
       expect(submitted.value).toBe(false);
     });
 
-    it("calls insertNewOrderFromOrdersList when transaction has no id", async () => {
+    it("calls insertNewTransaction when transaction has no id", async () => {
       const { saveTransaction, submitted } = useTransactionHelpers();
 
       const testTransaction = { order_num: "NEW123" } as Order;
@@ -149,10 +149,10 @@ describe("useTransactionHelpers", () => {
 
       await saveTransaction();
 
-      expect(mockOrdersStore.insertNewOrderFromOrdersList).toHaveBeenCalledWith(
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalledWith(
         testTransaction,
       );
-      expect(mockOrdersStore.upsertOrder).not.toHaveBeenCalled();
+      expect(mockOrdersStore.upsertTransaction).not.toHaveBeenCalled();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
       expect(mockOrdersStore.activeTransaction).toEqual({});
       expect(submitted.value).toBe(false);
@@ -197,7 +197,7 @@ describe("useTransactionHelpers", () => {
 
       await deleteTransaction();
 
-      expect(mockOrdersStore.deleteOrder).toHaveBeenCalledWith(1);
+      expect(mockOrdersStore.deleteTransaction).toHaveBeenCalledWith(1);
       expect(mockOrdersStore.deleteTransactionDialogVisible).toBe(false);
       expect(mockOrdersStore.activeTransaction).toEqual({});
     });
@@ -206,7 +206,7 @@ describe("useTransactionHelpers", () => {
       const { deleteTransaction } = useTransactionHelpers();
 
       const testError = new Error("Delete failed");
-      mockOrdersStore.deleteOrder.mockImplementation(() => {
+      mockOrdersStore.deleteTransaction.mockImplementation(() => {
         throw testError;
       });
 

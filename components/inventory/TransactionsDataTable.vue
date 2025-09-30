@@ -5,7 +5,7 @@ const props = defineProps<{
   paginated?: boolean;
 }>();
 
-const ordersStore = useOrdersStore();
+const ordersStore = useTransactionsStore();
 const girlsStore = useGirlsStore();
 const transactionHelpers = useTransactionHelpers();
 </script>
@@ -113,7 +113,7 @@ const transactionHelpers = useTransactionHelpers();
           icon="pi pi-check"
           class="mr-2"
           variant="outlined"
-          @click="ordersStore.updateOrderStatus(slotProps.data.id, 'complete')"
+          @click="ordersStore.updateTransactionStatus(slotProps.data.id, 'complete')"
         />
         <Button
           v-if="props.transactionTypes !== 'all' && slotProps.data.status === 'requested'"
@@ -126,7 +126,7 @@ const transactionHelpers = useTransactionHelpers();
           class="mr-2"
           variant="outlined"
           severity="secondary"
-          @click="ordersStore.updateOrderStatus(slotProps.data.id, 'pending')"
+          @click="ordersStore.updateTransactionStatus(slotProps.data.id, 'pending')"
         />
         <Button
           v-if="
@@ -143,7 +143,7 @@ const transactionHelpers = useTransactionHelpers();
           class="mr-2"
           variant="outlined"
           severity="secondary"
-          @click="ordersStore.updateOrderStatus(slotProps.data.id, 'pending')"
+          @click="ordersStore.updateTransactionStatus(slotProps.data.id, 'pending')"
         />
         <Button
           v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
@@ -191,7 +191,7 @@ const transactionHelpers = useTransactionHelpers();
           class="mr-2"
           variant="outlined"
           severity="warn"
-          @click="ordersStore.updateOrderStatus(slotProps.data.id, 'rejected')"
+          @click="ordersStore.updateTransactionStatus(slotProps.data.id, 'rejected')"
         />
       </template>
     </Column>

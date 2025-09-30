@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const ordersStore = useOrdersStore();
+const ordersStore = useTransactionsStore();
 
 const transactionHelpers = useTransactionHelpers();
 const myForm = ref<FormInstance | null>(null);

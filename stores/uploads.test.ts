@@ -12,8 +12,8 @@ describe("stores/uploads", () => {
     setActivePinia(createPinia());
 
     // Set up the ordersStore mock for this test
-    global.useOrdersStore = vi.fn(() => ({
-      convertSCOrderToNewOrder: vi.fn((order) => {
+    global.useTransactionsStore = vi.fn(() => ({
+      convertSCOrderToNewTransaction: vi.fn((order) => {
         // Mock conversion logic
         return {
           id: Math.floor(Math.random() * 1000),
@@ -173,8 +173,8 @@ describe("stores/uploads", () => {
       ];
 
       // Mock the conversion function to return different values based on 'TO' field
-      global.useOrdersStore = vi.fn(() => ({
-        convertSCOrderToNewOrder: vi.fn((order) => {
+      global.useTransactionsStore = vi.fn(() => ({
+        convertSCOrderToNewTransaction: vi.fn((order) => {
           const hasSpace = order["TO"].indexOf && order["TO"].indexOf(" ") >= 0;
           return {
             id: Math.floor(Math.random() * 1000),
@@ -204,8 +204,8 @@ describe("stores/uploads", () => {
       ];
 
       // Mock the conversion to return some orders with to: 0
-      global.useOrdersStore = vi.fn(() => ({
-        convertSCOrderToNewOrder: vi.fn((order, index) => {
+      global.useTransactionsStore = vi.fn(() => ({
+        convertSCOrderToNewTransaction: vi.fn((order, index) => {
           return {
             id: index,
             to: index === 0 ? 0 : 1, // First order has to: 0
@@ -249,8 +249,8 @@ describe("stores/uploads", () => {
         { TO: "NoSpace", ORDER: "12348" },
       ];
 
-      global.useOrdersStore = vi.fn(() => ({
-        convertSCOrderToNewOrder: vi.fn((order) => ({
+      global.useTransactionsStore = vi.fn(() => ({
+        convertSCOrderToNewTransaction: vi.fn((order) => ({
           id: Math.floor(Math.random() * 1000),
           to: 1,
           cookies: {},

@@ -12,8 +12,8 @@ describe("stores/cookies", () => {
     setActivePinia(createPinia());
 
     // Set up the orders store mock for this test
-    global.useOrdersStore = vi.fn(() => ({
-      sumOrdersByCookie: vi.fn((abbreviation: string) => {
+    global.useTransactionsStore = vi.fn(() => ({
+      sumTransactionsByCookie: vi.fn((abbreviation: string) => {
         // Mock different inventory amounts based on cookie type
         const mockInventory: Record<string, number> = {
           ADV: 100,

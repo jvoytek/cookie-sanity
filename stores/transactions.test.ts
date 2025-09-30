@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
-import { useOrdersStore } from "./orders";
+import { useTransactionsStore } from "./transactions";
 
-describe("Orders Store", () => {
-  let ordersStore;
+describe("Transactions Store", () => {
+  let transactionsStore;
 
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -28,7 +28,7 @@ describe("Orders Store", () => {
       ],
     }));
 
-    ordersStore = useOrdersStore();
+    transactionsStore = useTransactionsStore();
   });
 
   afterEach(() => {
@@ -37,15 +37,15 @@ describe("Orders Store", () => {
 
   describe("initialization", () => {
     it("should initialize with default values", () => {
-      expect(ordersStore.allOrders).toEqual([]);
-      expect(ordersStore.activeTransaction).toEqual({});
-      expect(ordersStore.editTransactionDialogVisible).toBe(false);
-      expect(ordersStore.deleteTransactionDialogVisible).toBe(false);
-      expect(ordersStore.transactionTypeOptions).toHaveLength(5);
+      expect(transactionsStore.allTransactions).toEqual([]);
+      expect(transactionsStore.activeTransaction).toEqual({});
+      expect(transactionsStore.editTransactionDialogVisible).toBe(false);
+      expect(transactionsStore.deleteTransactionDialogVisible).toBe(false);
+      expect(transactionsStore.transactionTypeOptions).toHaveLength(5);
     });
 
     it("should have correct transaction type options", () => {
-      expect(ordersStore.transactionTypeOptions).toEqual([
+      expect(transactionsStore.transactionTypeOptions).toEqual([
         { value: "T2G", label: "Troop to Girl" },
         { value: "G2G", label: "Girl to Girl" },
         { value: "G2T", label: "Girl to Troop" },
@@ -57,8 +57,8 @@ describe("Orders Store", () => {
 
   describe("computed properties", () => {
     beforeEach(() => {
-      // Set up test orders
-      ordersStore.allOrders = [
+      // Set up test transactions
+      transactionsStore.allTransactions = [
         {
           id: 1,
           status: "complete",
@@ -104,17 +104,17 @@ describe("Orders Store", () => {
       ];
     });
 
-    it("should calculate sumOrdersByCookie correctly", () => {
-      const sumABC = ordersStore.sumOrdersByCookie("ABC");
-      const sumDEF = ordersStore.sumOrdersByCookie("DEF");
+    it("should calculate sumTransactionsByCookie correctly", () => {
+      const sumABC = transactionsStore.sumTransactionsByCookie("ABC");
+      const sumDEF = transactionsStore.sumTransactionsByCookie("DEF");
       
-      // Only complete orders are counted: ABC: 5 + 10 = 15, DEF: 3
+      // Only complete transactions are counted: ABC: 5 + 10 = 15, DEF: 3
       expect(sumABC).toBe(15);
       expect(sumDEF).toBe(3);
     });
 
-    it("should filter completedOrderList correctly", () => {
-      const completed = ordersStore.completedOrderList;
+    it("should filter completedGirlTransactionList correctly", () => {
+      const completed = transactionsStore.completedGirlTransactionList;
       
       expect(completed).toHaveLength(1);
       expect(completed[0].id).toBe(1);
@@ -122,105 +122,105 @@ describe("Orders Store", () => {
       expect(completed[0].type).toBe("T2G");
     });
 
-    it("should count completedOrderListCount correctly", () => {
-      expect(ordersStore.completedOrderListCount).toBe(1);
+    it("should count completedGirlTransactionListCount correctly", () => {
+      expect(transactionsStore.completedGirlTransactionListCount).toBe(1);
     });
 
-    it("should filter pendingOrderList correctly", () => {
-      const pending = ordersStore.pendingOrderList;
+    it("should filter pendingGirlTransactionList correctly", () => {
+      const pending = transactionsStore.pendingGirlTransactionList;
       
       expect(pending).toHaveLength(1);
       expect(pending[0].id).toBe(2);
       expect(pending[0].status).toBe("pending");
     });
 
-    it("should count pendingOrderListCount correctly", () => {
-      expect(ordersStore.pendingOrderListCount).toBe(1);
+    it("should count pendingGirlTransactionListCount correctly", () => {
+      expect(transactionsStore.pendingGirlTransactionListCount).toBe(1);
     });
 
-    it("should filter requestedOrderList correctly", () => {
-      const requested = ordersStore.requestedOrderList;
+    it("should filter requestedGirlTransactionrList correctly", () => {
+      const requested = transactionsStore.requestedGirlTransactionrList;
       
       expect(requested).toHaveLength(1);
       expect(requested[0].id).toBe(3);
       expect(requested[0].status).toBe("requested");
     });
 
-    it("should count requestedOrderListCount correctly", () => {
-      expect(ordersStore.requestedOrderListCount).toBe(1);
+    it("should count requestedGirlTransactionrListCount correctly", () => {
+      expect(transactionsStore.requestedGirlTransactionrListCount).toBe(1);
     });
 
-    it("should filter rejectedOrderList correctly", () => {
-      const rejected = ordersStore.rejectedOrderList;
+    it("should filter rejectedGirlTransactionList correctly", () => {
+      const rejected = transactionsStore.rejectedGirlTransactionList;
       
       expect(rejected).toHaveLength(1);
       expect(rejected[0].id).toBe(5);
       expect(rejected[0].status).toBe("rejected");
     });
 
-    it("should count rejectedOrderListCount correctly", () => {
-      expect(ordersStore.rejectedOrderListCount).toBe(1);
+    it("should count rejectedGirlTransactionListCount correctly", () => {
+      expect(transactionsStore.rejectedGirlTransactionListCount).toBe(1);
     });
 
-    it("should filter pendingRestockList correctly", () => {
-      const pendingRestock = ordersStore.pendingRestockList;
+    it("should filter pendingTroopTransactionList correctly", () => {
+      const pendingRestock = transactionsStore.pendingTroopTransactionList;
       
       expect(pendingRestock).toHaveLength(1);
       expect(pendingRestock[0].id).toBe(6);
       expect(pendingRestock[0].type).toBe("C2T");
     });
 
-    it("should count pendingRestockListCount correctly", () => {
-      expect(ordersStore.pendingRestockListCount).toBe(1);
+    it("should count pendingTroopTransactionListCount correctly", () => {
+      expect(transactionsStore.pendingTroopTransactionListCount).toBe(1);
     });
 
-    it("should filter completedRestockList correctly", () => {
-      const completedRestock = ordersStore.completedRestockList;
+    it("should filter completedTroopTransactionList correctly", () => {
+      const completedRestock = transactionsStore.completedTroopTransactionList;
       
       expect(completedRestock).toHaveLength(1);
       expect(completedRestock[0].id).toBe(4);
       expect(completedRestock[0].type).toBe("T2T");
     });
 
-    it("should count completedRestockListCount correctly", () => {
-      expect(ordersStore.completedRestockListCount).toBe(1);
+    it("should count completedTroopTransactionListCount correctly", () => {
+      expect(transactionsStore.completedTroopTransactionListCount).toBe(1);
     });
 
-    it("should calculate totalTransactionsByStatusAndCookie for girl orders", () => {
-      const totalGirl = ordersStore.totalTransactionsByStatusAndCookie(
+    it("should calculate totalTransactionsByStatusAndCookie for girl transactions", () => {
+      const totalGirl = transactionsStore.totalTransactionsByStatusAndCookie(
         "complete",
         "girl",
         "ABC"
       );
       
-      expect(totalGirl).toBe(5); // Only the T2G complete order
+      expect(totalGirl).toBe(5); // Only the T2G complete transaction
     });
 
-    it("should calculate totalTransactionsByStatusAndCookie for troop orders", () => {
-      const totalTroop = ordersStore.totalTransactionsByStatusAndCookie(
+    it("should calculate totalTransactionsByStatusAndCookie for troop transactions", () => {
+      const totalTroop = transactionsStore.totalTransactionsByStatusAndCookie(
         "complete",
         "troop",
         "ABC"
       );
       
-      expect(totalTroop).toBe(10); // Only the T2T complete order
+      expect(totalTroop).toBe(10); // Only the T2T complete transaction
     });
   });
 
   describe("friendlyTransactionTypes", () => {
     it("should return friendly names for transaction types", () => {
-      expect(ordersStore.friendlyTransactionTypes("T2G")).toBe("Troop to Girl");
-      expect(ordersStore.friendlyTransactionTypes("G2G")).toBe("Girl to Girl");
-      expect(ordersStore.friendlyTransactionTypes("G2T")).toBe("Girl to Troop");
-      expect(ordersStore.friendlyTransactionTypes("T2T")).toBe("Troop to Troop");
-      expect(ordersStore.friendlyTransactionTypes("C2T")).toBe("Council to Troop");
-      expect(ordersStore.friendlyTransactionTypes("COOKIE_SHARE")).toBe("Cookie Share");
-      expect(ordersStore.friendlyTransactionTypes("UNKNOWN")).toBe("UNKNOWN");
+      expect(transactionsStore.friendlyTransactionTypes("T2G")).toBe("Troop to Girl");
+      expect(transactionsStore.friendlyTransactionTypes("G2G")).toBe("Girl to Girl");
+      expect(transactionsStore.friendlyTransactionTypes("G2T")).toBe("Girl to Troop");
+      expect(transactionsStore.friendlyTransactionTypes("T2T")).toBe("Troop to Troop");
+      expect(transactionsStore.friendlyTransactionTypes("C2T")).toBe("Council to Troop");
+      expect(transactionsStore.friendlyTransactionTypes("COOKIE_SHARE")).toBe("Cookie Share");
+      expect(transactionsStore.friendlyTransactionTypes("UNKNOWN")).toBe("UNKNOWN");
     });
   });
 
-  describe("fetchOrders", () => {
-    it("should fetch orders successfully", async () => {
+  describe("fetchTransactions", () => {
+    it("should fetch transactions successfully", async () => {
       const mockOrders = [
         {
           id: 1,
@@ -248,12 +248,12 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      await newOrdersStore.fetchOrders();
+      await newOrdersStore.fetchTransactions();
 
-      expect(newOrdersStore.allOrders).toHaveLength(1);
-      expect(newOrdersStore.allOrders[0].cookies.ABC).toBe(5); // Inverted from -5
+      expect(newOrdersStore.allTransactions).toHaveLength(1);
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted from -5
     });
 
     it("should return early if no profile or season", async () => {
@@ -263,17 +263,17 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      await newOrdersStore.fetchOrders();
+      await newOrdersStore.fetchTransactions();
 
-      expect(newOrdersStore.allOrders).toEqual([]);
+      expect(newOrdersStore.allTransactions).toEqual([]);
     });
 
     it("should handle fetch error and show error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -297,24 +297,21 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      await newOrdersStore.fetchOrders();
+      await newOrdersStore.fetchTransactions();
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Fetch failed",
-        life: 3000,
+        message: "Fetch failed"
       });
     });
   });
 
-  describe("insertNewOrderFromOrdersList", () => {
-    it("should insert new order successfully", async () => {
+  describe("insertNewTransaction", () => {
+    it("should insert new transaction successfully", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       const mockOrder = {
@@ -349,18 +346,13 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      await newOrdersStore.insertNewOrderFromOrdersList(mockOrder);
+      await newOrdersStore.insertNewTransaction(mockOrder);
 
-      expect(newOrdersStore.allOrders).toHaveLength(1);
-      expect(newOrdersStore.allOrders[0].cookies.ABC).toBe(5); // Inverted back
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Order Created",
-        life: 3000,
-      });
+      expect(newOrdersStore.allTransactions).toHaveLength(1);
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted back
+      expect(toastSpy).toHaveBeenCalledWith("Transaction Created");
     });
 
     it("should return early if no profile", async () => {
@@ -370,18 +362,18 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
       const mockOrder = { order_date: "2024-01-01", order_num: "12345" };
-      await newOrdersStore.insertNewOrderFromOrdersList(mockOrder);
+      await newOrdersStore.insertNewTransaction(mockOrder);
 
-      expect(newOrdersStore.allOrders).toEqual([]);
+      expect(newOrdersStore.allTransactions).toEqual([]);
     });
 
     it("should handle insert error and show error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -401,22 +393,19 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
       const mockOrder = { order_date: "2024-01-01", order_num: "12345" };
-      await newOrdersStore.insertNewOrderFromOrdersList(mockOrder);
+      await newOrdersStore.insertNewTransaction(mockOrder);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Insert failed",
-        life: 3000,
+        message: "Insert failed",
       });
     });
   });
 
-  describe("insertOrders", () => {
-    it("should insert multiple orders successfully", async () => {
+  describe("insertNewTransactionFromUploads", () => {
+    it("should insert multiple transactions successfully", async () => {
       const mockOrders = [
         { order_date: "2024-01-01", order_num: "12345" },
         { order_date: "2024-01-02", order_num: "12346" },
@@ -432,9 +421,9 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      await expect(newOrdersStore.insertOrders(mockOrders)).resolves.not.toThrow();
+      await expect(newOrdersStore.insertNewTransactionFromUploads(mockOrders)).resolves.not.toThrow();
     });
 
     it("should throw error when insert fails", async () => {
@@ -452,19 +441,19 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      await expect(newOrdersStore.insertOrders(mockOrders)).rejects.toEqual({
+      await expect(newOrdersStore.insertNewTransactionFromUploads(mockOrders)).rejects.toEqual({
         message: "Insert failed",
       });
     });
   });
 
-  describe("upsertOrder", () => {
-    it("should upsert order successfully", async () => {
+  describe("upsertTransaction", () => {
+    it("should upsert transaction successfully", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       const mockOrder = {
@@ -496,26 +485,21 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      // Pre-populate with an order to update
-      newOrdersStore.allOrders = [mockOrder];
+      // Pre-populate with an transaction to update
+      newOrdersStore.allTransactions = [mockOrder];
 
-      await newOrdersStore.upsertOrder(mockOrder);
+      await newOrdersStore.upsertTransaction(mockOrder);
 
-      expect(newOrdersStore.allOrders[0].cookies.ABC).toBe(5);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Product Updated",
-        life: 3000,
-      });
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5);
+      expect(toastSpy).toHaveBeenCalledWith("Transaction Updated");
     });
 
     it("should handle upsert error and show error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -535,25 +519,22 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
       const mockOrder = { id: 1, cookies: { ABC: 5 } };
-      await newOrdersStore.upsertOrder(mockOrder);
+      await newOrdersStore.upsertTransaction(mockOrder);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Upsert failed",
-        life: 3000,
+        message: "Upsert failed",
       });
     });
   });
 
-  describe("deleteOrder", () => {
-    it("should delete order successfully", async () => {
+  describe("deleteTransaction", () => {
+    it("should delete transaction successfully", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -566,27 +547,22 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      // Pre-populate with orders
-      newOrdersStore.allOrders = [
+      // Pre-populate with transactions
+      newOrdersStore.allTransactions = [
         { id: 1, order_num: "12345" },
         { id: 2, order_num: "12346" },
       ];
 
-      await newOrdersStore.deleteOrder(1);
+      await newOrdersStore.deleteTransaction(1);
 
-      expect(newOrdersStore.allOrders).toHaveLength(1);
-      expect(newOrdersStore.allOrders[0].id).toBe(2);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Order Deleted",
-        life: 3000,
-      });
+      expect(newOrdersStore.allTransactions).toHaveLength(1);
+      expect(newOrdersStore.allTransactions[0].id).toBe(2);
+      expect(toastSpy).toHaveBeenCalledWith("Transaction Deleted");
     });
 
-    it("should delete order by object", async () => {
+    it("should delete transaction by object", async () => {
       const toastSpy = vi.fn();
       global.useToast = vi.fn(() => ({
         add: toastSpy,
@@ -602,34 +578,31 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      const orderToDelete = { id: 1, order_num: "12345" };
-      newOrdersStore.allOrders = [orderToDelete, { id: 2, order_num: "12346" }];
+      const transactionToDelete = { id: 1, order_num: "12345" };
+      newOrdersStore.allTransactions = [transactionToDelete, { id: 2, order_num: "12346" }];
 
-      await newOrdersStore.deleteOrder(orderToDelete);
+      await newOrdersStore.deleteTransaction(transactionToDelete);
 
-      expect(newOrdersStore.allOrders).toHaveLength(1);
-      expect(newOrdersStore.allOrders[0].id).toBe(2);
+      expect(newOrdersStore.allTransactions).toHaveLength(1);
+      expect(newOrdersStore.allTransactions[0].id).toBe(2);
     });
 
-    it("should show error when no order ID provided", async () => {
+    it("should show error when no transaction ID provided", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      await newOrdersStore.deleteOrder(0);
+      await newOrdersStore.deleteTransaction(0);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Order ID is required to delete an order.",
-        life: 3000,
+        message: "Transaction ID is required to delete a transaction.",
       });
     });
 
@@ -651,11 +624,11 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      newOrdersStore.allOrders = [{ id: 1, order_num: "12345" }];
+      newOrdersStore.allTransactions = [{ id: 1, order_num: "12345" }];
 
-      await newOrdersStore.deleteOrder(1);
+      await newOrdersStore.deleteTransaction(1);
 
       expect(toastSpy).toHaveBeenCalledWith({
         severity: "error",
@@ -666,11 +639,11 @@ describe("Orders Store", () => {
     });
   });
 
-  describe("updateOrderStatus", () => {
-    it("should update order status successfully", async () => {
+  describe("updateTransactionStatus", () => {
+    it("should update transaction status successfully", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
 
       const mockUpdatedOrder = {
@@ -698,27 +671,22 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      // Pre-populate with order
-      newOrdersStore.allOrders = [{ id: 1, status: "pending", cookies: { ABC: 5 } }];
+      // Pre-populate with transaction
+      newOrdersStore.allTransactions = [{ id: 1, status: "pending", cookies: { ABC: 5 } }];
 
-      await newOrdersStore.updateOrderStatus(1, "complete");
+      await newOrdersStore.updateTransactionStatus(1, "complete");
 
-      expect(newOrdersStore.allOrders[0].status).toBe("complete");
-      expect(newOrdersStore.allOrders[0].cookies.ABC).toBe(5); // Inverted back
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Order Marked Complete",
-        life: 3000,
-      });
+      expect(newOrdersStore.allTransactions[0].status).toBe("complete");
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted back
+      expect(toastSpy).toHaveBeenCalledWith("Transaction Marked Complete");
     });
 
     it("should handle update status error and show error toast", async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       global.useSupabaseClient = vi.fn(() => ({
@@ -740,21 +708,18 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
-      await newOrdersStore.updateOrderStatus(1, "complete");
+      await newOrdersStore.updateTransactionStatus(1, "complete");
 
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Update failed",
-        life: 3000,
+      expect(toastSpy).toHaveBeenCalledWith({ 
+        message: "Update failed" 
       });
     });
   });
 
-  describe("convertSCOrderToNewOrder", () => {
-    it("should convert SC order to new order successfully", () => {
+  describe("convertSCOrderToNewTransaction", () => {
+    it("should convert SC order to new transaction successfully", () => {
       const scOrder = {
         DATE: "2024-01-01",
         "ORDER #": 12345,
@@ -776,7 +741,7 @@ describe("Orders Store", () => {
         "TOTAL $": 275,
       };
 
-      const newOrder = ordersStore.convertSCOrderToNewOrder(scOrder);
+      const newOrder = transactionsStore.convertSCOrderToNewTransaction(scOrder);
 
       expect(newOrder).toEqual({
         profile: "test-profile-id",
@@ -798,10 +763,10 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
       const scOrder = { DATE: "2024-01-01", "ORDER #": 12345, TO: "Jane Doe" };
-      const result = newOrdersStore.convertSCOrderToNewOrder(scOrder);
+      const result = newOrdersStore.convertSCOrderToNewTransaction(scOrder);
 
       expect(result).toBeUndefined();
     });
@@ -816,7 +781,7 @@ describe("Orders Store", () => {
         STATUS: "complete",
       };
 
-      const newOrder = ordersStore.convertSCOrderToNewOrder(scOrder);
+      const newOrder = transactionsStore.convertSCOrderToNewTransaction(scOrder);
 
       expect(newOrder.to).toBeNull();
       expect(newOrder.from).toBeNull();
@@ -824,8 +789,8 @@ describe("Orders Store", () => {
 
     it("should handle error in _getGirlId", () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      global.useNotificationHelpers = vi.fn(() => ({
+        addError: toastSpy,
       }));
 
       // Mock girlsStore to throw an error when accessing allGirls.filter
@@ -839,7 +804,7 @@ describe("Orders Store", () => {
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
-      const newOrdersStore = useOrdersStore();
+      const newOrdersStore = useTransactionsStore();
 
       const scOrder = {
         DATE: "2024-01-01",
@@ -850,7 +815,7 @@ describe("Orders Store", () => {
         STATUS: "complete",
       };
 
-      const newOrder = newOrdersStore.convertSCOrderToNewOrder(scOrder);
+      const newOrder = newOrdersStore.convertSCOrderToNewTransaction(scOrder);
 
       expect(newOrder.to).toBeNull();
       expect(newOrder.from).toBeNull();
@@ -860,25 +825,22 @@ describe("Orders Store", () => {
 
   describe("private utility functions", () => {
     describe("_removeOrder", () => {
-      it("should show error toast when orderId is falsy", () => {
+      it("should show error toast when transactionId is falsy", () => {
         const toastSpy = vi.fn();
-        global.useToast = vi.fn(() => ({
-          add: toastSpy,
+        global.useNotificationHelpers = vi.fn(() => ({
+          addError: toastSpy,
         }));
 
         // Create new store instance with the new mock
         setActivePinia(createPinia());
-        const newOrdersStore = useOrdersStore();
+        const newOrdersStore = useTransactionsStore();
 
         // Access private function through returned object (in real implementation)
-        // We'll test this through deleteOrder with invalid ID
-        newOrdersStore.deleteOrder(0);
+        // We'll test this through deleteTransaction with invalid ID
+        newOrdersStore.deleteTransaction(0);
 
         expect(toastSpy).toHaveBeenCalledWith({
-          severity: "error",
-          summary: "Error",
-          detail: "Order ID is required to delete an order.",
-          life: 3000,
+          message: "Transaction ID is required to delete a transaction.",
         });
       });
     });
@@ -886,19 +848,19 @@ describe("Orders Store", () => {
     describe("_invertCookieQuantities", () => {
       it("should handle null cookies", () => {
         // Test through a function that uses _invertCookieQuantities
-        const order = {
+        const transaction = {
           id: 1,
           order_date: "2024-01-01",
           order_num: "12345",
           cookies: null,
         };
 
-        expect(() => ordersStore.upsertOrder(order)).not.toThrow();
+        expect(() => transactionsStore.upsertTransaction(transaction)).not.toThrow();
       });
 
       it("should handle zero values correctly", () => {
         // Test the inversion logic with zero values
-        ordersStore.allOrders = [
+        transactionsStore.allTransactions = [
           {
             id: 1,
             status: "complete",
@@ -908,8 +870,8 @@ describe("Orders Store", () => {
           },
         ];
 
-        const sumABC = ordersStore.sumOrdersByCookie("ABC");
-        const sumDEF = ordersStore.sumOrdersByCookie("DEF");
+        const sumABC = transactionsStore.sumTransactionsByCookie("ABC");
+        const sumDEF = transactionsStore.sumTransactionsByCookie("DEF");
 
         expect(sumABC).toBe(0);
         expect(sumDEF).toBe(5);
@@ -917,7 +879,7 @@ describe("Orders Store", () => {
 
       it("should handle non-number values", () => {
         // Test the inversion logic with non-number values
-        ordersStore.allOrders = [
+        transactionsStore.allTransactions = [
           {
             id: 1,
             status: "complete",
@@ -927,9 +889,9 @@ describe("Orders Store", () => {
           },
         ];
 
-        const sumABC = ordersStore.sumOrdersByCookie("ABC");
-        const sumDEF = ordersStore.sumOrdersByCookie("DEF");
-        const sumGHI = ordersStore.sumOrdersByCookie("GHI");
+        const sumABC = transactionsStore.sumTransactionsByCookie("ABC");
+        const sumDEF = transactionsStore.sumTransactionsByCookie("DEF");
+        const sumGHI = transactionsStore.sumTransactionsByCookie("GHI");
 
         expect(sumABC).toBe(0); // Non-number values are ignored
         expect(sumDEF).toBe(0);
@@ -939,53 +901,53 @@ describe("Orders Store", () => {
 
     describe("returnDateStringOrNull", () => {
       it("should handle Date object", () => {
-        const order = {
+        const transaction = {
           order_date: new Date("2024-01-15T00:00:00Z"),
           order_num: "12345",
           to: 1,
           cookies: {},
         };
 
-        // Test through insertNewOrderFromOrdersList which uses returnDateStringOrNull
-        ordersStore.insertNewOrderFromOrdersList(order);
+        // Test through insertNewTransaction which uses returnDateStringOrNull
+        transactionsStore.insertNewTransaction(transaction);
 
         // The function should format the date as YYYY-MM-DD
-        expect(order.order_date).toBe("2024-01-15");
+        expect(transaction.order_date).toBe("2024-01-15");
       });
 
       it("should handle string date", () => {
-        const order = {
+        const transaction = {
           order_date: "2024-01-15",
           order_num: "12345",
           to: 1,
           cookies: {},
         };
 
-        ordersStore.insertNewOrderFromOrdersList(order);
+        transactionsStore.insertNewTransaction(transaction);
 
         // String dates should be returned as-is
-        expect(order.order_date).toBe("2024-01-15");
+        expect(transaction.order_date).toBe("2024-01-15");
       });
 
       it("should handle null date", () => {
-        const order = {
+        const transaction = {
           order_date: null,
           order_num: "12345",
           to: 1,
           cookies: {},
         };
 
-        ordersStore.insertNewOrderFromOrdersList(order);
+        transactionsStore.insertNewTransaction(transaction);
 
         // Null dates should be returned as-is
-        expect(order.order_date).toBe(null);
+        expect(transaction.order_date).toBe(null);
       });
     });
 
     describe("state properties", () => {
       it("should access transactionDialogFormSchema", () => {
-        expect(ordersStore.transactionDialogFormSchema).toBeDefined();
-        expect(Array.isArray(ordersStore.transactionDialogFormSchema)).toBe(true);
+        expect(transactionsStore.transactionDialogFormSchema).toBeDefined();
+        expect(Array.isArray(transactionsStore.transactionDialogFormSchema)).toBe(true);
       });
     });
   });

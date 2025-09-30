@@ -1,5 +1,5 @@
 export const useTransactionHelpers = () => {
-  const ordersStore = useOrdersStore();
+  const ordersStore = useTransactionsStore();
   const cookiesStore = useCookiesStore();
   const girlsStore = useGirlsStore();
   const toast = useToast();
@@ -256,9 +256,9 @@ export const useTransactionHelpers = () => {
 
   async function saveTransaction() {
     if (ordersStore.activeTransaction.id) {
-      ordersStore.upsertOrder(ordersStore.activeTransaction);
+      ordersStore.upsertTransaction(ordersStore.activeTransaction);
     } else {
-      ordersStore.insertNewOrderFromOrdersList(ordersStore.activeTransaction);
+      ordersStore.insertNewTransaction(ordersStore.activeTransaction);
     }
     ordersStore.editTransactionDialogVisible = false;
     ordersStore.activeTransaction = {};
@@ -272,7 +272,7 @@ export const useTransactionHelpers = () => {
 
   async function deleteTransaction() {
     try {
-      ordersStore.deleteOrder(ordersStore.activeTransaction.id);
+      ordersStore.deleteTransaction(ordersStore.activeTransaction.id);
       ordersStore.deleteTransactionDialogVisible = false;
       ordersStore.activeTransaction = {};
     } catch (error) {

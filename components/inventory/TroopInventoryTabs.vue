@@ -3,7 +3,7 @@ const loading = ref(true);
 
 loading.value = true;
 
-const ordersStore = useOrdersStore();
+const ordersStore = useTransactionsStore();
 const transactionHelpers = useTransactionHelpers();
 
 loading.value = false;
@@ -41,12 +41,12 @@ function openNew() {
           >
           <Tab value="1" class="flex items-center gap-2"
             ><i class="pi pi-truck" />Pending ({{
-              ordersStore.pendingRestockListCount
+              ordersStore.pendingTroopTransactionListCount
             }})</Tab
           >
           <Tab value="2" class="flex items-center gap-2"
             ><i class="pi pi-check" />Completed ({{
-              ordersStore.completedRestockListCount
+              ordersStore.completedTroopTransactionListCount
             }})</Tab
           >
         </TabList>
@@ -56,13 +56,13 @@ function openNew() {
           </TabPanel>
           <TabPanel value="1">
             <TransactionsDataTable
-              :orders="ordersStore.pendingRestockList"
+              :orders="ordersStore.pendingTroopTransactionList"
               transaction-types="troop"
             />
           </TabPanel>
           <TabPanel value="2">
             <TransactionsDataTable
-              :orders="ordersStore.completedRestockList"
+              :orders="ordersStore.completedTroopTransactionList"
               transaction-types="troop"
             />
           </TabPanel>
