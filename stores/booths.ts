@@ -1,5 +1,5 @@
-import type { Database } from "@/types/supabase";
-import type { BoothSale, Cookie } from "@/types/types";
+import type { Database } from '@/types/supabase';
+import type { BoothSale, Cookie } from '@/types/types';
 
 /*
 ref()s become state properties
@@ -7,7 +7,7 @@ computed()s become getters
 function()s become actions
 */
 
-export const useBoothsStore = defineStore("booths", () => {
+export const useBoothsStore = defineStore('booths', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
   const profileStore = useProfileStore();
@@ -24,13 +24,13 @@ export const useBoothsStore = defineStore("booths", () => {
   /* Computed */
 
   const upcomingBoothSales = computed(() => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toISOString().split('T')[0];
     return allBoothSales.value.filter((booth) => booth.sale_date >= today);
   });
 
   const boothSalesUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
-      (booth: BoothSale) => booth.inventory_type === "troop",
+      (booth: BoothSale) => booth.inventory_type === 'troop',
     );
   });
 
@@ -52,7 +52,9 @@ export const useBoothsStore = defineStore("booths", () => {
   /* Private Functions */
 
   const _updateBoothSale = (boothSale: BoothSale) => {
-    const index = allBoothSales.value.findIndex((b: BoothSale) => b.id === boothSale.id);
+    const index = allBoothSales.value.findIndex(
+      (b: BoothSale) => b.id === boothSale.id,
+    );
     if (index !== -1) {
       allBoothSales.value[index] = boothSale;
     }
@@ -61,8 +63,8 @@ export const useBoothsStore = defineStore("booths", () => {
   const _sortBoothSales = () => {
     allBoothSales.value.sort(
       (a: BoothSale, b: BoothSale) =>
-        new Date(a.sale_date + " " + a.sale_time).getTime() -
-        new Date(b.sale_date + " " + b.sale_time).getTime(),
+        new Date(a.sale_date + ' ' + a.sale_time).getTime() -
+        new Date(b.sale_date + ' ' + b.sale_time).getTime(),
     );
   };
 
@@ -71,7 +73,9 @@ export const useBoothsStore = defineStore("booths", () => {
   };
 
   const _removeBoothSale = (boothSale: BoothSale) => {
-    const index = allBoothSales.value.findIndex((b: BoothSale) => b.id === boothSale.id);
+    const index = allBoothSales.value.findIndex(
+      (b: BoothSale) => b.id === boothSale.id,
+    );
     if (index !== -1) {
       allBoothSales.value.splice(index, 1);
     }
@@ -80,7 +84,8 @@ export const useBoothsStore = defineStore("booths", () => {
   const _getCookiePercentages = (
     cookieRatioTotal?: number,
   ): Record<string, number> => {
-    const safeCookieRatioTotal = typeof cookieRatioTotal === "number" ? cookieRatioTotal : 0;
+    const safeCookieRatioTotal =
+      typeof cookieRatioTotal === 'number' ? cookieRatioTotal : 0;
     return cookiesStore.allCookies.reduce(
       (acc: Record<string, number>, cookie: Cookie) => {
         const percentOfSale =
@@ -106,10 +111,7 @@ export const useBoothsStore = defineStore("booths", () => {
     cookie: Cookie,
     expectedSales: number,
     cookiePercentages: Record<string, number>,
-  ): Record<
-    string,
-    Prediction
-  > => {
+  ): Record<string, Prediction> => {
     const predictedExact =
       expectedSales * cookiePercentages[cookie.abbreviation];
     const predictedFloor = Math.floor(predictedExact);
@@ -156,32 +158,30 @@ export const useBoothsStore = defineStore("booths", () => {
 
   const _supabaseSelectBoothSales = async () => {
     return await supabaseClient
-      .from("booth_sales")
+      .from('booth_sales')
       .select(`*`)
-      .eq("profile", profileStore.currentProfile?.id ?? "")
-      .eq("season", seasonsStore.currentSeason?.id ?? 0)
-      .order("sale_date", { ascending: true });
+      .eq('profile', profileStore.currentProfile?.id ?? '')
+      .eq('season', seasonsStore.currentSeason?.id ?? 0)
+      .order('sale_date', { ascending: true });
   };
 
   const _supabaseInsertBoothSale = async (boothSale: BoothSale) => {
     return await supabaseClient
-      .from("booth_sales")
+      .from('booth_sales')
       .insert(boothSale)
       .select()
       .single();
   };
 
   const _supabaseUpsertBoothSale = async (boothSale: BoothSale) => {
-    return await supabaseClient
-      .from("booth_sales")
-      .upsert(boothSale);
+    return await supabaseClient.from('booth_sales').upsert(boothSale);
   };
 
   const _supabaseDeleteBoothSale = async (boothSale: BoothSale) => {
     return await supabaseClient
-    .from("booth_sales")
-    .delete()
-    .eq("id", boothSale.id);
+      .from('booth_sales')
+      .delete()
+      .eq('id', boothSale.id);
   };
 
   /* Actions */
@@ -199,7 +199,10 @@ export const useBoothsStore = defineStore("booths", () => {
         _getBaseCookiePredictions(cookie, expectedSales, cookiePercentages),
       )
       .reduce(
-        (acc: Record<string, Prediction>, curr: Record<string, Prediction>) => ({ ...acc, ...curr }),
+        (
+          acc: Record<string, Prediction>,
+          curr: Record<string, Prediction>,
+        ) => ({ ...acc, ...curr }),
         {} as Record<string, Prediction>,
       );
 
@@ -267,7 +270,7 @@ export const useBoothsStore = defineStore("booths", () => {
 
       _addBoothSale(data as BoothSale);
       _sortBoothSales();
-      notificationHelpers.addSuccess("Booth Sale Created");
+      notificationHelpers.addSuccess('Booth Sale Created');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -292,7 +295,7 @@ export const useBoothsStore = defineStore("booths", () => {
 
       _updateBoothSale(boothSale);
       _sortBoothSales();
-      notificationHelpers.addSuccess("Booth Sale Updated");
+      notificationHelpers.addSuccess('Booth Sale Updated');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -305,13 +308,15 @@ export const useBoothsStore = defineStore("booths", () => {
       if (error) throw error;
 
       _removeBoothSale(boothSale);
-      notificationHelpers.addSuccess("Booth Sale Deleted");
+      notificationHelpers.addSuccess('Booth Sale Deleted');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
   };
 
-  const getPredictedBoothSaleQuantityByCookie = (cookieAbbreviation: string): number => {
+  const getPredictedBoothSaleQuantityByCookie = (
+    cookieAbbreviation: string,
+  ): number => {
     let total = 0;
     boothSalesUsingTroopInventory.value.forEach((booth: BoothSale) => {
       if (booth.predicted_cookies) {
