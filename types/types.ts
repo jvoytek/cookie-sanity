@@ -48,15 +48,19 @@ export interface AccountBalance {
   paymentsReceived: number;
   balance: number;
   status: string;
+  numCookiesDistributed: number;
   cookieTotals: Record<string, number>;
   estimatedSales: Record<string, number>;
+  girlPaymentsList: Payment[];
 }
 
 export interface TroopAccountSummary {
   totalDistributedValue: number;
   totalPaymentsReceived: number;
   troopBalance: number;
-  estimatedTotalSales: Record<string, number>;
+  estimatedTotalSales: number;
+  numCookiesDistributed: number;
+  numCookiesRemaining: number;
   activeAccounts: number;
 }
 

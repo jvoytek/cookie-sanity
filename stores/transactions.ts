@@ -157,7 +157,7 @@ export const useTransactionsStore = defineStore("transactions", () => {
     }
   };
 
-  function _getGirlId(name: string): number | null {
+  const _getGirlId = (name: string): number | null => {
     try {
       const [first_name, last_name] = name.split(" ");
       const matchingGirl = girlsStore.allGirls?.find(
