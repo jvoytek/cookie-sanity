@@ -1,5 +1,5 @@
-import type { Database, Json } from "@/types/supabase";
-import type { User } from "@/types/types";
+import type { Database } from '@/types/supabase';
+import type { User } from '@/types/types';
 
 /*
 ref()s become state properties
@@ -7,42 +7,46 @@ computed()s become getters
 function()s become actions
 */
 
-export const useProfileStore = defineStore("profile", () => {
+export const useProfileStore = defineStore('profile', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
-  const toast = useToast();
   const seasonsStore = useSeasonsStore();
   const cookiesStore = useCookiesStore();
   const girlsStore = useGirlsStore();
   const ordersStore = useTransactionsStore();
   const accountsStore = useAccountsStore();
   const boothsStore = useBoothsStore();
+  const notificationHelpers = useNotificationHelpers();
 
   /* State */
   const currentProfile = ref<User>();
-  const display_name = ref<string>("");
+  const display_name = ref<string>('');
   const currentSeasonId = ref<number>(-1);
-  const appState = ref<Json>({});
 
   /* Computed */
 
   /* Private Functions */
 
+  const _supabaseFetchProfile = async () => {
+    if (!user.value)
+      return { data: null, error: { message: 'User not found' } };
+    return await supabaseClient
+      .from('profiles')
+      .select(`*`)
+      .eq('id', user.value.id)
+      .single();
+  };
+
   /* Actions */
   const fetchProfile = async () => {
     try {
       if (!user.value) return;
-      const { data, error } = await supabaseClient
-        .from("profiles")
-        .select(`*`)
-        .eq("id", user.value.id)
-        .single();
+      const { data, error } = await _supabaseFetchProfile();
       if (error) throw error;
 
       // Set state in profile store
       currentProfile.value = (data as User) ?? [];
-      display_name.value = currentProfile.value?.display_name ?? "";
-      appState.value = currentProfile.value?.state ?? {};
+      display_name.value = currentProfile.value?.display_name ?? '';
       currentSeasonId.value = currentProfile.value?.season ?? -1;
 
       // Trigger state update for other stores depending on profile
@@ -53,44 +57,27 @@ export const useProfileStore = defineStore("profile", () => {
       await accountsStore.fetchPayments();
       await boothsStore.fetchBoothSales();
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
   const updateProfile = async (silent: boolean = false) => {
-    console.log(currentSeasonId.value);
     try {
       if (!user.value?.id) return;
       const updates = {
         id: user.value.id,
         display_name: display_name.value,
-        state: appState.value,
         season: currentSeasonId.value,
       };
 
-      const { error } = await supabaseClient.from("profiles").upsert(updates);
+      const { error } = await supabaseClient.from('profiles').upsert(updates);
 
       if (error) throw error;
       if (silent == false) {
-        toast.add({
-          severity: "success",
-          summary: "Successful",
-          detail: "Profile Updated",
-          life: 3000,
-        });
+        notificationHelpers.addSuccess('Profile Updated');
       }
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: (error as Error).message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   };
 
@@ -105,7 +92,6 @@ export const useProfileStore = defineStore("profile", () => {
   return {
     currentProfile,
     display_name,
-    appState,
     fetchProfile,
     updateProfile,
     saveCurrentSeasonInProfile,
