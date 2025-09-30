@@ -36,7 +36,15 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const totalTransactionsByStatusAllCookies = computed(() => {
     return (status: string, transactionType: string) => {
-      const total: Record<string, number> = {};
+      const total: Record<string, number> = cookiesStore.allCookies
+        .map((cookie) => cookie.abbreviation)
+        .reduce(
+          (acc, abbreviation) => {
+            acc[abbreviation] = 0;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
       allTransactions.value.forEach((transaction) => {
         if (transaction.cookies === null || transaction.type === null) return;
         if (
