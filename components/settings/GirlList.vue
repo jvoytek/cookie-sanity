@@ -1,7 +1,7 @@
 <script setup>
-import { FilterMatchMode } from "@primevue/core/api";
-import { useToast } from "primevue/usetoast";
-import { useGirlsStore } from "@/stores/girls";
+import { FilterMatchMode } from '@primevue/core/api';
+import { useToast } from 'primevue/usetoast';
+import { useGirlsStore } from '@/stores/girls';
 
 const loading = ref(true);
 
@@ -66,8 +66,8 @@ async function deleteGirl() {
     girl.value = {};
   } catch (error) {
     toast.add({
-      severity: "error",
-      summary: "Error",
+      severity: 'error',
+      summary: 'Error',
       detail: error.message,
       life: 3000,
     });
