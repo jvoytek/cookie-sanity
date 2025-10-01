@@ -1,4 +1,4 @@
-import type { Database } from '@/types/supabase';
+import type { Database, Json } from '@/types/supabase';
 import type { Order, SCOrder2025, NewOrder } from '@/types/types';
 
 /*
@@ -9,7 +9,6 @@ function()s become actions
 
 export const useTransactionsStore = defineStore('transactions', () => {
   const supabaseClient = useSupabaseClient<Database>();
-  const toast = useToast();
   const profileStore = useProfileStore();
   const seasonsStore = useSeasonsStore();
   const girlsStore = useGirlsStore();
@@ -17,12 +16,12 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const notificationHelpers = useNotificationHelpers();
 
   /* State */
-  const allTransactions: Ref<Order[]> = ref([]);
+  const allTransactions = ref<Order[]>([]);
   const transactionDialogFormSchema = reactive([]);
 
-  const activeTransaction: ref<Json> = ref({});
-  const editTransactionDialogVisible: ref<boolean> = ref(false);
-  const deleteTransactionDialogVisible: ref<boolean> = ref(false);
+  const activeTransaction = ref<Order | null>(null);
+  const editTransactionDialogVisible = ref(false);
+  const deleteTransactionDialogVisible = ref(false);
 
   const transactionTypeOptions = [
     { value: 'T2G', label: 'Troop to Girl' },
@@ -67,28 +66,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     };
   });
 
-  const totalTransactionsByStatusAndCookie = computed(() => {
-    return (
-      status: string,
-      transactionType: string,
-      cookieAbbreviation: string,
-    ) => {
-      return allTransactions.value.reduce((total, transaction) => {
-        if (
-          transaction.status === status &&
-          transaction.cookies &&
-          (transactionType === 'girl'
-            ? _isGirlTransactionType(transaction.type)
-            : _isTroopTransactionType(transaction.type))
-        ) {
-          const quantity = transaction.cookies[cookieAbbreviation] || 0;
-          return total + (typeof quantity === 'number' ? quantity : 0);
-        }
-        return total;
-      }, 0);
-    };
-  });
-
   const sumTransactionsByCookie = computed(
     () =>
       (cookieAbbreviation: string): number =>
@@ -101,76 +78,57 @@ export const useTransactionsStore = defineStore('transactions', () => {
         }, 0),
   );
 
-  const completedGirlTransactionList: Ref<Order[]> = computed(() => {
+  const completedGirlTransactionList = computed(() => {
     return _getTransactionListByStatusAndType('complete', 'girl');
   });
 
-  const completedGirlTransactionListCount: number = computed(() => {
+  const completedGirlTransactionListCount = computed(() => {
     return completedGirlTransactionList.value.length;
   });
 
-  const pendingGirlTransactionList: Ref<Order[]> = computed(() => {
+  const pendingGirlTransactionList = computed(() => {
     return _getTransactionListByStatusAndType('pending', 'girl');
   });
 
-  const pendingGirlTransactionListCount: number = computed(() => {
+  const pendingGirlTransactionListCount = computed(() => {
     return pendingGirlTransactionList.value.length;
   });
 
-  const requestedGirlTransactionrList: Ref<Order[]> = computed(() => {
+  const requestedGirlTransactionrList = computed(() => {
     return _getTransactionListByStatusAndType('requested', 'girl');
   });
 
-  const requestedGirlTransactionrListCount: number = computed(() => {
+  const requestedGirlTransactionrListCount = computed(() => {
     return requestedGirlTransactionrList.value.length;
   });
 
-  const rejectedGirlTransactionList: Ref<Order[]> = computed(() => {
+  const rejectedGirlTransactionList = computed(() => {
     return _getTransactionListByStatusAndType('rejected', 'girl');
   });
 
-  const rejectedGirlTransactionListCount: number = computed(() => {
+  const rejectedGirlTransactionListCount = computed(() => {
     return rejectedGirlTransactionList.value.length;
   });
 
-  const pendingTroopTransactionList: Ref<Order[]> = computed(() => {
+  const pendingTroopTransactionList = computed(() => {
     return _getTransactionListByStatusAndType('pending', 'troop');
   });
 
-  const pendingTroopTransactionListCount: number = computed(() => {
+  const pendingTroopTransactionListCount = computed(() => {
     return pendingTroopTransactionList.value.length;
   });
 
-  const completedTroopTransactionList: Ref<Order[]> = computed(() => {
+  const completedTroopTransactionList = computed(() => {
     return _getTransactionListByStatusAndType('complete', 'troop');
   });
 
-  const completedTroopTransactionListCount: number = computed(() => {
+  const completedTroopTransactionListCount = computed(() => {
     return completedTroopTransactionList.value.length;
-  });
-
-  const sumTransactionsByCookieAll = computed((): Record<string, number> => {
-    return allTransactions.value.reduce(
-      (acc, transaction) => {
-        if (transaction.cookies && transaction.status === 'complete') {
-          for (const [cookieAbbreviation, quantity] of Object.entries(
-            transaction.cookies,
-          )) {
-            if (typeof quantity === 'number') {
-              acc[cookieAbbreviation] =
-                (acc[cookieAbbreviation] || 0) + quantity;
-            }
-          }
-        }
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
   });
 
   /* Private Functions */
 
-  const _getTransactionListByStatusAndType: Ref<Order[]> = (
+  const _getTransactionListByStatusAndType = (
     status: string,
     type: 'girl' | 'troop',
   ): Order[] => {
@@ -182,14 +140,16 @@ export const useTransactionsStore = defineStore('transactions', () => {
     );
   };
 
-  const _isGirlTransactionType = (type: string): boolean => {
+  const _isGirlTransactionType = (type: string | null): boolean => {
+    if (!type) return false;
     return (
       ['T2G', 'G2G', 'G2T'].includes(type.slice(0, 3)) ||
       type.slice(0, 12) === 'COOKIE_SHARE'
     );
   };
 
-  const _isTroopTransactionType = (type: string): boolean => {
+  const _isTroopTransactionType = (type: string | null): boolean => {
+    if (!type) return false;
     return ['T2T', 'C2T'].includes(type.slice(0, 3));
   };
 
@@ -198,12 +158,16 @@ export const useTransactionsStore = defineStore('transactions', () => {
       (o) => o.id === transaction.id,
     );
     if (index !== -1) {
-      allTransactions.value[index] = transaction;
+      allTransactions.value[index] = transaction as Order;
     }
   };
 
   const _sortTransactions = () => {
-    allTransactions.value.sort((a, b) => a.order_date - b.order_date);
+    allTransactions.value.sort((a: Order, b: Order) => {
+      const aDate = a.order_date ? new Date(a.order_date).getTime() : 0;
+      const bDate = b.order_date ? new Date(b.order_date).getTime() : 0;
+      return aDate - bDate;
+    });
   };
 
   const _addTransaction = (transaction: Order) => {
@@ -229,7 +193,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const _getGirlId = (name: string): number | null => {
+  const _getGirlId = (name: string) => {
     try {
       const [first_name, last_name] = name.split(' ');
       const matchingGirl = girlsStore.allGirls?.find(
@@ -242,15 +206,15 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  function _returnDateStringOrNull(date: Date | string | null) {
+  const _returnDateStringOrNull = (date: Date | string | null | undefined) => {
     if (!date || typeof date === 'string') {
       return date;
     } else {
       return date.toISOString().slice(0, 10);
     }
-  }
+  };
 
-  const _invertCookieQuantities = (cookies: Json | null): Json | null => {
+  const _invertCookieQuantities = (cookies: Json | null | undefined) => {
     if (!cookies) return cookies;
     return Object.fromEntries(
       Object.entries(cookies).map(([key, value]) => [
@@ -260,14 +224,17 @@ export const useTransactionsStore = defineStore('transactions', () => {
     );
   };
 
-  const _invertCookieQuantitiesInTransaction = (
-    transaction: Order,
-  ): Order[] => {
-    transaction.cookies = _invertCookieQuantities(transaction.cookies);
+  const _invertCookieQuantitiesInTransaction = (transaction: Order) => {
+    const invertedCookies = _invertCookieQuantities(transaction.cookies);
+    transaction.cookies = invertedCookies
+      ? invertedCookies
+      : transaction.cookies;
     return transaction;
   };
 
   const _supabaseFetchTransactions = async () => {
+    if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
+      return { data: null, error: new Error('Profile or Season not set') };
     return await supabaseClient
       .from('orders')
       .select(`*`)
@@ -277,9 +244,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       .order('order_date', { ascending: false });
   };
 
-  const _supabaseInsertTransaction = async (
-    transaction: Omit<NewOrder, 'season'> & { season: number },
-  ) => {
+  const _supabaseInsertTransaction = async (transaction: NewOrder) => {
     return await supabaseClient
       .from('orders')
       .insert(transaction)
@@ -338,9 +303,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const insertNewTransaction = async (
-    transaction: Omit<NewOrder, 'season'> & { season: number },
-  ) => {
+  const insertNewTransaction = async (transaction: NewOrder) => {
     if (!profileStore.currentProfile) return;
 
     transaction.profile = profileStore.currentProfile.id;
@@ -353,8 +316,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       const { data, error } = await _supabaseInsertTransaction(transaction);
 
       if (error) throw error;
-
-      data.cookies = _invertCookieQuantities(data.cookies);
+      const invertedCookies = _invertCookieQuantities(data.cookies);
+      data.cookies = invertedCookies ? invertedCookies : data.cookies;
       _addTransaction(data);
       _sortTransactions();
       notificationHelpers.addSuccess('Transaction Created');
@@ -366,23 +329,35 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const insertNewTransactionFromUploads = async (
     transactionsList: NewOrder[],
   ) => {
+    // Ensure all transactions have a valid season number (not null)
+    const validTransactionsList = transactionsList.map((tx) => ({
+      ...tx,
+      season:
+        typeof tx.season === 'number'
+          ? tx.season
+          : profileStore.currentProfile?.season ||
+            seasonsStore.allSeasons[0].id,
+    }));
     const { error } = await supabaseClient
       .from('orders')
-      .insert(transactionsList)
+      .insert(validTransactionsList)
       .select();
     if (error) throw error;
   };
 
   const upsertTransaction = async (transaction: Order) => {
-    transaction.cookies = _invertCookieQuantities(transaction.cookies);
+    const invertedCookies = _invertCookieQuantities(transaction.cookies);
+    transaction.cookies = invertedCookies
+      ? invertedCookies
+      : transaction.cookies;
 
     try {
       console.log(transaction);
       const { data, error } = await _supabaseUpsertTransaction(transaction);
 
       if (error) throw error;
-
-      data.cookies = _invertCookieQuantities(data.cookies);
+      const reinvertedCookies = _invertCookieQuantities(data.cookies);
+      data.cookies = reinvertedCookies ? reinvertedCookies : data.cookies;
 
       _updateTransaction(data);
       _sortTransactions();
@@ -397,9 +372,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
       typeof transaction === 'number' ? transaction : transaction.id;
 
     if (!transactionId) {
-      notificationHelpers.addError({
-        message: 'Transaction ID is required to delete a transaction.',
-      });
+      notificationHelpers.addError(
+        new Error('Transaction ID is required to delete a transaction.'),
+      );
       return;
     }
 
@@ -411,23 +386,19 @@ export const useTransactionsStore = defineStore('transactions', () => {
       _removeTransaction(transactionId);
       notificationHelpers.addSuccess('Transaction Deleted');
     } catch (error) {
-      if (error instanceof Error) {
-        toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: error.message,
-          life: 3000,
-        });
-      }
+      notificationHelpers.addError(error as Error);
     }
   };
 
-  const convertSCOrderToNewTransaction = (
-    obj: SCOrder2025,
-  ): NewOrder | undefined => {
-    if (!profileStore.currentProfile?.id) return;
+  const convertSCOrderToNewTransaction = (obj: SCOrder2025) => {
+    if (
+      !profileStore.currentProfile?.id ||
+      !profileStore.currentProfile?.season
+    )
+      return;
     const toGirlId = _getGirlId(obj.TO);
     const fromGirlId = _getGirlId(obj.FROM);
+    //const type =
     return {
       profile: profileStore.currentProfile?.id,
       order_date: _returnDateStringOrNull(obj.DATE),
@@ -435,7 +406,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       to: toGirlId || null,
       from: fromGirlId || null,
       cookies: obj,
-      season: profileStore.currentProfile?.season ?? null,
+      season: profileStore.currentProfile.season || undefined,
       type: obj.TYPE,
       status: 'complete',
     };
@@ -451,7 +422,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
         status,
       );
       if (error) throw error;
-      data.cookies = _invertCookieQuantities(data.cookies);
+      const invertedCookies = _invertCookieQuantities(data.cookies);
+      data.cookies = invertedCookies ? invertedCookies : data.cookies;
       _updateTransaction(data);
       _sortTransactions();
       notificationHelpers.addSuccess(
@@ -481,7 +453,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     pendingTroopTransactionListCount,
     completedTroopTransactionList,
     completedTroopTransactionListCount,
-    totalTransactionsByStatusAndCookie,
     totalTransactionsByStatusAllCookies,
     fetchTransactions,
     insertNewTransactionFromUploads,

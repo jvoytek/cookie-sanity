@@ -25,21 +25,6 @@ describe('stores/cookies', () => {
         };
         return mockInventory[abbreviation] || 0;
       }),
-      totalTransactionsByStatusAndCookie: vi.fn(
-        (status: string, type: string, abbreviation: string) => {
-          // Mock different pending amounts based on parameters
-          if (status === 'requested' && type === 'girl') {
-            return abbreviation === 'ADV' ? 10 : 5;
-          }
-          if (status === 'pending' && type === 'girl') {
-            return abbreviation === 'TM' ? 8 : 3;
-          }
-          if (status === 'pending' && type === 'troop') {
-            return abbreviation === 'LEM' ? 12 : 2;
-          }
-          return 0;
-        },
-      ),
       //Adventurefuls (ADV): onHand=100, requestedGirl=10, pendingGirl=3, pendingTroop=2, pendedBooth=-9
       // Thin Mints (TM): onHand=75, requestedGirl=5, pendingGirl=8, pendingTroop=2, pendedBooth=-9
       // Test Lemon-Ups (LEM): onHand=50, requestedGirl=5, pendingGirl=3, pendingTroop=12

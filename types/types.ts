@@ -1,4 +1,4 @@
-import type { Database, Json } from './supabase';
+import type { Database } from './supabase';
 export type Order = Database['public']['Tables']['orders']['Row'];
 export type Girl = Database['public']['Tables']['sellers']['Row'];
 export type Cookie = Database['public']['Tables']['cookies']['Row'];
@@ -31,18 +31,7 @@ export type SCOrder2025 = {
   'TOTAL $': number;
 };
 
-export type NewOrder = {
-  order_date: string | null;
-  order_num: string | null;
-  cookies: Json | null;
-  to: number | null;
-  from: number | null;
-  profile: string | null;
-  supplier: string | null;
-  season: number | null;
-  type: 'order' | 'distribution' | 'return' | 'transfer' | 'other';
-  status: 'pending' | 'complete' | 'canceled';
-};
+export type NewOrder = Partial<Order>;
 
 export interface AccountBalance {
   girl: Girl;

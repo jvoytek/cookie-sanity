@@ -109,7 +109,6 @@ vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
 
 const useTransactionsStoreMock = vi.fn(() => ({
   sumTransactionsByCookie: vi.fn(() => 0),
-  totalTransactionsByStatusAndCookie: vi.fn(() => 0),
   activeTransaction: {},
   transactionDialogFormSchema: { value: [] },
   editTransactionDialogVisible: false,
