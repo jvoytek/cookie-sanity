@@ -1,32 +1,31 @@
 <script setup lang="ts">
-import { useCookiesStore } from "@/stores/cookies";
+import { useCookiesStore } from '@/stores/cookies';
 const cookiesStore = useCookiesStore();
 
 const props = defineProps<{
-  cookies: Json;
+  cookies: Record<string, number>;
 }>();
 
-const totalCookies = (cookies) => {
-  return cookiesStore.allCookies
-    .filter(
-      (cookie) =>
-        cookies[cookie.abbreviation] != null &&
-        cookies[cookie.abbreviation] !== 0,
-    )
-    .reduce((sum, cookie) => {
-      return sum + cookies[cookie.abbreviation];
-    }, 0);
+const totalCookies = (cookies: Record<string, number>) => {
+  return cookiesStore.allCookies.reduce((total, cookie) => {
+    const count = cookies[cookie.abbreviation] ?? 0;
+    return count ? total + count : total;
+  }, 0);
+};
+
+const cookiesWithValues = (cookies: Record<string, number>) => {
+  return cookiesStore.allCookies.filter(
+    (cookie) =>
+      cookies[cookie.abbreviation] != null &&
+      cookies[cookie.abbreviation] !== 0,
+  );
 };
 </script>
 
 <template>
   <div v-if="cookiesStore.allCookies.length" class="flex flex-wrap gap-1">
     <span
-      v-for="cookie in cookiesStore.allCookies.filter(
-        (cookie) =>
-          props.cookies[cookie.abbreviation] != null &&
-          props.cookies[cookie.abbreviation] !== 0,
-      )"
+      v-for="cookie in cookiesWithValues(props.cookies)"
       :key="cookie.id"
       class="text-sm flex items-center gap-2"
     >
