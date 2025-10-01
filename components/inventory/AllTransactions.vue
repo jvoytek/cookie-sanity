@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UploadOrders from "./UploadOrders.vue";
+import UploadOrders from './UploadOrders.vue';
 
 const loading = ref(true);
 
@@ -14,14 +14,12 @@ function openNew() {
   transactionHelpers.editTransaction(
     {
       cookies: {},
-      status: "pending",
+      status: 'pending',
     },
-    "new",
+    'new',
   );
 }
-
 </script>
-
 
 <template>
   <div class="col-span-12 lg:col-span-12 xl:col-span-12">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import * as XLSX from "xlsx";
-import { useToast } from "primevue/usetoast";
-import type { SCOrder2025 } from "@/types/types";
+import * as XLSX from 'xlsx';
+import { useToast } from 'primevue/usetoast';
+import type { SCOrder2025, NewOrder } from '@/types/types';
 
 const loading = ref(true);
 
@@ -10,6 +10,7 @@ const toast = useToast();
 const ordersStore = useTransactionsStore();
 const uploadsStore = useUploadsStore();
 const profileStore = useProfileStore();
+const notificationHelpers = useNotificationHelpers();
 
 // Handle file upload event
 const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
@@ -18,19 +19,15 @@ const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
   // Validate file type
   if (
     file.type !==
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   ) {
-    showToast("error", "Error", "Please upload a valid .xlsx file.");
+    notificationHelpers.addError(new Error('Invalid file type'));
     return;
   }
 
   // Validate file size
   if (file.size > 1000000) {
-    showToast(
-      "error",
-      "Error",
-      "File is too large. Please upload a file under 1MB.",
-    );
+    notificationHelpers.addError(new Error('File size exceeds limit'));
     return;
   }
 
@@ -42,7 +39,14 @@ const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
     const jsonData = XLSX.utils.sheet_to_json<SCOrder2025>(sheet);
     const orders = jsonData
       .map(ordersStore.convertSCOrderToNewTransaction)
-      .filter((order): order is NewOrder => order !== undefined);
+      .filter(
+        (order) =>
+          order !== undefined &&
+          typeof order.profile === 'string' &&
+          typeof order.order_num === 'string' &&
+          typeof order.type === 'string' &&
+          typeof order.status === 'string',
+      ) as NewOrder[];
 
     // Save all of the uploaded orders as JSON
     await uploadsStore.insertUpload(jsonData);
@@ -56,14 +60,12 @@ const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
     ordersStore.fetchTransactions();
 
     // Set success message
-    showToast(
-      "success",
-      "Successful",
-      "File uploaded and data inserted successfully!",
+    notificationHelpers.addSuccess(
+      'File uploaded and data inserted successfully!',
     );
   } catch (error) {
     if (error instanceof Error) {
-      showToast("error", "Error", error.message);
+      notificationHelpers.addError(error);
     }
   }
 };
@@ -73,7 +75,7 @@ const readExcel = (file: File): Promise<XLSX.WorkSheet> => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: "array", cellDates: true });
+      const workbook = XLSX.read(data, { type: 'array', cellDates: true });
 
       const sheetName = workbook.SheetNames[0]; // Get the first sheet
       const sheet = workbook.Sheets[sheetName];

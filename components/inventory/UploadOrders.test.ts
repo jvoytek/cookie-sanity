@@ -1,20 +1,23 @@
-import { describe, it, expect, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
-import UploadOrders from '@/components/inventory/UploadOrders.vue'
+import { describe, it, expect, vi } from 'vitest';
+import { mount } from '@vue/test-utils';
+import { createTestingPinia } from '@pinia/testing';
+import UploadOrders from '@/components/inventory/UploadOrders.vue';
 
 // Mock PrimeVue useToast
 vi.mock('primevue/usetoast', () => ({
   useToast: () => ({
-    add: vi.fn()
-  })
-}))
+    add: vi.fn(),
+  }),
+}));
 
 // Mock useToast
 const mockToast = {
-  add: vi.fn()
-}
-global.useToast = vi.fn(() => mockToast)
+  add: vi.fn(),
+};
+vi.stubGlobal(
+  'useNotificationHelpers',
+  vi.fn(() => mockToast),
+);
 
 describe('UploadOrders', () => {
   it('renders without crashing', () => {
@@ -23,37 +26,37 @@ describe('UploadOrders', () => {
         global: {
           plugins: [createTestingPinia()],
           stubs: {
-            'Card': true,
-            'Button': true,
-            'FileUpload': true,
-            'Message': true,
-            'DataTable': true,
-            'Toolbar': true,
-            'Dialog': true,
-            'ProgressSpinner': true
-          }
-        }
-      })
-    }).not.toThrow()
-  })
+            Card: true,
+            Button: true,
+            FileUpload: true,
+            Message: true,
+            DataTable: true,
+            Toolbar: true,
+            Dialog: true,
+            ProgressSpinner: true,
+          },
+        },
+      });
+    }).not.toThrow();
+  });
 
   it('mounts successfully', () => {
     const wrapper = mount(UploadOrders, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {
-          'Card': true,
-          'Button': true,
-          'FileUpload': true,
-          'Message': true,
-          'DataTable': true,
-          'Toolbar': true,
-          'Dialog': true,
-          'ProgressSpinner': true
-        }
-      }
-    })
-    
-    expect(wrapper.exists()).toBe(true)
-  })
-})
+          Card: true,
+          Button: true,
+          FileUpload: true,
+          Message: true,
+          DataTable: true,
+          Toolbar: true,
+          Dialog: true,
+          ProgressSpinner: true,
+        },
+      },
+    });
+
+    expect(wrapper.exists()).toBe(true);
+  });
+});

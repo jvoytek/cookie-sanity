@@ -13,9 +13,9 @@ function openNew() {
   transactionHelpers.editTransaction(
     {
       cookies: {},
-      status: "requested",
+      status: 'requested',
     },
-    "new",
+    'new',
   );
 }
 </script>

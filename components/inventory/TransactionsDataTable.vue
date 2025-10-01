@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { Order } from '@/types/types';
+
 const props = defineProps<{
-  orders: Json[];
-  transactionTypes: "troop" | "girl" | "all";
+  orders: Order[];
+  transactionTypes: 'troop' | 'girl' | 'all';
   paginated?: boolean;
 }>();
 
@@ -22,14 +24,18 @@ const transactionHelpers = useTransactionHelpers();
     size="small"
   >
     <Column
-      v-if="props.transactionTypes === 'troop' || props.transactionTypes === 'all'"
+      v-if="
+        props.transactionTypes === 'troop' || props.transactionTypes === 'all'
+      "
       field="supplier"
       header="Supplier"
       sortable
     />
     <Column field="order_num" header="Transaction #" sortable />
     <Column
-      v-if="props.transactionTypes === 'girl' || props.transactionTypes === 'all'"
+      v-if="
+        props.transactionTypes === 'girl' || props.transactionTypes === 'all'
+      "
       field="from"
       header="From"
       sortable
@@ -38,19 +44,21 @@ const transactionHelpers = useTransactionHelpers();
         {{
           slotProps.data.from
             ? girlsStore.getGirlNameById(slotProps.data.from)
-            : ""
+            : ''
         }}
       </template>
     </Column>
     <Column
-      v-if="props.transactionTypes === 'girl' || props.transactionTypes === 'all'"
+      v-if="
+        props.transactionTypes === 'girl' || props.transactionTypes === 'all'
+      "
       field="to"
       header="To"
       sortable
     >
       <template #body="slotProps">
         {{
-          slotProps.data.to ? girlsStore.getGirlNameById(slotProps.data.to) : ""
+          slotProps.data.to ? girlsStore.getGirlNameById(slotProps.data.to) : ''
         }}
       </template>
     </Column>
@@ -86,25 +94,30 @@ const transactionHelpers = useTransactionHelpers();
     </Column>
     <Column field="order_date" header="Expected" sortable />
     <Column
-      v-if="props.transactionTypes === 'girl' || props.transactionTypes === 'all'"
+      v-if="
+        props.transactionTypes === 'girl' || props.transactionTypes === 'all'
+      "
       field="completed_date"
       header="Completed"
       sortable
     >
       <template #body="slotProps">
         {{
-          slotProps.data.status === "complete"
+          slotProps.data.status === 'complete'
             ? slotProps.data.completed_date
               ? slotProps.data.completed_date
               : slotProps.data.order_date
-            : "N/A"
+            : 'N/A'
         }}
       </template>
     </Column>
     <Column field="actions" header="Actions" style="min-width: 140px">
       <template #body="slotProps">
         <Button
-          v-if="props.transactionTypes !== 'all' && slotProps.data.status === 'pending'"
+          v-if="
+            props.transactionTypes !== 'all' &&
+            slotProps.data.status === 'pending'
+          "
           v-tooltip.bottom="{
             value: 'Click this when physical inventory has changed hands',
             showDelay: 500,
@@ -113,10 +126,15 @@ const transactionHelpers = useTransactionHelpers();
           icon="pi pi-check"
           class="mr-2"
           variant="outlined"
-          @click="ordersStore.updateTransactionStatus(slotProps.data.id, 'complete')"
+          @click="
+            ordersStore.updateTransactionStatus(slotProps.data.id, 'complete')
+          "
         />
         <Button
-          v-if="props.transactionTypes !== 'all' && slotProps.data.status === 'requested'"
+          v-if="
+            props.transactionTypes !== 'all' &&
+            slotProps.data.status === 'requested'
+          "
           v-tooltip.bottom="{
             value: 'Click this to approve this request and mark as pending',
             showDelay: 500,
@@ -126,12 +144,14 @@ const transactionHelpers = useTransactionHelpers();
           class="mr-2"
           variant="outlined"
           severity="secondary"
-          @click="ordersStore.updateTransactionStatus(slotProps.data.id, 'pending')"
+          @click="
+            ordersStore.updateTransactionStatus(slotProps.data.id, 'pending')
+          "
         />
         <Button
           v-if="
-            props.transactionTypes !== 'all' && 
-            slotProps.data.status === 'complete' ||
+            (props.transactionTypes !== 'all' &&
+              slotProps.data.status === 'complete') ||
             slotProps.data.status === 'rejected'
           "
           v-tooltip.bottom="{
@@ -143,7 +163,9 @@ const transactionHelpers = useTransactionHelpers();
           class="mr-2"
           variant="outlined"
           severity="secondary"
-          @click="ordersStore.updateTransactionStatus(slotProps.data.id, 'pending')"
+          @click="
+            ordersStore.updateTransactionStatus(slotProps.data.id, 'pending')
+          "
         />
         <Button
           v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
@@ -161,7 +183,7 @@ const transactionHelpers = useTransactionHelpers();
         />
         <Button
           v-if="
-            props.transactionTypes === 'all' || 
+            props.transactionTypes === 'all' ||
             props.transactionTypes === 'troop' ||
             (props.transactionTypes === 'girl' &&
               (slotProps.data.status === 'rejected' ||
@@ -177,8 +199,8 @@ const transactionHelpers = useTransactionHelpers();
         />
         <Button
           v-if="
-            props.transactionTypes !== 'all' && 
-            (props.transactionTypes === 'girl') &&
+            props.transactionTypes !== 'all' &&
+            props.transactionTypes === 'girl' &&
             (slotProps.data.status === 'requested' ||
               slotProps.data.status === 'pending')
           "
@@ -191,7 +213,9 @@ const transactionHelpers = useTransactionHelpers();
           class="mr-2"
           variant="outlined"
           severity="warn"
-          @click="ordersStore.updateTransactionStatus(slotProps.data.id, 'rejected')"
+          @click="
+            ordersStore.updateTransactionStatus(slotProps.data.id, 'rejected')
+          "
         />
       </template>
     </Column>

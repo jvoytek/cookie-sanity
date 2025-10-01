@@ -12,9 +12,9 @@ function openNew() {
   transactionHelpers.editTransaction(
     {
       cookies: {},
-      status: "pending",
+      status: 'pending',
     },
-    "new",
+    'new',
   );
 }
 </script>
