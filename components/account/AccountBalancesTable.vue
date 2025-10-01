@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AccountBalance } from "@/stores/accounts";
+import type { AccountBalance } from '@/types/types';
 
 const accountsStore = useAccountsStore();
 const paymentHelpers = usePaymentHelpers();
@@ -11,12 +11,12 @@ const getGirlDisplayName = (balance: AccountBalance): string => {
 };
 
 const getStatusClass = (status: string): string => {
-  if (status === "Balance Due") {
-    return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-  } else if (status === "Overpaid") {
-    return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+  if (status === 'Balance Due') {
+    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+  } else if (status === 'Overpaid') {
+    return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
   } else {
-    return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
   }
 };
 

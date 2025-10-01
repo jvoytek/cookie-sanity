@@ -24,9 +24,10 @@ export const useAccountsStore = defineStore('accounts', () => {
 
   /* State */
   const allPayments = ref<Payment[]>([]);
-  const editPaymentDialogVisible = ref<boolean>(false);
+  const editPaymentDialogVisible = ref(false);
   const activePayment = ref<Payment | null>(null);
-  const paymentDialogFormSchema = reactive([]);
+  const paymentDialogFormSchema = ref([]);
+  const deletePaymentDialogVisible = ref(false);
 
   /* Computed */
 
@@ -271,6 +272,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     allPayments,
     girlAccountBalances,
     editPaymentDialogVisible,
+    deletePaymentDialogVisible,
     activePayment,
     paymentDialogFormSchema,
     troopAccountSummary,

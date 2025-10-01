@@ -14,10 +14,10 @@ const girlAccount = computed(() => {
 
 <template>
   <h5 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
-    Payment History for {{ girlAccount.girl.first_name }}
+    Payment History for {{ girlAccount!.girl.first_name }}
   </h5>
   <DataTable
-    :value="girlAccount.girlPaymentsList"
+    :value="girlAccount!.girlPaymentsList"
     data-key="id"
     sort-field="payment_date"
     :sort-order="1"

@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
-import AccountBalancesTable from '@/components/account/AccountBalancesTable.vue'
+import { describe, it, expect } from 'vitest';
+import { mount } from '@vue/test-utils';
+import { createTestingPinia } from '@pinia/testing';
+import AccountBalancesTable from '@/components/account/AccountBalancesTable.vue';
 
 describe('AccountBalancesTable', () => {
   it('renders without crashing', () => {
@@ -10,29 +10,29 @@ describe('AccountBalancesTable', () => {
         global: {
           plugins: [createTestingPinia()],
           stubs: {
-            'DataTable': true,
-            'Column': true,
-            'Button': true,
-            'Badge': true
-          }
-        }
-      })
-    }).not.toThrow()
-  })
+            DataTable: true,
+            Column: true,
+            Button: true,
+            Badge: true,
+          },
+        },
+      });
+    }).not.toThrow();
+  });
 
   it('mounts successfully', () => {
     const wrapper = mount(AccountBalancesTable, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {
-          'DataTable': true,
-          'Column': true,
-          'Button': true,
-          'Badge': true
-        }
-      }
-    })
-    
-    expect(wrapper.exists()).toBe(true)
-  })
-})
+          DataTable: true,
+          Column: true,
+          Button: true,
+          Badge: true,
+        },
+      },
+    });
+
+    expect(wrapper.exists()).toBe(true);
+  });
+});

@@ -21,7 +21,7 @@ const girlAccount = computed(() => {
         </p>
       </template>
       <p class="text-xl">
-        {{ formatHelpers.formatCurrency(girlAccount.balance) }}<br />
+        {{ formatHelpers.formatCurrency(girlAccount!.balance) }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total still owed</span
         >
@@ -37,7 +37,7 @@ const girlAccount = computed(() => {
         </p>
       </template>
       <p class="text-xl">
-        {{ formatHelpers.formatCurrency(girlAccount.paymentsReceived) }}<br />
+        {{ formatHelpers.formatCurrency(girlAccount!.paymentsReceived) }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total received</span
         >
@@ -52,7 +52,7 @@ const girlAccount = computed(() => {
           <span>Packages Distributed</span>
         </p>
       </template>
-      <p class="text-xl">{{ girlAccount.numCookiesDistributed }}<br /></p>
+      <p class="text-xl">{{ girlAccount!.numCookiesDistributed }}<br /></p>
     </Fieldset>
   </div>
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">
@@ -64,7 +64,7 @@ const girlAccount = computed(() => {
         </p>
       </template>
       <p class="text-xl">
-        {{ girlAccount.estimatedSales }}
+        {{ girlAccount!.estimatedSales }}
       </p>
     </Fieldset>
   </div>
