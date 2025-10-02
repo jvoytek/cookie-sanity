@@ -526,6 +526,16 @@ describe('stores/girls', () => {
       const names = girlsStore.getGirlNamesByIdList([]);
       expect(names).toBe('');
     });
+
+    it('getGirlNamesByIdList returns empty string for null', () => {
+      const names = girlsStore.getGirlNamesByIdList(null);
+      expect(names).toBe('');
+    });
+
+    it('getGirlNamesByIdList returns empty string for undefined', () => {
+      const names = girlsStore.getGirlNamesByIdList(undefined);
+      expect(names).toBe('');
+    });
   });
 
   describe('private functions integration', () => {
