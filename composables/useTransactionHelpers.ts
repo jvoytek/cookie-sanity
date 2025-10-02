@@ -1,10 +1,11 @@
+import type { Order } from '@/types/types';
+
 export const useTransactionHelpers = () => {
   const ordersStore = useTransactionsStore();
   const cookiesStore = useCookiesStore();
   const girlsStore = useGirlsStore();
-  const toast = useToast();
   const submitted = ref(false);
-  const form = ref<FormInstance | null>(null);
+  const notificationHelpers = useNotificationHelpers();
 
   const transactionTypeBadgeSeverity = (type: string) => {
     switch (type) {
@@ -255,13 +256,13 @@ export const useTransactionHelpers = () => {
   }
 
   async function saveTransaction() {
-    if (ordersStore.activeTransaction.id) {
+    if (ordersStore.activeTransaction?.id) {
       ordersStore.upsertTransaction(ordersStore.activeTransaction);
     } else {
       ordersStore.insertNewTransaction(ordersStore.activeTransaction);
     }
     ordersStore.editTransactionDialogVisible = false;
-    ordersStore.activeTransaction = {};
+    ordersStore.activeTransaction = null;
     submitted.value = false;
   }
 
@@ -272,21 +273,17 @@ export const useTransactionHelpers = () => {
 
   async function deleteTransaction() {
     try {
-      ordersStore.deleteTransaction(ordersStore.activeTransaction.id);
+      if (!ordersStore.activeTransaction?.id)
+        throw new Error('No transaction selected');
+      ordersStore.deleteTransaction(ordersStore.activeTransaction?.id);
       ordersStore.deleteTransactionDialogVisible = false;
-      ordersStore.activeTransaction = {};
+      ordersStore.activeTransaction = null;
     } catch (error) {
-      toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   }
 
   return {
-    form,
     submitted,
     editTransaction,
     hideDialog,

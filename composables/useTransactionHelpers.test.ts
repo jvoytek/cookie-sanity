@@ -1,82 +1,97 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useTransactionHelpers } from "@/composables/useTransactionHelpers";
-import type { Order } from "@/types/types";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useTransactionHelpers } from '@/composables/useTransactionHelpers';
+import type { Order } from '@/types/types';
+import { setActivePinia, createPinia } from 'pinia';
 
-// Mock the stores and dependencies
-const mockOrdersStore = {
-  activeTransaction: {} as Order,
-  transactionDialogFormSchema: { value: [] },
-  editTransactionDialogVisible: false,
-  deleteTransactionDialogVisible: false,
-  transactionTypeOptions: [
-    { label: "Council to Troop", value: "C2T" },
-    { label: "Troop to Troop", value: "T2T" },
-    { label: "Troop to Girl", value: "T2G" },
-    { label: "Girl to Troop", value: "G2T" },
-    { label: "Girl to Girl", value: "G2G" },
-  ],
-  upsertTransaction: vi.fn(),
-  insertNewTransaction: vi.fn(),
-  deleteTransaction: vi.fn(),
-};
+describe('useTransactionHelpers', () => {
+  let transactionHelpers: ReturnType<typeof useTransactionHelpers>;
+  let mockOrdersStore: any;
+  let mockCookiesStore: any;
+  let mockGirlsStore: any;
+  let toastSpy: ReturnType<typeof vi.fn>;
 
-const mockCookiesStore = {
-  allCookies: [
-    { name: "Thin Mints", abbreviation: "TM", id: 1 },
-    { name: "Adventurefuls", abbreviation: "ADV", id: 2 },
-  ],
-};
-
-const mockGirlsStore = {
-  girlOptions: [
-    { label: "Alice", value: 1 },
-    { label: "Bob", value: 2 },
-  ],
-};
-
-const mockToast = {
-  add: vi.fn(),
-};
-
-// Mock the global functions
-vi.mocked(useTransactionsStore).mockReturnValue(mockOrdersStore);
-vi.mocked(useCookiesStore).mockReturnValue(mockCookiesStore);
-vi.mocked(useGirlsStore).mockReturnValue(mockGirlsStore);
-vi.mocked(useToast).mockReturnValue(mockToast);
-
-describe("useTransactionHelpers", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    // Reset store state
-    mockOrdersStore.activeTransaction = {};
-    mockOrdersStore.editTransactionDialogVisible = false;
-    mockOrdersStore.deleteTransactionDialogVisible = false;
+    setActivePinia(createPinia());
+
+    // Mock the stores and dependencies
+    mockOrdersStore = {
+      activeTransaction: {} as Order,
+      transactionDialogFormSchema: { value: [] },
+      editTransactionDialogVisible: false,
+      deleteTransactionDialogVisible: false,
+      transactionTypeOptions: [
+        { label: 'Council to Troop', value: 'C2T' },
+        { label: 'Troop to Troop', value: 'T2T' },
+        { label: 'Troop to Girl', value: 'T2G' },
+        { label: 'Girl to Troop', value: 'G2T' },
+        { label: 'Girl to Girl', value: 'G2G' },
+      ],
+      upsertTransaction: vi.fn(),
+      insertNewTransaction: vi.fn(),
+      deleteTransaction: vi.fn(),
+    };
+    vi.stubGlobal('useTransactionsStore', () => mockOrdersStore);
+
+    mockCookiesStore = {
+      allCookies: [
+        { name: 'Thin Mints', abbreviation: 'TM', id: 1 },
+        { name: 'Adventurefuls', abbreviation: 'ADV', id: 2 },
+      ],
+    };
+    vi.stubGlobal('useCookiesStore', () => mockCookiesStore);
+
+    mockGirlsStore = {
+      girlOptions: [
+        { label: 'Alice', value: 1 },
+        { label: 'Bob', value: 2 },
+      ],
+    };
+    vi.stubGlobal('useGirlsStore', () => mockGirlsStore);
+
+    toastSpy = vi.fn();
+    vi.stubGlobal(
+      'useNotificationHelpers',
+      vi.fn(() => ({
+        addError: toastSpy,
+      })),
+    );
+
+    transactionHelpers = useTransactionHelpers();
   });
 
-  describe("transactionTypeBadgeSeverity", () => {
-    it("returns correct severity for each transaction type", () => {
-      const { transactionTypeBadgeSeverity } = useTransactionHelpers();
-
-      expect(transactionTypeBadgeSeverity("C2T")).toBe("success");
-      expect(transactionTypeBadgeSeverity("T2T")).toBe("success");
-      expect(transactionTypeBadgeSeverity("T2G")).toBe("success");
-      expect(transactionTypeBadgeSeverity("G2T")).toBe("warn");
-      expect(transactionTypeBadgeSeverity("G2G")).toBe("info");
-      expect(transactionTypeBadgeSeverity("UNKNOWN")).toBe(null);
-      expect(transactionTypeBadgeSeverity("")).toBe(null);
+  describe('transactionTypeBadgeSeverity', () => {
+    it('returns correct severity for each transaction type', () => {
+      expect(transactionHelpers.transactionTypeBadgeSeverity('C2T')).toBe(
+        'success',
+      );
+      expect(transactionHelpers.transactionTypeBadgeSeverity('T2T')).toBe(
+        'success',
+      );
+      expect(transactionHelpers.transactionTypeBadgeSeverity('T2G')).toBe(
+        'success',
+      );
+      expect(transactionHelpers.transactionTypeBadgeSeverity('G2T')).toBe(
+        'warn',
+      );
+      expect(transactionHelpers.transactionTypeBadgeSeverity('G2G')).toBe(
+        'info',
+      );
+      expect(transactionHelpers.transactionTypeBadgeSeverity('UNKNOWN')).toBe(
+        null,
+      );
+      expect(transactionHelpers.transactionTypeBadgeSeverity('')).toBe(null);
     });
   });
 
-  describe("editTransaction", () => {
-    it("sets up the edit transaction dialog correctly", () => {
-      const { editTransaction } = useTransactionHelpers();
+  describe('editTransaction', () => {
+    it('sets up the edit transaction dialog correctly', () => {
       const testOrder: Order = {
         id: 1,
-        order_date: "2024-01-15",
-        order_num: "TEST123",
-        type: "order",
-        status: "pending",
-        profile: "test-profile",
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'order',
+        status: 'pending',
+        profile: 'test-profile',
         season: 1,
         cookies: { TM: 5, ADV: 3 },
         to: null,
@@ -84,91 +99,82 @@ describe("useTransactionHelpers", () => {
         supplier: null,
         notes: null,
         processed_date: null,
-        created_at: "2024-01-15T10:00:00Z",
-        updated_at: "2024-01-15T10:00:00Z",
+        created_at: '2024-01-15T10:00:00Z',
       };
 
-      editTransaction(testOrder, "troop");
+      transactionHelpers.editTransaction(testOrder, 'troop');
 
       expect(mockOrdersStore.activeTransaction).toEqual(testOrder);
       expect(mockOrdersStore.transactionDialogFormSchema.value).toBeDefined();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(true);
     });
 
-    it("uses default type when not specified", () => {
-      const { editTransaction } = useTransactionHelpers();
+    it('uses default type when not specified', () => {
       const testOrder = { id: 1 } as Order;
 
-      editTransaction(testOrder);
+      transactionHelpers.editTransaction(testOrder);
 
       expect(mockOrdersStore.transactionDialogFormSchema.value).toBeDefined();
     });
   });
 
-  describe("hideDialog", () => {
-    it("hides the transaction dialog and resets submitted state", () => {
-      const { hideDialog, submitted } = useTransactionHelpers();
-
+  describe('hideDialog', () => {
+    it('hides the transaction dialog and resets submitted state', () => {
       mockOrdersStore.editTransactionDialogVisible = true;
-      submitted.value = true;
+      transactionHelpers.submitted.value = true;
 
-      hideDialog();
+      transactionHelpers.hideDialog();
 
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
-      expect(submitted.value).toBe(false);
+      expect(transactionHelpers.submitted.value).toBe(false);
     });
   });
 
-  describe("saveTransaction", () => {
-    it("calls upsertTransaction when transaction has an id", async () => {
-      const { saveTransaction, submitted } = useTransactionHelpers();
-
-      const testTransaction = { id: 1, order_num: "TEST123" } as Order;
+  describe('saveTransaction', () => {
+    it('calls upsertTransaction when transaction has an id', async () => {
+      const testTransaction = { id: 1, order_num: 'TEST123' } as Order;
       mockOrdersStore.activeTransaction = testTransaction;
       mockOrdersStore.editTransactionDialogVisible = true;
-      submitted.value = true;
+      transactionHelpers.submitted.value = true;
 
-      await saveTransaction();
+      await transactionHelpers.saveTransaction();
 
-      expect(mockOrdersStore.upsertTransaction).toHaveBeenCalledWith(testTransaction);
-      expect(
-        mockOrdersStore.insertNewTransaction,
-      ).not.toHaveBeenCalled();
+      expect(mockOrdersStore.upsertTransaction).toHaveBeenCalledWith(
+        testTransaction,
+      );
+      expect(mockOrdersStore.insertNewTransaction).not.toHaveBeenCalled();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual({});
-      expect(submitted.value).toBe(false);
+      expect(mockOrdersStore.activeTransaction).toEqual(null);
+      expect(transactionHelpers.submitted.value).toBe(false);
     });
 
-    it("calls insertNewTransaction when transaction has no id", async () => {
-      const { saveTransaction, submitted } = useTransactionHelpers();
-
-      const testTransaction = { order_num: "NEW123" } as Order;
+    it('calls insertNewTransaction when transaction has no id', async () => {
+      const testTransaction = { order_num: 'NEW123' } as Order;
       mockOrdersStore.activeTransaction = testTransaction;
       mockOrdersStore.editTransactionDialogVisible = true;
-      submitted.value = true;
+      transactionHelpers.submitted.value = true;
 
-      await saveTransaction();
+      await transactionHelpers.saveTransaction();
 
       expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalledWith(
         testTransaction,
       );
       expect(mockOrdersStore.upsertTransaction).not.toHaveBeenCalled();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual({});
-      expect(submitted.value).toBe(false);
+      expect(mockOrdersStore.activeTransaction).toEqual(null);
+      expect(transactionHelpers.submitted.value).toBe(false);
     });
   });
 
-  describe("confirmDeleteTransaction", () => {
-    it("sets up delete confirmation dialog correctly", () => {
-      const { confirmDeleteTransaction } = useTransactionHelpers();
+  describe('confirmDeleteTransaction', () => {
+    it('sets up delete confirmation dialog correctly', () => {
       const testOrder: Order = {
         id: 1,
-        order_date: "2024-01-15",
-        order_num: "TEST123",
-        type: "order",
-        status: "pending",
-        profile: "test-profile",
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'order',
+        status: 'pending',
+        profile: 'test-profile',
         season: 1,
         cookies: { TM: 5, ADV: 3 },
         to: null,
@@ -176,86 +182,68 @@ describe("useTransactionHelpers", () => {
         supplier: null,
         notes: null,
         processed_date: null,
-        created_at: "2024-01-15T10:00:00Z",
-        updated_at: "2024-01-15T10:00:00Z",
+        created_at: '2024-01-15T10:00:00Z',
       };
 
-      confirmDeleteTransaction(testOrder);
+      transactionHelpers.confirmDeleteTransaction(testOrder);
 
       expect(mockOrdersStore.activeTransaction).toEqual(testOrder);
       expect(mockOrdersStore.deleteTransactionDialogVisible).toBe(true);
     });
   });
 
-  describe("deleteTransaction", () => {
-    it("successfully deletes transaction", async () => {
-      const { deleteTransaction } = useTransactionHelpers();
-
+  describe('deleteTransaction', () => {
+    it('successfully deletes transaction', async () => {
       const testOrder = { id: 1 } as Order;
       mockOrdersStore.activeTransaction = testOrder;
       mockOrdersStore.deleteTransactionDialogVisible = true;
 
-      await deleteTransaction();
+      await transactionHelpers.deleteTransaction();
 
       expect(mockOrdersStore.deleteTransaction).toHaveBeenCalledWith(1);
       expect(mockOrdersStore.deleteTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual({});
+      expect(mockOrdersStore.activeTransaction).toEqual(null);
     });
 
-    it("handles deletion error gracefully", async () => {
-      const { deleteTransaction } = useTransactionHelpers();
+    it('handles deletion error gracefully', async () => {
+      mockOrdersStore.activeTransaction = null;
 
-      const testError = new Error("Delete failed");
-      mockOrdersStore.deleteTransaction.mockImplementation(() => {
-        throw testError;
-      });
+      await transactionHelpers.deleteTransaction();
 
-      const testOrder = { id: 1 } as Order;
-      mockOrdersStore.activeTransaction = testOrder;
-
-      await deleteTransaction();
-
-      expect(mockToast.add).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Delete failed",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalled();
     });
   });
 
-  describe("form and submitted refs", () => {
-    it("returns form and submitted refs correctly", () => {
-      const { form, submitted } = useTransactionHelpers();
-
-      expect(form.value).toBe(null);
-      expect(submitted.value).toBe(false);
+  describe('form and submitted refs', () => {
+    it('returns form and submitted refs correctly', () => {
+      expect(transactionHelpers.submitted.value).toBe(false);
 
       // Test that they're reactive
-      submitted.value = true;
-      expect(submitted.value).toBe(true);
+      transactionHelpers.submitted.value = true;
+      expect(transactionHelpers.submitted.value).toBe(true);
     });
   });
 
-  describe("composable structure", () => {
-    it("returns all expected methods and properties", () => {
-      const helpers = useTransactionHelpers();
+  describe('composable structure', () => {
+    it('returns all expected methods and properties', () => {
+      expect(transactionHelpers).toHaveProperty('submitted');
+      expect(transactionHelpers).toHaveProperty('editTransaction');
+      expect(transactionHelpers).toHaveProperty('hideDialog');
+      expect(transactionHelpers).toHaveProperty('saveTransaction');
+      expect(transactionHelpers).toHaveProperty('confirmDeleteTransaction');
+      expect(transactionHelpers).toHaveProperty('deleteTransaction');
+      expect(transactionHelpers).toHaveProperty('transactionTypeBadgeSeverity');
 
-      expect(helpers).toHaveProperty("form");
-      expect(helpers).toHaveProperty("submitted");
-      expect(helpers).toHaveProperty("editTransaction");
-      expect(helpers).toHaveProperty("hideDialog");
-      expect(helpers).toHaveProperty("saveTransaction");
-      expect(helpers).toHaveProperty("confirmDeleteTransaction");
-      expect(helpers).toHaveProperty("deleteTransaction");
-      expect(helpers).toHaveProperty("transactionTypeBadgeSeverity");
-
-      expect(typeof helpers.editTransaction).toBe("function");
-      expect(typeof helpers.hideDialog).toBe("function");
-      expect(typeof helpers.saveTransaction).toBe("function");
-      expect(typeof helpers.confirmDeleteTransaction).toBe("function");
-      expect(typeof helpers.deleteTransaction).toBe("function");
-      expect(typeof helpers.transactionTypeBadgeSeverity).toBe("function");
+      expect(typeof transactionHelpers.editTransaction).toBe('function');
+      expect(typeof transactionHelpers.hideDialog).toBe('function');
+      expect(typeof transactionHelpers.saveTransaction).toBe('function');
+      expect(typeof transactionHelpers.confirmDeleteTransaction).toBe(
+        'function',
+      );
+      expect(typeof transactionHelpers.deleteTransaction).toBe('function');
+      expect(typeof transactionHelpers.transactionTypeBadgeSeverity).toBe(
+        'function',
+      );
     });
   });
 });

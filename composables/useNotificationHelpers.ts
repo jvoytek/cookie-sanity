@@ -3,8 +3,8 @@ export const useNotificationHelpers = () => {
 
   const addError = (error: Error) => {
     toast.add({
-      severity: "error",
-      summary: "Error",
+      severity: 'error',
+      summary: 'Error',
       detail: error.message,
       life: 3000,
     });
@@ -12,8 +12,8 @@ export const useNotificationHelpers = () => {
 
   const addSuccess = (message: string) => {
     toast.add({
-      severity: "success",
-      summary: "Successful",
+      severity: 'success',
+      summary: 'Successful',
       detail: message,
       life: 3000,
     });

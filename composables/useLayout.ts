@@ -1,11 +1,11 @@
-import { computed, reactive } from "vue";
+import { computed, reactive } from 'vue';
 
 type LayoutConfig = {
   preset: string;
   primary: string;
   surface: string | null;
   darkTheme: boolean;
-  menuMode: "static" | "overlay";
+  menuMode: 'static' | 'overlay';
 };
 
 type LayoutState = {
@@ -19,19 +19,19 @@ type LayoutState = {
 };
 
 const getInitialDarkMode = (): boolean => {
-  if (typeof window !== "undefined") {
-    const stored = localStorage.getItem("darkMode");
-    return stored === "true";
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('darkMode');
+    return stored === 'true';
   }
   return false;
 };
 
 const layoutConfig = reactive<LayoutConfig>({
-  preset: "Aura",
-  primary: "emerald",
+  preset: 'Aura',
+  primary: 'emerald',
   surface: null,
   darkTheme: getInitialDarkMode(),
-  menuMode: "static",
+  menuMode: 'static',
 });
 
 const layoutState = reactive<LayoutState>({
@@ -47,13 +47,13 @@ const layoutState = reactive<LayoutState>({
 export function useLayout() {
   // Initialize dark mode state on the document element
   const initializeDarkMode = (): void => {
-    if (typeof window !== "undefined" && layoutConfig.darkTheme) {
-      document.documentElement.classList.add("app-dark");
+    if (typeof window !== 'undefined' && layoutConfig.darkTheme) {
+      document.documentElement.classList.add('app-dark');
     }
   };
 
   const setActiveMenuItem = (item: string | { value: string }): void => {
-    layoutState.activeMenuItem = typeof item === "string" ? item : item.value;
+    layoutState.activeMenuItem = typeof item === 'string' ? item : item.value;
   };
 
   const toggleDarkMode = (): void => {
@@ -67,16 +67,16 @@ export function useLayout() {
 
   const executeDarkModeToggle = (): void => {
     layoutConfig.darkTheme = !layoutConfig.darkTheme;
-    document.documentElement.classList.toggle("app-dark");
+    document.documentElement.classList.toggle('app-dark');
 
     // Persist to localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("darkMode", layoutConfig.darkTheme.toString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('darkMode', layoutConfig.darkTheme.toString());
     }
   };
 
   const toggleMenu = (): void => {
-    if (layoutConfig.menuMode === "overlay") {
+    if (layoutConfig.menuMode === 'overlay') {
       layoutState.overlayMenuActive = !layoutState.overlayMenuActive;
     }
 

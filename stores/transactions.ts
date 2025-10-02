@@ -303,8 +303,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const insertNewTransaction = async (transaction: NewOrder) => {
-    if (!profileStore.currentProfile) return;
+  const insertNewTransaction = async (transaction: NewOrder | null) => {
+    if (!profileStore.currentProfile || !transaction) return;
 
     transaction.profile = profileStore.currentProfile.id;
     transaction.season =
@@ -367,7 +367,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const deleteTransaction = async (transaction: Order | number) => {
+  const deleteTransaction = async (transaction: Order | number | undefined) => {
+    if (!transaction) {
+      notificationHelpers.addError(
+        new Error('Transaction ID is required to delete a transaction.'),
+      );
+      return;
+    }
+
     const transactionId: number =
       typeof transaction === 'number' ? transaction : transaction.id;
 
