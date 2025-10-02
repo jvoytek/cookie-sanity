@@ -163,7 +163,10 @@ export const useGirlsStore = defineStore('girls', () => {
     return 'No girl found';
   };
 
-  const getGirlNamesByIdList = (idList: number[]) => {
+  const getGirlNamesByIdList = (idList: number[] | null | undefined) => {
+    if (!idList || !Array.isArray(idList)) {
+      return '';
+    }
     return idList.map((id) => getGirlNameById(id)).join(', ');
   };
 
