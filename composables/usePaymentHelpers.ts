@@ -1,54 +1,55 @@
+import type { Payment } from '@/types/types';
+
 export const usePaymentHelpers = () => {
   const accountsStore = useAccountsStore();
   const girlsStore = useGirlsStore();
-  const toast = useToast();
   const submitted = ref(false);
-  const form = ref<FormInstance | null>(null);
+  const notificationHelpers = useNotificationHelpers();
 
   const getPaymentDialogFormSchema = () => {
     const baseSchema = [
       {
-        $formkit: "primeSelect",
-        name: "seller_id",
-        label: "From",
-        id: "seller-id",
-        key: "seller_id",
-        placeholder: "Choose a scout",
+        $formkit: 'primeSelect',
+        name: 'seller_id',
+        label: 'From',
+        id: 'seller-id',
+        key: 'seller_id',
+        placeholder: 'Choose a scout',
         options: girlsStore.girlOptions,
-        validation: "required",
-        class: "w-full",
-        "option-label": "label",
-        "option-value": "value",
+        validation: 'required',
+        class: 'w-full',
+        'option-label': 'label',
+        'option-value': 'value',
       },
       {
-        $formkit: "primeInputNumber",
-        name: "amount",
-        label: "Amount",
-        key: "amount",
-        placeholder: "Enter amount",
-        validation: "required|number|min:0.01",
-        class: "w-full",
+        $formkit: 'primeInputNumber',
+        name: 'amount',
+        label: 'Amount',
+        key: 'amount',
+        placeholder: 'Enter amount',
+        validation: 'required|number|min:0.01',
+        class: 'w-full',
         minFractionDigits: 2,
         maxFractionDigits: 2,
       },
       {
-        $formkit: "primeDatePicker",
-        name: "payment_date",
-        label: "Date",
-        key: "payment_date",
-        placeholder: "Select date",
-        validation: "required|date",
-        class: "w-full",
-        type: "date",
-        "date-format": "yy-mm-dd",
-        "show-icon": true,
+        $formkit: 'primeDatePicker',
+        name: 'payment_date',
+        label: 'Date',
+        key: 'payment_date',
+        placeholder: 'Select date',
+        validation: 'required|date',
+        class: 'w-full',
+        type: 'date',
+        'date-format': 'yy-mm-dd',
+        'show-icon': true,
       },
       {
-        $formkit: "primeTextarea",
-        name: "notes",
-        label: "Notes (optional)",
-        placeholder: "Notes about this payment",
-        class: "w-full",
+        $formkit: 'primeTextarea',
+        name: 'notes',
+        label: 'Notes (optional)',
+        placeholder: 'Notes about this payment',
+        class: 'w-full',
         rows: 2,
       },
     ];
@@ -56,11 +57,11 @@ export const usePaymentHelpers = () => {
     return baseSchema;
   };
 
-  function editPayment(payment: Payment) {
-    accountsStore.activePayment = { ...payment };
+  const editPayment = (payment: Payment | null) => {
+    accountsStore.activePayment = payment;
     accountsStore.paymentDialogFormSchema.value = getPaymentDialogFormSchema();
     accountsStore.editPaymentDialogVisible = true;
-  }
+  };
 
   function hideDialog() {
     accountsStore.editPaymentDialogVisible = false;
@@ -68,13 +69,13 @@ export const usePaymentHelpers = () => {
   }
 
   async function savePayment() {
-    if (accountsStore.activePayment.id) {
+    if (accountsStore.activePayment?.id) {
       accountsStore.upsertPayment(accountsStore.activePayment);
-    } else {
+    } else if (accountsStore.activePayment) {
       accountsStore.insertNewPayment(accountsStore.activePayment);
     }
     accountsStore.editPaymentDialogVisible = false;
-    accountsStore.activePayment = {};
+    accountsStore.activePayment = null;
     submitted.value = false;
   }
 
@@ -85,21 +86,17 @@ export const usePaymentHelpers = () => {
 
   async function deletePayment() {
     try {
-      accountsStore.deletePayment(accountsStore.activePayment);
+      if (!accountsStore.activePayment)
+        throw new Error('No active payment to delete');
+      await accountsStore.deletePayment(accountsStore.activePayment);
       accountsStore.deletePaymentDialogVisible = false;
-      accountsStore.activePayment = {};
+      accountsStore.activePayment = null;
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: error.message,
-        life: 3000,
-      });
+      notificationHelpers.addError(error as Error);
     }
   }
 
   return {
-    form,
     submitted,
     editPayment,
     hideDialog,

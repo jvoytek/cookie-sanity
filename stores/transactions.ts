@@ -1,0 +1,474 @@
+import type { Database, Json } from '@/types/supabase';
+import type { Order, SCOrder2025, NewOrder } from '@/types/types';
+
+/*
+ref()s become state properties
+computed()s become getters
+function()s become actions
+*/
+
+export const useTransactionsStore = defineStore('transactions', () => {
+  const supabaseClient = useSupabaseClient<Database>();
+  const profileStore = useProfileStore();
+  const seasonsStore = useSeasonsStore();
+  const girlsStore = useGirlsStore();
+  const cookiesStore = useCookiesStore();
+  const notificationHelpers = useNotificationHelpers();
+
+  /* State */
+  const allTransactions = ref<Order[]>([]);
+  const transactionDialogFormSchema = reactive([]);
+
+  const activeTransaction = ref<Order | null>(null);
+  const editTransactionDialogVisible = ref(false);
+  const deleteTransactionDialogVisible = ref(false);
+
+  const transactionTypeOptions = [
+    { value: 'T2G', label: 'Troop to Girl' },
+    { value: 'G2G', label: 'Girl to Girl' },
+    { value: 'G2T', label: 'Girl to Troop' },
+    { value: 'T2T', label: 'Troop to Troop' },
+    { value: 'C2T', label: 'Council to Troop' },
+  ];
+
+  /* Computed */
+
+  const totalTransactionsByStatusAllCookies = computed(() => {
+    return (status: string, transactionType: string) => {
+      const total: Record<string, number> = cookiesStore.allCookies
+        .map((cookie) => cookie.abbreviation)
+        .reduce(
+          (acc, abbreviation) => {
+            acc[abbreviation] = 0;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
+      allTransactions.value.forEach((transaction) => {
+        if (transaction.cookies === null || transaction.type === null) return;
+        if (
+          transaction.status === status &&
+          (transactionType === 'all' ||
+            (transactionType === 'girl' &&
+              _isGirlTransactionType(transaction.type)) ||
+            (transactionType === 'troop' &&
+              _isTroopTransactionType(transaction.type)))
+        ) {
+          cookiesStore.allCookies.forEach((cookie) => {
+            if (!transaction.cookies) return;
+            total[cookie.abbreviation] =
+              (total[cookie.abbreviation] || 0) +
+              (transaction.cookies[cookie.abbreviation] || 0);
+          });
+        }
+      });
+      return total;
+    };
+  });
+
+  const sumTransactionsByCookie = computed(
+    () =>
+      (cookieAbbreviation: string): number =>
+        allTransactions.value.reduce((sum, transaction) => {
+          if (transaction.cookies && transaction.status === 'complete') {
+            const quantity = transaction.cookies[cookieAbbreviation] || 0;
+            return sum + (typeof quantity === 'number' ? quantity : 0);
+          }
+          return sum;
+        }, 0),
+  );
+
+  const completedGirlTransactionList = computed(() => {
+    return _getTransactionListByStatusAndType('complete', 'girl');
+  });
+
+  const completedGirlTransactionListCount = computed(() => {
+    return completedGirlTransactionList.value.length;
+  });
+
+  const pendingGirlTransactionList = computed(() => {
+    return _getTransactionListByStatusAndType('pending', 'girl');
+  });
+
+  const pendingGirlTransactionListCount = computed(() => {
+    return pendingGirlTransactionList.value.length;
+  });
+
+  const requestedGirlTransactionrList = computed(() => {
+    return _getTransactionListByStatusAndType('requested', 'girl');
+  });
+
+  const requestedGirlTransactionrListCount = computed(() => {
+    return requestedGirlTransactionrList.value.length;
+  });
+
+  const rejectedGirlTransactionList = computed(() => {
+    return _getTransactionListByStatusAndType('rejected', 'girl');
+  });
+
+  const rejectedGirlTransactionListCount = computed(() => {
+    return rejectedGirlTransactionList.value.length;
+  });
+
+  const pendingTroopTransactionList = computed(() => {
+    return _getTransactionListByStatusAndType('pending', 'troop');
+  });
+
+  const pendingTroopTransactionListCount = computed(() => {
+    return pendingTroopTransactionList.value.length;
+  });
+
+  const completedTroopTransactionList = computed(() => {
+    return _getTransactionListByStatusAndType('complete', 'troop');
+  });
+
+  const completedTroopTransactionListCount = computed(() => {
+    return completedTroopTransactionList.value.length;
+  });
+
+  /* Private Functions */
+
+  const _getTransactionListByStatusAndType = (
+    status: string,
+    type: 'girl' | 'troop',
+  ): Order[] => {
+    const isTransactionType =
+      type == 'girl' ? _isGirlTransactionType : _isTroopTransactionType;
+    return allTransactions.value.filter(
+      (transaction) =>
+        transaction.status === status && isTransactionType(transaction.type),
+    );
+  };
+
+  const _isGirlTransactionType = (type: string | null): boolean => {
+    if (!type) return false;
+    return (
+      ['T2G', 'G2G', 'G2T'].includes(type.slice(0, 3)) ||
+      type.slice(0, 12) === 'COOKIE_SHARE'
+    );
+  };
+
+  const _isTroopTransactionType = (type: string | null): boolean => {
+    if (!type) return false;
+    return ['T2T', 'C2T'].includes(type.slice(0, 3));
+  };
+
+  const _updateTransaction = (transaction: Order) => {
+    const index = allTransactions.value.findIndex(
+      (o) => o.id === transaction.id,
+    );
+    if (index !== -1) {
+      allTransactions.value[index] = transaction as Order;
+    }
+  };
+
+  const _sortTransactions = () => {
+    allTransactions.value.sort((a: Order, b: Order) => {
+      const aDate = a.order_date ? new Date(a.order_date).getTime() : 0;
+      const bDate = b.order_date ? new Date(b.order_date).getTime() : 0;
+      return aDate - bDate;
+    });
+  };
+
+  const _addTransaction = (transaction: Order) => {
+    allTransactions.value.unshift(transaction);
+  };
+
+  const _removeTransaction = (transaction: Order | number) => {
+    const transactionId: number =
+      typeof transaction === 'number' ? transaction : transaction.id;
+
+    if (!transactionId) {
+      notificationHelpers.addError({
+        message: 'Transaction ID is required to delete a transaction.',
+      } as Error);
+      return;
+    }
+
+    const index = allTransactions.value.findIndex(
+      (o) => o.id === transactionId,
+    );
+    if (index !== -1) {
+      allTransactions.value.splice(index, 1);
+    }
+  };
+
+  const _getGirlId = (name: string) => {
+    try {
+      const [first_name, last_name] = name.split(' ');
+      const matchingGirl = girlsStore.allGirls?.find(
+        (girl) =>
+          girl.first_name === first_name && girl.last_name === last_name,
+      );
+      return matchingGirl?.id ?? null;
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const _returnDateStringOrNull = (date: Date | string | null | undefined) => {
+    if (!date || typeof date === 'string') {
+      return date;
+    } else {
+      return date.toISOString().slice(0, 10);
+    }
+  };
+
+  const _invertCookieQuantities = (cookies: Json | null | undefined) => {
+    if (!cookies) return cookies;
+    return Object.fromEntries(
+      Object.entries(cookies).map(([key, value]) => [
+        key,
+        typeof value === 'number' ? (value === 0 ? null : value * -1) : value,
+      ]),
+    );
+  };
+
+  const _invertCookieQuantitiesInTransaction = (transaction: Order) => {
+    const invertedCookies = _invertCookieQuantities(transaction.cookies);
+    transaction.cookies = invertedCookies
+      ? invertedCookies
+      : transaction.cookies;
+    return transaction;
+  };
+
+  const _supabaseFetchTransactions = async () => {
+    if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
+      return { data: null, error: new Error('Profile or Season not set') };
+    return await supabaseClient
+      .from('orders')
+      .select(`*`)
+      .eq('profile', profileStore.currentProfile.id)
+      .eq('season', seasonsStore.currentSeason.id)
+      .neq('type', 'DIRECT_SHIP')
+      .order('order_date', { ascending: false });
+  };
+
+  const _supabaseInsertTransaction = async (transaction: NewOrder) => {
+    return await supabaseClient
+      .from('orders')
+      .insert(transaction)
+      .select()
+      .single();
+  };
+
+  const _supabaseUpsertTransaction = async (transaction: Order) => {
+    return await supabaseClient
+      .from('orders')
+      .upsert(transaction)
+      .select()
+      .single();
+  };
+
+  const _supabaseDeleteTransaction = async (transactionId: number) => {
+    return await supabaseClient.from('orders').delete().eq('id', transactionId);
+  };
+
+  const _supabaseUpdateTransactionStatus = async (
+    transactionId: number,
+    status: string,
+  ) => {
+    return await supabaseClient
+      .from('orders')
+      .update({ status: status })
+      .eq('id', transactionId)
+      .select()
+      .single();
+  };
+
+  /* Actions */
+
+  const friendlyTransactionTypes = (type: string): string => {
+    const transactionTypeMap: Record<string, string> = {
+      T2G: 'Troop to Girl',
+      G2G: 'Girl to Girl',
+      G2T: 'Girl to Troop',
+      T2T: 'Troop to Troop',
+      C2T: 'Council to Troop',
+      COOKIE_SHARE: 'Cookie Share',
+    };
+    return transactionTypeMap[type] || type;
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
+        return;
+      const { data, error } = await _supabaseFetchTransactions();
+      if (error) throw error;
+      allTransactions.value =
+        data.map(_invertCookieQuantitiesInTransaction) ?? [];
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const insertNewTransaction = async (transaction: NewOrder | null) => {
+    if (!profileStore.currentProfile || !transaction) return;
+
+    transaction.profile = profileStore.currentProfile.id;
+    transaction.season =
+      profileStore.currentProfile.season || seasonsStore.allSeasons[0].id;
+    transaction.order_date = _returnDateStringOrNull(transaction.order_date);
+    transaction.cookies = _invertCookieQuantities(transaction.cookies);
+
+    try {
+      const { data, error } = await _supabaseInsertTransaction(transaction);
+
+      if (error) throw error;
+      const invertedCookies = _invertCookieQuantities(data.cookies);
+      data.cookies = invertedCookies ? invertedCookies : data.cookies;
+      _addTransaction(data);
+      _sortTransactions();
+      notificationHelpers.addSuccess('Transaction Created');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const insertNewTransactionFromUploads = async (
+    transactionsList: NewOrder[],
+  ) => {
+    // Ensure all transactions have a valid season number (not null)
+    const validTransactionsList = transactionsList.map((tx) => ({
+      ...tx,
+      season:
+        typeof tx.season === 'number'
+          ? tx.season
+          : profileStore.currentProfile?.season ||
+            seasonsStore.allSeasons[0].id,
+    }));
+    const { error } = await supabaseClient
+      .from('orders')
+      .insert(validTransactionsList)
+      .select();
+    if (error) throw error;
+  };
+
+  const upsertTransaction = async (transaction: Order) => {
+    const invertedCookies = _invertCookieQuantities(transaction.cookies);
+    transaction.cookies = invertedCookies
+      ? invertedCookies
+      : transaction.cookies;
+
+    try {
+      console.log(transaction);
+      const { data, error } = await _supabaseUpsertTransaction(transaction);
+
+      if (error) throw error;
+      const reinvertedCookies = _invertCookieQuantities(data.cookies);
+      data.cookies = reinvertedCookies ? reinvertedCookies : data.cookies;
+
+      _updateTransaction(data);
+      _sortTransactions();
+      notificationHelpers.addSuccess('Transaction Updated');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const deleteTransaction = async (transaction: Order | number | undefined) => {
+    if (!transaction) {
+      notificationHelpers.addError(
+        new Error('Transaction ID is required to delete a transaction.'),
+      );
+      return;
+    }
+
+    const transactionId: number =
+      typeof transaction === 'number' ? transaction : transaction.id;
+
+    if (!transactionId) {
+      notificationHelpers.addError(
+        new Error('Transaction ID is required to delete a transaction.'),
+      );
+      return;
+    }
+
+    try {
+      const { error } = await _supabaseDeleteTransaction(transactionId);
+
+      if (error) throw error;
+
+      _removeTransaction(transactionId);
+      notificationHelpers.addSuccess('Transaction Deleted');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const convertSCOrderToNewTransaction = (obj: SCOrder2025) => {
+    if (
+      !profileStore.currentProfile?.id ||
+      !profileStore.currentProfile?.season
+    )
+      return;
+    const toGirlId = _getGirlId(obj.TO);
+    const fromGirlId = _getGirlId(obj.FROM);
+    //const type =
+    return {
+      profile: profileStore.currentProfile?.id,
+      order_date: _returnDateStringOrNull(obj.DATE),
+      order_num: obj['ORDER #'].toString(),
+      to: toGirlId || null,
+      from: fromGirlId || null,
+      cookies: obj,
+      season: profileStore.currentProfile.season || undefined,
+      type: obj.TYPE,
+      status: 'complete',
+    };
+  };
+
+  const updateTransactionStatus = async (
+    transactionId: number,
+    status: string,
+  ) => {
+    try {
+      const { data, error } = await _supabaseUpdateTransactionStatus(
+        transactionId,
+        status,
+      );
+      if (error) throw error;
+      const invertedCookies = _invertCookieQuantities(data.cookies);
+      data.cookies = invertedCookies ? invertedCookies : data.cookies;
+      _updateTransaction(data);
+      _sortTransactions();
+      notificationHelpers.addSuccess(
+        `Transaction Marked ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  return {
+    allTransactions,
+    sumTransactionsByCookie,
+    activeTransaction,
+    transactionDialogFormSchema,
+    editTransactionDialogVisible,
+    deleteTransactionDialogVisible,
+    completedGirlTransactionList,
+    completedGirlTransactionListCount,
+    pendingGirlTransactionList,
+    pendingGirlTransactionListCount,
+    requestedGirlTransactionrList,
+    requestedGirlTransactionrListCount,
+    rejectedGirlTransactionList,
+    rejectedGirlTransactionListCount,
+    pendingTroopTransactionList,
+    pendingTroopTransactionListCount,
+    completedTroopTransactionList,
+    completedTroopTransactionListCount,
+    totalTransactionsByStatusAllCookies,
+    fetchTransactions,
+    insertNewTransactionFromUploads,
+    insertNewTransaction,
+    upsertTransaction,
+    deleteTransaction,
+    convertSCOrderToNewTransaction,
+    updateTransactionStatus,
+    friendlyTransactionTypes,
+    transactionTypeOptions,
+  };
+});

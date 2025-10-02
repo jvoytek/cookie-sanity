@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { createPinia, setActivePinia } from 'pinia';
+import type { Girl } from '@/types/types';
 
 // Import the store after setting up global mocks in setup.ts
-import { useGirlsStore } from "@/stores/girls";
+import { useGirlsStore } from '@/stores/girls';
 
-describe("stores/girls", () => {
+describe('stores/girls', () => {
   let girlsStore: ReturnType<typeof useGirlsStore>;
 
   beforeEach(() => {
@@ -12,17 +13,19 @@ describe("stores/girls", () => {
     setActivePinia(createPinia());
 
     // Set up the profileStore and seasonsStore mocks
-    global.useProfileStore = vi.fn(() => ({
+    const useProfileStoreMock = vi.fn(() => ({
       currentProfile: {
-        id: "test-profile-id",
+        id: 'test-profile-id',
       },
     }));
+    vi.stubGlobal('useProfileStore', useProfileStoreMock);
 
-    global.useSeasonsStore = vi.fn(() => ({
+    const useSeasonsStoreMock = vi.fn(() => ({
       currentSeason: {
         id: 1,
       },
     }));
+    vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
 
     girlsStore = useGirlsStore();
   });
@@ -31,8 +34,8 @@ describe("stores/girls", () => {
     vi.clearAllMocks();
   });
 
-  describe("state management", () => {
-    it("initializes with empty arrays", () => {
+  describe('state management', () => {
+    it('initializes with empty arrays', () => {
       setActivePinia(createPinia());
       const freshStore = useGirlsStore();
 
@@ -40,34 +43,34 @@ describe("stores/girls", () => {
     });
   });
 
-  describe("computed properties", () => {
-    it("generates girl options correctly", () => {
+  describe('computed properties', () => {
+    it('generates girl options correctly', () => {
       girlsStore.allGirls = [
         {
           id: 1,
-          first_name: "Alice",
-          last_name: "Smith",
-          profile: "test-profile-id",
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 2,
-          first_name: "Bob",
-          last_name: "Johnson",
-          profile: "test-profile-id",
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
 
       const options = girlsStore.girlOptions;
 
       expect(options).toEqual([
-        { label: "Alice S.", value: 1 },
-        { label: "Bob J.", value: 2 },
+        { label: 'Alice S.', value: 1 },
+        { label: 'Bob J.', value: 2 },
       ]);
     });
 
-    it("returns empty array when no girls", () => {
+    it('returns empty array when no girls', () => {
       girlsStore.allGirls = [];
 
       const options = girlsStore.girlOptions;
@@ -76,26 +79,26 @@ describe("stores/girls", () => {
     });
   });
 
-  describe("fetchGirls", () => {
-    it("successfully fetches girls", async () => {
+  describe('fetchGirls', () => {
+    it('successfully fetches girls', async () => {
       const mockGirls = [
         {
           id: 1,
-          first_name: "Alice",
-          last_name: "Smith",
-          profile: "test-profile-id",
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 2,
-          first_name: "Bob",
-          last_name: "Johnson",
-          profile: "test-profile-id",
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
           season: 1,
         },
       ];
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
@@ -108,6 +111,7 @@ describe("stores/girls", () => {
           })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -118,10 +122,11 @@ describe("stores/girls", () => {
       expect(newGirlsStore.allGirls).toEqual(mockGirls);
     });
 
-    it("returns early if no profile id", async () => {
-      global.useProfileStore = vi.fn(() => ({
+    it('returns early if no profile id', async () => {
+      const useProfileStoreMock = vi.fn(() => ({
         currentProfile: null,
       }));
+      vi.stubGlobal('useProfileStore', useProfileStoreMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -132,10 +137,11 @@ describe("stores/girls", () => {
       expect(newGirlsStore.allGirls).toEqual([]);
     });
 
-    it("returns early if no current season id", async () => {
-      global.useSeasonsStore = vi.fn(() => ({
+    it('returns early if no current season id', async () => {
+      const useSeasonsStoreMock = vi.fn(() => ({
         currentSeason: null,
       }));
+      vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -146,13 +152,14 @@ describe("stores/girls", () => {
       expect(newGirlsStore.allGirls).toEqual([]);
     });
 
-    it("handles fetch error and shows toast", async () => {
+    it('handles fetch error and shows toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addError: toastSpy,
       }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
@@ -160,7 +167,7 @@ describe("stores/girls", () => {
                 order: vi.fn(() =>
                   Promise.resolve({
                     data: null,
-                    error: { message: "Fetch failed" },
+                    error: { message: 'Fetch failed' },
                   }),
                 ),
               })),
@@ -168,6 +175,7 @@ describe("stores/girls", () => {
           })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -176,25 +184,27 @@ describe("stores/girls", () => {
       await newGirlsStore.fetchGirls();
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Fetch failed",
-        life: 3000,
+        message: 'Fetch failed',
       });
     });
   });
 
-  describe("insertGirl", () => {
-    it("successfully inserts girl and shows success toast", async () => {
+  describe('insertGirl', () => {
+    it('successfully inserts girl and shows success toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
-      const mockGirl = { first_name: "Charlie", last_name: "Brown", season: 1 };
-      const mockInsertedGirl = { id: 3, ...mockGirl, profile: "test-user-id" };
+      const mockGirl = {
+        first_name: 'Charlie',
+        last_name: 'Brown',
+        season: 1,
+      } as Girl;
+      const mockInsertedGirl = { ...mockGirl, profile: 'test-user-id' };
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           insert: vi.fn(() => ({
             select: vi.fn(() => ({
@@ -205,8 +215,12 @@ describe("stores/girls", () => {
           })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      const useSupabaseUserMock = vi.fn(() => ({
+        value: { id: 'test-user-id' },
+      }));
+      vi.stubGlobal('useSupabaseUser', useSupabaseUserMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -214,80 +228,83 @@ describe("stores/girls", () => {
 
       await newGirlsStore.insertGirl(mockGirl);
 
-      expect(mockGirl.profile).toBe("test-user-id");
+      expect(mockGirl.profile).toBe('test-user-id');
       expect(newGirlsStore.allGirls).toHaveLength(1);
       expect(newGirlsStore.allGirls[0]).toEqual(mockInsertedGirl);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Girl Created",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith('Girl Created');
     });
 
-    it("handles insert error and shows error toast", async () => {
+    it('handles insert error and shows error toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addError: toastSpy,
       }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           insert: vi.fn(() => ({
             select: vi.fn(() => ({
               single: vi.fn(() =>
                 Promise.resolve({
                   data: null,
-                  error: { message: "Insert failed" },
+                  error: { message: 'Insert failed' },
                 }),
               ),
             })),
           })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      const useSupabaseUserMock = vi.fn(() => ({
+        value: { id: 'test-user-id' },
+      }));
+      vi.stubGlobal('useSupabaseUser', useSupabaseUserMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
       const newGirlsStore = useGirlsStore();
 
-      const mockGirl = { first_name: "Charlie", last_name: "Brown", season: 1 };
+      const mockGirl = {
+        first_name: 'Charlie',
+        last_name: 'Brown',
+        season: 1,
+      } as Girl;
       await newGirlsStore.insertGirl(mockGirl);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Insert failed",
-        life: 3000,
+        message: 'Insert failed',
       });
     });
   });
 
-  describe("upsertGirl", () => {
+  describe('upsertGirl', () => {
     beforeEach(() => {
       girlsStore.allGirls = [
         {
           id: 1,
-          first_name: "Alice",
-          last_name: "Smith",
-          profile: "test-profile-id",
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
     });
 
-    it("successfully upserts girl and shows success toast", async () => {
+    it('successfully upserts girl and shows success toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           upsert: vi.fn(() => Promise.resolve({ error: null })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -295,44 +312,42 @@ describe("stores/girls", () => {
       newGirlsStore.allGirls = [
         {
           id: 1,
-          first_name: "Alice",
-          last_name: "Smith",
-          profile: "test-profile-id",
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
 
       const updatedGirl = {
         id: 1,
-        first_name: "Alice Updated",
-        last_name: "Smith",
-        profile: "test-profile-id",
+        first_name: 'Alice Updated',
+        last_name: 'Smith',
+        profile: 'test-profile-id',
         season: 1,
-      };
+      } as Girl;
+
       await newGirlsStore.upsertGirl(updatedGirl);
 
-      expect(newGirlsStore.allGirls[0].first_name).toBe("Alice Updated");
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Girl Updated",
-        life: 3000,
-      });
+      expect(newGirlsStore.allGirls[0].first_name).toBe('Alice Updated');
+      expect(toastSpy).toHaveBeenCalledWith('Girl Updated');
     });
 
-    it("handles upsert error and shows error toast", async () => {
+    it('handles upsert error and shows error toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addError: toastSpy,
       }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           upsert: vi.fn(() =>
-            Promise.resolve({ error: { message: "Upsert failed" } }),
+            Promise.resolve({ error: { message: 'Upsert failed' } }),
           ),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -340,55 +355,54 @@ describe("stores/girls", () => {
 
       const updatedGirl = {
         id: 1,
-        first_name: "Alice Updated",
-        last_name: "Smith",
-        profile: "test-profile-id",
+        first_name: 'Alice Updated',
+        last_name: 'Smith',
+        profile: 'test-profile-id',
         season: 1,
-      };
+      } as Girl;
       await newGirlsStore.upsertGirl(updatedGirl);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Upsert failed",
-        life: 3000,
+        message: 'Upsert failed',
       });
     });
   });
 
-  describe("deleteGirl", () => {
+  describe('deleteGirl', () => {
     beforeEach(() => {
       girlsStore.allGirls = [
         {
           id: 1,
-          first_name: "Alice",
-          last_name: "Smith",
-          profile: "test-profile-id",
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 2,
-          first_name: "Bob",
-          last_name: "Johnson",
-          profile: "test-profile-id",
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
     });
 
-    it("successfully deletes girl and shows success toast", async () => {
+    it('successfully deletes girl and shows success toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addSuccess: toastSpy,
       }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           delete: vi.fn(() => ({
             eq: vi.fn(() => Promise.resolve({ error: null })),
           })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -396,54 +410,51 @@ describe("stores/girls", () => {
       newGirlsStore.allGirls = [
         {
           id: 1,
-          first_name: "Alice",
-          last_name: "Smith",
-          profile: "test-profile-id",
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 2,
-          first_name: "Bob",
-          last_name: "Johnson",
-          profile: "test-profile-id",
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
 
       const girlToDelete = {
         id: 1,
-        first_name: "Alice",
-        last_name: "Smith",
-        profile: "test-profile-id",
+        first_name: 'Alice',
+        last_name: 'Smith',
+        profile: 'test-profile-id',
         season: 1,
-      };
+      } as Girl;
       await newGirlsStore.deleteGirl(girlToDelete);
 
       expect(newGirlsStore.allGirls).toHaveLength(1);
       expect(newGirlsStore.allGirls[0].id).toBe(2);
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Girl Deleted",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith('Girl Deleted');
     });
 
-    it("handles delete error and shows error toast", async () => {
+    it('handles delete error and shows error toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addError: toastSpy,
       }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           delete: vi.fn(() => ({
             eq: vi.fn(() =>
-              Promise.resolve({ error: { message: "Delete failed" } }),
+              Promise.resolve({ error: { message: 'Delete failed' } }),
             ),
           })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -451,91 +462,83 @@ describe("stores/girls", () => {
 
       const girlToDelete = {
         id: 1,
-        first_name: "Alice",
-        last_name: "Smith",
-        profile: "test-profile-id",
+        first_name: 'Alice',
+        last_name: 'Smith',
+        profile: 'test-profile-id',
         season: 1,
-      };
+      } as Girl;
       await newGirlsStore.deleteGirl(girlToDelete);
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Delete failed",
-        life: 3000,
+        message: 'Delete failed',
       });
     });
   });
 
-  describe("utility functions", () => {
+  describe('utility functions', () => {
     beforeEach(() => {
       girlsStore.allGirls = [
         {
           id: 1,
-          first_name: "Alice",
-          last_name: "Smith",
-          profile: "test-profile-id",
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 2,
-          first_name: "Bob",
-          last_name: "Johnson",
-          profile: "test-profile-id",
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 3,
-          first_name: "Charlie",
-          last_name: "Brown",
-          profile: "test-profile-id",
+          first_name: 'Charlie',
+          last_name: 'Brown',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
     });
 
-    it("getGirlNameById returns correct name for existing girl", () => {
+    it('getGirlNameById returns correct name for existing girl', () => {
       const name = girlsStore.getGirlNameById(1);
-      expect(name).toBe("Alice S.");
+      expect(name).toBe('Alice S.');
     });
 
     it('getGirlNameById returns "No girl found" for non-existing girl', () => {
       const name = girlsStore.getGirlNameById(999);
-      expect(name).toBe("No girl found");
+      expect(name).toBe('No girl found');
     });
 
-    it("getGirlNamesByIdList returns joined names for existing girls", () => {
+    it('getGirlNamesByIdList returns joined names for existing girls', () => {
       const names = girlsStore.getGirlNamesByIdList([1, 2]);
-      expect(names).toBe("Alice S., Bob J.");
+      expect(names).toBe('Alice S., Bob J.');
     });
 
-    it("getGirlNamesByIdList handles mix of existing and non-existing girls", () => {
+    it('getGirlNamesByIdList handles mix of existing and non-existing girls', () => {
       const names = girlsStore.getGirlNamesByIdList([1, 999, 2]);
-      expect(names).toBe("Alice S., No girl found, Bob J.");
+      expect(names).toBe('Alice S., No girl found, Bob J.');
     });
 
-    it("getGirlNamesByIdList returns empty string for empty array", () => {
+    it('getGirlNamesByIdList returns empty string for empty array', () => {
       const names = girlsStore.getGirlNamesByIdList([]);
-      expect(names).toBe("");
+      expect(names).toBe('');
     });
   });
 
-  describe("private functions integration", () => {
-    it("sorts girls correctly after adding", async () => {
-      const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
-      }));
-
+  describe('private functions integration', () => {
+    it('sorts girls correctly after adding', async () => {
       // Add a girl that should sort first alphabetically
       const mockGirl = {
-        first_name: "Aaron",
-        last_name: "Anderson",
+        first_name: 'Aaron',
+        last_name: 'Anderson',
         season: 1,
-      };
-      const mockInsertedGirl = { id: 4, ...mockGirl, profile: "test-user-id" };
+      } as Girl;
+      const mockInsertedGirl = { ...mockGirl, profile: 'test-user-id' };
 
-      global.useSupabaseClient = vi.fn(() => ({
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           insert: vi.fn(() => ({
             select: vi.fn(() => ({
@@ -546,26 +549,30 @@ describe("stores/girls", () => {
           })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      const useSupabaseUserMock = vi.fn(() => ({
+        value: { id: 'test-user-id' },
+      }));
+      vi.stubGlobal('useSupabaseUser', useSupabaseUserMock);
 
       // Set initial state with existing girls
       girlsStore.allGirls = [
         {
           id: 2,
-          first_name: "Bob",
-          last_name: "Johnson",
-          profile: "test-profile-id",
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 3,
-          first_name: "Charlie",
-          last_name: "Brown",
-          profile: "test-profile-id",
+          first_name: 'Charlie',
+          last_name: 'Brown',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -573,39 +580,35 @@ describe("stores/girls", () => {
       newGirlsStore.allGirls = [
         {
           id: 2,
-          first_name: "Bob",
-          last_name: "Johnson",
-          profile: "test-profile-id",
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 3,
-          first_name: "Charlie",
-          last_name: "Brown",
-          profile: "test-profile-id",
+          first_name: 'Charlie',
+          last_name: 'Brown',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
 
       await newGirlsStore.insertGirl(mockGirl);
 
       // Should be sorted by first name
-      expect(newGirlsStore.allGirls[0].first_name).toBe("Aaron");
-      expect(newGirlsStore.allGirls[1].first_name).toBe("Bob");
-      expect(newGirlsStore.allGirls[2].first_name).toBe("Charlie");
+      expect(newGirlsStore.allGirls[0].first_name).toBe('Aaron');
+      expect(newGirlsStore.allGirls[1].first_name).toBe('Bob');
+      expect(newGirlsStore.allGirls[2].first_name).toBe('Charlie');
     });
 
-    it("updates girl correctly in place", async () => {
-      const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
-      }));
-
-      global.useSupabaseClient = vi.fn(() => ({
+    it('updates girl correctly in place', async () => {
+      const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           upsert: vi.fn(() => Promise.resolve({ error: null })),
         })),
       }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -613,32 +616,32 @@ describe("stores/girls", () => {
       newGirlsStore.allGirls = [
         {
           id: 1,
-          first_name: "Alice",
-          last_name: "Smith",
-          profile: "test-profile-id",
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
           season: 1,
         },
         {
           id: 2,
-          first_name: "Bob",
-          last_name: "Johnson",
-          profile: "test-profile-id",
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
           season: 1,
         },
-      ];
+      ] as Girl[];
 
       const updatedGirl = {
         id: 1,
-        first_name: "Alice Updated",
-        last_name: "Smith",
-        profile: "test-profile-id",
+        first_name: 'Alice Updated',
+        last_name: 'Smith',
+        profile: 'test-profile-id',
         season: 1,
-      };
+      } as Girl;
       await newGirlsStore.upsertGirl(updatedGirl);
 
       expect(newGirlsStore.allGirls).toHaveLength(2);
-      expect(newGirlsStore.allGirls[0].first_name).toBe("Alice Updated");
-      expect(newGirlsStore.allGirls[1].first_name).toBe("Bob");
+      expect(newGirlsStore.allGirls[0].first_name).toBe('Alice Updated');
+      expect(newGirlsStore.allGirls[1].first_name).toBe('Bob');
     });
   });
 });

@@ -1,5 +1,5 @@
-import type { Database } from "@/types/supabase";
-import type { SCOrder2025, Upload } from "@/types/types";
+import type { Database } from '@/types/supabase';
+import type { SCOrder2025, Upload } from '@/types/types';
 
 /*
 ref()s become state properties
@@ -7,10 +7,10 @@ computed()s become getters
 function()s become actions
 */
 
-export const useUploadsStore = defineStore("uploads", () => {
+export const useUploadsStore = defineStore('uploads', () => {
   const supabaseClient = useSupabaseClient<Database>();
 
-  const ordersStore = useOrdersStore();
+  const ordersStore = useTransactionsStore();
   const profileStore = useProfileStore();
 
   /* State */
@@ -26,7 +26,7 @@ export const useUploadsStore = defineStore("uploads", () => {
       !profileStore.currentProfile?.season ||
       !profileStore.currentProfile?.id
     )
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     console.log(profileStore.currentProfile.season);
     const upload = {
       profile: profileStore.currentProfile.id,
@@ -34,7 +34,7 @@ export const useUploadsStore = defineStore("uploads", () => {
       data: jsonData,
     };
     const { data, error } = await supabaseClient
-      .from("uploads")
+      .from('uploads')
       .insert(upload)
       .select()
       .single();
@@ -45,11 +45,11 @@ export const useUploadsStore = defineStore("uploads", () => {
 
   const getOnlyGirlOrders = (jsonData: SCOrder2025[]) => {
     const girlData = jsonData.filter(
-      (order) => order["TO"].indexOf && order["TO"].indexOf(" ") >= 0,
+      (order) => order['TO'].indexOf && order['TO'].indexOf(' ') >= 0,
     );
     return girlData
-      .map(ordersStore.convertSCOrderToNewOrder)
-      .filter((order) => order.to !== 0);
+      .map(ordersStore.convertSCOrderToNewTransaction)
+      .filter((order) => order?.to !== 0);
   };
 
   return { insertUpload, getOnlyGirlOrders };

@@ -1,7 +1,7 @@
 <script setup>
-import { useLayout } from "@/composables/use-layout";
-import { onBeforeMount, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useLayout } from '@/composables/useLayout';
+import { onBeforeMount, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 const route = useRoute();
 
@@ -31,14 +31,14 @@ const itemKey = ref(null);
 
 onBeforeMount(() => {
   itemKey.value = props.parentItemKey
-    ? props.parentItemKey + "-" + props.index
+    ? props.parentItemKey + '-' + props.index
     : String(props.index);
 
   const activeItem = layoutState.activeMenuItem;
 
   isActiveMenu.value =
     activeItem === itemKey.value || activeItem
-      ? activeItem.startsWith(itemKey.value + "-")
+      ? activeItem.startsWith(itemKey.value + '-')
       : false;
 });
 
@@ -46,7 +46,7 @@ watch(
   () => layoutState.activeMenuItem,
   (newVal) => {
     isActiveMenu.value =
-      newVal === itemKey.value || newVal.startsWith(itemKey.value + "-");
+      newVal === itemKey.value || newVal.startsWith(itemKey.value + '-');
   },
 );
 

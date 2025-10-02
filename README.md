@@ -180,11 +180,11 @@ When adding new features, include appropriate tests:
 Example unit test:
 
 ```typescript
-import { describe, it, expect } from "vitest";
-import { calculateTotal } from "../../utils/helpers";
+import { describe, it, expect } from 'vitest';
+import { calculateTotal } from '../../utils/helpers';
 
-describe("calculateTotal", () => {
-  it("calculates correct total", () => {
+describe('calculateTotal', () => {
+  it('calculates correct total', () => {
     expect(calculateTotal(5, 4.0)).toBe(20.0);
   });
 });
@@ -193,14 +193,14 @@ describe("calculateTotal", () => {
 Example component test:
 
 ```typescript
-import { describe, it, expect } from "vitest";
-import { mount } from "@vue/test-utils";
-import MyComponent from "~/components/MyComponent.vue";
+import { describe, it, expect } from 'vitest';
+import { mount } from '@vue/test-utils';
+import MyComponent from '~/components/MyComponent.vue';
 
-describe("MyComponent", () => {
-  it("renders correctly", () => {
+describe('MyComponent', () => {
+  it('renders correctly', () => {
     const wrapper = mount(MyComponent);
-    expect(wrapper.text()).toContain("Expected text");
+    expect(wrapper.text()).toContain('Expected text');
   });
 });
 ```

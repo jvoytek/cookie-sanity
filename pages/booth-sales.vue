@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { useToast } from "primevue/usetoast";
-import type { BoothSale } from "@/types/types";
+import { useToast } from 'primevue/usetoast';
+import type { BoothSale } from '@/types/types';
+import { useFormKitNodeById } from '@formkit/vue';
+
+const formNode = useFormKitNodeById('booth-form');
 
 const loading = ref(true);
 loading.value = true;
@@ -9,7 +12,7 @@ const boothsStore = useBoothsStore();
 const girlsStore = useGirlsStore();
 const cookiesStore = useCookiesStore();
 const formatHelpers = useFormatHelpers();
-const myForm = ref<FormInstance | null>(null);
+const notificationHelpers = useNotificationHelpers();
 
 loading.value = false;
 
@@ -18,14 +21,12 @@ const dt = ref();
 const deleteBoothSaleDialog = ref(false);
 
 const inventoryTypeOptions = [
-  { label: "Troop Inventory", value: "troop" },
-  { label: "Scout Inventory", value: "scout" },
+  { label: 'Troop Inventory', value: 'troop' },
+  { label: 'Scout Inventory', value: 'scout' },
 ];
 
 function openNew() {
-  editBoothSale({
-    scouts_attending: [],
-  });
+  editBoothSale(null);
 }
 
 function hideDialog() {
@@ -33,18 +34,22 @@ function hideDialog() {
 }
 
 async function saveBoothSale() {
-  if (boothsStore.activeBoothSale.id) {
+  if (boothsStore.activeBoothSale?.id) {
     boothsStore.upsertBoothSale(boothsStore.activeBoothSale);
-  } else {
+  } else if (boothsStore.activeBoothSale) {
     boothsStore.insertBoothSale(boothsStore.activeBoothSale);
   }
   boothsStore.boothDialogVisible = false;
-  boothsStore.activeBoothSale = {};
+  boothsStore.activeBoothSale = null;
 }
 
-function editBoothSale(sale: BoothSale) {
+const submitButtonClickHandler = () => {
+  if (formNode.value) formNode.value.submit();
+};
+
+function editBoothSale(sale: BoothSale | null) {
   boothsStore.boothDialogFormSchema.value = getBoothSaleDialogFormSchema();
-  boothsStore.activeBoothSale = { ...sale };
+  boothsStore.activeBoothSale = sale;
   boothsStore.boothDialogVisible = true;
 }
 
@@ -57,22 +62,25 @@ async function deleteBoothSale() {
   try {
     boothsStore.deleteBoothSale(boothsStore.activeBoothSale);
     deleteBoothSaleDialog.value = false;
-    boothsStore.activeBoothSale = {};
+    boothsStore.activeBoothSale = null;
   } catch (error) {
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: (error as Error).message,
-      life: 3000,
-    });
+    notificationHelpers.addError(error as Error);
   }
 }
 
 boothsStore.$subscribe((mutation, _state) => {
-  if (!mutation.events?.oldValue || !mutation.events?.oldValue.expected_sales)
+  if (
+    mutation.events?.oldValue?.length === 0 ||
+    mutation.events?.oldValue?.expected_sales === undefined
+  )
     return;
+
   const previousExpectedSales = mutation.events?.oldValue?.expected_sales || 0;
   const newExpectedSales = mutation.events?.newValue?.expected_sales || 0;
+
+  if (previousExpectedSales === 0 && newExpectedSales === 0) {
+    return;
+  }
 
   if (previousExpectedSales !== newExpectedSales) {
     boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
@@ -83,119 +91,119 @@ boothsStore.$subscribe((mutation, _state) => {
 const getBoothSaleDialogFormSchema = () => {
   return [
     {
-      $formkit: "primeDatePicker",
-      name: "sale_date",
-      label: "Date",
-      key: "sale_date",
-      placeholder: "Select date",
-      validation: "required|date",
-      wrapperClass: "grid grid-cols-4 gap-4 items-center",
-      labelClass: "col-span-1",
-      innerClass: "col-span-3 mt-1 mb-1",
-      class: "w-full",
-      "date-format": "yy-mm-dd",
-      "show-icon": true,
+      $formkit: 'primeDatePicker',
+      name: 'sale_date',
+      label: 'Date',
+      key: 'sale_date',
+      placeholder: 'Select date',
+      validation: 'required|date',
+      wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+      labelClass: 'col-span-1',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+      'date-format': 'yy-mm-dd',
+      'show-icon': true,
     },
     {
-      $formkit: "primeInputText",
-      name: "sale_time",
-      label: "Time",
-      key: "sale_time",
-      placeholder: "Set time",
-      validation: "required|time",
-      wrapperClass: "grid grid-cols-4 gap-4 items-center",
-      labelClass: "col-span-1",
-      innerClass: "col-span-3 mt-1 mb-1",
-      class: "w-full",
+      $formkit: 'primeInputText',
+      name: 'sale_time',
+      label: 'Time',
+      key: 'sale_time',
+      placeholder: 'Set time',
+      validation: 'required|time',
+      wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+      labelClass: 'col-span-1',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
     },
     {
-      $formkit: "primeInputText",
-      name: "location",
-      label: "Location",
-      key: "location",
-      placeholder: "Walmart, Local Grocery Store, etc.",
-      validation: "required",
-      wrapperClass: "grid grid-cols-4 gap-4 items-center",
-      labelClass: "col-span-1",
-      innerClass: "col-span-3 mt-1 mb-1",
-      class: "w-full",
+      $formkit: 'primeInputText',
+      name: 'location',
+      label: 'Location',
+      key: 'location',
+      placeholder: 'Walmart, Local Grocery Store, etc.',
+      validation: 'required',
+      wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+      labelClass: 'col-span-1',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
     },
     {
-      $formkit: "primeMultiSelect",
-      name: "scouts_attending",
+      $formkit: 'primeMultiSelect',
+      name: 'scouts_attending',
       options: girlsStore.girlOptions,
-      "option-label": "label",
-      "option-value": "value",
-      placeholder: "Select scouts",
-      wrapperClass: "grid grid-cols-4 gap-4 items-center",
-      labelClass: "col-span-1",
-      innerClass: "col-span-3 mt-1 mb-1",
-      class: "w-full",
-      label: "Scouts Attending",
-      key: "scouts_attending",
+      'option-label': 'label',
+      'option-value': 'value',
+      placeholder: 'Select scouts',
+      wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+      labelClass: 'col-span-1',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+      label: 'Scouts Attending',
+      key: 'scouts_attending',
       showToggleAll: false,
     },
 
     {
-      $formkit: "primeSelect",
-      name: "inventory_type",
-      label: "Inventory Type",
-      key: "inventory_type",
-      placeholder: "Choose a type",
+      $formkit: 'primeSelect',
+      name: 'inventory_type',
+      label: 'Inventory Type',
+      key: 'inventory_type',
+      placeholder: 'Choose a type',
       options: inventoryTypeOptions,
-      validation: "required",
-      wrapperClass: "grid grid-cols-4 gap-4 items-center",
-      labelClass: "col-span-1",
-      innerClass: "col-span-3 mt-1 mb-1",
-      class: "w-full",
-      "option-label": "label",
-      "option-value": "value",
+      validation: 'required',
+      wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+      labelClass: 'col-span-1',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+      'option-label': 'label',
+      'option-value': 'value',
     },
     {
-      $formkit: "primeTextarea",
-      name: "notes",
-      label: "Notes (optional)",
-      placeholder: "Notes about this booth sale",
-      class: "w-full",
+      $formkit: 'primeTextarea',
+      name: 'notes',
+      label: 'Notes (optional)',
+      placeholder: 'Notes about this booth sale',
+      class: 'w-full',
       rows: 2,
     },
     {
-      $el: "h6",
-      children: "Predicted Cookie Demand",
+      $el: 'h6',
+      children: 'Predicted Cookie Demand',
     },
     {
-      $el: "p",
+      $el: 'p',
       children:
-        "Enter total estimated sales to auto-calculate cookie variety demand, or manually enter variety estimates. Setup expected cookie variety percentages in Cookie Settings.",
+        'Enter total estimated sales to auto-calculate cookie variety demand, or manually enter variety estimates. Setup expected cookie variety percentages in Cookie Settings.',
     },
     {
-      $formkit: "primeToggleSwitch",
-      name: "auto_calculate_predicted_cookies",
-      label: "Auto-Calculate Predicted Cookies",
-      key: "auto_calculate_predicted_cookies",
-      id: "auto_calculate_predicted_cookies",
+      $formkit: 'primeToggleSwitch',
+      name: 'auto_calculate_predicted_cookies',
+      label: 'Auto-Calculate Predicted Cookies',
+      key: 'auto_calculate_predicted_cookies',
+      id: 'auto_calculate_predicted_cookies',
       value: true,
-      wrapperClass: "grid grid-cols-3 gap-4 items-center",
-      labelClass: "col-span-1",
-      innerClass: "col-span-2 mt-1 mb-1",
-      class: "w-full",
+      wrapperClass: 'grid grid-cols-3 gap-4 items-center',
+      labelClass: 'col-span-1',
+      innerClass: 'col-span-2 mt-1 mb-1',
+      class: 'w-full',
     },
     {
-      $formkit: "primeInputNumber",
-      name: "expected_sales",
-      label: "Total Estimated Sales",
-      key: "expected_sales",
-      placeholder: "25, 50, 100, etc.",
-      validation: "required|integer|min:0",
-      wrapperClass: "grid grid-cols-3 gap-4 items-center",
-      labelClass: "col-span-1",
-      innerClass: "col-span-2 mt-1 mb-1",
-      class: "w-full",
+      $formkit: 'primeInputNumber',
+      name: 'expected_sales',
+      label: 'Total Estimated Sales',
+      key: 'expected_sales',
+      placeholder: '25, 50, 100, etc.',
+      validation: 'required|integer|min:0',
+      wrapperClass: 'grid grid-cols-3 gap-4 items-center',
+      labelClass: 'col-span-1',
+      innerClass: 'col-span-2 mt-1 mb-1',
+      class: 'w-full',
       disabled: "$get('auto_calculate_predicted_cookies').value === false",
     },
     {
-      $formkit: "group",
-      name: "predicted_cookies",
+      $formkit: 'group',
+      name: 'predicted_cookies',
       children: cookiesStore.cookieFormFields,
       disabled: "$get('auto_calculate_predicted_cookies').value === true",
     },
@@ -290,7 +298,7 @@ const getBoothSaleDialogFormSchema = () => {
         >
           <div class="flex flex-col gap-6">
             <FormKit
-              ref="myForm"
+              id="booth-form"
               v-model="boothsStore.activeBoothSale"
               type="form"
               :actions="false"
@@ -312,7 +320,7 @@ const getBoothSaleDialogFormSchema = () => {
             <Button
               label="Save"
               icon="pi pi-check"
-              @click="myForm.node.submit()"
+              @click="submitButtonClickHandler"
             />
           </template>
         </Dialog>

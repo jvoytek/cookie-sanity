@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { createPinia, setActivePinia } from 'pinia';
 
 // Import the store after setting up global mocks in setup.ts
-import { useProfileStore } from "@/stores/profile";
+import { useProfileStore } from '@/stores/profile';
 
-describe("stores/profile", () => {
+describe('stores/profile', () => {
   let profileStore: ReturnType<typeof useProfileStore>;
 
   beforeEach(() => {
@@ -12,30 +12,49 @@ describe("stores/profile", () => {
     setActivePinia(createPinia());
 
     // Set up other store mocks
-    global.useSeasonsStore = vi.fn(() => ({
-      currentSeason: { id: 1 },
-      fetchSeasons: vi.fn(),
-    }));
 
-    global.useCookiesStore = vi.fn(() => ({
-      fetchCookies: vi.fn(),
-    }));
+    vi.stubGlobal(
+      'useSeasonsStore',
+      vi.fn(() => ({
+        currentSeason: { id: 1 },
+        fetchSeasons: vi.fn(),
+      })),
+    );
 
-    global.useGirlsStore = vi.fn(() => ({
-      fetchGirls: vi.fn(),
-    }));
+    vi.stubGlobal(
+      'useCookiesStore',
+      vi.fn(() => ({
+        fetchCookies: vi.fn(),
+      })),
+    );
 
-    global.useOrdersStore = vi.fn(() => ({
-      fetchOrders: vi.fn(),
-    }));
+    vi.stubGlobal(
+      'useGirlsStore',
+      vi.fn(() => ({
+        fetchGirls: vi.fn(),
+      })),
+    );
 
-    global.useAccountsStore = vi.fn(() => ({
-      fetchPayments: vi.fn(),
-    }));
+    vi.stubGlobal(
+      'useTransactionsStore',
+      vi.fn(() => ({
+        fetchTransactions: vi.fn(),
+      })),
+    );
 
-    global.useBoothsStore = vi.fn(() => ({
-      fetchBoothSales: vi.fn(),
-    }));
+    vi.stubGlobal(
+      'useAccountsStore',
+      vi.fn(() => ({
+        fetchPayments: vi.fn(),
+      })),
+    );
+
+    vi.stubGlobal(
+      'useBoothsStore',
+      vi.fn(() => ({
+        fetchBoothSales: vi.fn(),
+      })),
+    );
 
     profileStore = useProfileStore();
   });
@@ -44,70 +63,93 @@ describe("stores/profile", () => {
     vi.clearAllMocks();
   });
 
-  describe("state management", () => {
-    it("initializes with default values", () => {
+  describe('state management', () => {
+    it('initializes with default values', () => {
       setActivePinia(createPinia());
       const freshStore = useProfileStore();
 
       expect(freshStore.currentProfile).toBeUndefined();
-      expect(freshStore.display_name).toBe("");
-      expect(freshStore.appState).toEqual({});
+      expect(freshStore.display_name).toBe('');
     });
   });
 
-  describe("fetchProfile", () => {
-    it("successfully fetches profile and triggers other store fetches", async () => {
+  describe('fetchProfile', () => {
+    it('successfully fetches profile and triggers other store fetches', async () => {
       const mockProfile = {
-        id: "test-user-id",
-        display_name: "Test User",
+        id: 'test-user-id',
+        display_name: 'Test User',
         season: 1,
-        state: { theme: "light" },
+        state: { theme: 'light' },
       };
 
       const fetchSeasonsSpy = vi.fn();
       const fetchCookiesSpy = vi.fn();
       const fetchGirlsSpy = vi.fn();
-      const fetchOrdersSpy = vi.fn();
+      const fetchTransactionsSpy = vi.fn();
       const fetchPaymentsSpy = vi.fn();
       const fetchBoothSalesSpy = vi.fn();
 
-      global.useSeasonsStore = vi.fn(() => ({
-        fetchSeasons: fetchSeasonsSpy,
-      }));
+      vi.stubGlobal(
+        'useSeasonsStore',
+        vi.fn(() => ({
+          fetchSeasons: fetchSeasonsSpy,
+        })),
+      );
 
-      global.useCookiesStore = vi.fn(() => ({
-        fetchCookies: fetchCookiesSpy,
-      }));
+      vi.stubGlobal(
+        'useCookiesStore',
+        vi.fn(() => ({
+          fetchCookies: fetchCookiesSpy,
+        })),
+      );
 
-      global.useGirlsStore = vi.fn(() => ({
-        fetchGirls: fetchGirlsSpy,
-      }));
+      vi.stubGlobal(
+        'useGirlsStore',
+        vi.fn(() => ({
+          fetchGirls: fetchGirlsSpy,
+        })),
+      );
 
-      global.useOrdersStore = vi.fn(() => ({
-        fetchOrders: fetchOrdersSpy,
-      }));
+      vi.stubGlobal(
+        'useTransactionsStore',
+        vi.fn(() => ({
+          fetchTransactions: fetchTransactionsSpy,
+        })),
+      );
 
-      global.useAccountsStore = vi.fn(() => ({
-        fetchPayments: fetchPaymentsSpy,
-      }));
+      vi.stubGlobal(
+        'useAccountsStore',
+        vi.fn(() => ({
+          fetchPayments: fetchPaymentsSpy,
+        })),
+      );
 
-      global.useBoothsStore = vi.fn(() => ({
-        fetchBoothSales: fetchBoothSalesSpy,
-      }));
+      vi.stubGlobal(
+        'useBoothsStore',
+        vi.fn(() => ({
+          fetchBoothSales: fetchBoothSalesSpy,
+        })),
+      );
 
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              single: vi.fn(() =>
-                Promise.resolve({ data: mockProfile, error: null }),
-              ),
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn(() =>
+                  Promise.resolve({ data: mockProfile, error: null }),
+                ),
+              })),
             })),
           })),
         })),
-      }));
+      );
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
 
       // Create new store instance with the new mocks
       setActivePinia(createPinia());
@@ -116,18 +158,20 @@ describe("stores/profile", () => {
       await newProfileStore.fetchProfile();
 
       expect(newProfileStore.currentProfile).toEqual(mockProfile);
-      expect(newProfileStore.display_name).toBe("Test User");
-      expect(newProfileStore.appState).toEqual({ theme: "light" });
+      expect(newProfileStore.display_name).toBe('Test User');
       expect(fetchSeasonsSpy).toHaveBeenCalled();
       expect(fetchCookiesSpy).toHaveBeenCalled();
       expect(fetchGirlsSpy).toHaveBeenCalled();
-      expect(fetchOrdersSpy).toHaveBeenCalled();
+      expect(fetchTransactionsSpy).toHaveBeenCalled();
       expect(fetchPaymentsSpy).toHaveBeenCalled();
       expect(fetchBoothSalesSpy).toHaveBeenCalled();
     });
 
-    it("returns early when no user", async () => {
-      global.useSupabaseUser = vi.fn(() => ({ value: null }));
+    it('returns early when no user', async () => {
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: null })),
+      );
 
       // Create new store instance
       setActivePinia(createPinia());
@@ -138,28 +182,37 @@ describe("stores/profile", () => {
       expect(newProfileStore.currentProfile).toBeUndefined();
     });
 
-    it("handles fetch error and shows toast", async () => {
+    it('handles fetch error and shows toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
-      }));
+      vi.stubGlobal(
+        'useNotificationHelpers',
+        vi.fn(() => ({
+          addError: toastSpy,
+        })),
+      );
 
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              single: vi.fn(() =>
-                Promise.resolve({
-                  data: null,
-                  error: { message: "Profile not found" },
-                }),
-              ),
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn(() =>
+                  Promise.resolve({
+                    data: null,
+                    error: { message: 'Profile not found' },
+                  }),
+                ),
+              })),
             })),
           })),
         })),
-      }));
+      );
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -168,32 +221,35 @@ describe("stores/profile", () => {
       await newProfileStore.fetchProfile();
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Profile not found",
-        life: 3000,
+        message: 'Profile not found',
       });
     });
 
-    it("handles missing profile fields gracefully", async () => {
+    it('handles missing profile fields gracefully', async () => {
       const mockProfile = {
-        id: "test-user-id",
+        id: 'test-user-id',
         // Missing display_name, season, state
       };
 
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              single: vi.fn(() =>
-                Promise.resolve({ data: mockProfile, error: null }),
-              ),
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn(() =>
+                  Promise.resolve({ data: mockProfile, error: null }),
+                ),
+              })),
             })),
           })),
         })),
-      }));
+      );
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -202,60 +258,72 @@ describe("stores/profile", () => {
       await newProfileStore.fetchProfile();
 
       expect(newProfileStore.currentProfile).toEqual(mockProfile);
-      expect(newProfileStore.display_name).toBe("");
-      expect(newProfileStore.appState).toEqual({});
+      expect(newProfileStore.display_name).toBe('');
     });
   });
 
-  describe("updateProfile", () => {
+  describe('updateProfile', () => {
     beforeEach(() => {
-      profileStore.display_name = "Updated Name";
-      profileStore.appState = { theme: "dark" };
+      profileStore.display_name = 'Updated Name';
     });
 
-    it("successfully updates profile and shows success toast", async () => {
+    it('successfully updates profile and shows success toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
-      }));
-
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          upsert: vi.fn(() => Promise.resolve({ error: null })),
+      vi.stubGlobal(
+        'useNotificationHelpers',
+        vi.fn(() => ({
+          addSuccess: toastSpy,
+          addError: vi.fn(),
         })),
-      }));
+      );
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            upsert: vi.fn(() => Promise.resolve({ error: null })),
+          })),
+        })),
+      );
+
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
       const newProfileStore = useProfileStore();
-      newProfileStore.display_name = "Updated Name";
-      newProfileStore.appState = { theme: "dark" };
+      newProfileStore.display_name = 'Updated Name';
 
       await newProfileStore.updateProfile();
 
-      expect(toastSpy).toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Profile Updated",
-        life: 3000,
-      });
+      expect(toastSpy).toHaveBeenCalledWith('Profile Updated');
     });
 
-    it("updates profile silently when silent flag is true", async () => {
+    it('updates profile silently when silent flag is true', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
-      }));
-
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          upsert: vi.fn(() => Promise.resolve({ error: null })),
+      vi.stubGlobal(
+        'useNotificationHelpers',
+        vi.fn(() => ({
+          addSuccess: toastSpy,
+          addError: vi.fn(),
         })),
-      }));
+      );
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            upsert: vi.fn(() => Promise.resolve({ error: null })),
+          })),
+        })),
+      );
+
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -264,15 +332,18 @@ describe("stores/profile", () => {
       await newProfileStore.updateProfile(true);
 
       expect(toastSpy).not.toHaveBeenCalledWith({
-        severity: "success",
-        summary: "Successful",
-        detail: "Profile Updated",
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Profile Updated',
         life: 3000,
       });
     });
 
-    it("returns early when no user id", async () => {
-      global.useSupabaseUser = vi.fn(() => ({ value: null }));
+    it('returns early when no user id', async () => {
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: null })),
+      );
 
       // Create new store instance
       setActivePinia(createPinia());
@@ -283,21 +354,30 @@ describe("stores/profile", () => {
       // No assertions needed, just ensuring no error is thrown
     });
 
-    it("handles update error and shows error toast", async () => {
+    it('handles update error and shows error toast', async () => {
       const toastSpy = vi.fn();
-      global.useToast = vi.fn(() => ({
-        add: toastSpy,
-      }));
-
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          upsert: vi.fn(() =>
-            Promise.resolve({ error: { message: "Update failed" } }),
-          ),
+      vi.stubGlobal(
+        'useNotificationHelpers',
+        vi.fn(() => ({
+          addError: toastSpy,
         })),
-      }));
+      );
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            upsert: vi.fn(() =>
+              Promise.resolve({ error: { message: 'Update failed' } }),
+            ),
+          })),
+        })),
+      );
+
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -306,29 +386,35 @@ describe("stores/profile", () => {
       await newProfileStore.updateProfile();
 
       expect(toastSpy).toHaveBeenCalledWith({
-        severity: "error",
-        summary: "Error",
-        detail: "Update failed",
-        life: 3000,
+        message: 'Update failed',
       });
     });
   });
 
-  describe("saveCurrentSeasonInProfile", () => {
-    it("saves current season id and updates profile silently", async () => {
+  describe('saveCurrentSeasonInProfile', () => {
+    it('saves current season id and updates profile silently', async () => {
       const upsertSpy = vi.fn(() => Promise.resolve({ error: null }));
 
-      global.useSeasonsStore = vi.fn(() => ({
-        currentSeason: { id: 2 },
-      }));
-
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          upsert: upsertSpy,
+      vi.stubGlobal(
+        'useSeasonsStore',
+        vi.fn(() => ({
+          currentSeason: { id: 2 },
         })),
-      }));
+      );
 
-      global.useSupabaseUser = vi.fn(() => ({ value: { id: "test-user-id" } }));
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            upsert: upsertSpy,
+          })),
+        })),
+      );
+
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
 
       // Create new store instance with the mock
       setActivePinia(createPinia());
@@ -338,25 +424,30 @@ describe("stores/profile", () => {
 
       // Check that the upsert was called with the season id set
       expect(upsertSpy).toHaveBeenCalledWith({
-        id: "test-user-id",
-        display_name: "",
-        state: {},
+        id: 'test-user-id',
+        display_name: '',
         season: 2,
       });
     });
 
-    it("returns early when no current season", async () => {
+    it('returns early when no current season', async () => {
       const upsertSpy = vi.fn();
 
-      global.useSeasonsStore = vi.fn(() => ({
-        currentSeason: null,
-      }));
-
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          upsert: upsertSpy,
+      vi.stubGlobal(
+        'useSeasonsStore',
+        vi.fn(() => ({
+          currentSeason: null,
         })),
-      }));
+      );
+
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            upsert: upsertSpy,
+          })),
+        })),
+      );
 
       // Create new store instance with the mock
       setActivePinia(createPinia());
@@ -367,18 +458,24 @@ describe("stores/profile", () => {
       expect(upsertSpy).not.toHaveBeenCalled();
     });
 
-    it("returns early when current season has no id", async () => {
+    it('returns early when current season has no id', async () => {
       const upsertSpy = vi.fn();
 
-      global.useSeasonsStore = vi.fn(() => ({
-        currentSeason: { name: "Test Season" }, // no id
-      }));
-
-      global.useSupabaseClient = vi.fn(() => ({
-        from: vi.fn(() => ({
-          upsert: upsertSpy,
+      vi.stubGlobal(
+        'useSeasonsStore',
+        vi.fn(() => ({
+          currentSeason: { name: 'Test Season' }, // no id
         })),
-      }));
+      );
+
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            upsert: upsertSpy,
+          })),
+        })),
+      );
 
       // Create new store instance with the mock
       setActivePinia(createPinia());
