@@ -240,4 +240,275 @@ describe('stores/cookies', () => {
       expect(freshStore.seasonCookies).toEqual([]);
     });
   });
+
+  describe('averageCookiePrice computed property', () => {
+    it('returns 0 when there are no cookies', () => {
+      setActivePinia(createPinia());
+      const store = useCookiesStore();
+      store.allCookies = [];
+      expect(store.averageCookiePrice).toBe(0);
+    });
+
+    it('calculates the average price for multiple cookies', () => {
+      setActivePinia(createPinia());
+      const store = useCookiesStore();
+      store.allCookies = [
+        {
+          id: 1,
+          name: 'A',
+          abbreviation: 'A',
+          price: 4,
+          order: 1,
+          profile: '',
+          season: 1,
+        },
+        {
+          id: 2,
+          name: 'B',
+          abbreviation: 'B',
+          price: 6,
+          order: 2,
+          profile: '',
+          season: 1,
+        },
+        {
+          id: 3,
+          name: 'C',
+          abbreviation: 'C',
+          price: 5,
+          order: 3,
+          profile: '',
+          season: 1,
+        },
+      ] as Cookie[];
+      expect(store.averageCookiePrice).toBe(5);
+    });
+
+    it('ignores cookies with undefined price', () => {
+      setActivePinia(createPinia());
+      const store = useCookiesStore();
+      store.allCookies = [
+        {
+          id: 1,
+          name: 'A',
+          abbreviation: 'A',
+          order: 1,
+          profile: '',
+          season: 1,
+        },
+        {
+          id: 2,
+          name: 'B',
+          abbreviation: 'B',
+          price: 6,
+          order: 2,
+          profile: '',
+          season: 1,
+        },
+        {
+          id: 3,
+          name: 'C',
+          abbreviation: 'C',
+          price: 4,
+          order: 3,
+          profile: '',
+          season: 1,
+        },
+      ] as Cookie[];
+      expect(store.averageCookiePrice).toBe(3.3333333333333335);
+    });
+
+    it('calculates average price for a single cookie', () => {
+      setActivePinia(createPinia());
+      const store = useCookiesStore();
+      store.allCookies = [
+        {
+          id: 1,
+          name: 'Solo',
+          abbreviation: 'S',
+          price: 7,
+          order: 1,
+          profile: '',
+          season: 1,
+        },
+      ] as Cookie[];
+      expect(store.averageCookiePrice).toBe(7);
+    });
+
+    describe('getCookieByAbbreviation', () => {
+      it('returns the correct cookie object for a valid abbreviation', () => {
+        const cookie = cookiesStore.getCookieByAbbreviation('ADV');
+        expect(cookie).toBeDefined();
+        expect(cookie?.name).toBe('Adventurefuls');
+        expect(cookie?.abbreviation).toBe('ADV');
+      });
+
+      it('returns undefined for an abbreviation that does not exist', () => {
+        const cookie = cookiesStore.getCookieByAbbreviation('XYZ');
+        expect(cookie).toBeUndefined();
+      });
+
+      it('returns undefined when allCookies is empty', () => {
+        cookiesStore.allCookies = [];
+        const cookie = cookiesStore.getCookieByAbbreviation('ADV');
+        expect(cookie).toBeUndefined();
+      });
+
+      describe('reorderCookies action', () => {
+        let cookiesStore: ReturnType<typeof useCookiesStore>;
+        let supabaseUpdateSeasonCookiesMock: any;
+        let supabaseUpdateAllCookiesMock: any;
+        let notificationHelpersMock: any;
+        let useSeasonsStoreMock: any;
+        let errorSpy: ReturnType<typeof vi.fn>;
+        let successSpy: ReturnType<typeof vi.fn>;
+
+        beforeEach(() => {
+          setActivePinia(createPinia());
+
+          errorSpy = vi.fn();
+          successSpy = vi.fn();
+
+          vi.stubGlobal(
+            'useNotificationHelpers',
+            vi.fn(() => ({
+              addSuccess: successSpy,
+              addError: errorSpy,
+            })),
+          );
+
+          // Mock _supabaseUpdateSeasonCookies and _supabaseUpdateAllCookies
+          supabaseUpdateSeasonCookiesMock = vi
+            .fn()
+            .mockResolvedValue({ error: null });
+          supabaseUpdateAllCookiesMock = vi
+            .fn()
+            .mockResolvedValue({ error: null });
+
+          // Mock seasonsStore
+          useSeasonsStoreMock = vi.fn(() => ({
+            currentSeason: { id: 1 },
+            settingsSelectedSeason: { id: 1 },
+          }));
+          vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
+
+          // Mock orders store and booths store
+          vi.stubGlobal(
+            'useTransactionsStore',
+            vi.fn(() => ({})),
+          );
+          vi.stubGlobal(
+            'useBoothsStore',
+            vi.fn(() => ({
+              getPredictedBoothSaleQuantityByCookie: vi.fn(() => -9),
+            })),
+          );
+
+          // Create store and override private methods
+          cookiesStore = useCookiesStore();
+          // @ts-expect-error override private
+          cookiesStore._supabaseUpdateSeasonCookies =
+            supabaseUpdateSeasonCookiesMock;
+          // @ts-expect-error override private
+          cookiesStore._supabaseUpdateAllCookies = supabaseUpdateAllCookiesMock;
+
+          // Set up initial cookies
+          cookiesStore.seasonCookies = [
+            {
+              id: 1,
+              name: 'A',
+              abbreviation: 'A',
+              order: 0,
+              profile: '',
+              season: 1,
+            },
+            {
+              id: 2,
+              name: 'B',
+              abbreviation: 'B',
+              order: 1,
+              profile: '',
+              season: 1,
+            },
+            {
+              id: 3,
+              name: 'C',
+              abbreviation: 'C',
+              order: 2,
+              profile: '',
+              season: 1,
+            },
+          ] as Cookie[];
+          cookiesStore.allCookies = [...cookiesStore.seasonCookies];
+        });
+
+        it('updates order property for each cookie in seasonCookies', async () => {
+          const newOrder = [
+            {
+              id: 3,
+              name: 'C',
+              abbreviation: 'C',
+              order: 2,
+              profile: '',
+              season: 1,
+            },
+            {
+              id: 1,
+              name: 'A',
+              abbreviation: 'A',
+              order: 0,
+              profile: '',
+              season: 1,
+            },
+            {
+              id: 2,
+              name: 'B',
+              abbreviation: 'B',
+              order: 1,
+              profile: '',
+              season: 1,
+            },
+          ] as Cookie[];
+
+          await cookiesStore.reorderCookies(newOrder);
+
+          expect(cookiesStore.seasonCookies[0].order).toBe(0); // id:1
+          expect(cookiesStore.seasonCookies[0].id).toBe(3); // id:1
+          expect(cookiesStore.seasonCookies[1].order).toBe(1); // id:2
+          expect(cookiesStore.seasonCookies[1].id).toBe(1); // id:2
+          expect(cookiesStore.seasonCookies[2].order).toBe(2); // id:3
+          expect(cookiesStore.seasonCookies[2].id).toBe(2); // id:3
+        });
+
+        it('sets allCookies to seasonCookies when currentSeason matches settingsSelectedSeason', async () => {
+          await cookiesStore.reorderCookies(cookiesStore.seasonCookies);
+          expect(cookiesStore.allCookies).toEqual(cookiesStore.seasonCookies);
+        });
+
+        it('does not set allCookies if currentSeason does not match settingsSelectedSeason', async () => {
+          useSeasonsStoreMock.mockReturnValueOnce({
+            currentSeason: { id: 1 },
+            settingsSelectedSeason: { id: 2 },
+          });
+          setActivePinia(createPinia());
+          const store = useCookiesStore();
+          store.seasonCookies = [
+            {
+              id: 1,
+              name: 'A',
+              abbreviation: 'A',
+              order: 0,
+              profile: '',
+              season: 1,
+            },
+          ] as Cookie[];
+          store.allCookies = [];
+          // @ts-expect-error override private
+          store._supabaseUpdateSeasonCookies = supabaseUpdateSeasonCookiesMock;
+          await store.reorderCookies(store.seasonCookies);
+          expect(store.allCookies).not.toEqual(store.seasonCookies);
+        });
+      });
+    });
+  });
 });
