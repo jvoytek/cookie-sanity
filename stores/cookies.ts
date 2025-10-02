@@ -116,6 +116,9 @@ export const useCookiesStore = defineStore('cookies', () => {
     allCookies.value.sort(
       (a: Cookie, b: Cookie) => (a.order ?? 0) - (b.order ?? 0),
     );
+    seasonCookies.value.sort(
+      (a: Cookie, b: Cookie) => (a.order ?? 0) - (b.order ?? 0),
+    );
   };
 
   const _addCookie = (cookie: Cookie) => {
@@ -250,6 +253,13 @@ export const useCookiesStore = defineStore('cookies', () => {
     cookies.forEach((cookie, i) => {
       const index = allCookies.value.findIndex((c) => c.id === cookie.id);
       allCookies.value[index].order = i;
+
+      const seasonIndex = seasonCookies.value.findIndex(
+        (c) => c.id === cookie.id,
+      );
+      if (seasonIndex !== -1) {
+        seasonCookies.value[seasonIndex].order = i;
+      }
     });
 
     _sortCookies();

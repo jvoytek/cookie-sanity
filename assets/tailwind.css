@@ -1,7 +1,7 @@
 @layer tailwind-base, primevue, tailwind-utilities;
 
 @layer tailwind-base {
-  @import "tailwindcss/preflight";
+  @import 'tailwindcss/preflight';
 }
 
 @layer tailwind-utilities {

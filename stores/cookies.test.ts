@@ -240,4 +240,108 @@ describe('stores/cookies', () => {
       expect(freshStore.seasonCookies).toEqual([]);
     });
   });
+
+  describe('reorderCookies', () => {
+    it('updates both allCookies and seasonCookies order', async () => {
+      // Set up seasonCookies with the same cookies
+      cookiesStore.seasonCookies = [
+        {
+          id: 1,
+          name: 'Adventurefuls',
+          abbreviation: 'ADV',
+          price: 5.0,
+          order: 1,
+          profile: 'test-profile-id',
+          season: 1,
+        },
+        {
+          id: 2,
+          name: 'Thin Mints',
+          abbreviation: 'TM',
+          price: 5.0,
+          order: 2,
+          profile: 'test-profile-id',
+          season: 1,
+        },
+        {
+          id: 3,
+          name: 'Lemon-Ups',
+          abbreviation: 'LEM',
+          price: 5.0,
+          order: 3,
+          profile: 'test-profile-id',
+          season: 1,
+        },
+      ] as Cookie[];
+
+      // Reorder: move Lemon-Ups to first position
+      const reorderedCookies = [
+        cookiesStore.allCookies[2], // LEM -> position 0
+        cookiesStore.allCookies[0], // ADV -> position 1
+        cookiesStore.allCookies[1], // TM -> position 2
+      ];
+
+      await cookiesStore.reorderCookies(reorderedCookies);
+
+      // After sorting, check the arrays are in the correct order
+      // Position 0 should be LEM (order=0)
+      expect(cookiesStore.allCookies[0].abbreviation).toBe('LEM');
+      expect(cookiesStore.allCookies[0].order).toBe(0);
+
+      // Position 1 should be ADV (order=1)
+      expect(cookiesStore.allCookies[1].abbreviation).toBe('ADV');
+      expect(cookiesStore.allCookies[1].order).toBe(1);
+
+      // Position 2 should be TM (order=2)
+      expect(cookiesStore.allCookies[2].abbreviation).toBe('TM');
+      expect(cookiesStore.allCookies[2].order).toBe(2);
+
+      // Check seasonCookies is also sorted correctly
+      expect(cookiesStore.seasonCookies[0].abbreviation).toBe('LEM');
+      expect(cookiesStore.seasonCookies[0].order).toBe(0);
+
+      expect(cookiesStore.seasonCookies[1].abbreviation).toBe('ADV');
+      expect(cookiesStore.seasonCookies[1].order).toBe(1);
+
+      expect(cookiesStore.seasonCookies[2].abbreviation).toBe('TM');
+      expect(cookiesStore.seasonCookies[2].order).toBe(2);
+    });
+
+    it('handles reordering when cookie is not in seasonCookies', async () => {
+      // Set up seasonCookies with only some cookies
+      cookiesStore.seasonCookies = [
+        {
+          id: 1,
+          name: 'Adventurefuls',
+          abbreviation: 'ADV',
+          price: 5.0,
+          order: 1,
+          profile: 'test-profile-id',
+          season: 1,
+        },
+      ] as Cookie[];
+
+      // Reorder allCookies
+      const reorderedCookies = [
+        cookiesStore.allCookies[2], // LEM -> position 0
+        cookiesStore.allCookies[0], // ADV -> position 1
+        cookiesStore.allCookies[1], // TM -> position 2
+      ];
+
+      await cookiesStore.reorderCookies(reorderedCookies);
+
+      // After sorting, check order values by finding cookies by ID
+      const lemCookie = cookiesStore.allCookies.find((c) => c.id === 3);
+      const advCookie = cookiesStore.allCookies.find((c) => c.id === 1);
+      const tmCookie = cookiesStore.allCookies.find((c) => c.id === 2);
+
+      expect(lemCookie?.order).toBe(0);
+      expect(advCookie?.order).toBe(1);
+      expect(tmCookie?.order).toBe(2);
+
+      // Check only ADV in seasonCookies is updated (since only ADV was in seasonCookies)
+      expect(cookiesStore.seasonCookies[0].order).toBe(1); // ADV
+      expect(cookiesStore.seasonCookies[0].abbreviation).toBe('ADV');
+    });
+  });
 });
