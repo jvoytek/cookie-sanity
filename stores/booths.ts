@@ -301,8 +301,10 @@ export const useBoothsStore = defineStore('booths', () => {
     }
   };
 
-  const deleteBoothSale = async (boothSale: BoothSale) => {
+  const deleteBoothSale = async (boothSale: BoothSale | null) => {
     try {
+      if (!boothSale) throw new Error('No Booth Sale Selected');
+
       const { error } = await _supabaseDeleteBoothSale(boothSale);
 
       if (error) throw error;

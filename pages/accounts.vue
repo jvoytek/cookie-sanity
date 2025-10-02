@@ -3,7 +3,7 @@ const girlsStore = useGirlsStore();
 const paymentHelpers = usePaymentHelpers();
 const activeGirlAccount = ref(null);
 function openNew() {
-  paymentHelpers.editPayment({});
+  paymentHelpers.editPayment(null);
 }
 </script>
 

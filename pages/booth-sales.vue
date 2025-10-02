@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { useToast } from 'primevue/usetoast';
 import type { BoothSale } from '@/types/types';
+import { useFormKitNodeById } from '@formkit/vue';
+
+const formNode = useFormKitNodeById('booth-form');
 
 const loading = ref(true);
 loading.value = true;
@@ -9,7 +12,7 @@ const boothsStore = useBoothsStore();
 const girlsStore = useGirlsStore();
 const cookiesStore = useCookiesStore();
 const formatHelpers = useFormatHelpers();
-const myForm = ref<FormInstance | null>(null);
+const notificationHelpers = useNotificationHelpers();
 
 loading.value = false;
 
@@ -23,10 +26,7 @@ const inventoryTypeOptions = [
 ];
 
 function openNew() {
-  editBoothSale({
-    scouts_attending: [],
-    expected_sales: 0,
-  });
+  editBoothSale(null);
 }
 
 function hideDialog() {
@@ -34,18 +34,22 @@ function hideDialog() {
 }
 
 async function saveBoothSale() {
-  if (boothsStore.activeBoothSale.id) {
+  if (boothsStore.activeBoothSale?.id) {
     boothsStore.upsertBoothSale(boothsStore.activeBoothSale);
-  } else {
+  } else if (boothsStore.activeBoothSale) {
     boothsStore.insertBoothSale(boothsStore.activeBoothSale);
   }
   boothsStore.boothDialogVisible = false;
-  boothsStore.activeBoothSale = {};
+  boothsStore.activeBoothSale = null;
 }
 
-function editBoothSale(sale: BoothSale) {
+const submitButtonClickHandler = () => {
+  if (formNode.value) formNode.value.submit();
+};
+
+function editBoothSale(sale: BoothSale | null) {
   boothsStore.boothDialogFormSchema.value = getBoothSaleDialogFormSchema();
-  boothsStore.activeBoothSale = { ...sale };
+  boothsStore.activeBoothSale = sale;
   boothsStore.boothDialogVisible = true;
 }
 
@@ -58,14 +62,9 @@ async function deleteBoothSale() {
   try {
     boothsStore.deleteBoothSale(boothsStore.activeBoothSale);
     deleteBoothSaleDialog.value = false;
-    boothsStore.activeBoothSale = {};
+    boothsStore.activeBoothSale = null;
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: (error as Error).message,
-      life: 3000,
-    });
+    notificationHelpers.addError(error as Error);
   }
 }
 
@@ -299,7 +298,7 @@ const getBoothSaleDialogFormSchema = () => {
         >
           <div class="flex flex-col gap-6">
             <FormKit
-              ref="myForm"
+              id="booth-form"
               v-model="boothsStore.activeBoothSale"
               type="form"
               :actions="false"
@@ -321,7 +320,7 @@ const getBoothSaleDialogFormSchema = () => {
             <Button
               label="Save"
               icon="pi pi-check"
-              @click="myForm.node.submit()"
+              @click="submitButtonClickHandler"
             />
           </template>
         </Dialog>

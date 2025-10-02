@@ -57,7 +57,7 @@ export const usePaymentHelpers = () => {
     return baseSchema;
   };
 
-  const editPayment = (payment: Payment) => {
+  const editPayment = (payment: Payment | null) => {
     accountsStore.activePayment = payment;
     accountsStore.paymentDialogFormSchema.value = getPaymentDialogFormSchema();
     accountsStore.editPaymentDialogVisible = true;
