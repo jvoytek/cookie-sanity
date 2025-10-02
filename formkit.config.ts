@@ -1,5 +1,5 @@
-import type { DefaultConfigOptions } from "@formkit/vue";
-import { primeInputs, primeOutputs } from "@sfxcode/formkit-primevue";
+import type { DefaultConfigOptions } from '@formkit/vue';
+import { primeInputs, primeOutputs } from '@sfxcode/formkit-primevue';
 
 const config: DefaultConfigOptions = {
   // Define the active locale
