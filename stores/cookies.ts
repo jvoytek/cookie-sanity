@@ -116,6 +116,9 @@ export const useCookiesStore = defineStore('cookies', () => {
     allCookies.value.sort(
       (a: Cookie, b: Cookie) => (a.order ?? 0) - (b.order ?? 0),
     );
+    seasonCookies.value.sort(
+      (a: Cookie, b: Cookie) => (a.order ?? 0) - (b.order ?? 0),
+    );
   };
 
   const _addCookie = (cookie: Cookie) => {
@@ -173,6 +176,10 @@ export const useCookiesStore = defineStore('cookies', () => {
 
   const _supabaseUpdateAllCookies = async () => {
     return await supabaseClient.from('cookies').upsert(allCookies.value);
+  };
+
+  const _supabaseUpdateSeasonCookies = async () => {
+    return await supabaseClient.from('cookies').upsert(seasonCookies.value);
   };
 
   /* Actions */
@@ -248,15 +255,28 @@ export const useCookiesStore = defineStore('cookies', () => {
 
   const reorderCookies = async (cookies: Cookie[]) => {
     cookies.forEach((cookie, i) => {
-      const index = allCookies.value.findIndex((c) => c.id === cookie.id);
-      allCookies.value[index].order = i;
+      const index = seasonCookies.value.findIndex((c) => c.id === cookie.id);
+      seasonCookies.value[index].order = i;
     });
+
+    if (
+      seasonsStore.currentSeason?.id === seasonsStore.settingsSelectedSeason?.id
+    ) {
+      allCookies.value = seasonCookies.value;
+    }
 
     _sortCookies();
 
     try {
-      const { error } = await _supabaseUpdateAllCookies();
+      const { error } = await _supabaseUpdateSeasonCookies();
       if (error) throw error;
+      if (
+        seasonsStore.currentSeason?.id ===
+        seasonsStore.settingsSelectedSeason?.id
+      ) {
+        const { error: allError } = await _supabaseUpdateAllCookies();
+        if (allError) throw allError;
+      }
       notificationHelpers.addSuccess('Cookies Reordered');
     } catch (error) {
       notificationHelpers.addError(error as Error);
