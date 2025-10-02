@@ -1,33 +1,37 @@
 <script setup>
-import { ref } from "vue";
+import { ref } from 'vue';
 
-import AppMenuItem from "./AppMenuItem.vue";
+import AppMenuItem from './AppMenuItem.vue';
 
 const model = ref([
   {
     items: [
-      { label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" },
-      { label: "Girls", icon: "pi pi-fw pi-users", to: "/girls" },
+      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
+      { label: 'Girls', icon: 'pi pi-fw pi-users', to: '/girls' },
       {
-        label: "Troop Inventory",
-        icon: "pi pi-fw pi-box",
-        to: "/troop-inventory",
+        label: 'Troop Inventory',
+        icon: 'pi pi-fw pi-box',
+        to: '/troop-inventory',
       },
       {
-        label: "Girl Inventory",
-        icon: "pi pi-fw pi-arrow-right-arrow-left",
-        to: "/girl-inventory",
-      },
-      { label: "All Transactions", icon: "pi pi-fw pi-table", to: "/all-transactions" },
-      {
-        label: "Booth Sales",
-        icon: "pi pi-fw pi-calendar",
-        to: "/booth-sales",
+        label: 'Girl Inventory',
+        icon: 'pi pi-fw pi-arrow-right-arrow-left',
+        to: '/girl-inventory',
       },
       {
-        label: "Account Management",
-        icon: "pi pi-fw pi-wallet",
-        to: "/accounts",
+        label: 'All Transactions',
+        icon: 'pi pi-fw pi-table',
+        to: '/all-transactions',
+      },
+      {
+        label: 'Booth Sales',
+        icon: 'pi pi-fw pi-calendar',
+        to: '/booth-sales',
+      },
+      {
+        label: 'Account Management',
+        icon: 'pi pi-fw pi-wallet',
+        to: '/accounts',
       },
     ],
   },

@@ -1,6 +1,6 @@
 <script setup>
-import { useLayout } from "@/composables/useLayout";
-import { onMounted } from "vue";
+import { useLayout } from '@/composables/useLayout';
+import { onMounted } from 'vue';
 
 const { initializeDarkMode } = useLayout();
 

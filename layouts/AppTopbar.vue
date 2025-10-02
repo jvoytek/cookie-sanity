@@ -1,6 +1,6 @@
 <script setup>
-import { useLayout } from "@/composables/useLayout";
-import AppConfigurator from "./AppConfigurator.vue";
+import { useLayout } from '@/composables/useLayout';
+import AppConfigurator from './AppConfigurator.vue';
 const supabase = useSupabaseClient();
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
@@ -13,13 +13,13 @@ const seasonsStore = useSeasonsStore();
 const menu = ref(null);
 const userMenuItems = ref([
   {
-    label: "Settings",
-    icon: "pi pi-cog",
-    url: "/settings",
+    label: 'Settings',
+    icon: 'pi pi-cog',
+    url: '/settings',
   },
   {
-    label: "Sign Out",
-    icon: "pi pi-sign-out",
+    label: 'Sign Out',
+    icon: 'pi pi-sign-out',
     command: () => signOut(),
     disabled: loading.value,
   },
@@ -30,7 +30,7 @@ function toggleOverlayMenu(event) {
 }
 
 async function signOut() {
-  console.log("signing out");
+  console.log('signing out');
   try {
     loading.value = true;
     const { error } = await supabase.auth.signOut();
