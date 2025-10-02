@@ -1,9 +1,9 @@
 <script setup>
-import Button from "primevue/button";
+import Button from 'primevue/button';
 const supabase = useSupabaseClient();
 
 const loading = ref(false);
-const email = ref("");
+const email = ref('');
 
 const handleLogin = async () => {
   try {
@@ -11,11 +11,11 @@ const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithOtp({
       email: email.value,
       options: {
-        emailRedirectTo: "http://localhost:3000/confirm",
+        emailRedirectTo: 'http://localhost:3000/confirm',
       },
     });
     if (error) throw error;
-    alert("Check your email for the login link!");
+    alert('Check your email for the login link!');
   } catch (error) {
     alert(error.error_description || error.message);
   } finally {
