@@ -152,7 +152,6 @@ export type Database = {
         Row: {
           cookies: Json | null;
           created_at: string;
-          direct_ship: boolean | null;
           from: number | null;
           id: number;
           notes: string | null;
@@ -169,7 +168,6 @@ export type Database = {
         Insert: {
           cookies?: Json | null;
           created_at?: string;
-          direct_ship?: boolean | null;
           from?: number | null;
           id?: number;
           notes?: string | null;
@@ -186,7 +184,6 @@ export type Database = {
         Update: {
           cookies?: Json | null;
           created_at?: string;
-          direct_ship?: boolean | null;
           from?: number | null;
           id?: number;
           notes?: string | null;

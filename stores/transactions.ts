@@ -29,6 +29,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     { value: 'G2T', label: 'Girl to Troop' },
     { value: 'T2T', label: 'Troop to Troop' },
     { value: 'C2T', label: 'Council to Troop' },
+    { value: 'DIRECT_SHIP', label: 'Direct Ship' },
   ];
 
   /* Computed */
@@ -46,8 +47,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
         );
       allTransactions.value.forEach((transaction) => {
         if (transaction.cookies === null || transaction.type === null) return;
-        // Skip direct ship orders for inventory calculations
-        if (transaction.direct_ship) return;
+        // Skip DIRECT_SHIP orders for inventory calculations
+        if (transaction.type === 'DIRECT_SHIP') return;
         if (
           transaction.status === status &&
           (transactionType === 'all' ||
@@ -72,8 +73,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     () =>
       (cookieAbbreviation: string): number =>
         allTransactions.value.reduce((sum, transaction) => {
-          // Skip direct ship orders for inventory calculations
-          if (transaction.direct_ship) return sum;
+          // Skip DIRECT_SHIP orders for inventory calculations
+          if (transaction.type === 'DIRECT_SHIP') return sum;
           if (transaction.cookies && transaction.status === 'complete') {
             const quantity = transaction.cookies[cookieAbbreviation] || 0;
             return sum + (typeof quantity === 'number' ? quantity : 0);
@@ -148,7 +149,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     if (!type) return false;
     return (
       ['T2G', 'G2G', 'G2T'].includes(type.slice(0, 3)) ||
-      type.slice(0, 12) === 'COOKIE_SHARE'
+      type.slice(0, 12) === 'COOKIE_SHARE' ||
+      type === 'DIRECT_SHIP'
     );
   };
 
@@ -290,6 +292,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       T2T: 'Troop to Troop',
       C2T: 'Council to Troop',
       COOKIE_SHARE: 'Cookie Share',
+      DIRECT_SHIP: 'Direct Ship',
     };
     return transactionTypeMap[type] || type;
   };
