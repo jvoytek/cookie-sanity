@@ -100,6 +100,7 @@ export type Database = {
           color: string | null;
           created_at: string;
           id: number;
+          is_virtual: boolean | null;
           name: string;
           order: number | null;
           percent_of_sale: number | null;
@@ -112,6 +113,7 @@ export type Database = {
           color?: string | null;
           created_at?: string;
           id?: number;
+          is_virtual?: boolean | null;
           name: string;
           order?: number | null;
           percent_of_sale?: number | null;
@@ -124,6 +126,7 @@ export type Database = {
           color?: string | null;
           created_at?: string;
           id?: number;
+          is_virtual?: boolean | null;
           name?: string;
           order?: number | null;
           percent_of_sale?: number | null;
@@ -152,7 +155,6 @@ export type Database = {
         Row: {
           cookies: Json | null;
           created_at: string;
-          direct_ship: boolean | null;
           from: number | null;
           id: number;
           notes: string | null;
@@ -169,7 +171,6 @@ export type Database = {
         Insert: {
           cookies?: Json | null;
           created_at?: string;
-          direct_ship?: boolean | null;
           from?: number | null;
           id?: number;
           notes?: string | null;
@@ -186,7 +187,6 @@ export type Database = {
         Update: {
           cookies?: Json | null;
           created_at?: string;
-          direct_ship?: boolean | null;
           from?: number | null;
           id?: number;
           notes?: string | null;

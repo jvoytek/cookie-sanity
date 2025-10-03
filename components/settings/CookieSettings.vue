@@ -160,6 +160,25 @@ async function onRowReorder(event) {
             {{ slotProps.data.percent_of_sale || 0 }}%
           </template>
         </Column>
+        <Column field="is_virtual">
+          <template #header>
+            <strong>Virtual</strong>
+            <i
+              v-tooltip.bottom="{
+                value: 'Virtual packages don\'t count against your inventory',
+                showDelay: 500,
+              }"
+              class="pi pi-info-circle ml-2"
+              style="cursor: pointer"
+            />
+          </template>
+          <template #body="slotProps">
+            <i
+              v-if="slotProps.data.is_virtual"
+              class="pi pi-check text-green-500"
+            />
+          </template>
+        </Column>
         <Column :exportable="false" nowrap>
           <template #body="slotProps">
             <Button
@@ -267,6 +286,25 @@ async function onRowReorder(event) {
               fluid
             />
           </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <Checkbox
+            v-model="product.is_virtual"
+            input-id="is_virtual"
+            :binary="true"
+          />
+          <label for="is_virtual" class="font-bold">
+            Virtual Cookie
+            <i
+              v-tooltip.bottom="{
+                value: 'Virtual packages don\'t count against your inventory',
+                showDelay: 500,
+              }"
+              class="pi pi-info-circle ml-2"
+              style="cursor: pointer"
+            />
+          </label>
         </div>
       </div>
 

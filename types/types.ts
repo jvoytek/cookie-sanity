@@ -47,6 +47,7 @@ export interface AccountBalance {
 
 export interface TroopAccountSummary {
   totalDistributedValue: number;
+  packagesDistributedByType: Record<string, number>;
   totalPaymentsReceived: number;
   troopBalance: number;
   estimatedTotalSales: number;

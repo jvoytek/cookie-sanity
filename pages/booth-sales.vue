@@ -204,7 +204,7 @@ const getBoothSaleDialogFormSchema = () => {
     {
       $formkit: 'group',
       name: 'predicted_cookies',
-      children: cookiesStore.cookieFormFields,
+      children: cookiesStore.cookieFormFieldsNotVirtual,
       disabled: "$get('auto_calculate_predicted_cookies').value === true",
     },
   ];

@@ -240,7 +240,13 @@ export const useTransactionHelpers = () => {
         $formkit: 'group',
         name: 'cookies',
         children: cookiesStore.cookieFormFields,
-        if: "$get('transaction-type').value",
+        if: "$get('transaction-type').value && $get('transaction-type').value === 'T2G'",
+      },
+      {
+        $formkit: 'group',
+        name: 'cookies',
+        children: cookiesStore.cookieFormFieldsNotVirtual,
+        if: "$get('transaction-type').value && $get('transaction-type').value !== 'T2G'",
       },
     ];
 
@@ -263,6 +269,28 @@ export const useTransactionHelpers = () => {
   }
 
   async function saveTransaction() {
+    // Validate that virtual cookies are not used in troop-type transactions
+    const transactionType = ordersStore.activeTransaction?.type;
+    const isTroopTransaction =
+      transactionType === 'C2T' || transactionType === 'T2T';
+
+    if (isTroopTransaction && ordersStore.activeTransaction?.cookies) {
+      const hasVirtualCookies = cookiesStore.allCookies.some((cookie) => {
+        const quantity =
+          ordersStore.activeTransaction?.cookies?.[cookie.abbreviation] || 0;
+        return cookie.is_virtual && quantity !== 0;
+      });
+
+      if (hasVirtualCookies) {
+        notificationHelpers.addError(
+          new Error(
+            'Virtual cookies cannot be used in troop-type transactions',
+          ),
+        );
+        return;
+      }
+    }
+
     if (ordersStore.activeTransaction?.id) {
       ordersStore.upsertTransaction(ordersStore.activeTransaction);
     } else {
