@@ -246,4 +246,73 @@ describe('useTransactionHelpers', () => {
       );
     });
   });
+
+  describe('direct ship functionality', () => {
+    it('includes direct_ship checkbox in form schema for T2G transactions', () => {
+      const testOrder: Order = {
+        id: 1,
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'T2G',
+        status: 'pending',
+        profile: 'test-profile',
+        season: 1,
+        cookies: { TM: 5, ADV: 3 },
+        to: 1,
+        from: null,
+        supplier: null,
+        notes: null,
+        processed_date: null,
+        created_at: '2024-01-15T10:00:00Z',
+        direct_ship: false,
+      };
+
+      transactionHelpers.editTransaction(testOrder, 'girl');
+
+      // Check that the schema was created
+      expect(mockOrdersStore.transactionDialogFormSchema.value).toBeDefined();
+      expect(
+        Array.isArray(mockOrdersStore.transactionDialogFormSchema.value),
+      ).toBe(true);
+
+      // Check that direct_ship field is present
+      const schema = mockOrdersStore.transactionDialogFormSchema.value;
+      const directShipField = schema.find(
+        (field: { name?: string }) => field.name === 'direct_ship',
+      );
+      expect(directShipField).toBeDefined();
+      expect(directShipField?.$formkit).toBe('primeCheckbox');
+    });
+
+    it('direct_ship checkbox only shows for T2G transactions', () => {
+      mockOrdersStore.transactionDialogFormSchema.value = [];
+
+      const testOrder: Order = {
+        id: 1,
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'T2G',
+        status: 'pending',
+        profile: 'test-profile',
+        season: 1,
+        cookies: { TM: 5 },
+        to: 1,
+        from: null,
+        supplier: null,
+        notes: null,
+        processed_date: null,
+        created_at: '2024-01-15T10:00:00Z',
+        direct_ship: false,
+      };
+
+      transactionHelpers.editTransaction(testOrder, 'girl');
+      const schema = mockOrdersStore.transactionDialogFormSchema.value;
+      const directShipField = schema.find(
+        (field: { name?: string }) => field.name === 'direct_ship',
+      );
+
+      // Should have conditional display for T2G transactions
+      expect(directShipField?.if).toContain("'T2G'");
+    });
+  });
 });
