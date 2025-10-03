@@ -84,7 +84,7 @@ describe('Transactions Store', () => {
       expect(transactionsStore.activeTransaction).toEqual(null);
       expect(transactionsStore.editTransactionDialogVisible).toBe(false);
       expect(transactionsStore.deleteTransactionDialogVisible).toBe(false);
-      expect(transactionsStore.transactionTypeOptions).toHaveLength(5);
+      expect(transactionsStore.transactionTypeOptions).toHaveLength(6);
     });
 
     it('should have correct transaction type options', () => {
@@ -94,6 +94,7 @@ describe('Transactions Store', () => {
         { value: 'G2T', label: 'Girl to Troop' },
         { value: 'T2T', label: 'Troop to Troop' },
         { value: 'C2T', label: 'Council to Troop' },
+        { value: 'DIRECT_SHIP', label: 'Direct Ship' },
       ]);
     });
   });

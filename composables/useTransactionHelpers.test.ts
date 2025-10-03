@@ -305,72 +305,71 @@ describe('useTransactionHelpers', () => {
     });
   });
 
-  describe('direct ship functionality', () => {
-    it('includes direct_ship checkbox in form schema for T2G transactions', () => {
-      const testOrder: Order = {
-        id: 1,
-        order_date: '2024-01-15',
-        order_num: 'TEST123',
-        type: 'T2G',
-        status: 'pending',
-        profile: 'test-profile',
-        season: 1,
-        cookies: { TM: 5, ADV: 3 },
-        to: 1,
-        from: null,
-        supplier: null,
-        notes: null,
-        processed_date: null,
-        created_at: '2024-01-15T10:00:00Z',
-        direct_ship: false,
-      };
-
-      transactionHelpers.editTransaction(testOrder, 'girl');
-
-      // Check that the schema was created
-      expect(mockOrdersStore.transactionDialogFormSchema.value).toBeDefined();
+  describe('DIRECT_SHIP transaction type', () => {
+    it('returns correct severity for DIRECT_SHIP type', () => {
       expect(
-        Array.isArray(mockOrdersStore.transactionDialogFormSchema.value),
-      ).toBe(true);
-
-      // Check that direct_ship field is present
-      const schema = mockOrdersStore.transactionDialogFormSchema.value;
-      const directShipField = schema.find(
-        (field: { name?: string }) => field.name === 'direct_ship',
-      );
-      expect(directShipField).toBeDefined();
-      expect(directShipField?.$formkit).toBe('primeCheckbox');
+        transactionHelpers.transactionTypeBadgeSeverity('DIRECT_SHIP'),
+      ).toBe('info');
     });
 
-    it('direct_ship checkbox only shows for T2G transactions', () => {
-      mockOrdersStore.transactionDialogFormSchema.value = [];
-
+    it('includes DIRECT_SHIP help text in form schema', () => {
       const testOrder: Order = {
         id: 1,
         order_date: '2024-01-15',
         order_num: 'TEST123',
-        type: 'T2G',
+        type: 'DIRECT_SHIP',
         status: 'pending',
         profile: 'test-profile',
         season: 1,
-        cookies: { TM: 5 },
+        cookies: { TM: -5 },
         to: 1,
         from: null,
         supplier: null,
         notes: null,
         processed_date: null,
         created_at: '2024-01-15T10:00:00Z',
-        direct_ship: false,
       };
 
       transactionHelpers.editTransaction(testOrder, 'girl');
       const schema = mockOrdersStore.transactionDialogFormSchema.value;
-      const directShipField = schema.find(
-        (field: { name?: string }) => field.name === 'direct_ship',
-      );
 
-      // Should have conditional display for T2G transactions
-      expect(directShipField?.if).toContain("'T2G'");
+      // Check that help text for DIRECT_SHIP is present
+      const directShipHelp = schema.find(
+        (field: { if?: string; children?: { children?: string }[] }) =>
+          field.if?.includes('DIRECT_SHIP') &&
+          field.children?.[0]?.children ===
+            'Cookies shipped directly from baker to customer',
+      );
+      expect(directShipHelp).toBeDefined();
+    });
+
+    it('shows "to" field for DIRECT_SHIP transactions', () => {
+      const testOrder: Order = {
+        id: 1,
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'DIRECT_SHIP',
+        status: 'pending',
+        profile: 'test-profile',
+        season: 1,
+        cookies: { TM: -5 },
+        to: 1,
+        from: null,
+        supplier: null,
+        notes: null,
+        processed_date: null,
+        created_at: '2024-01-15T10:00:00Z',
+      };
+
+      transactionHelpers.editTransaction(testOrder, 'girl');
+      const schema = mockOrdersStore.transactionDialogFormSchema.value;
+
+      // Check that "to" field shows for DIRECT_SHIP
+      const toField = schema.find(
+        (field: { name?: string; if?: string }) =>
+          field.name === 'to' && field.if?.includes('DIRECT_SHIP'),
+      );
+      expect(toField).toBeDefined();
     });
   });
 });

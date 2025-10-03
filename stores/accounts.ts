@@ -41,7 +41,7 @@ export const useAccountsStore = defineStore('accounts', () => {
       const balance = paymentsReceived - distributedValue;
       const status = _getStatus(balance);
 
-      // Include direct ship orders in estimated sales
+      // Include DIRECT_SHIP orders in estimated sales
       const directShipTransactions = _getDirectShipTransactionsForGirl(girl.id);
       const { numCookiesDistributed: directShipCookies } =
         _getTotalsFromTransactionList(directShipTransactions);
@@ -139,14 +139,16 @@ export const useAccountsStore = defineStore('accounts', () => {
       (order) =>
         order.to === girlId &&
         order.status === 'complete' &&
-        !order.direct_ship, // Exclude direct ship orders from balance calculations
+        order.type !== 'DIRECT_SHIP', // Exclude DIRECT_SHIP from balance calculations
     );
   };
 
   const _getDirectShipTransactionsForGirl = (girlId: number): Order[] => {
     return ordersStore.allTransactions.filter(
       (order) =>
-        order.to === girlId && order.status === 'complete' && order.direct_ship,
+        order.to === girlId &&
+        order.status === 'complete' &&
+        order.type === 'DIRECT_SHIP',
     );
   };
 
