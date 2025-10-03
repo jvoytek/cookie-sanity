@@ -35,7 +35,17 @@ const cookiesWithValues = (cookies: Record<string, number>) => {
           backgroundColor: cookie.color || '#888',
         }"
       />
-      <span>{{ props.cookies[cookie.abbreviation] }} {{ cookie.name }}, </span>
+      <span>{{ props.cookies[cookie.abbreviation] }} {{ cookie.name }}</span>
+      <i
+        v-if="cookie.is_virtual"
+        v-tooltip.bottom="{
+          value: 'Virtual packages don\'t count against your inventory',
+          showDelay: 500,
+        }"
+        class="pi pi-info-circle text-blue-500"
+        style="cursor: pointer; font-size: 0.75rem"
+      />
+      <span>, </span>
     </span>
     <span class="text-sm"> Total: {{ totalCookies(props.cookies) }} </span>
   </div>
