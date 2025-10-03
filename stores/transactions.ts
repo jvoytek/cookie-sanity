@@ -46,6 +46,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
         );
       allTransactions.value.forEach((transaction) => {
         if (transaction.cookies === null || transaction.type === null) return;
+        // Skip direct ship orders for inventory calculations
+        if (transaction.direct_ship) return;
         if (
           transaction.status === status &&
           (transactionType === 'all' ||
@@ -70,6 +72,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     () =>
       (cookieAbbreviation: string): number =>
         allTransactions.value.reduce((sum, transaction) => {
+          // Skip direct ship orders for inventory calculations
+          if (transaction.direct_ship) return sum;
           if (transaction.cookies && transaction.status === 'complete') {
             const quantity = transaction.cookies[cookieAbbreviation] || 0;
             return sum + (typeof quantity === 'number' ? quantity : 0);

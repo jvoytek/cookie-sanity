@@ -120,6 +120,13 @@ export const useTransactionHelpers = () => {
         rows: 2,
       },
       {
+        $formkit: 'primeCheckbox',
+        name: 'direct_ship',
+        label: 'Direct Ship',
+        help: 'Check if this order was shipped directly from the baker to the customer. Direct ship orders are not used for inventory or balance calculations.',
+        if: "$get('transaction-type').value === 'T2G'",
+      },
+      {
         $el: 'div',
         children: [
           {
