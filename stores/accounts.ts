@@ -76,6 +76,22 @@ export const useAccountsStore = defineStore('accounts', () => {
       (sum, balance) => sum + (balance.numCookiesDistributed || 0),
       0,
     );
+
+    const packagesDistributedByType: Record<string, number> = balances.reduce(
+      (acc, balance) => {
+        for (const [abbreviation, quantity] of Object.entries(
+          balance.cookieTotals || {},
+        )) {
+          if (!acc[abbreviation]) {
+            acc[abbreviation] = 0;
+          }
+          acc[abbreviation] += quantity;
+        }
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
     const estimatedTotalSales =
       troopBalance >= 0
         ? numCookiesDistributed
@@ -88,6 +104,7 @@ export const useAccountsStore = defineStore('accounts', () => {
 
     return {
       totalDistributedValue,
+      packagesDistributedByType,
       totalPaymentsReceived,
       troopBalance,
       estimatedTotalSales,

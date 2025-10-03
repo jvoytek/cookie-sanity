@@ -233,7 +233,13 @@ export const useTransactionHelpers = () => {
         $formkit: 'group',
         name: 'cookies',
         children: cookiesStore.cookieFormFields,
-        if: "$get('transaction-type').value",
+        if: "$get('transaction-type').value && $get('transaction-type').value === 'T2G'",
+      },
+      {
+        $formkit: 'group',
+        name: 'cookies',
+        children: cookiesStore.cookieFormFieldsNotVirtual,
+        if: "$get('transaction-type').value && $get('transaction-type').value !== 'T2G'",
       },
     ];
 
