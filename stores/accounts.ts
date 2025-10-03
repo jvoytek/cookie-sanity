@@ -137,7 +137,7 @@ export const useAccountsStore = defineStore('accounts', () => {
   const _getCompletedTransactionsForGirl = (girlId: number): Order[] => {
     return ordersStore.allTransactions.filter(
       (order) =>
-        order.to === girlId &&
+        (order.to === girlId || order.from === girlId) &&
         order.status === 'complete' &&
         order.type !== 'DIRECT_SHIP', // Exclude DIRECT_SHIP from balance calculations
     );

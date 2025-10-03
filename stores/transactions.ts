@@ -258,7 +258,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
       .select(`*`)
       .eq('profile', profileStore.currentProfile.id)
       .eq('season', seasonsStore.currentSeason.id)
-      .neq('type', 'DIRECT_SHIP')
       .order('order_date', { ascending: false });
   };
 

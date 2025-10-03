@@ -113,6 +113,14 @@ describe('Transactions Store', () => {
         },
         {
           ...baseTransaction,
+          id: 7,
+          status: 'complete',
+          type: 'G2T',
+          cookies: { ABC: -2 },
+          order_date: '2024-01-01',
+        },
+        {
+          ...baseTransaction,
           id: 2,
           status: 'pending',
           type: 'T2G',
@@ -158,8 +166,8 @@ describe('Transactions Store', () => {
       const sumABC = transactionsStore.sumTransactionsByCookie('ABC');
       const sumDEF = transactionsStore.sumTransactionsByCookie('DEF');
 
-      // Only complete transactions are counted: ABC: 5 + 10 = 15, DEF: 3
-      expect(sumABC).toBe(15);
+      // Only complete transactions are counted: ABC: 5 + 10 - 2 = 13, DEF: 3
+      expect(sumABC).toBe(13);
       expect(sumDEF).toBe(3);
     });
 
