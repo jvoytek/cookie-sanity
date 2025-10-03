@@ -246,4 +246,62 @@ describe('useTransactionHelpers', () => {
       );
     });
   });
+
+  describe('virtual cookie validation', () => {
+    it('should prevent troop-type transactions with virtual cookies', async () => {
+      mockCookiesStore.allCookies = [
+        { name: 'Thin Mints', abbreviation: 'TM', id: 1, is_virtual: false },
+        { name: 'Cookie Share', abbreviation: 'CS', id: 2, is_virtual: true },
+      ];
+
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'C2T',
+        cookies: { TM: 5, CS: 3 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).toHaveBeenCalledWith(
+        new Error('Virtual cookies cannot be used in troop-type transactions'),
+      );
+      expect(mockOrdersStore.insertNewTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should allow troop-type transactions without virtual cookies', async () => {
+      mockCookiesStore.allCookies = [
+        { name: 'Thin Mints', abbreviation: 'TM', id: 1, is_virtual: false },
+        { name: 'Cookie Share', abbreviation: 'CS', id: 2, is_virtual: true },
+      ];
+
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2T',
+        cookies: { TM: 5, CS: 0 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+
+    it('should allow girl-type transactions with virtual cookies', async () => {
+      mockCookiesStore.allCookies = [
+        { name: 'Thin Mints', abbreviation: 'TM', id: 1, is_virtual: false },
+        { name: 'Cookie Share', abbreviation: 'CS', id: 2, is_virtual: true },
+      ];
+
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { TM: 5, CS: 3 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+  });
 });

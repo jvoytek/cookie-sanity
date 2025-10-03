@@ -59,6 +59,15 @@ const formatHelpers = useFormatHelpers();
           troop inventory</span
         >
       </p>
+      <CookieList
+        v-if="
+          Object.keys(
+            accountsStore.troopAccountSummary.packagesDistributedByType,
+          ).length > 0
+        "
+        :cookies="accountsStore.troopAccountSummary.packagesDistributedByType"
+        class="mt-2"
+      />
     </Fieldset>
   </div>
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">

@@ -56,6 +56,13 @@ export const useTransactionsStore = defineStore('transactions', () => {
         ) {
           cookiesStore.allCookies.forEach((cookie) => {
             if (!transaction.cookies) return;
+            // Virtual cookies should not count towards physical inventory
+            if (
+              cookie.is_virtual &&
+              (transactionType === 'troop' || transactionType === 'all')
+            ) {
+              return;
+            }
             total[cookie.abbreviation] =
               (total[cookie.abbreviation] || 0) +
               (transaction.cookies[cookie.abbreviation] || 0);
@@ -68,14 +75,20 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const sumTransactionsByCookie = computed(
     () =>
-      (cookieAbbreviation: string): number =>
-        allTransactions.value.reduce((sum, transaction) => {
+      (cookieAbbreviation: string): number => {
+        const cookie = cookiesStore.getCookieByAbbreviation(cookieAbbreviation);
+        // Virtual cookies should not count towards physical inventory
+        if (cookie?.is_virtual) {
+          return 0;
+        }
+        return allTransactions.value.reduce((sum, transaction) => {
           if (transaction.cookies && transaction.status === 'complete') {
             const quantity = transaction.cookies[cookieAbbreviation] || 0;
             return sum + (typeof quantity === 'number' ? quantity : 0);
           }
           return sum;
-        }, 0),
+        }, 0);
+      },
   );
 
   const completedGirlTransactionList = computed(() => {
@@ -405,7 +418,15 @@ export const useTransactionsStore = defineStore('transactions', () => {
       return;
     const toGirlId = _getGirlId(obj.TO);
     const fromGirlId = _getGirlId(obj.FROM);
-    //const type =
+    // Convert COOKIE_SHARE types to T2G
+    let type = obj.TYPE;
+    if (
+      type === 'COOKIE_SHARE' ||
+      type === 'COOKIE_SHARE(B)' ||
+      type === 'COOKIE_SHARE(VB)'
+    ) {
+      type = 'T2G';
+    }
     return {
       profile: profileStore.currentProfile?.id,
       order_date: _returnDateStringOrNull(obj.DATE),
@@ -414,7 +435,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       from: fromGirlId || null,
       cookies: obj,
       season: profileStore.currentProfile.season || undefined,
-      type: obj.TYPE,
+      type: type,
       status: 'complete',
     };
   };

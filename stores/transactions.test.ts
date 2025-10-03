@@ -54,6 +54,23 @@ describe('Transactions Store', () => {
       })),
     );
 
+    vi.stubGlobal(
+      'useCookiesStore',
+      vi.fn(() => ({
+        allCookies: [
+          { abbreviation: 'ABC', is_virtual: false },
+          { abbreviation: 'DEF', is_virtual: false },
+        ],
+        getCookieByAbbreviation: vi.fn((abbreviation: string) => {
+          const cookies = [
+            { abbreviation: 'ABC', is_virtual: false },
+            { abbreviation: 'DEF', is_virtual: false },
+          ];
+          return cookies.find((c) => c.abbreviation === abbreviation);
+        }),
+      })),
+    );
+
     transactionsStore = useTransactionsStore();
   });
 
@@ -844,6 +861,90 @@ describe('Transactions Store', () => {
   });
 
   describe('convertSCOrderToNewTransaction', () => {
+    it('should convert COOKIE_SHARE to T2G', () => {
+      const scOrder = {
+        DATE: '2024-01-01',
+        'ORDER #': 12345,
+        TYPE: 'COOKIE_SHARE',
+        TO: 'Jane Doe',
+        FROM: 'John Smith',
+        CShare: 10,
+        ADV: 0,
+        TY: 0,
+        LEM: 0,
+        TRE: 0,
+        TM: 0,
+        PBP: 0,
+        CD: 0,
+        PBS: 0,
+        GFC: 0,
+        STATUS: 'complete',
+        TOTAL: 10,
+        'TOTAL $': 60,
+      } as SCOrder2025;
+
+      const newOrder =
+        transactionsStore.convertSCOrderToNewTransaction(scOrder);
+
+      expect(newOrder?.type).toBe('T2G');
+    });
+
+    it('should convert COOKIE_SHARE(B) to T2G', () => {
+      const scOrder = {
+        DATE: '2024-01-01',
+        'ORDER #': 12345,
+        TYPE: 'COOKIE_SHARE(B)',
+        TO: 'Jane Doe',
+        FROM: 'John Smith',
+        CShare: 5,
+        ADV: 0,
+        TY: 0,
+        LEM: 0,
+        TRE: 0,
+        TM: 0,
+        PBP: 0,
+        CD: 0,
+        PBS: 0,
+        GFC: 0,
+        STATUS: 'complete',
+        TOTAL: 5,
+        'TOTAL $': 30,
+      } as SCOrder2025;
+
+      const newOrder =
+        transactionsStore.convertSCOrderToNewTransaction(scOrder);
+
+      expect(newOrder?.type).toBe('T2G');
+    });
+
+    it('should convert COOKIE_SHARE(VB) to T2G', () => {
+      const scOrder = {
+        DATE: '2024-01-01',
+        'ORDER #': 12345,
+        TYPE: 'COOKIE_SHARE(VB)',
+        TO: 'Jane Doe',
+        FROM: 'John Smith',
+        CShare: 3,
+        ADV: 0,
+        TY: 0,
+        LEM: 0,
+        TRE: 0,
+        TM: 0,
+        PBP: 0,
+        CD: 0,
+        PBS: 0,
+        GFC: 0,
+        STATUS: 'complete',
+        TOTAL: 3,
+        'TOTAL $': 18,
+      } as SCOrder2025;
+
+      const newOrder =
+        transactionsStore.convertSCOrderToNewTransaction(scOrder);
+
+      expect(newOrder?.type).toBe('T2G');
+    });
+
     it('should convert SC order to new transaction successfully', () => {
       //    if (!profileStore.currentProfile?.id || profileStore.currentProfile?.season)
 
@@ -1061,6 +1162,92 @@ describe('Transactions Store', () => {
           Array.isArray(transactionsStore.transactionDialogFormSchema),
         ).toBe(true);
       });
+    });
+  });
+
+  describe('virtual cookies', () => {
+    beforeEach(() => {
+      // Mock with virtual cookie
+      vi.stubGlobal(
+        'useCookiesStore',
+        vi.fn(() => ({
+          allCookies: [
+            { abbreviation: 'ABC', is_virtual: false },
+            { abbreviation: 'VIRTUAL', is_virtual: true },
+          ],
+          getCookieByAbbreviation: vi.fn((abbreviation: string) => {
+            const cookies = [
+              { abbreviation: 'ABC', is_virtual: false },
+              { abbreviation: 'VIRTUAL', is_virtual: true },
+            ];
+            return cookies.find((c) => c.abbreviation === abbreviation);
+          }),
+        })),
+      );
+
+      // Create new store instance with the updated mock
+      setActivePinia(createPinia());
+      transactionsStore = useTransactionsStore();
+    });
+
+    it('should exclude virtual cookies from physical inventory', () => {
+      transactionsStore.allTransactions = [
+        {
+          ...baseTransaction,
+          id: 1,
+          status: 'complete',
+          type: 'T2G',
+          cookies: { ABC: 10, VIRTUAL: 5 },
+        },
+      ];
+
+      // Physical cookie should count
+      expect(transactionsStore.sumTransactionsByCookie('ABC')).toBe(10);
+      // Virtual cookie should not count
+      expect(transactionsStore.sumTransactionsByCookie('VIRTUAL')).toBe(0);
+    });
+
+    it('should exclude virtual cookies from troop inventory calculations', () => {
+      transactionsStore.allTransactions = [
+        {
+          ...baseTransaction,
+          id: 1,
+          status: 'pending',
+          type: 'T2T',
+          cookies: { ABC: 10, VIRTUAL: 5 },
+        },
+      ];
+
+      const totals = transactionsStore.totalTransactionsByStatusAllCookies(
+        'pending',
+        'troop',
+      );
+
+      // Physical cookie should count
+      expect(totals.ABC).toBe(10);
+      // Virtual cookie should not count in troop transactions
+      expect(totals.VIRTUAL).toBe(0);
+    });
+
+    it('should include virtual cookies in girl balance calculations', () => {
+      transactionsStore.allTransactions = [
+        {
+          ...baseTransaction,
+          id: 1,
+          status: 'pending',
+          type: 'T2G',
+          cookies: { ABC: 10, VIRTUAL: 5 },
+        },
+      ];
+
+      const totals = transactionsStore.totalTransactionsByStatusAllCookies(
+        'pending',
+        'girl',
+      );
+
+      // Both should count for girl transactions
+      expect(totals.ABC).toBe(10);
+      expect(totals.VIRTUAL).toBe(5);
     });
   });
 });

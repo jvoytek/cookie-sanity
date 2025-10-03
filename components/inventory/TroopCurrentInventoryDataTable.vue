@@ -11,7 +11,11 @@ loading.value = false;
 <template>
   <div class="card">
     <DataTable
-      :value="cookiesStore.allCookiesWithInventoryTotals"
+      :value="
+        cookiesStore.allCookiesWithInventoryTotals.filter(
+          (cookie) => !cookie.is_virtual,
+        )
+      "
       data-key="id"
       sort-field="order"
       size="small"
