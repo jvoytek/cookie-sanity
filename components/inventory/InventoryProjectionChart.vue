@@ -1,10 +1,33 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import Chart from 'primevue/chart';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import { useCookiesStore } from '@/stores/cookies';
 import { useTransactionsStore } from '@/stores/transactions';
 import { useBoothsStore } from '@/stores/booths';
 import type { Order, BoothSale } from '@/types/types';
+
+// Register Chart.js components and plugins
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  annotationPlugin,
+);
 
 const cookiesStore = useCookiesStore();
 const transactionsStore = useTransactionsStore();
@@ -158,6 +181,18 @@ const calculateInventoryProjection = () => {
   };
 };
 
+// Helper to get event color
+const getEventColor = (eventType: string): string => {
+  const colors = {
+    T2G: '#3b82f6', // blue
+    G2T: '#10b981', // green
+    C2T: '#8b5cf6', // purple
+    T2T: '#f59e0b', // amber
+    BOOTH: '#ef4444', // red
+  };
+  return colors[eventType as keyof typeof colors] || '#888';
+};
+
 const updateChart = () => {
   const projection = calculateInventoryProjection();
   if (!projection) {
@@ -175,6 +210,40 @@ const updateChart = () => {
   const surfaceBorder = documentStyle.getPropertyValue(
     '--p-content-border-color',
   );
+
+  // Create annotations for event markers
+  const annotations: Record<
+    string,
+    {
+      type: string;
+      xValue: string;
+      yValue: number;
+      backgroundColor: string;
+      borderColor: string;
+      borderWidth: number;
+      radius: number;
+      pointStyle: string;
+      label: { display: boolean };
+    }
+  > = {};
+  projection.events.forEach((event, index) => {
+    const dateIndex = projection.labels.indexOf(event.date);
+    if (dateIndex >= 0) {
+      annotations[`event${index}`] = {
+        type: 'point',
+        xValue: event.date,
+        yValue: 0,
+        backgroundColor: getEventColor(event.type),
+        borderColor: getEventColor(event.type),
+        borderWidth: 2,
+        radius: 6,
+        pointStyle: 'circle',
+        label: {
+          display: false,
+        },
+      };
+    }
+  });
 
   chartOptions.value = {
     maintainAspectRatio: false,
@@ -197,9 +266,21 @@ const updateChart = () => {
           }) => {
             const label = context.dataset.label || '';
             const value = context.parsed.y;
+
+            // Check if there's an event on this date
+            const event = projection.events.find(
+              (e) => e.date === context[0]?.label,
+            );
+            if (event) {
+              return `${label}: ${value} packages (Event: ${event.description})`;
+            }
+
             return `${label}: ${value} packages`;
           },
         },
+      },
+      annotation: {
+        annotations,
       },
     },
     scales: {
