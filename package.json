@@ -24,6 +24,8 @@
     "@primevue/themes": "^4.2.5",
     "@sfxcode/formkit-primevue-nuxt": "^1.5.3",
     "@tailwindcss/vite": "^4.0.6",
+    "chart.js": "^4.5.0",
+    "exceljs": "^4.4.0",
     "nuxt": "^3.15.4",
     "pinia": "^3.0.1",
     "primeicons": "^7.0.0",
@@ -31,8 +33,7 @@
     "tailwindcss": "^4.0.6",
     "tailwindcss-primeui": "^0.4.0",
     "vue": "latest",
-    "vue-router": "latest",
-    "exceljs": "^4.4.0"
+    "vue-router": "latest"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^1.1.0",
