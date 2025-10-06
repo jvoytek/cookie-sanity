@@ -10,7 +10,6 @@ function()s become actions
 export const useUploadsStore = defineStore('uploads', () => {
   const supabaseClient = useSupabaseClient<Database>();
 
-  const ordersStore = useTransactionsStore();
   const profileStore = useProfileStore();
 
   /* State */
@@ -27,7 +26,6 @@ export const useUploadsStore = defineStore('uploads', () => {
       !profileStore.currentProfile?.id
     )
       throw new Error('Profile not found');
-    console.log(profileStore.currentProfile.season);
     const upload = {
       profile: profileStore.currentProfile.id,
       season: profileStore.currentProfile.season ?? undefined,
@@ -43,14 +41,5 @@ export const useUploadsStore = defineStore('uploads', () => {
     return data;
   };
 
-  const getOnlyGirlOrders = (jsonData: SCOrder2025[]) => {
-    const girlData = jsonData.filter(
-      (order) => order['TO'].indexOf && order['TO'].indexOf(' ') >= 0,
-    );
-    return girlData
-      .map(ordersStore.convertSCOrderToNewTransaction)
-      .filter((order) => order?.to !== 0);
-  };
-
-  return { insertUpload, getOnlyGirlOrders };
+  return { insertUpload };
 });

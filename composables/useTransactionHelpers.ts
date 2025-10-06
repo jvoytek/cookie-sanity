@@ -19,6 +19,8 @@ export const useTransactionHelpers = () => {
         return 'warn';
       case 'G2G':
         return 'info';
+      case 'DIRECT_SHIP':
+        return 'info';
       default:
         return null;
     }
@@ -65,7 +67,7 @@ export const useTransactionHelpers = () => {
         $formkit: 'primeSelect',
         name: 'to',
         label: 'To',
-        if: "$get('transaction-type').value === 'G2G' || $get('transaction-type').value === 'T2G'",
+        if: "$get('transaction-type').value === 'G2G' || $get('transaction-type').value === 'T2G' || $get('transaction-type').value === 'DIRECT_SHIP'",
         key: 'to',
         placeholder: 'Choose a scout',
         options: girlsStore.girlOptions,
@@ -228,6 +230,28 @@ export const useTransactionHelpers = () => {
         ],
 
         if: "$get('transaction-type').value === 'G2G'",
+      },
+      {
+        $el: 'div',
+        children: [
+          {
+            $el: 'div',
+            attrs: {
+              class: 'text-md',
+            },
+            children: 'Cookies shipped directly from baker to customer',
+          },
+          {
+            $el: 'div',
+            attrs: {
+              class: 'text-sm',
+            },
+            children:
+              '(quantities should be negative; direct ship orders are included in estimated sales but NOT in inventory or balance calculations)',
+          },
+        ],
+
+        if: "$get('transaction-type').value === 'DIRECT_SHIP'",
       },
       {
         $formkit: 'group',

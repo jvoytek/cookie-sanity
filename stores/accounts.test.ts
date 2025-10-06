@@ -25,6 +25,23 @@ describe('Accounts Store', () => {
       },
     ];
 
+    /* allTransactions: [
+    {
+      to: 1,
+      status: 'complete',
+      cookies: { ABC: -4 },
+    },
+    {
+      to: 1,
+      status: 'complete',
+      cookies: { ABC: 1 },
+    },
+    {
+      to: 2,
+      status: 'complete',
+      cookies: { DEF: -5 },
+    }, */
+
     const useSupabaseClientMock = vi.fn(() => ({
       from: vi.fn(() => ({
         select: vi.fn(() => ({
@@ -49,11 +66,11 @@ describe('Accounts Store', () => {
     expect(balances).toHaveLength(2);
     expect(balances[0]).toMatchObject({
       girl: { id: 1, name: 'Test Girl' },
-      distributedValue: 10,
+      distributedValue: 15,
       paymentsReceived: 5,
-      balance: -5,
+      balance: -10,
       status: 'Balance Due',
-      numCookiesDistributed: 2,
+      numCookiesDistributed: 3,
       estimatedSales: 1,
     });
   });
@@ -93,12 +110,12 @@ describe('Accounts Store', () => {
 
     const summary = store.troopAccountSummary;
     expect(summary).toMatchObject({
-      totalDistributedValue: 35,
+      totalDistributedValue: 40,
       totalPaymentsReceived: 7,
-      troopBalance: -28,
+      troopBalance: -33,
       estimatedTotalSales: 1,
       activeAccounts: 2,
-      numCookiesDistributed: 7,
+      numCookiesDistributed: 8,
     });
   });
 

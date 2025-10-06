@@ -6,7 +6,7 @@ import type { SCOrder2025 } from '@/types/types';
 import { useUploadsStore } from '@/stores/uploads';
 
 describe('stores/uploads', () => {
-  let uploadsStore: ReturnType<typeof useUploadsStore>;
+  let uploadsStore;
   const baseSCOrder2025 = {
     DATE: '2025-01-01',
     'ORDER #': 123,
@@ -210,115 +210,6 @@ describe('stores/uploads', () => {
       await expect(newUploadsStore.insertUpload(mockJsonData)).rejects.toThrow(
         'Database connection failed',
       );
-    });
-  });
-
-  describe('getOnlyGirlOrders', () => {
-    it('filters and converts girl orders correctly', () => {
-      const mockJsonData = [
-        { ...baseSCOrder2025, TO: 'Jane Doe', 'ORDER #': 12345 },
-        { ...baseSCOrder2025, TO: 'Troop', 'ORDER #': 12346 },
-        { ...baseSCOrder2025, TO: 'Mary Smith', 'ORDER #': 12347 },
-        { ...baseSCOrder2025, TO: 'Council', 'ORDER #': 12348 },
-      ];
-
-      // Mock the conversion function to return different values based on 'TO' field
-      vi.stubGlobal(
-        'useTransactionsStore',
-        vi.fn(() => ({
-          convertSCOrderToNewTransaction: vi.fn((order) => {
-            const hasSpace =
-              order['TO'].indexOf && order['TO'].indexOf(' ') >= 0;
-            return {
-              id: Math.floor(Math.random() * 1000),
-              to: hasSpace ? 1 : 0,
-              cookies: {},
-              order_num: order['ORDER'],
-              order_date: new Date().toISOString().split('T')[0],
-            };
-          }),
-        })),
-      );
-
-      // Create new store instance to get fresh mocked behavior
-      setActivePinia(createPinia());
-      const newUploadsStore = useUploadsStore();
-
-      const result = newUploadsStore.getOnlyGirlOrders(mockJsonData);
-
-      // Should filter out orders without spaces (Troop, Council) and convert the rest
-      expect(result).toHaveLength(2);
-      expect(result.every((order) => order?.to === 1)).toBe(true);
-    });
-
-    it('filters out orders with to field equal to 0', () => {
-      const mockJsonData = [
-        { ...baseSCOrder2025, TO: 'Jane Doe', 'ORDER #': 12345 },
-        { ...baseSCOrder2025, TO: 'Mary Smith', 'ORDER #': 12347 },
-      ];
-
-      // Mock the conversion to return some orders with to: 0
-      vi.stubGlobal(
-        'useTransactionsStore',
-        vi.fn(() => ({
-          convertSCOrderToNewTransaction: vi.fn((order, index) => {
-            return {
-              id: index,
-              to: index === 0 ? 0 : 1, // First order has to: 0
-              cookies: {},
-              order_num: order['ORDER'],
-              order_date: new Date().toISOString().split('T')[0],
-            };
-          }),
-        })),
-      );
-
-      // Create new store instance to get fresh mocked behavior
-      setActivePinia(createPinia());
-      const newUploadsStore = useUploadsStore();
-
-      const result = newUploadsStore.getOnlyGirlOrders(mockJsonData);
-
-      // Should filter out the order with to: 0
-      expect(result).toHaveLength(1);
-      expect(result[0]).toBeDefined();
-      expect(result[0]!.to).toBe(1);
-    });
-
-    it('handles mixed valid and invalid TO fields', () => {
-      const mockJsonData = [
-        { ...baseSCOrder2025, TO: 'Jane Doe', 'ORDER #': 12345 },
-        { ...baseSCOrder2025, TO: '', 'ORDER #': 12346 },
-        { ...baseSCOrder2025, TO: 'Mary Smith', 'ORDER #': 12347 },
-        { ...baseSCOrder2025, TO: 'NoSpace', 'ORDER #': 12348 },
-      ];
-
-      vi.stubGlobal(
-        'useTransactionsStore',
-        vi.fn(() => ({
-          convertSCOrderToNewTransaction: vi.fn((order) => ({
-            id: Math.floor(Math.random() * 1000),
-            to: 1,
-            cookies: {},
-            order_num: order['ORDER'],
-            order_date: new Date().toISOString().split('T')[0],
-          })),
-        })),
-      );
-
-      // Create new store instance to get fresh mocked behavior
-      setActivePinia(createPinia());
-      const newUploadsStore = useUploadsStore();
-
-      const result = newUploadsStore.getOnlyGirlOrders(mockJsonData);
-
-      // Should only include orders with spaces in TO field
-      expect(result).toHaveLength(2); // 'Jane Doe' and 'Mary Smith'
-    });
-
-    it('returns empty array for empty input', () => {
-      const result = uploadsStore.getOnlyGirlOrders([]);
-      expect(result).toEqual([]);
     });
   });
 });

@@ -304,4 +304,72 @@ describe('useTransactionHelpers', () => {
       expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
     });
   });
+
+  describe('DIRECT_SHIP transaction type', () => {
+    it('returns correct severity for DIRECT_SHIP type', () => {
+      expect(
+        transactionHelpers.transactionTypeBadgeSeverity('DIRECT_SHIP'),
+      ).toBe('info');
+    });
+
+    it('includes DIRECT_SHIP help text in form schema', () => {
+      const testOrder: Order = {
+        id: 1,
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'DIRECT_SHIP',
+        status: 'pending',
+        profile: 'test-profile',
+        season: 1,
+        cookies: { TM: -5 },
+        to: 1,
+        from: null,
+        supplier: null,
+        notes: null,
+        processed_date: null,
+        created_at: '2024-01-15T10:00:00Z',
+      };
+
+      transactionHelpers.editTransaction(testOrder, 'girl');
+      const schema = mockOrdersStore.transactionDialogFormSchema.value;
+
+      // Check that help text for DIRECT_SHIP is present
+      const directShipHelp = schema.find(
+        (field: { if?: string; children?: { children?: string }[] }) =>
+          field.if?.includes('DIRECT_SHIP') &&
+          field.children?.[0]?.children ===
+            'Cookies shipped directly from baker to customer',
+      );
+      expect(directShipHelp).toBeDefined();
+    });
+
+    it('shows "to" field for DIRECT_SHIP transactions', () => {
+      const testOrder: Order = {
+        id: 1,
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'DIRECT_SHIP',
+        status: 'pending',
+        profile: 'test-profile',
+        season: 1,
+        cookies: { TM: -5 },
+        to: 1,
+        from: null,
+        supplier: null,
+        notes: null,
+        processed_date: null,
+        created_at: '2024-01-15T10:00:00Z',
+      };
+
+      transactionHelpers.editTransaction(testOrder, 'girl');
+      const schema = mockOrdersStore.transactionDialogFormSchema.value;
+
+      // Check that "to" field shows for DIRECT_SHIP
+      const toField = schema.find(
+        (field: { name?: string; if?: string }) =>
+          field.name === 'to' && field.if?.includes('DIRECT_SHIP'),
+      );
+      expect(toField).toBeDefined();
+    });
+  });
 });

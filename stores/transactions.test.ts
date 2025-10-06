@@ -84,7 +84,7 @@ describe('Transactions Store', () => {
       expect(transactionsStore.activeTransaction).toEqual(null);
       expect(transactionsStore.editTransactionDialogVisible).toBe(false);
       expect(transactionsStore.deleteTransactionDialogVisible).toBe(false);
-      expect(transactionsStore.transactionTypeOptions).toHaveLength(5);
+      expect(transactionsStore.transactionTypeOptions).toHaveLength(6);
     });
 
     it('should have correct transaction type options', () => {
@@ -94,6 +94,7 @@ describe('Transactions Store', () => {
         { value: 'G2T', label: 'Girl to Troop' },
         { value: 'T2T', label: 'Troop to Troop' },
         { value: 'C2T', label: 'Council to Troop' },
+        { value: 'DIRECT_SHIP', label: 'Direct Ship' },
       ]);
     });
   });
@@ -108,6 +109,14 @@ describe('Transactions Store', () => {
           status: 'complete',
           type: 'T2G',
           cookies: { ABC: 5, DEF: 3 },
+          order_date: '2024-01-01',
+        },
+        {
+          ...baseTransaction,
+          id: 7,
+          status: 'complete',
+          type: 'G2T',
+          cookies: { ABC: -2 },
           order_date: '2024-01-01',
         },
         {
@@ -157,22 +166,22 @@ describe('Transactions Store', () => {
       const sumABC = transactionsStore.sumTransactionsByCookie('ABC');
       const sumDEF = transactionsStore.sumTransactionsByCookie('DEF');
 
-      // Only complete transactions are counted: ABC: 5 + 10 = 15, DEF: 3
-      expect(sumABC).toBe(15);
+      // Only complete transactions are counted: ABC: 5 + 10 - 2 = 13, DEF: 3
+      expect(sumABC).toBe(13);
       expect(sumDEF).toBe(3);
     });
 
     it('should filter completedGirlTransactionList correctly', () => {
       const completed = transactionsStore.completedGirlTransactionList;
 
-      expect(completed).toHaveLength(1);
+      expect(completed).toHaveLength(2);
       expect(completed[0].id).toBe(1);
       expect(completed[0].status).toBe('complete');
       expect(completed[0].type).toBe('T2G');
     });
 
     it('should count completedGirlTransactionListCount correctly', () => {
-      expect(transactionsStore.completedGirlTransactionListCount).toBe(1);
+      expect(transactionsStore.completedGirlTransactionListCount).toBe(2);
     });
 
     it('should filter pendingGirlTransactionList correctly', () => {
@@ -302,11 +311,9 @@ describe('Transactions Store', () => {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
                 eq: vi.fn(() => ({
-                  neq: vi.fn(() => ({
-                    order: vi.fn(() =>
-                      Promise.resolve({ data: mockOrders, error: null }),
-                    ),
-                  })),
+                  order: vi.fn(() =>
+                    Promise.resolve({ data: mockOrders, error: null }),
+                  ),
                 })),
               })),
             })),
@@ -357,14 +364,12 @@ describe('Transactions Store', () => {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
                 eq: vi.fn(() => ({
-                  neq: vi.fn(() => ({
-                    order: vi.fn(() =>
-                      Promise.resolve({
-                        data: null,
-                        error: { message: 'Fetch failed' },
-                      }),
-                    ),
-                  })),
+                  order: vi.fn(() =>
+                    Promise.resolve({
+                      data: null,
+                      error: { message: 'Fetch failed' },
+                    }),
+                  ),
                 })),
               })),
             })),

@@ -87,7 +87,7 @@ function openNewForGirl(girlId: number) {
           <i
             v-tooltip.bottom="{
               value:
-                'Based on payments received/average price per cookie. May not match actual sales.',
+                'Payments received/average price per cookie + direct shipped orders. May not match actual sales.',
               showDelay: 500,
             }"
             class="pi pi-info-circle"

@@ -68,6 +68,9 @@ const formatHelpers = useFormatHelpers();
         :cookies="accountsStore.troopAccountSummary.packagesDistributedByType"
         class="mt-2"
       />
+      <span class="text-sm leading-none text-muted-color"
+        >Does not include Direct Shipped transactions</span
+      >
     </Fieldset>
   </div>
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">
