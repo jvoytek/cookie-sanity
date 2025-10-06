@@ -174,14 +174,14 @@ describe('Transactions Store', () => {
     it('should filter completedGirlTransactionList correctly', () => {
       const completed = transactionsStore.completedGirlTransactionList;
 
-      expect(completed).toHaveLength(1);
+      expect(completed).toHaveLength(2);
       expect(completed[0].id).toBe(1);
       expect(completed[0].status).toBe('complete');
       expect(completed[0].type).toBe('T2G');
     });
 
     it('should count completedGirlTransactionListCount correctly', () => {
-      expect(transactionsStore.completedGirlTransactionListCount).toBe(1);
+      expect(transactionsStore.completedGirlTransactionListCount).toBe(2);
     });
 
     it('should filter pendingGirlTransactionList correctly', () => {
@@ -311,11 +311,9 @@ describe('Transactions Store', () => {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
                 eq: vi.fn(() => ({
-                  neq: vi.fn(() => ({
-                    order: vi.fn(() =>
-                      Promise.resolve({ data: mockOrders, error: null }),
-                    ),
-                  })),
+                  order: vi.fn(() =>
+                    Promise.resolve({ data: mockOrders, error: null }),
+                  ),
                 })),
               })),
             })),
@@ -366,14 +364,12 @@ describe('Transactions Store', () => {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
                 eq: vi.fn(() => ({
-                  neq: vi.fn(() => ({
-                    order: vi.fn(() =>
-                      Promise.resolve({
-                        data: null,
-                        error: { message: 'Fetch failed' },
-                      }),
-                    ),
-                  })),
+                  order: vi.fn(() =>
+                    Promise.resolve({
+                      data: null,
+                      error: { message: 'Fetch failed' },
+                    }),
+                  ),
                 })),
               })),
             })),

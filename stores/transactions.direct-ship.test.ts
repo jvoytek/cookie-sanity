@@ -118,10 +118,33 @@ describe('Transactions Store - DIRECT_SHIP Functionality', () => {
     ];
 
     vi.stubGlobal('useCookiesStore', () => ({
-      allCookies: [{ abbreviation: 'TM', price: 5 }],
+      allCookies: [
+        { abbreviation: 'TM', price: 5 },
+        { abbreviation: 'ADV', price: 5 },
+        { abbreviation: 'LEM', price: 5 },
+      ],
+      getCookieByAbbreviation: vi.fn((abbreviation) => {
+        if (abbreviation === 'ABC') {
+          return {
+            abbreviation: 'ABC',
+            price: 5,
+            percent_of_sale: 20,
+            is_virtual: false,
+          };
+        } else if (abbreviation === 'DEF') {
+          return {
+            abbreviation: 'DEF',
+            price: 5,
+            percent_of_sale: 80,
+            is_virtual: true,
+          };
+        }
+        return null;
+      }),
     }));
 
     const store = useTransactionsStore();
+
     store.allTransactions = mockOrders;
 
     const sum = store.sumTransactionsByCookie('TM');
@@ -255,6 +278,24 @@ describe('Transactions Store - DIRECT_SHIP Functionality', () => {
         { abbreviation: 'ADV', price: 5 },
         { abbreviation: 'LEM', price: 5 },
       ],
+      getCookieByAbbreviation: vi.fn((abbreviation) => {
+        if (abbreviation === 'ABC') {
+          return {
+            abbreviation: 'ABC',
+            price: 5,
+            percent_of_sale: 20,
+            is_virtual: false,
+          };
+        } else if (abbreviation === 'DEF') {
+          return {
+            abbreviation: 'DEF',
+            price: 5,
+            percent_of_sale: 80,
+            is_virtual: true,
+          };
+        }
+        return null;
+      }),
     }));
 
     const store = useTransactionsStore();

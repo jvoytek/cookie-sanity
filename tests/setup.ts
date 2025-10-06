@@ -121,7 +121,12 @@ const useTransactionsStoreMock = vi.fn(() => ({
     {
       to: 1,
       status: 'complete',
-      cookies: { ABC: -2 },
+      cookies: { ABC: -4 },
+    },
+    {
+      to: 1,
+      status: 'complete',
+      cookies: { ABC: 1 },
     },
     {
       to: 2,
@@ -173,6 +178,24 @@ const useCookiesStoreMock = vi.fn(() => ({
   ],
   averageCookiePrice: 5,
   allCookiesWithInventoryTotals: [{ onHand: 10 }],
+  getCookieByAbbreviation: vi.fn((abbreviation) => {
+    if (abbreviation === 'ABC') {
+      return {
+        abbreviation: 'ABC',
+        price: 5,
+        percent_of_sale: 20,
+        is_virtual: false,
+      };
+    } else if (abbreviation === 'DEF') {
+      return {
+        abbreviation: 'DEF',
+        price: 5,
+        percent_of_sale: 80,
+        is_virtual: true,
+      };
+    }
+    return null;
+  }),
 }));
 vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 

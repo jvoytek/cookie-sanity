@@ -10,7 +10,6 @@ function()s become actions
 export const useUploadsStore = defineStore('uploads', () => {
   const supabaseClient = useSupabaseClient<Database>();
 
-  const ordersStore = useTransactionsStore();
   const profileStore = useProfileStore();
 
   /* State */
@@ -27,7 +26,6 @@ export const useUploadsStore = defineStore('uploads', () => {
       !profileStore.currentProfile?.id
     )
       throw new Error('Profile not found');
-    console.log(profileStore.currentProfile.season);
     const upload = {
       profile: profileStore.currentProfile.id,
       season: profileStore.currentProfile.season ?? undefined,
