@@ -305,6 +305,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       COOKIE_SHARE: 'Cookie Share',
       DIRECT_SHIP: 'Direct Ship',
     };
+    // Remove any suffixes like (B), (VB), etc.
+    type = type.split('(')[0].trim();
     return transactionTypeMap[type] || type;
   };
 
@@ -370,7 +372,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
       : transaction.cookies;
 
     try {
-      console.log(transaction);
       const { data, error } = await _supabaseUpsertTransaction(transaction);
 
       if (error) throw error;
@@ -495,6 +496,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     convertSCOrderToNewTransaction,
     updateTransactionStatus,
     friendlyTransactionTypes,
+    _invertCookieQuantities,
     transactionTypeOptions,
   };
 });
