@@ -306,6 +306,26 @@ async function onRowReorder(event) {
             />
           </label>
         </div>
+
+        <div class="flex items-center gap-3">
+          <Checkbox
+            v-model="product.overbooking_allowed"
+            input-id="overbooking_allowed"
+            :binary="true"
+          />
+          <label for="overbooking_allowed" class="font-bold">
+            Allow Overbooking
+            <i
+              v-tooltip.bottom="{
+                value:
+                  'When checked, allows selling more cookies than available in inventory. Uncheck for limited varieties.',
+                showDelay: 500,
+              }"
+              class="pi pi-info-circle ml-2"
+              style="cursor: pointer"
+            />
+          </label>
+        </div>
       </div>
 
       <template #footer>

@@ -372,4 +372,195 @@ describe('useTransactionHelpers', () => {
       expect(toField).toBeDefined();
     });
   });
+
+  describe('overbooking validation', () => {
+    beforeEach(() => {
+      mockCookiesStore.allCookies = [
+        {
+          name: 'Thin Mints',
+          abbreviation: 'TM',
+          id: 1,
+          is_virtual: false,
+          overbooking_allowed: true,
+        },
+        {
+          name: 'Lemon-Ups',
+          abbreviation: 'LEM',
+          id: 2,
+          is_virtual: false,
+          overbooking_allowed: false,
+        },
+        {
+          name: 'Cookie Share',
+          abbreviation: 'CS',
+          id: 3,
+          is_virtual: true,
+          overbooking_allowed: false,
+        },
+      ];
+    });
+
+    it('should prevent T2G transactions that would result in negative inventory for cookies with overbooking_allowed=false', async () => {
+      // Mock current inventory: LEM has 10 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'LEM') return 10;
+          return 50;
+        },
+      );
+
+      // Attempt to give 15 LEM cookies to a girl (would result in -5)
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { LEM: -15 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).toHaveBeenCalled();
+      const errorMessage = toastSpy.mock.calls[0][0].message;
+      expect(errorMessage).toContain(
+        'Cannot process transaction - overbooking not allowed for',
+      );
+      expect(errorMessage).toContain(
+        'Lemon-Ups: Would result in -5 packages (15 requested, 10 available)',
+      );
+      expect(mockOrdersStore.insertNewTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should allow T2G transactions that stay within inventory for cookies with overbooking_allowed=false', async () => {
+      // Mock current inventory: LEM has 10 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'LEM') return 10;
+          return 50;
+        },
+      );
+
+      // Give 8 LEM cookies to a girl (would result in 2, which is valid)
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { LEM: -8 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+
+    it('should allow T2G transactions for cookies with overbooking_allowed=true even if result is negative', async () => {
+      // Mock current inventory: TM has 10 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'TM') return 10;
+          return 50;
+        },
+      );
+
+      // Give 15 TM cookies to a girl (would result in -5, but TM allows overbooking)
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { TM: -15 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+
+    it('should not check overbooking for non-T2G transaction types', async () => {
+      // Mock current inventory: LEM has 10 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'LEM') return 10;
+          return 50;
+        },
+      );
+
+      // C2T transaction (Council to Troop) should not check overbooking
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'C2T',
+        cookies: { LEM: 20 }, // positive, adding to inventory
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+
+    it('should skip virtual cookies in overbooking validation', async () => {
+      // Mock current inventory: CS (virtual) has 0 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'CS') return 0;
+          return 50;
+        },
+      );
+
+      // Give 5 CS cookies to a girl (virtual cookie, should be skipped)
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { CS: -5 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+
+    it('should report multiple overbooking violations', async () => {
+      mockCookiesStore.allCookies = [
+        {
+          name: 'Lemon-Ups',
+          abbreviation: 'LEM',
+          id: 2,
+          is_virtual: false,
+          overbooking_allowed: false,
+        },
+        {
+          name: 'Trefoils',
+          abbreviation: 'TRE',
+          id: 4,
+          is_virtual: false,
+          overbooking_allowed: false,
+        },
+      ];
+
+      // Mock current inventory: LEM has 5, TRE has 3
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'LEM') return 5;
+          if (abbreviation === 'TRE') return 3;
+          return 50;
+        },
+      );
+
+      // Attempt to give 10 LEM and 10 TRE cookies to a girl
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { LEM: -10, TRE: -10 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).toHaveBeenCalled();
+      const errorMessage = toastSpy.mock.calls[0][0].message;
+      expect(errorMessage).toContain(
+        'Cannot process transaction - overbooking not allowed for',
+      );
+      expect(errorMessage).toContain('Lemon-Ups');
+      expect(errorMessage).toContain('Trefoils');
+      expect(mockOrdersStore.insertNewTransaction).not.toHaveBeenCalled();
+    });
+  });
 });

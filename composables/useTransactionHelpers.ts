@@ -308,6 +308,46 @@ export const useTransactionHelpers = () => {
       }
     }
 
+    // Validate overbooking for cookies where overbooking_allowed is false
+    // Only check for transactions that reduce troop inventory (T2G has negative quantities)
+    if (transactionType === 'T2G' && ordersStore.activeTransaction?.cookies) {
+      const overbookingViolations: string[] = [];
+
+      cookiesStore.allCookies.forEach((cookie) => {
+        // Skip virtual cookies as they don't affect physical inventory
+        if (cookie.is_virtual) return;
+
+        // Check if overbooking is not allowed for this cookie
+        if (cookie.overbooking_allowed === false) {
+          const transactionQuantity =
+            ordersStore.activeTransaction?.cookies?.[cookie.abbreviation] || 0;
+
+          // T2G transactions have negative quantities (removing from troop inventory)
+          if (transactionQuantity < 0) {
+            const currentInventory = ordersStore.sumTransactionsByCookie(
+              cookie.abbreviation,
+            );
+            const newInventory = currentInventory + transactionQuantity;
+
+            if (newInventory < 0) {
+              overbookingViolations.push(
+                `${cookie.name}: Would result in ${newInventory} packages (${Math.abs(transactionQuantity)} requested, ${currentInventory} available)`,
+              );
+            }
+          }
+        }
+      });
+
+      if (overbookingViolations.length > 0) {
+        notificationHelpers.addError(
+          new Error(
+            `Cannot process transaction - overbooking not allowed for:\n${overbookingViolations.join('\n')}`,
+          ),
+        );
+        return;
+      }
+    }
+
     if (ordersStore.activeTransaction?.id) {
       ordersStore.upsertTransaction(ordersStore.activeTransaction);
     } else {
