@@ -224,21 +224,125 @@ const updateChart = () => {
     '--p-content-border-color',
   );
 
-  // Create annotations for event markers
+  // Create annotations for event markers and status lines
   const annotations: Record<
     string,
-    {
-      type: string;
-      xValue: string;
-      yValue: number;
-      backgroundColor: string;
-      borderColor: string;
-      borderWidth: number;
-      radius: number;
-      pointStyle: string;
-      label: { display: boolean };
-    }
+    | {
+        type: string;
+        xMin?: string;
+        xMax?: string;
+        yMin?: number;
+        yMax?: number;
+        borderColor?: string;
+        borderWidth?: number;
+        borderDash?: number[];
+        backgroundColor?: string;
+        drawTime?: string;
+        label?: {
+          display: boolean;
+          content?: string;
+          position?: string;
+          backgroundColor?: string;
+          color?: string;
+          font?: { size: number };
+        };
+      }
+    | Record<string, unknown>
   > = {};
+
+  // Add today marker line
+  const today = new Date().toISOString().split('T')[0];
+  annotations.todayLine = {
+    type: 'line',
+    xMin: today,
+    xMax: today,
+    borderColor: '#6b7280', // gray-500
+    borderWidth: 2,
+    borderDash: [5, 5],
+    label: {
+      display: true,
+      content: 'Today',
+      position: 'start',
+      backgroundColor: 'rgba(107, 114, 128, 0.8)',
+      color: 'white',
+      font: {
+        size: 10,
+      },
+    },
+  };
+
+  // Add background box for future dates (after today)
+  if (endDate.value && new Date(endDate.value) > new Date(today)) {
+    annotations.futureBackground = {
+      type: 'box',
+      xMin: today,
+      xMax: endDate.value.toISOString(),
+      backgroundColor: 'rgba(229, 231, 235, 0.3)', // very light gray
+      borderWidth: 0,
+      drawTime: 'beforeDatasetsDraw',
+    };
+  }
+
+  // Add inventory status severity lines
+  // Good threshold (> 50)
+  annotations.goodLine = {
+    type: 'line',
+    yMin: 50,
+    yMax: 50,
+    borderColor: '#10b981', // green-500
+    borderWidth: 2,
+    borderDash: [3, 3],
+    label: {
+      display: true,
+      content: 'Good (50+)',
+      position: 'end',
+      backgroundColor: 'rgba(16, 185, 129, 0.8)',
+      color: 'white',
+      font: {
+        size: 10,
+      },
+    },
+  };
+
+  // Ok threshold (> 20)
+  annotations.okLine = {
+    type: 'line',
+    yMin: 20,
+    yMax: 20,
+    borderColor: '#f59e0b', // amber-500
+    borderWidth: 2,
+    borderDash: [3, 3],
+    label: {
+      display: true,
+      content: 'Ok (20+)',
+      position: 'end',
+      backgroundColor: 'rgba(245, 158, 11, 0.8)',
+      color: 'white',
+      font: {
+        size: 10,
+      },
+    },
+  };
+
+  // Low threshold (< 20)
+  annotations.lowLine = {
+    type: 'line',
+    yMin: 0,
+    yMax: 0,
+    borderColor: '#ef4444', // red-500
+    borderWidth: 2,
+    borderDash: [3, 3],
+    label: {
+      display: true,
+      content: 'Low',
+      position: 'end',
+      backgroundColor: 'rgba(239, 68, 68, 0.8)',
+      color: 'white',
+      font: {
+        size: 10,
+      },
+    },
+  };
   // Create a separate dataset for event markers (scatter points)
   const eventPoints = projection.events.map((event) => {
     const dateIndex = projection.labels.indexOf(event.date);
