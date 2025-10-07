@@ -35,6 +35,8 @@ describe('InventoryProjectionChart Component', () => {
         ],
         stubs: {
           Chart: true,
+          DatePicker: true,
+          MultiSelect: true,
         },
       },
     });
@@ -63,6 +65,8 @@ describe('InventoryProjectionChart Component', () => {
         ],
         stubs: {
           Chart: true,
+          DatePicker: true,
+          MultiSelect: true,
         },
       },
     });
@@ -124,6 +128,8 @@ describe('InventoryProjectionChart Component', () => {
         ],
         stubs: {
           Chart: true,
+          DatePicker: true,
+          MultiSelect: true,
         },
       },
     });
@@ -152,6 +158,8 @@ describe('InventoryProjectionChart Component', () => {
         ],
         stubs: {
           Chart: true,
+          DatePicker: true,
+          MultiSelect: true,
         },
       },
     });
@@ -200,6 +208,8 @@ describe('InventoryProjectionChart Component', () => {
         ],
         stubs: {
           Chart: true,
+          DatePicker: true,
+          MultiSelect: true,
         },
       },
     });
@@ -254,6 +264,8 @@ describe('InventoryProjectionChart Component', () => {
         ],
         stubs: {
           Chart: true,
+          DatePicker: true,
+          MultiSelect: true,
         },
       },
     });
@@ -306,6 +318,8 @@ describe('InventoryProjectionChart Component', () => {
         ],
         stubs: {
           Chart: true,
+          DatePicker: true,
+          MultiSelect: true,
         },
       },
     });
@@ -359,6 +373,8 @@ describe('InventoryProjectionChart Component', () => {
         ],
         stubs: {
           Chart: true,
+          DatePicker: true,
+          MultiSelect: true,
         },
       },
     });

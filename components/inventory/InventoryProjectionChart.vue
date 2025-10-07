@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import Chart from 'primevue/chart';
+import MultiSelect from 'primevue/multiselect';
+import DatePicker from 'primevue/datepicker';
 import 'chartjs-adapter-date-fns';
 import {
   Chart as ChartJS,
@@ -16,7 +18,7 @@ import annotationPlugin from 'chartjs-plugin-annotation';
 import { useCookiesStore } from '@/stores/cookies';
 import { useTransactionsStore } from '@/stores/transactions';
 import { useBoothsStore } from '@/stores/booths';
-import type { Order, BoothSale, InventoryEvent } from '@/types/types';
+import type { Order, BoothSale, InventoryEvent, Cookie } from '@/types/types';
 
 // Register Chart.js components and plugins
 ChartJS.register(
@@ -37,9 +39,34 @@ const boothsStore = useBoothsStore();
 const chartData = ref();
 const chartOptions = ref();
 
+// Filter state
+const startDate = ref<Date | null>(null);
+const endDate = ref<Date | null>(null);
+const selectedCookies = ref<Cookie[]>([]);
+
+// Initialize selected cookies with all non-virtual cookies
+onMounted(() => {
+  selectedCookies.value = cookiesStore.allCookies.filter((c) => !c.is_virtual);
+
+  // Set default date range
+  const today = new Date();
+  startDate.value = new Date(today);
+  startDate.value.setMonth(today.getMonth() - 1); // 1 month ago
+  endDate.value = new Date(today);
+  endDate.value.setMonth(today.getMonth() + 2); // 2 months from now
+});
+
+// Available cookies for selection
+const availableCookies = computed(() => {
+  return cookiesStore.allCookies.filter((c) => !c.is_virtual);
+});
+
 // Calculate inventory projection data
 const calculateInventoryProjection = () => {
-  const cookies = cookiesStore.allCookies.filter((c) => !c.is_virtual);
+  const cookies =
+    selectedCookies.value.length > 0
+      ? selectedCookies.value
+      : availableCookies.value;
   if (cookies.length === 0) return;
 
   // Get all relevant transactions (pending and complete, not requested)
@@ -90,6 +117,14 @@ const calculateInventoryProjection = () => {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 
+  // Filter events by date range if specified
+  const filteredEvents = events.filter((event) => {
+    const eventDate = new Date(event.date);
+    if (startDate.value && eventDate < startDate.value) return false;
+    if (endDate.value && eventDate > endDate.value) return false;
+    return true;
+  });
+
   // Build time series data
   const dates: string[] = [];
   const inventoryByDate: Record<string, Record<string, number>> = {};
@@ -108,7 +143,7 @@ const calculateInventoryProjection = () => {
   // Process events to calculate inventory over time
   let currentInventory = { ...initialInventory };
 
-  events.forEach((event) => {
+  filteredEvents.forEach((event) => {
     // Clone current inventory
     const newInventory = { ...currentInventory };
 
@@ -143,7 +178,7 @@ const calculateInventoryProjection = () => {
   }));
 
   // Create event markers
-  const eventMarkers = events.map((event) => ({
+  const eventMarkers = filteredEvents.map((event) => ({
     date: event.date,
     type: event.type,
     description: event.description,
@@ -250,6 +285,10 @@ const updateChart = () => {
       legend: {
         labels: {
           color: textColor,
+          filter: (legendItem: { text: string }) => {
+            // Hide "Event" from the legend
+            return legendItem.text !== 'Event';
+          },
         },
         position: 'top',
       },
@@ -279,8 +318,8 @@ const updateChart = () => {
         time: {
           unit: 'day', // Or 'hour', 'month', etc.
         },
-        min: '2025-02-02',
-        //max: '2025-03-31',
+        min: startDate.value ? startDate.value.toISOString() : undefined,
+        max: endDate.value ? endDate.value.toISOString() : undefined,
       },
       y: {
         title: {
@@ -315,6 +354,15 @@ const shouldUpdate = computed(
 watch(shouldUpdate, () => {
   updateChart();
 });
+
+// Watch for filter changes
+watch(
+  [startDate, endDate, selectedCookies],
+  () => {
+    updateChart();
+  },
+  { deep: true },
+);
 </script>
 
 <template>
@@ -324,6 +372,30 @@ watch(shouldUpdate, () => {
       Projected inventory over time based on pending and completed transactions.
       Lines show inventory levels, with events marked along the timeline.
     </p>
+
+    <!-- Filters -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">Start Date</label>
+        <DatePicker v-model="startDate" date-format="yy-mm-dd" show-icon />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">End Date</label>
+        <DatePicker v-model="endDate" date-format="yy-mm-dd" show-icon />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">Cookies</label>
+        <MultiSelect
+          v-model="selectedCookies"
+          :options="availableCookies"
+          option-label="name"
+          placeholder="Select cookies"
+          :max-selected-labels="2"
+          class="w-full"
+        />
+      </div>
+    </div>
+
     <div v-if="chartData">
       <Chart type="line" :data="chartData" :options="chartOptions" />
     </div>
@@ -332,26 +404,36 @@ watch(shouldUpdate, () => {
       projection.
     </div>
 
-    <!-- Legend for event types -->
+    <!-- Legend for event types with triangles -->
     <div class="mt-4 flex flex-wrap gap-4 text-sm">
       <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full" style="background-color: #3b82f6" />
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <polygon points="6,2 10,10 2,10" fill="#3b82f6" />
+        </svg>
         <span>T2G (Troop to Girl)</span>
       </div>
       <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full" style="background-color: #10b981" />
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <polygon points="6,2 10,10 2,10" fill="#10b981" />
+        </svg>
         <span>G2T (Girl to Troop)</span>
       </div>
       <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full" style="background-color: #8b5cf6" />
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <polygon points="6,2 10,10 2,10" fill="#8b5cf6" />
+        </svg>
         <span>C2T (Council to Troop)</span>
       </div>
       <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full" style="background-color: #f59e0b" />
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <polygon points="6,2 10,10 2,10" fill="#f59e0b" />
+        </svg>
         <span>T2T (Troop to Troop)</span>
       </div>
       <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full" style="background-color: #ef4444" />
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <polygon points="6,2 10,10 2,10" fill="#ef4444" />
+        </svg>
         <span>Booth Sale</span>
       </div>
     </div>

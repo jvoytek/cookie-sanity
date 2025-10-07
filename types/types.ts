@@ -58,7 +58,7 @@ export interface TroopAccountSummary {
 
 export interface InventoryEvent {
   date: string;
-  type: 'T2G' | 'G2T' | 'C2T' | 'T2T' | 'BOOTH';
+  type: 'T2G' | 'G2T' | 'C2T' | 'T2T' | 'G2G' | 'BOOTH';
   transaction?: Order;
   boothSale?: BoothSale;
   cookies: Record<string, number>;
