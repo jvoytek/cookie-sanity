@@ -127,11 +127,6 @@ const calculateInventoryProjection = () => {
     initialInventory[cookie.abbreviation] = 0;
   });
 
-  // Add today as starting point
-  //const today = new Date().toISOString().split('T')[0];
-  //dates.push(today);
-  //inventoryByDate[today] = { ...initialInventory };
-
   // Process events to calculate inventory over time
   let currentInventory = { ...initialInventory };
 
@@ -252,6 +247,7 @@ const updateChart = () => {
 
   // Add today marker line
   const today = new Date().toISOString().split('T')[0];
+  //const today = new Date('2025-02-4').toISOString().split('T')[0]; // For testing
   annotations.todayLine = {
     type: 'line',
     xMin: today,
