@@ -372,7 +372,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
       : transaction.cookies;
 
     try {
-      console.log(transaction);
       const { data, error } = await _supabaseUpsertTransaction(transaction);
 
       if (error) throw error;

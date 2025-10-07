@@ -117,14 +117,6 @@ const calculateInventoryProjection = () => {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 
-  // Filter events by date range if specified
-  const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.date);
-    if (startDate.value && eventDate < startDate.value) return false;
-    if (endDate.value && eventDate > endDate.value) return false;
-    return true;
-  });
-
   // Build time series data
   const dates: string[] = [];
   const inventoryByDate: Record<string, Record<string, number>> = {};
@@ -143,7 +135,7 @@ const calculateInventoryProjection = () => {
   // Process events to calculate inventory over time
   let currentInventory = { ...initialInventory };
 
-  filteredEvents.forEach((event) => {
+  events.forEach((event) => {
     // Clone current inventory
     const newInventory = { ...currentInventory };
 
@@ -178,7 +170,7 @@ const calculateInventoryProjection = () => {
   }));
 
   // Create event markers
-  const eventMarkers = filteredEvents.map((event) => ({
+  const eventMarkers = events.map((event) => ({
     date: event.date,
     type: event.type,
     description: event.description,
