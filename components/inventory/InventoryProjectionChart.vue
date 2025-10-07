@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import Chart from 'primevue/chart';
+import 'chartjs-adapter-date-fns';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,7 +16,7 @@ import annotationPlugin from 'chartjs-plugin-annotation';
 import { useCookiesStore } from '@/stores/cookies';
 import { useTransactionsStore } from '@/stores/transactions';
 import { useBoothsStore } from '@/stores/booths';
-import type { Order, BoothSale } from '@/types/types';
+import type { Order, BoothSale, InventoryEvent } from '@/types/types';
 
 // Register Chart.js components and plugins
 ChartJS.register(
@@ -36,15 +37,6 @@ const boothsStore = useBoothsStore();
 const chartData = ref();
 const chartOptions = ref();
 
-interface InventoryEvent {
-  date: string;
-  type: 'T2G' | 'G2T' | 'C2T' | 'T2T' | 'BOOTH';
-  transaction?: Order;
-  boothSale?: BoothSale;
-  cookies: Record<string, number>;
-  description: string;
-}
-
 // Calculate inventory projection data
 const calculateInventoryProjection = () => {
   const cookies = cookiesStore.allCookies.filter((c) => !c.is_virtual);
@@ -55,7 +47,8 @@ const calculateInventoryProjection = () => {
     (t) =>
       t.order_date &&
       (t.status === 'pending' || t.status === 'complete') &&
-      t.type !== 'DIRECT_SHIP',
+      t.type !== 'DIRECT_SHIP' &&
+      t.type !== 'G2G',
   );
 
   // Get booth sales that affect troop inventory
@@ -70,10 +63,10 @@ const calculateInventoryProjection = () => {
       const cookiesRecord = transaction.cookies as Record<string, number>;
       events.push({
         date: transaction.order_date,
-        type: transaction.type as 'T2G' | 'G2T' | 'C2T' | 'T2T',
+        type: transaction.type as 'T2G' | 'G2T' | 'C2T' | 'T2T' | 'G2G',
         transaction,
         cookies: cookiesRecord,
-        description: `${transaction.type} #${transaction.order_num || transaction.id}`,
+        description: getEventDescription(transaction),
       });
     }
   });
@@ -86,8 +79,8 @@ const calculateInventoryProjection = () => {
         date: booth.sale_date,
         type: 'BOOTH',
         boothSale: booth,
-        cookies: cookiesRecord,
-        description: `Booth: ${booth.location}`,
+        cookies: transactionsStore._invertCookieQuantities(cookiesRecord),
+        description: getEventDescription(booth),
       });
     }
   });
@@ -104,14 +97,13 @@ const calculateInventoryProjection = () => {
   // Initialize with current inventory (sum of all completed transactions)
   const initialInventory: Record<string, number> = {};
   cookies.forEach((cookie) => {
-    initialInventory[cookie.abbreviation] =
-      transactionsStore.sumTransactionsByCookie(cookie.abbreviation);
+    initialInventory[cookie.abbreviation] = 0;
   });
 
   // Add today as starting point
-  const today = new Date().toISOString().split('T')[0];
-  dates.push(today);
-  inventoryByDate[today] = { ...initialInventory };
+  //const today = new Date().toISOString().split('T')[0];
+  //dates.push(today);
+  //inventoryByDate[today] = { ...initialInventory };
 
   // Process events to calculate inventory over time
   let currentInventory = { ...initialInventory };
@@ -123,25 +115,8 @@ const calculateInventoryProjection = () => {
     // Apply changes based on transaction type
     cookies.forEach((cookie) => {
       const amount = event.cookies[cookie.abbreviation] || 0;
-
-      if (event.type === 'T2G' || event.type === 'BOOTH') {
-        // Troop to Girl or Booth Sale: decrease troop inventory
-        newInventory[cookie.abbreviation] =
-          (newInventory[cookie.abbreviation] || 0) - amount;
-      } else if (event.type === 'G2T') {
-        // Girl to Troop: increase troop inventory
-        newInventory[cookie.abbreviation] =
-          (newInventory[cookie.abbreviation] || 0) + amount;
-      } else if (event.type === 'C2T') {
-        // Council to Troop: increase troop inventory
-        newInventory[cookie.abbreviation] =
-          (newInventory[cookie.abbreviation] || 0) + amount;
-      } else if (event.type === 'T2T') {
-        // Troop to Troop: could be + or - depending on direction
-        // For simplicity, treating as neutral for now
-        newInventory[cookie.abbreviation] =
-          (newInventory[cookie.abbreviation] || 0) + amount;
-      }
+      newInventory[cookie.abbreviation] =
+        (newInventory[cookie.abbreviation] || 0) + amount;
     });
 
     // Add this date if not already added
@@ -161,8 +136,8 @@ const calculateInventoryProjection = () => {
       (date) => inventoryByDate[date]?.[cookie.abbreviation] || 0,
     ),
     borderColor: cookie.color || '#888',
+    borderWidth: 1,
     backgroundColor: cookie.color || '#888',
-    stepped: true,
     tension: 0,
     fill: false,
   }));
@@ -185,12 +160,22 @@ const calculateInventoryProjection = () => {
 const getEventColor = (eventType: string): string => {
   const colors = {
     T2G: '#3b82f6', // blue
+    'T2G(B)': '#3b82f6', // blue
+    'T2G(VB)': '#3b82f6', // blue
     G2T: '#10b981', // green
     C2T: '#8b5cf6', // purple
     T2T: '#f59e0b', // amber
     BOOTH: '#ef4444', // red
   };
   return colors[eventType as keyof typeof colors] || '#888';
+};
+
+const getEventDescription = (event: BoothSale | Order): string => {
+  if ('type' in event) {
+    return transactionsStore.friendlyTransactionTypes(event.type);
+  } else {
+    return `Booth: ${event.location || ''}`;
+  }
 };
 
 const updateChart = () => {
@@ -201,6 +186,7 @@ const updateChart = () => {
   }
 
   chartData.value = {
+    // Labels for each day
     labels: projection.labels,
     datasets: projection.datasets,
   };
@@ -226,28 +212,40 @@ const updateChart = () => {
       label: { display: boolean };
     }
   > = {};
-  projection.events.forEach((event, index) => {
+  // Create a separate dataset for event markers (scatter points)
+  const eventPoints = projection.events.map((event) => {
     const dateIndex = projection.labels.indexOf(event.date);
-    if (dateIndex >= 0) {
-      annotations[`event${index}`] = {
-        type: 'point',
-        xValue: event.date,
-        yValue: 0,
-        backgroundColor: getEventColor(event.type),
-        borderColor: getEventColor(event.type),
-        borderWidth: 2,
-        radius: 6,
-        pointStyle: 'circle',
-        label: {
-          display: false,
-        },
-      };
-    }
+    if (dateIndex === -1) return null;
+    return {
+      x: event.date,
+      // Bottom of chart which could be lower than 0
+      y:
+        Math.min(...projection.datasets.map((ds) => ds.data[dateIndex] || 0)) -
+        15,
+      type: event.type,
+      description: event.description,
+    };
+  });
+
+  // Add event points as a scatter dataset (no line)
+  projection.datasets.push({
+    label: 'Event',
+    data: eventPoints,
+    showLine: false,
+    pointStyle: 'triangle',
+    pointRadius: 5,
+    pointBackgroundColor: eventPoints.map((pt) => getEventColor(pt.type)),
+    pointBorderColor: eventPoints.map((pt) => getEventColor(pt.type)),
+    pointBorderWidth: 1,
+    backgroundColor: eventPoints.map((pt) => getEventColor(pt.type)),
+    borderColor: eventPoints.map((pt) => getEventColor(pt.type)),
+    type: 'scatter',
+    fill: false,
+    tension: 0,
   });
 
   chartOptions.value = {
-    maintainAspectRatio: false,
-    aspectRatio: 0.6,
+    aspectRatio: 3,
     plugins: {
       legend: {
         labels: {
@@ -257,24 +255,16 @@ const updateChart = () => {
       },
       tooltip: {
         callbacks: {
-          title: (context: { label: string }[]) => {
-            return `Date: ${context[0].label}`;
-          },
           label: (context: {
             dataset: { label: string };
             parsed: { y: number };
           }) => {
             const label = context.dataset.label || '';
             const value = context.parsed.y;
-
-            // Check if there's an event on this date
-            const event = projection.events.find(
-              (e) => e.date === context[0]?.label,
-            );
-            if (event) {
-              return `${label}: ${value} packages (Event: ${event.description})`;
+            if (label === 'Event') {
+              const event = projection.events[context.dataIndex];
+              return event ? event.description : '';
             }
-
             return `${label}: ${value} packages`;
           },
         },
@@ -285,17 +275,12 @@ const updateChart = () => {
     },
     scales: {
       x: {
-        title: {
-          display: true,
-          text: 'Date',
-          color: textColor,
+        type: 'time',
+        time: {
+          unit: 'day', // Or 'hour', 'month', etc.
         },
-        ticks: {
-          color: textColor,
-        },
-        grid: {
-          color: surfaceBorder,
-        },
+        min: '2025-02-02',
+        //max: '2025-03-31',
       },
       y: {
         title: {
@@ -339,7 +324,7 @@ watch(shouldUpdate, () => {
       Projected inventory over time based on pending and completed transactions.
       Lines show inventory levels, with events marked along the timeline.
     </p>
-    <div v-if="chartData" class="chart-container" style="height: 400px">
+    <div v-if="chartData">
       <Chart type="line" :data="chartData" :options="chartOptions" />
     </div>
     <div v-else class="text-center p-4 text-gray-500">
@@ -372,9 +357,3 @@ watch(shouldUpdate, () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.chart-container {
-  position: relative;
-}
-</style>

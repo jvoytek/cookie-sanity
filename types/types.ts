@@ -55,3 +55,12 @@ export interface TroopAccountSummary {
   numCookiesRemaining: number;
   activeAccounts: number;
 }
+
+export interface InventoryEvent {
+  date: string;
+  type: 'T2G' | 'G2T' | 'C2T' | 'T2T' | 'BOOTH';
+  transaction?: Order;
+  boothSale?: BoothSale;
+  cookies: Record<string, number>;
+  description: string;
+}

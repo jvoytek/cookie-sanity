@@ -305,6 +305,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       COOKIE_SHARE: 'Cookie Share',
       DIRECT_SHIP: 'Direct Ship',
     };
+    // Remove any suffixes like (B), (VB), etc.
+    type = type.split('(')[0].trim();
     return transactionTypeMap[type] || type;
   };
 
@@ -495,6 +497,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     convertSCOrderToNewTransaction,
     updateTransactionStatus,
     friendlyTransactionTypes,
+    _invertCookieQuantities,
     transactionTypeOptions,
   };
 });
