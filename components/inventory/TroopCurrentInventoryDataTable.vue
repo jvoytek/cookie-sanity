@@ -34,12 +34,8 @@ loading.value = false;
         </template>
       </Column>
       <Column field="onHand" header="On Hand" sortable />
-      <Column
-        field="pendingTroop"
-        header="Pending Troop Transactions"
-        sortable
-      />
-      <Column field="pendingGirl" header="Pending (Requested)" sortable>
+      <Column field="pendingTroop" header="Pending Troop" sortable />
+      <Column field="pendingGirl" header="Pending (Req.)" sortable>
         <template #body="slotProps">
           {{ slotProps.data.pendingGirl }}
           <span v-if="slotProps.data.requestedGirl !== 0">
@@ -47,9 +43,9 @@ loading.value = false;
           </span>
         </template>
       </Column>
-      <Column field="pendingBooth" header="Pending Booth" sortable />
+      <Column field="pendingBooth" header="Booth" sortable />
 
-      <Column field="afterPending" header="After Pending" sortable>
+      <Column field="afterPending" header="Net" sortable>
         <template #body="slotProps">
           {{ slotProps.data.afterPending }}
           <span
