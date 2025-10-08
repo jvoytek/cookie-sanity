@@ -373,7 +373,11 @@ describe('useTransactionHelpers', () => {
     });
   });
 
-  describe('overbooking validation', () => {
+  describe('overbooking validation (now handled by FormKit)', () => {
+    // NOTE: Overbooking validation has been moved to FormKit's inline validation system
+    // in the cookies store. These tests verify the transaction helpers still work correctly
+    // when FormKit validation passes or the form is bypassed.
+
     beforeEach(() => {
       mockCookiesStore.allCookies = [
         {
@@ -398,35 +402,6 @@ describe('useTransactionHelpers', () => {
           overbooking_allowed: false,
         },
       ];
-    });
-
-    it('should prevent T2G transactions that would result in negative inventory for cookies with overbooking_allowed=false', async () => {
-      // Mock current inventory: LEM has 10 packages
-      mockOrdersStore.sumTransactionsByCookie = vi.fn(
-        (abbreviation: string) => {
-          if (abbreviation === 'LEM') return 10;
-          return 50;
-        },
-      );
-
-      // Attempt to give 15 LEM cookies to a girl (would result in -5)
-      mockOrdersStore.activeTransaction = {
-        id: null,
-        type: 'T2G',
-        cookies: { LEM: -15 },
-      };
-
-      await transactionHelpers.saveTransaction();
-
-      expect(toastSpy).toHaveBeenCalled();
-      const errorMessage = toastSpy.mock.calls[0][0].message;
-      expect(errorMessage).toContain(
-        'Cannot process transaction - overbooking not allowed for',
-      );
-      expect(errorMessage).toContain(
-        'Lemon-Ups: Would result in -5 packages (15 requested, 10 available)',
-      );
-      expect(mockOrdersStore.insertNewTransaction).not.toHaveBeenCalled();
     });
 
     it('should allow T2G transactions that stay within inventory for cookies with overbooking_allowed=false', async () => {
@@ -515,52 +490,6 @@ describe('useTransactionHelpers', () => {
 
       expect(toastSpy).not.toHaveBeenCalled();
       expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
-    });
-
-    it('should report multiple overbooking violations', async () => {
-      mockCookiesStore.allCookies = [
-        {
-          name: 'Lemon-Ups',
-          abbreviation: 'LEM',
-          id: 2,
-          is_virtual: false,
-          overbooking_allowed: false,
-        },
-        {
-          name: 'Trefoils',
-          abbreviation: 'TRE',
-          id: 4,
-          is_virtual: false,
-          overbooking_allowed: false,
-        },
-      ];
-
-      // Mock current inventory: LEM has 5, TRE has 3
-      mockOrdersStore.sumTransactionsByCookie = vi.fn(
-        (abbreviation: string) => {
-          if (abbreviation === 'LEM') return 5;
-          if (abbreviation === 'TRE') return 3;
-          return 50;
-        },
-      );
-
-      // Attempt to give 10 LEM and 10 TRE cookies to a girl
-      mockOrdersStore.activeTransaction = {
-        id: null,
-        type: 'T2G',
-        cookies: { LEM: -10, TRE: -10 },
-      };
-
-      await transactionHelpers.saveTransaction();
-
-      expect(toastSpy).toHaveBeenCalled();
-      const errorMessage = toastSpy.mock.calls[0][0].message;
-      expect(errorMessage).toContain(
-        'Cannot process transaction - overbooking not allowed for',
-      );
-      expect(errorMessage).toContain('Lemon-Ups');
-      expect(errorMessage).toContain('Trefoils');
-      expect(mockOrdersStore.insertNewTransaction).not.toHaveBeenCalled();
     });
   });
 });
