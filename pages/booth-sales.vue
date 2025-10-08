@@ -209,6 +209,10 @@ const getBoothSaleDialogFormSchema = () => {
     },
   ];
 };
+
+const data = {
+  validationRules: cookiesStore.customCookieValidationRules, // Add the 'overBooking' function to the validationRules
+};
 </script>
 
 <template>
@@ -306,6 +310,7 @@ const getBoothSaleDialogFormSchema = () => {
             >
               <FormKitSchema
                 :schema="boothsStore.boothDialogFormSchema.value"
+                :data="data"
               />
             </FormKit>
           </div>
