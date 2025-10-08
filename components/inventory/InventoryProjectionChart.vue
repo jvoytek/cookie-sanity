@@ -151,6 +151,17 @@ const calculateInventoryProjection = () => {
     currentInventory = newInventory;
   });
 
+  // Add future projection point (5 years from last date)
+  if (dates.length > 0) {
+    const lastDate = dates[dates.length - 1];
+    const futureDate = new Date(lastDate);
+    futureDate.setFullYear(futureDate.getFullYear() + 5);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+
+    dates.push(futureDateStr);
+    inventoryByDate[futureDateStr] = currentInventory;
+  }
+
   // Build datasets for each cookie
   const datasets = cookies.map((cookie) => ({
     label: cookie.name,
@@ -162,6 +173,12 @@ const calculateInventoryProjection = () => {
     backgroundColor: cookie.color || '#888',
     tension: 0,
     fill: false,
+    segment: {
+      borderDash: (ctx: { p0DataIndex: number }) => {
+        // Make the last segment (to future point) dashed
+        return ctx.p0DataIndex === dates.length - 2 ? [5, 5] : undefined;
+      },
+    },
   }));
 
   // Create event markers
