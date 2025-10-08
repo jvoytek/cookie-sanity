@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import Chart from 'primevue/chart';
 import MultiSelect from 'primevue/multiselect';
 import DatePicker from 'primevue/datepicker';
+import Button from 'primevue/button';
 import 'chartjs-adapter-date-fns';
 import {
   Chart as ChartJS,
@@ -15,6 +16,7 @@ import {
   Legend,
 } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import { useCookiesStore } from '@/stores/cookies';
 import { useTransactionsStore } from '@/stores/transactions';
 import { useBoothsStore } from '@/stores/booths';
@@ -30,6 +32,7 @@ ChartJS.register(
   Tooltip,
   Legend,
   annotationPlugin,
+  zoomPlugin,
 );
 
 const cookiesStore = useCookiesStore();
@@ -38,6 +41,7 @@ const boothsStore = useBoothsStore();
 
 const chartData = ref();
 const chartOptions = ref();
+const chartRef = ref();
 
 // Filter state
 const startDate = ref<Date | null>(null);
@@ -420,6 +424,31 @@ const updateChart = () => {
       annotation: {
         annotations,
       },
+      zoom: {
+        pan: {
+          enabled: true,
+          mode: 'xy',
+        },
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true,
+          },
+          mode: 'xy',
+        },
+        limits: {
+          x: {
+            min: 'original',
+            max: 'original',
+          },
+          y: {
+            min: 'original',
+            max: 'original',
+          },
+        },
+      },
     },
     scales: {
       x: {
@@ -445,6 +474,12 @@ const updateChart = () => {
       },
     },
   };
+};
+
+const resetZoom = () => {
+  if (chartRef.value) {
+    chartRef.value.resetZoom();
+  }
 };
 
 onMounted(() => {
@@ -479,7 +514,8 @@ watch(
     <h5>Inventory Projection</h5>
     <p class="text-sm text-gray-600 mb-4">
       Projected inventory over time based on pending and completed transactions.
-      Lines show inventory levels, with events marked along the timeline.
+      Lines show inventory levels, with events marked along the timeline. Use
+      mouse wheel to zoom and click-drag to pan the chart.
     </p>
 
     <!-- Filters -->
@@ -506,7 +542,24 @@ watch(
     </div>
 
     <div v-if="chartData">
-      <Chart type="line" :data="chartData" :options="chartOptions" />
+      <div class="flex justify-between items-center mb-2">
+        <p class="text-sm text-gray-600">
+          Use mouse wheel to zoom, click and drag to pan
+        </p>
+        <Button
+          label="Reset Zoom"
+          icon="pi pi-refresh"
+          size="small"
+          severity="secondary"
+          @click="resetZoom"
+        />
+      </div>
+      <Chart
+        ref="chartRef"
+        type="line"
+        :data="chartData"
+        :options="chartOptions"
+      />
     </div>
     <div v-else class="text-center p-4 text-gray-500">
       No inventory data available. Add cookies and transactions to see the
