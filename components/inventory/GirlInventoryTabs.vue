@@ -63,6 +63,23 @@ const filteredRejectedTransactions = computed((): Order[] => {
   );
 });
 
+// Computed properties for filtered counts
+const filteredRequestedCount = computed(() => {
+  return filteredRequestedTransactions.value.length;
+});
+
+const filteredPendingCount = computed(() => {
+  return filteredPendingTransactions.value.length;
+});
+
+const filteredCompletedCount = computed(() => {
+  return filteredCompletedTransactions.value.length;
+});
+
+const filteredRejectedCount = computed(() => {
+  return filteredRejectedTransactions.value.length;
+});
+
 function openNew() {
   transactionHelpers.editTransaction(
     {
@@ -108,22 +125,22 @@ function openNew() {
         <TabList>
           <Tab value="0" class="flex items-center gap-2"
             ><i class="pi pi-envelope" />Requests ({{
-              ordersStore.requestedGirlTransactionrListCount
+              filteredRequestedCount
             }})</Tab
           >
           <Tab value="1" class="flex items-center gap-2"
             ><i class="pi pi-exclamation-triangle" />Pending ({{
-              ordersStore.pendingGirlTransactionListCount
+              filteredPendingCount
             }})</Tab
           >
           <Tab value="2" class="flex items-center gap-2"
             ><i class="pi pi-check" />Completed ({{
-              ordersStore.completedGirlTransactionListCount
+              filteredCompletedCount
             }})</Tab
           >
           <Tab value="3" class="flex items-center gap-2"
             ><i class="pi pi-times" />Rejected ({{
-              ordersStore.rejectedGirlTransactionListCount
+              filteredRejectedCount
             }})</Tab
           >
         </TabList>
