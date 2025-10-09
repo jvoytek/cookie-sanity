@@ -16,7 +16,6 @@ import {
   Legend,
 } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import zoomPlugin from 'chartjs-plugin-zoom';
 import { useCookiesStore } from '@/stores/cookies';
 import { useTransactionsStore } from '@/stores/transactions';
 import { useBoothsStore } from '@/stores/booths';
@@ -32,8 +31,14 @@ ChartJS.register(
   Tooltip,
   Legend,
   annotationPlugin,
-  zoomPlugin,
 );
+
+// Register zoom plugin only on client side to avoid SSR issues
+if (process.client) {
+  import('chartjs-plugin-zoom').then((zoomPlugin) => {
+    ChartJS.register(zoomPlugin.default);
+  });
+}
 
 const cookiesStore = useCookiesStore();
 const transactionsStore = useTransactionsStore();
