@@ -158,6 +158,20 @@ export const useTransactionsStore = defineStore('transactions', () => {
     );
   };
 
+  const _getTransactionListByStatusTypeAndGirl = (
+    status: string,
+    type: 'girl' | 'troop',
+    girlId: number | null,
+  ): Order[] => {
+    const baseList = _getTransactionListByStatusAndType(status, type);
+    if (girlId === null) {
+      return baseList;
+    }
+    return baseList.filter(
+      (transaction) => transaction.to === girlId || transaction.from === girlId,
+    );
+  };
+
   const _isGirlTransactionType = (type: string | null): boolean => {
     if (!type) return false;
     return (
@@ -469,6 +483,13 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
+  const getGirlTransactionsByStatus = (
+    status: string,
+    girlId: number | null,
+  ): Order[] => {
+    return _getTransactionListByStatusTypeAndGirl(status, 'girl', girlId);
+  };
+
   const setActiveTransaction = (transaction: Order | null) => {
     activeTransaction.value = transaction;
     // Create a deep copy of the original transaction for change tracking
@@ -521,5 +542,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     friendlyTransactionTypes,
     _invertCookieQuantities,
     transactionTypeOptions,
+    getGirlTransactionsByStatus,
   };
 });
