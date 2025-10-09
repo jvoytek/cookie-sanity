@@ -20,6 +20,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const transactionDialogFormSchema = reactive([]);
 
   const activeTransaction = ref<Order | null>(null);
+  const activeTransactionOriginal = ref<Order | null>(null);
   const editTransactionDialogVisible = ref(false);
   const deleteTransactionDialogVisible = ref(false);
 
@@ -489,10 +490,32 @@ export const useTransactionsStore = defineStore('transactions', () => {
     return _getTransactionListByStatusTypeAndGirl(status, 'girl', girlId);
   };
 
+  const setActiveTransaction = (transaction: Order | null) => {
+    activeTransaction.value = transaction;
+    // Create a deep copy of the original transaction for change tracking
+    activeTransactionOriginal.value = transaction
+      ? JSON.parse(JSON.stringify(transaction))
+      : null;
+    console.log('activeTransactionOriginal', activeTransactionOriginal.value);
+  };
+
+  const resetActiveTransaction = () => {
+    if (activeTransactionOriginal.value && activeTransaction.value) {
+      // Revert changes by resetting to the original deep copy
+      _updateTransaction(activeTransactionOriginal.value);
+    }
+    // Clear active transaction
+    activeTransaction.value = null;
+    activeTransactionOriginal.value = null;
+  };
+
   return {
     allTransactions,
     sumTransactionsByCookie,
+    setActiveTransaction,
+    resetActiveTransaction,
     activeTransaction,
+    activeTransactionOriginal,
     transactionDialogFormSchema,
     editTransactionDialogVisible,
     deleteTransactionDialogVisible,

@@ -19,6 +19,7 @@ export const useBoothsStore = defineStore('booths', () => {
   const allBoothSales = ref<BoothSale[]>([]);
   const boothDialogFormSchema = reactive([]);
   const activeBoothSale = ref<BoothSale | null>(null);
+  const activeBoothSaleOriginal = ref<BoothSale | null>(null);
   const boothDialogVisible = ref(false);
 
   /* Computed */
@@ -260,7 +261,7 @@ export const useBoothsStore = defineStore('booths', () => {
       );
     }
 
-    if (boothSale.auto_calculate_predicted_cookies)
+    if (boothSale.auto_calculate_predicted_cookies !== undefined)
       delete boothSale.auto_calculate_predicted_cookies;
 
     try {
@@ -286,7 +287,7 @@ export const useBoothsStore = defineStore('booths', () => {
       }
 
       // Remove auto_calculate_predicted_cookies if it exists
-      if (boothSale.auto_calculate_predicted_cookies)
+      if (boothSale.auto_calculate_predicted_cookies !== undefined)
         delete boothSale.auto_calculate_predicted_cookies;
 
       const { error } = await _supabaseUpsertBoothSale(boothSale);
@@ -332,10 +333,30 @@ export const useBoothsStore = defineStore('booths', () => {
     return total * -1; // Return negative for inventory purposes
   };
 
+  const setActiveBoothSale = (boothSale: BoothSale | null) => {
+    activeBoothSale.value = boothSale;
+    activeBoothSaleOriginal.value = boothSale
+      ? JSON.parse(JSON.stringify(boothSale))
+      : null;
+  };
+
+  const resetActiveBoothSale = () => {
+    if (activeBoothSaleOriginal.value && activeBoothSale.value) {
+      // Revert changes by resetting to the original deep copy
+      _updateBoothSale(activeBoothSaleOriginal.value);
+    }
+    // Clear active booth sale
+    activeBoothSale.value = null;
+    activeBoothSaleOriginal.value = null;
+  };
+
   return {
     allBoothSales,
     boothDialogFormSchema,
+    resetActiveBoothSale,
+    setActiveBoothSale,
     activeBoothSale,
+    activeBoothSaleOriginal,
     boothDialogVisible,
     setActiveBoothSalePredictedCookies,
     setActiveBoothSaleTotalExpectedSales,

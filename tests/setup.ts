@@ -80,6 +80,7 @@ const useTransactionHelpersMock = vi.fn(() => ({
   hideDialog: vi.fn(),
   saveTransaction: vi.fn(),
   deleteTransaction: vi.fn(),
+  setActiveTransaction: vi.fn(),
   transactionTypeBadgeSeverity: vi.fn(() => 'info'),
 }));
 vi.stubGlobal('useTransactionHelpers', useTransactionHelpersMock);

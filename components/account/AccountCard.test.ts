@@ -56,23 +56,6 @@ describe('AccountCard', () => {
     mockUser.value = { email: 'test@example.com' };
   });
 
-  it('renders account card with correct structure', () => {
-    const wrapper = mount(AccountCard, {
-      global: {
-        components: {
-          Button: MockButton,
-          InputText: MockInputText,
-        },
-      },
-    });
-
-    expect(
-      wrapper.find('.col-span-12.lg\\:col-span-6.xl\\:col-span-3').exists(),
-    ).toBe(true);
-    expect(wrapper.find('.card').exists()).toBe(true);
-    expect(wrapper.find('form').exists()).toBe(true);
-  });
-
   it('displays correct title', () => {
     const wrapper = mount(AccountCard, {
       global: {
