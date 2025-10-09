@@ -29,6 +29,7 @@ describe('useTransactionHelpers', () => {
       upsertTransaction: vi.fn(),
       insertNewTransaction: vi.fn(),
       deleteTransaction: vi.fn(),
+      setActiveTransaction: vi.fn(),
     };
     vi.stubGlobal('useTransactionsStore', () => mockOrdersStore);
 
@@ -104,7 +105,9 @@ describe('useTransactionHelpers', () => {
 
       transactionHelpers.editTransaction(testOrder, 'troop');
 
-      expect(mockOrdersStore.activeTransaction).toEqual(testOrder);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(
+        testOrder,
+      );
       expect(mockOrdersStore.transactionDialogFormSchema.value).toBeDefined();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(true);
     });
@@ -144,7 +147,7 @@ describe('useTransactionHelpers', () => {
       );
       expect(mockOrdersStore.insertNewTransaction).not.toHaveBeenCalled();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual(null);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(null);
       expect(transactionHelpers.submitted.value).toBe(false);
     });
 
@@ -161,7 +164,7 @@ describe('useTransactionHelpers', () => {
       );
       expect(mockOrdersStore.upsertTransaction).not.toHaveBeenCalled();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual(null);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(null);
       expect(transactionHelpers.submitted.value).toBe(false);
     });
   });
@@ -187,7 +190,9 @@ describe('useTransactionHelpers', () => {
 
       transactionHelpers.confirmDeleteTransaction(testOrder);
 
-      expect(mockOrdersStore.activeTransaction).toEqual(testOrder);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(
+        testOrder,
+      );
       expect(mockOrdersStore.deleteTransactionDialogVisible).toBe(true);
     });
   });
@@ -202,7 +207,7 @@ describe('useTransactionHelpers', () => {
 
       expect(mockOrdersStore.deleteTransaction).toHaveBeenCalledWith(1);
       expect(mockOrdersStore.deleteTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual(null);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(null);
     });
 
     it('handles deletion error gracefully', async () => {
@@ -370,6 +375,126 @@ describe('useTransactionHelpers', () => {
           field.name === 'to' && field.if?.includes('DIRECT_SHIP'),
       );
       expect(toField).toBeDefined();
+    });
+  });
+
+  describe('overbooking validation (now handled by FormKit)', () => {
+    // NOTE: Overbooking validation has been moved to FormKit's inline validation system
+    // in the cookies store. These tests verify the transaction helpers still work correctly
+    // when FormKit validation passes or the form is bypassed.
+
+    beforeEach(() => {
+      mockCookiesStore.allCookies = [
+        {
+          name: 'Thin Mints',
+          abbreviation: 'TM',
+          id: 1,
+          is_virtual: false,
+          overbooking_allowed: true,
+        },
+        {
+          name: 'Lemon-Ups',
+          abbreviation: 'LEM',
+          id: 2,
+          is_virtual: false,
+          overbooking_allowed: false,
+        },
+        {
+          name: 'Cookie Share',
+          abbreviation: 'CS',
+          id: 3,
+          is_virtual: true,
+          overbooking_allowed: false,
+        },
+      ];
+    });
+
+    it('should allow T2G transactions that stay within inventory for cookies with overbooking_allowed=false', async () => {
+      // Mock current inventory: LEM has 10 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'LEM') return 10;
+          return 50;
+        },
+      );
+
+      // Give 8 LEM cookies to a girl (would result in 2, which is valid)
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { LEM: -8 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+
+    it('should allow T2G transactions for cookies with overbooking_allowed=true even if result is negative', async () => {
+      // Mock current inventory: TM has 10 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'TM') return 10;
+          return 50;
+        },
+      );
+
+      // Give 15 TM cookies to a girl (would result in -5, but TM allows overbooking)
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { TM: -15 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+
+    it('should not check overbooking for non-T2G transaction types', async () => {
+      // Mock current inventory: LEM has 10 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'LEM') return 10;
+          return 50;
+        },
+      );
+
+      // C2T transaction (Council to Troop) should not check overbooking
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'C2T',
+        cookies: { LEM: 20 }, // positive, adding to inventory
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
+    });
+
+    it('should skip virtual cookies in overbooking validation', async () => {
+      // Mock current inventory: CS (virtual) has 0 packages
+      mockOrdersStore.sumTransactionsByCookie = vi.fn(
+        (abbreviation: string) => {
+          if (abbreviation === 'CS') return 0;
+          return 50;
+        },
+      );
+
+      // Give 5 CS cookies to a girl (virtual cookie, should be skipped)
+      mockOrdersStore.activeTransaction = {
+        id: null,
+        type: 'T2G',
+        cookies: { CS: -5 },
+      };
+
+      await transactionHelpers.saveTransaction();
+
+      expect(toastSpy).not.toHaveBeenCalled();
+      expect(mockOrdersStore.insertNewTransaction).toHaveBeenCalled();
     });
   });
 });

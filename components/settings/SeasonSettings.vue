@@ -33,7 +33,7 @@ function showSettingsForSeason() {
 </script>
 
 <template>
-  <div class="col-span-12 lg:col-span-8 xl:col-span-8">
+  <div class="col-span-12">
     <div class="card">
       <h5>Season Settings</h5>
       <Select

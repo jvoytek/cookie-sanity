@@ -21,7 +21,7 @@ async function updateProfile() {
 </script>
 
 <template>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+  <div class="col-span-12">
     <div class="card">
       <form @submit.prevent="updateProfile">
         <div class="font-semibold text-xl">Account</div>
