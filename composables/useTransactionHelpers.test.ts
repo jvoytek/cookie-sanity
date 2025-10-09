@@ -29,6 +29,7 @@ describe('useTransactionHelpers', () => {
       upsertTransaction: vi.fn(),
       insertNewTransaction: vi.fn(),
       deleteTransaction: vi.fn(),
+      setActiveTransaction: vi.fn(),
     };
     vi.stubGlobal('useTransactionsStore', () => mockOrdersStore);
 
@@ -104,7 +105,9 @@ describe('useTransactionHelpers', () => {
 
       transactionHelpers.editTransaction(testOrder, 'troop');
 
-      expect(mockOrdersStore.activeTransaction).toEqual(testOrder);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(
+        testOrder,
+      );
       expect(mockOrdersStore.transactionDialogFormSchema.value).toBeDefined();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(true);
     });
@@ -144,7 +147,7 @@ describe('useTransactionHelpers', () => {
       );
       expect(mockOrdersStore.insertNewTransaction).not.toHaveBeenCalled();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual(null);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(null);
       expect(transactionHelpers.submitted.value).toBe(false);
     });
 
@@ -161,7 +164,7 @@ describe('useTransactionHelpers', () => {
       );
       expect(mockOrdersStore.upsertTransaction).not.toHaveBeenCalled();
       expect(mockOrdersStore.editTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual(null);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(null);
       expect(transactionHelpers.submitted.value).toBe(false);
     });
   });
@@ -187,7 +190,9 @@ describe('useTransactionHelpers', () => {
 
       transactionHelpers.confirmDeleteTransaction(testOrder);
 
-      expect(mockOrdersStore.activeTransaction).toEqual(testOrder);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(
+        testOrder,
+      );
       expect(mockOrdersStore.deleteTransactionDialogVisible).toBe(true);
     });
   });
@@ -202,7 +207,7 @@ describe('useTransactionHelpers', () => {
 
       expect(mockOrdersStore.deleteTransaction).toHaveBeenCalledWith(1);
       expect(mockOrdersStore.deleteTransactionDialogVisible).toBe(false);
-      expect(mockOrdersStore.activeTransaction).toEqual(null);
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(null);
     });
 
     it('handles deletion error gracefully', async () => {
