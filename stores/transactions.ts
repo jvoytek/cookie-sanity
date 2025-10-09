@@ -20,6 +20,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const transactionDialogFormSchema = reactive([]);
 
   const activeTransaction = ref<Order | null>(null);
+  const activeTransactionOriginal = ref<Order | null>(null);
   const editTransactionDialogVisible = ref(false);
   const deleteTransactionDialogVisible = ref(false);
 
@@ -154,6 +155,20 @@ export const useTransactionsStore = defineStore('transactions', () => {
     return allTransactions.value.filter(
       (transaction) =>
         transaction.status === status && isTransactionType(transaction.type),
+    );
+  };
+
+  const _getTransactionListByStatusTypeAndGirl = (
+    status: string,
+    type: 'girl' | 'troop',
+    girlId: number | null,
+  ): Order[] => {
+    const baseList = _getTransactionListByStatusAndType(status, type);
+    if (girlId === null) {
+      return baseList;
+    }
+    return baseList.filter(
+      (transaction) => transaction.to === girlId || transaction.from === girlId,
     );
   };
 
@@ -468,10 +483,39 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
+  const getGirlTransactionsByStatus = (
+    status: string,
+    girlId: number | null,
+  ): Order[] => {
+    return _getTransactionListByStatusTypeAndGirl(status, 'girl', girlId);
+  };
+
+  const setActiveTransaction = (transaction: Order | null) => {
+    activeTransaction.value = transaction;
+    // Create a deep copy of the original transaction for change tracking
+    activeTransactionOriginal.value = transaction
+      ? JSON.parse(JSON.stringify(transaction))
+      : null;
+    console.log('activeTransactionOriginal', activeTransactionOriginal.value);
+  };
+
+  const resetActiveTransaction = () => {
+    if (activeTransactionOriginal.value && activeTransaction.value) {
+      // Revert changes by resetting to the original deep copy
+      _updateTransaction(activeTransactionOriginal.value);
+    }
+    // Clear active transaction
+    activeTransaction.value = null;
+    activeTransactionOriginal.value = null;
+  };
+
   return {
     allTransactions,
     sumTransactionsByCookie,
+    setActiveTransaction,
+    resetActiveTransaction,
     activeTransaction,
+    activeTransactionOriginal,
     transactionDialogFormSchema,
     editTransactionDialogVisible,
     deleteTransactionDialogVisible,
@@ -498,5 +542,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     friendlyTransactionTypes,
     _invertCookieQuantities,
     transactionTypeOptions,
+    getGirlTransactionsByStatus,
   };
 });

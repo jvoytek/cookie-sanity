@@ -1255,4 +1255,160 @@ describe('Transactions Store', () => {
       expect(totals.VIRTUAL).toBe(5);
     });
   });
+
+  describe('getGirlTransactionsByStatus', () => {
+    beforeEach(() => {
+      // Set up test transactions with specific girl IDs
+      transactionsStore.allTransactions = [
+        {
+          ...baseTransaction,
+          id: 1,
+          status: 'complete',
+          type: 'T2G',
+          to: 1, // Jane
+          from: null,
+          cookies: { ABC: 5 },
+        },
+        {
+          ...baseTransaction,
+          id: 2,
+          status: 'complete',
+          type: 'G2T',
+          to: null,
+          from: 1, // Jane
+          cookies: { ABC: -2 },
+        },
+        {
+          ...baseTransaction,
+          id: 3,
+          status: 'complete',
+          type: 'T2G',
+          to: 2, // John
+          from: null,
+          cookies: { ABC: 3 },
+        },
+        {
+          ...baseTransaction,
+          id: 4,
+          status: 'pending',
+          type: 'T2G',
+          to: 1, // Jane
+          from: null,
+          cookies: { ABC: 4 },
+        },
+        {
+          ...baseTransaction,
+          id: 5,
+          status: 'requested',
+          type: 'T2G',
+          to: 2, // John
+          from: null,
+          cookies: { ABC: 1 },
+        },
+        {
+          ...baseTransaction,
+          id: 6,
+          status: 'rejected',
+          type: 'T2G',
+          to: 1, // Jane
+          from: null,
+          cookies: { ABC: 2 },
+        },
+        {
+          ...baseTransaction,
+          id: 7,
+          status: 'complete',
+          type: 'G2G',
+          to: 2, // John
+          from: 1, // Jane
+          cookies: { ABC: 1 },
+        },
+      ];
+    });
+
+    it('should return all transactions when girlId is null (troop view)', () => {
+      const completed = transactionsStore.getGirlTransactionsByStatus(
+        'complete',
+        null,
+      );
+
+      expect(completed).toHaveLength(4);
+      expect(completed.map((t) => t.id).sort()).toEqual([1, 2, 3, 7]);
+    });
+
+    it('should filter completed transactions by girl ID (to)', () => {
+      const completed = transactionsStore.getGirlTransactionsByStatus(
+        'complete',
+        1,
+      );
+
+      expect(completed).toHaveLength(3);
+      expect(completed.map((t) => t.id).sort()).toEqual([1, 2, 7]);
+    });
+
+    it('should filter completed transactions by girl ID (from)', () => {
+      const completed = transactionsStore.getGirlTransactionsByStatus(
+        'complete',
+        2,
+      );
+
+      expect(completed).toHaveLength(2);
+      expect(completed.map((t) => t.id).sort()).toEqual([3, 7]);
+    });
+
+    it('should filter pending transactions by girl ID', () => {
+      const pending = transactionsStore.getGirlTransactionsByStatus(
+        'pending',
+        1,
+      );
+
+      expect(pending).toHaveLength(1);
+      expect(pending[0].id).toBe(4);
+    });
+
+    it('should filter requested transactions by girl ID', () => {
+      const requested = transactionsStore.getGirlTransactionsByStatus(
+        'requested',
+        2,
+      );
+
+      expect(requested).toHaveLength(1);
+      expect(requested[0].id).toBe(5);
+    });
+
+    it('should filter rejected transactions by girl ID', () => {
+      const rejected = transactionsStore.getGirlTransactionsByStatus(
+        'rejected',
+        1,
+      );
+
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0].id).toBe(6);
+    });
+
+    it('should return empty array when no transactions match', () => {
+      const completed = transactionsStore.getGirlTransactionsByStatus(
+        'complete',
+        999,
+      );
+
+      expect(completed).toHaveLength(0);
+    });
+
+    it('should handle G2G transactions correctly for both girls', () => {
+      // Girl 1 (Jane) - should see the G2G transaction
+      const girl1Completed = transactionsStore.getGirlTransactionsByStatus(
+        'complete',
+        1,
+      );
+      expect(girl1Completed.find((t) => t.id === 7)).toBeDefined();
+
+      // Girl 2 (John) - should also see the G2G transaction
+      const girl2Completed = transactionsStore.getGirlTransactionsByStatus(
+        'complete',
+        2,
+      );
+      expect(girl2Completed.find((t) => t.id === 7)).toBeDefined();
+    });
+  });
 });

@@ -511,4 +511,329 @@ describe('stores/cookies', () => {
       });
     });
   });
+
+  describe('FormKit overbooking validation', () => {
+    let useTransactionsStoreMock: any;
+    let useBoothsStoreMock: any;
+    let useSeasonsStoreMock: any;
+
+    beforeEach(() => {
+      setActivePinia(createPinia());
+
+      // Mock seasons store
+      useSeasonsStoreMock = vi.fn(() => ({
+        currentSeason: { id: 1, year: 2024 },
+        settingsSelectedSeason: { id: 1 },
+      }));
+      vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
+
+      // Mock transactions store
+      useTransactionsStoreMock = vi.fn(() => ({
+        activeTransaction: {
+          type: 'T2G',
+          cookies: {},
+        },
+        sumTransactionsByCookie: vi.fn((abbreviation: string) => {
+          // Mock inventory levels (onHand)
+          const inventory: Record<string, number> = {
+            LEM: 10, // Lemon-Ups has 10 packages
+            TM: 50, // Thin Mints has 50 packages
+            TRE: 5, // Trefoils has 5 packages
+            CS: 0, // Cookie Share (virtual) has 0
+          };
+          return inventory[abbreviation] || 0;
+        }),
+        totalTransactionsByStatusAllCookies: vi.fn(
+          (status: string, type: string) => {
+            // Return maps with 0 for all cookies to keep calculations simple
+            // afterPending = onHand + pendingGirl + pendingTroop + pendingBooth
+            return {
+              LEM: 0,
+              TM: 0,
+              TRE: 0,
+              CS: 0,
+            };
+          },
+        ),
+      }));
+      vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
+
+      // Mock booths store
+      useBoothsStoreMock = vi.fn(() => ({
+        getPredictedBoothSaleQuantityByCookie: vi.fn(() => 0),
+      }));
+      vi.stubGlobal('useBoothsStore', useBoothsStoreMock);
+
+      cookiesStore = useCookiesStore();
+
+      // Set up test cookies
+      cookiesStore.allCookies = [
+        {
+          id: 1,
+          name: 'Thin Mints',
+          abbreviation: 'TM',
+          price: 5.0,
+          order: 1,
+          profile: 'test',
+          season: 1,
+          is_virtual: false,
+          overbooking_allowed: true, // Allows overbooking
+        },
+        {
+          id: 2,
+          name: 'Lemon-Ups',
+          abbreviation: 'LEM',
+          price: 5.0,
+          order: 2,
+          profile: 'test',
+          season: 1,
+          is_virtual: false,
+          overbooking_allowed: false, // Does NOT allow overbooking
+        },
+        {
+          id: 3,
+          name: 'Trefoils',
+          abbreviation: 'TRE',
+          price: 5.0,
+          order: 3,
+          profile: 'test',
+          season: 1,
+          is_virtual: false,
+          overbooking_allowed: false, // Does NOT allow overbooking
+        },
+        {
+          id: 4,
+          name: 'Cookie Share',
+          abbreviation: 'CS',
+          price: 5.0,
+          order: 4,
+          profile: 'test',
+          season: 1,
+          is_virtual: true, // Virtual cookie
+          overbooking_allowed: false,
+        },
+      ] as Cookie[];
+    });
+
+    describe('customCookieValidationRules.overBooking', () => {
+      it('should return validation rules object', () => {
+        expect(cookiesStore.customCookieValidationRules).toBeDefined();
+        expect(cookiesStore.customCookieValidationRules.overBooking).toBeTypeOf(
+          'function',
+        );
+      });
+
+      it('should prevent T2G transactions that exceed inventory for cookies with overbooking_allowed=false', () => {
+        // Get the mocked transactions store
+        const transactionsStore = useTransactionsStore();
+
+        // Important: Update the active transaction AFTER getting the store
+        transactionsStore.activeTransaction = {
+          type: 'T2G',
+          cookies: { LEM: -15 }, // Trying to give 15, but only 10 available
+        };
+
+        // Verify allCookiesWithInventoryTotals is computed correctly
+        const cookieWithTotals =
+          cookiesStore.allCookiesWithInventoryTotals.find(
+            (c) => c.abbreviation === 'LEM',
+          );
+        expect(cookieWithTotals).toBeDefined();
+        expect(cookieWithTotals?.afterPending).toBe(10); // onHand=10, pending=0
+
+        // Mock FormKit node structure
+        const mockNode = {
+          value: -15,
+          name: 'LEM',
+          parent: { name: 'cookies' },
+        };
+
+        const result =
+          cookiesStore.customCookieValidationRules.overBooking(mockNode);
+        expect(result).toBe(false); // Should fail validation
+      });
+
+      it('should allow T2G transactions within inventory for cookies with overbooking_allowed=false', () => {
+        const transactionsStore = useTransactionsStore();
+        transactionsStore.activeTransaction = {
+          type: 'T2G',
+          cookies: { LEM: -8 }, // Trying to give 8, and 10 are available
+        };
+
+        const mockNode = {
+          value: -8,
+          name: 'LEM',
+          parent: { name: 'cookies' },
+        };
+
+        const result =
+          cookiesStore.customCookieValidationRules.overBooking(mockNode);
+        expect(result).toBe(true); // Should pass validation
+      });
+
+      it('should allow overbooking for cookies with overbooking_allowed=true', () => {
+        const transactionsStore = useTransactionsStore();
+        transactionsStore.activeTransaction = {
+          type: 'T2G',
+          cookies: { TM: -100 }, // Trying to give 100, only 50 available, but overbooking allowed
+        };
+
+        const mockNode = {
+          value: -100,
+          name: 'TM',
+          parent: { name: 'cookies' },
+        };
+
+        const result =
+          cookiesStore.customCookieValidationRules.overBooking(mockNode);
+        expect(result).toBe(true); // Should pass validation
+      });
+
+      it('should allow virtual cookies regardless of inventory', () => {
+        const transactionsStore = useTransactionsStore();
+        transactionsStore.activeTransaction = {
+          type: 'T2G',
+          cookies: { CS: -50 }, // Virtual cookie with 0 inventory
+        };
+
+        const mockNode = {
+          value: -50,
+          name: 'CS',
+          parent: { name: 'cookies' },
+        };
+
+        const result =
+          cookiesStore.customCookieValidationRules.overBooking(mockNode);
+        expect(result).toBe(true); // Should pass validation
+      });
+
+      it('should allow G2G transactions regardless of inventory', () => {
+        // Need to update the mock to return G2G type
+        useTransactionsStoreMock.mockImplementation(() => ({
+          activeTransaction: {
+            type: 'G2G', // Girl to Girl doesn't affect troop inventory
+            cookies: { LEM: -50 },
+          },
+          sumTransactionsByCookie: vi.fn((abbreviation: string) => {
+            const inventory: Record<string, number> = {
+              LEM: 10,
+              TM: 50,
+              TRE: 5,
+              CS: 0,
+            };
+            return inventory[abbreviation] || 0;
+          }),
+          totalTransactionsByStatusAllCookies: vi.fn(() => ({
+            LEM: 0,
+            TM: 0,
+            TRE: 0,
+            CS: 0,
+          })),
+        }));
+
+        // Recreate the store with the updated mock
+        setActivePinia(createPinia());
+        vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
+        vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
+        vi.stubGlobal('useBoothsStore', useBoothsStoreMock);
+        const newCookiesStore = useCookiesStore();
+        newCookiesStore.allCookies = cookiesStore.allCookies;
+
+        const mockNode = {
+          value: -50,
+          name: 'LEM',
+          parent: { name: 'cookies' },
+        };
+
+        const result =
+          newCookiesStore.customCookieValidationRules.overBooking(mockNode);
+        expect(result).toBe(true); // Should pass validation
+      });
+
+      it('should handle booth type transactions (predicted_cookies)', () => {
+        const transactionsStore = useTransactionsStore();
+        transactionsStore.activeTransaction = {
+          type: 'T2G',
+          cookies: {},
+        };
+
+        // Booth predictions use positive numbers but reduce inventory
+        const mockNode = {
+          value: 15, // Booth predicts selling 15 (positive)
+          name: 'LEM',
+          parent: { name: 'predicted_cookies' }, // Indicates booth sale
+        };
+
+        // This should check if 10 (current) - 15 (predicted) would go negative
+        const result =
+          cookiesStore.customCookieValidationRules.overBooking(mockNode);
+        expect(result).toBe(false); // Should fail - would result in -5
+      });
+
+      it('should allow booth predictions within inventory', () => {
+        const transactionsStore = useTransactionsStore();
+        transactionsStore.activeTransaction = {
+          type: 'T2G',
+          cookies: {},
+        };
+
+        const mockNode = {
+          value: 8, // Booth predicts selling 8 (positive)
+          name: 'LEM',
+          parent: { name: 'predicted_cookies' },
+        };
+
+        // This should check if 10 (current) - 8 (predicted) = 2 (ok)
+        const result =
+          cookiesStore.customCookieValidationRules.overBooking(mockNode);
+        expect(result).toBe(true); // Should pass
+      });
+
+      it('should allow positive quantities (adding to inventory)', () => {
+        const transactionsStore = useTransactionsStore();
+        transactionsStore.activeTransaction = {
+          type: 'C2T', // Council to Troop adds inventory
+          cookies: { LEM: 50 }, // Adding 50 packages
+        };
+
+        const mockNode = {
+          value: 50, // Positive quantity
+          name: 'LEM',
+          parent: { name: 'cookies' },
+        };
+
+        const result =
+          cookiesStore.customCookieValidationRules.overBooking(mockNode);
+        expect(result).toBe(true); // Should always pass for positive quantities
+      });
+
+      it('should handle multiple cookies with different restrictions', () => {
+        const transactionsStore = useTransactionsStore();
+        transactionsStore.activeTransaction = {
+          type: 'T2G',
+          cookies: { LEM: -8, TRE: -6 },
+        };
+
+        // Test LEM (within limits)
+        const lemNode = {
+          value: -8,
+          name: 'LEM',
+          parent: { name: 'cookies' },
+        };
+        expect(
+          cookiesStore.customCookieValidationRules.overBooking(lemNode),
+        ).toBe(true);
+
+        // Test TRE (exceeds limits - only 5 available)
+        const treNode = {
+          value: -6,
+          name: 'TRE',
+          parent: { name: 'cookies' },
+        };
+        expect(
+          cookiesStore.customCookieValidationRules.overBooking(treNode),
+        ).toBe(false);
+      });
+    });
+  });
 });

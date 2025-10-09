@@ -103,6 +103,7 @@ export type Database = {
           is_virtual: boolean | null;
           name: string;
           order: number | null;
+          overbooking_allowed: boolean | null;
           percent_of_sale: number | null;
           price: number | null;
           profile: string | null;
@@ -116,6 +117,7 @@ export type Database = {
           is_virtual?: boolean | null;
           name: string;
           order?: number | null;
+          overbooking_allowed?: boolean | null;
           percent_of_sale?: number | null;
           price?: number | null;
           profile?: string | null;
@@ -129,6 +131,7 @@ export type Database = {
           is_virtual?: boolean | null;
           name?: string;
           order?: number | null;
+          overbooking_allowed?: boolean | null;
           percent_of_sale?: number | null;
           price?: number | null;
           profile?: string | null;
