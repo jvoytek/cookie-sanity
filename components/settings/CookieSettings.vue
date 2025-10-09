@@ -109,7 +109,7 @@ async function onRowReorder(event) {
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Manage Products</h4>
+            <h4 class="m-0">Manage Cookies</h4>
             <IconField>
               <InputIcon>
                 <i class="pi pi-search" />
@@ -158,6 +158,26 @@ async function onRowReorder(event) {
           </template>
           <template #body="slotProps">
             {{ slotProps.data.percent_of_sale || 0 }}%
+          </template>
+        </Column>
+        <Column field="overbooking_allowed">
+          <template #header>
+            <strong>Overbooking Allowed</strong>
+            <i
+              v-tooltip.bottom="{
+                value:
+                  'When checked, allows creating transactions for more cookies than are currently available in inventory. Uncheck for limited varieties.',
+                showDelay: 500,
+              }"
+              class="pi pi-info-circle ml-2"
+              style="cursor: pointer"
+            />
+          </template>
+          <template #body="slotProps">
+            <i
+              v-if="slotProps.data.overbooking_allowed"
+              class="pi pi-check text-green-500"
+            />
           </template>
         </Column>
         <Column field="is_virtual">

@@ -17,6 +17,10 @@ const submitButtonClickHandler = () => {
 const data = {
   validationRules: cookiesStore.customCookieValidationRules, // Add the 'overBooking' function to the validationRules
 };
+
+const handleAfterHide = () => {
+  transactionHelpers.cancelEditTransaction();
+};
 </script>
 
 <template>
@@ -25,6 +29,7 @@ const data = {
     :style="{ width: '450px' }"
     header="Transaction Details"
     :modal="true"
+    @after-hide="handleAfterHide"
   >
     <div class="flex flex-col gap-6">
       <FormKit

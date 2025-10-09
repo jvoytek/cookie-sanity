@@ -40,7 +40,7 @@ async function saveBoothSale() {
     boothsStore.insertBoothSale(boothsStore.activeBoothSale);
   }
   boothsStore.boothDialogVisible = false;
-  boothsStore.activeBoothSale = null;
+  boothsStore.setActiveBoothSale(null);
 }
 
 const submitButtonClickHandler = () => {
@@ -49,12 +49,17 @@ const submitButtonClickHandler = () => {
 
 function editBoothSale(sale: BoothSale | null) {
   boothsStore.boothDialogFormSchema.value = getBoothSaleDialogFormSchema();
-  boothsStore.activeBoothSale = sale;
+  boothsStore.setActiveBoothSale(sale);
   boothsStore.boothDialogVisible = true;
 }
 
+function cancelEditBoothSale() {
+  boothsStore.resetActiveBoothSale();
+  boothsStore.boothDialogVisible = false;
+}
+
 function confirmDeleteBoothSale(sale: BoothSale) {
-  boothsStore.activeBoothSale = sale;
+  boothsStore.setActiveBoothSale(sale);
   deleteBoothSaleDialog.value = true;
 }
 
@@ -62,7 +67,7 @@ async function deleteBoothSale() {
   try {
     boothsStore.deleteBoothSale(boothsStore.activeBoothSale);
     deleteBoothSaleDialog.value = false;
-    boothsStore.activeBoothSale = null;
+    boothsStore.setActiveBoothSale(null);
   } catch (error) {
     notificationHelpers.addError(error as Error);
   }
@@ -299,6 +304,7 @@ const data = {
           :style="{ width: '550px' }"
           header="Booth Sale Details"
           :modal="true"
+          @after-hide="cancelEditBoothSale"
         >
           <div class="flex flex-col gap-6">
             <FormKit

@@ -47,7 +47,16 @@ export const useCookiesStore = defineStore('cookies', () => {
 
     // For troop inventory, negative quantities remove inventory
     if (transactionQuantity < 0) {
-      const newInventory = cookieWithTotals.afterPending + transactionQuantity;
+      const originalQuantity = boothType
+        ? boothsStore.activeBoothSaleOriginal?.predicted_cookies?.[
+            cookieAbbreviation
+          ] || 0
+        : ordersStore.activeTransactionOriginal?.cookies?.[cookieAbbreviation] *
+            -1 || 0;
+      // Calculate the net change in quantity for this cookie
+      const netChange = transactionQuantity + originalQuantity;
+      // Calculate the new inventory after applying the net change
+      const newInventory = cookieWithTotals.afterPending + netChange;
       // If new inventory would be negative, overbooking violation
       if (newInventory < 0) return false;
     }

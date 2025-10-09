@@ -274,10 +274,20 @@ export const useTransactionHelpers = () => {
     order: Order,
     type: 'new' | 'troop' | 'girl' | 'all' = 'troop',
   ) {
-    ordersStore.activeTransaction = { ...order };
+    ordersStore.setActiveTransaction({ ...order });
     ordersStore.transactionDialogFormSchema.value =
       getTransactionDialogFormSchema(type);
     ordersStore.editTransactionDialogVisible = true;
+  }
+
+  function cancelEditTransaction() {
+    if (ordersStore.activeTransaction?.id) {
+      ordersStore.resetActiveTransaction();
+    } else {
+      // Clear active transaction if creating a new one
+      ordersStore.setActiveTransaction(null);
+    }
+    hideDialog();
   }
 
   function hideDialog() {
@@ -314,12 +324,12 @@ export const useTransactionHelpers = () => {
       ordersStore.insertNewTransaction(ordersStore.activeTransaction);
     }
     ordersStore.editTransactionDialogVisible = false;
-    ordersStore.activeTransaction = null;
+    ordersStore.setActiveTransaction(null);
     submitted.value = false;
   }
 
   function confirmDeleteTransaction(order: Order) {
-    ordersStore.activeTransaction = order;
+    ordersStore.setActiveTransaction(order);
     ordersStore.deleteTransactionDialogVisible = true;
   }
 
@@ -329,7 +339,7 @@ export const useTransactionHelpers = () => {
         throw new Error('No transaction selected');
       ordersStore.deleteTransaction(ordersStore.activeTransaction?.id);
       ordersStore.deleteTransactionDialogVisible = false;
-      ordersStore.activeTransaction = null;
+      ordersStore.setActiveTransaction(null);
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -338,6 +348,7 @@ export const useTransactionHelpers = () => {
   return {
     submitted,
     editTransaction,
+    cancelEditTransaction,
     hideDialog,
     saveTransaction,
     confirmDeleteTransaction,
