@@ -9,6 +9,9 @@ const props = defineProps<{
 const girlAccount = computed(() => {
   return accountsStore.getGirlAccountById(props.girlId);
 });
+
+// State for toggling cookie list visibility
+const showPackagesCookieList = ref(false);
 </script>
 
 <template>
@@ -50,9 +53,39 @@ const girlAccount = computed(() => {
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-arrow-right" />
           <span>Packages Distributed</span>
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Total physical packages transferred to girl (does not include direct shipped orders).',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
         </p>
       </template>
       <p class="text-xl">{{ girlAccount!.numCookiesDistributed }}<br /></p>
+      <Button
+        v-if="
+          girlAccount!.cookieTotals &&
+          Object.keys(girlAccount!.cookieTotals).length > 0
+        "
+        :icon="
+          showPackagesCookieList ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
+        "
+        :label="showPackagesCookieList ? 'Hide Details' : 'Show Details'"
+        text
+        size="small"
+        @click="showPackagesCookieList = !showPackagesCookieList"
+      />
+      <CookieList
+        v-if="
+          showPackagesCookieList &&
+          girlAccount!.cookieTotals &&
+          Object.keys(girlAccount!.cookieTotals).length > 0
+        "
+        :cookies="girlAccount!.cookieTotals"
+        class="mt-2"
+      />
     </Fieldset>
   </div>
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">
@@ -61,6 +94,14 @@ const girlAccount = computed(() => {
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-tag" />
           <span>Estimated Sales</span>
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Payments received/average cookie price + direct shipped orders. May not match actual sales.',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
         </p>
       </template>
       <p class="text-xl">

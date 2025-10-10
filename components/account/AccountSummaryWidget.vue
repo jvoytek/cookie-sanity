@@ -1,6 +1,9 @@
 <script setup lang="ts">
 const accountsStore = useAccountsStore();
 const formatHelpers = useFormatHelpers();
+
+// State for toggling cookie list visibility
+const showPackagesCookieList = ref(false);
 </script>
 
 <template>
@@ -50,6 +53,14 @@ const formatHelpers = useFormatHelpers();
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-arrow-right" />
           <span>Packages Distributed</span>
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Total physical packages transferred to girls (does not include direct shipped orders).',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
         </p>
       </template>
       <p class="text-xl">
@@ -59,8 +70,23 @@ const formatHelpers = useFormatHelpers();
           troop inventory</span
         >
       </p>
+      <Button
+        v-if="
+          Object.keys(
+            accountsStore.troopAccountSummary.packagesDistributedByType,
+          ).length > 0
+        "
+        :icon="
+          showPackagesCookieList ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
+        "
+        :label="showPackagesCookieList ? 'Hide Details' : 'Show Details'"
+        text
+        size="small"
+        @click="showPackagesCookieList = !showPackagesCookieList"
+      />
       <CookieList
         v-if="
+          showPackagesCookieList &&
           Object.keys(
             accountsStore.troopAccountSummary.packagesDistributedByType,
           ).length > 0
@@ -68,9 +94,6 @@ const formatHelpers = useFormatHelpers();
         :cookies="accountsStore.troopAccountSummary.packagesDistributedByType"
         class="mt-2"
       />
-      <span class="text-sm leading-none text-muted-color"
-        >Does not include Direct Shipped transactions</span
-      >
     </Fieldset>
   </div>
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">
@@ -79,6 +102,14 @@ const formatHelpers = useFormatHelpers();
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-tag" />
           <span>Estimated Sales</span>
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Payments received/average cookie price + direct shipped orders. May not match actual sales.',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
         </p>
       </template>
       <p class="text-xl">
