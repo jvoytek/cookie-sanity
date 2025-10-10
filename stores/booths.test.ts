@@ -917,6 +917,58 @@ describe('stores/booths', () => {
     });
   });
 
+  describe('auto-calculate behavior', () => {
+    it('calculates expected_sales from predicted_cookies when auto-calculate is off', () => {
+      const baseBoothSale = {
+        created_at: '',
+        expected_sales: 0,
+        id: 0,
+        inventory_type: '',
+        location: '',
+        notes: null,
+        predicted_cookies: { TM: 25, SM: 15, TS: 10 },
+        profile: '',
+        sale_date: '',
+        sale_time: null,
+        scouts_attending: {},
+        season: 0,
+        auto_calculate_predicted_cookies: false,
+      };
+
+      boothsStore.activeBoothSale = baseBoothSale;
+      boothsStore.setActiveBoothSaleTotalExpectedSales();
+
+      expect(boothsStore.activeBoothSale.expected_sales).toBe(50);
+    });
+
+    it('calculates predicted_cookies from expected_sales when auto-calculate is on', () => {
+      const baseBoothSale = {
+        created_at: '',
+        expected_sales: 100,
+        id: 0,
+        inventory_type: '',
+        location: '',
+        notes: null,
+        predicted_cookies: {},
+        profile: '',
+        sale_date: '',
+        sale_time: null,
+        scouts_attending: {},
+        season: 0,
+        auto_calculate_predicted_cookies: true,
+      };
+
+      boothsStore.activeBoothSale = baseBoothSale;
+      boothsStore.setActiveBoothSalePredictedCookies(100);
+
+      expect(boothsStore.activeBoothSale.predicted_cookies).toEqual({
+        TM: 40,
+        SM: 30,
+        TS: 30,
+      });
+    });
+  });
+
   describe('private functions integration', () => {
     it('sorts booth sales by date and time correctly', async () => {
       const toastSpy = vi.fn();

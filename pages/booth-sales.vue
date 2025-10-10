@@ -74,23 +74,39 @@ async function deleteBoothSale() {
 }
 
 boothsStore.$subscribe((mutation, _state) => {
+  if (!boothsStore.activeBoothSale) return;
+
+  // Skip initial mutations
   if (
     mutation.events?.oldValue?.length === 0 ||
-    mutation.events?.oldValue?.expected_sales === undefined
+    (mutation.events?.oldValue?.expected_sales === undefined &&
+      mutation.events?.oldValue?.predicted_cookies === undefined)
   )
     return;
 
-  const previousExpectedSales = mutation.events?.oldValue?.expected_sales || 0;
-  const newExpectedSales = mutation.events?.newValue?.expected_sales || 0;
+  const autoCalculate =
+    boothsStore.activeBoothSale.auto_calculate_predicted_cookies ?? true;
 
-  if (previousExpectedSales === 0 && newExpectedSales === 0) {
-    return;
+  // When auto-calculate is ON: expected_sales changes → update predicted_cookies
+  if (autoCalculate && mutation.events?.oldValue?.expected_sales !== undefined) {
+    const previousExpectedSales = mutation.events.oldValue.expected_sales || 0;
+    const newExpectedSales = mutation.events.newValue?.expected_sales || 0;
+
+    if (
+      previousExpectedSales !== newExpectedSales &&
+      !(previousExpectedSales === 0 && newExpectedSales === 0)
+    ) {
+      boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
+    }
   }
 
-  if (previousExpectedSales !== newExpectedSales) {
-    boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
+  // When auto-calculate is OFF: predicted_cookies changes → update expected_sales
+  if (
+    !autoCalculate &&
+    mutation.events?.oldValue?.predicted_cookies !== undefined
+  ) {
+    boothsStore.setActiveBoothSaleTotalExpectedSales();
   }
-  boothsStore.setActiveBoothSaleTotalExpectedSales();
 });
 
 const getBoothSaleDialogFormSchema = () => {
@@ -199,7 +215,7 @@ const getBoothSaleDialogFormSchema = () => {
       label: 'Total Estimated Sales',
       key: 'expected_sales',
       placeholder: '25, 50, 100, etc.',
-      validation: 'required|integer|min:0',
+      validation: "$get('auto_calculate_predicted_cookies').value === true ? 'required|integer|min:0' : 'integer|min:0'",
       wrapperClass: 'grid grid-cols-3 gap-4 items-center',
       labelClass: 'col-span-1',
       innerClass: 'col-span-2 mt-1 mb-1',
