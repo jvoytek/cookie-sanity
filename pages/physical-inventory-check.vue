@@ -41,6 +41,25 @@ const startNewCheck = () => {
   checkDialogVisible.value = true;
 };
 
+const editCheck = (check: InventoryCheck) => {
+  // Load the check data into the form
+  const counts: Record<string, { cases: number; packages: number }> = {};
+  
+  cookiesStore.allCookies
+    .filter((cookie) => !cookie.is_virtual)
+    .forEach((cookie) => {
+      const totalPackages = (check.physical_inventory as Record<string, number>)[cookie.abbreviation] || 0;
+      const cases = Math.floor(totalPackages / 12);
+      const packages = totalPackages % 12;
+      counts[cookie.abbreviation] = { cases, packages };
+    });
+  
+  physicalCounts.value = counts;
+  conductedBy.value = check.conducted_by || '';
+  notes.value = check.notes || '';
+  checkDialogVisible.value = true;
+};
+
 // Calculate expected inventory for displaying in dialog
 const expectedInventory = computed(() => {
   return inventoryChecksStore.calculateExpectedInventory();
@@ -181,13 +200,11 @@ const getDiscrepancySeverity = (diff: number) => {
           <Column header="Actions">
             <template #body="slotProps">
               <Button
-                icon="pi pi-eye"
+                icon="pi pi-pencil"
                 text
                 rounded
                 severity="secondary"
-                @click="
-                  inventoryChecksStore.setActiveInventoryCheck(slotProps.data)
-                "
+                @click="editCheck(slotProps.data)"
               />
               <Button
                 icon="pi pi-trash"
@@ -219,11 +236,11 @@ const getDiscrepancySeverity = (diff: number) => {
       <div class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-2">Conducted By</label>
+            <label class="block font-medium mb-2">Conducted By</label>
             <InputText v-model="conductedBy" class="w-full" />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-2">Date</label>
+            <label class="block font-medium mb-2">Date</label>
             <InputText
               :value="formatHelpers.formatDate(new Date().toISOString())"
               disabled
@@ -234,7 +251,7 @@ const getDiscrepancySeverity = (diff: number) => {
 
         <div>
           <h3 class="font-semibold mb-3">Cookie Counts</h3>
-          <p class="text-sm text-surface-500 dark:text-surface-400 mb-4">
+          <p class="text-surface-500 dark:text-surface-400 mb-4">
             Count the number of full cases (12 packages each) and individual
             packages for each cookie type.
           </p>
@@ -244,7 +261,7 @@ const getDiscrepancySeverity = (diff: number) => {
                 (c) => !c.is_virtual,
               )"
               :key="cookie.id"
-              class="grid grid-cols-12 gap-2 items-center p-3 bg-surface-50 dark:bg-surface-800 rounded"
+              class="grid grid-cols-12 gap-3 items-center p-3 bg-surface-50 dark:bg-surface-800 rounded"
             >
               <div class="col-span-3 flex items-center gap-2">
                 <span
@@ -254,30 +271,30 @@ const getDiscrepancySeverity = (diff: number) => {
                 <span class="font-medium">{{ cookie.name }}</span>
               </div>
               <div class="col-span-2">
-                <label class="text-xs text-surface-500 block mb-1"
+                <label class="text-surface-500 block mb-1"
                   >Cases (12 each)</label
                 >
                 <InputNumber
                   v-model="physicalCounts[cookie.abbreviation].cases"
                   :min="0"
-                  class="w-full"
                   :use-grouping="false"
+                  input-class="w-20"
                 />
               </div>
               <div class="col-span-2">
-                <label class="text-xs text-surface-500 block mb-1"
+                <label class="text-surface-500 block mb-1"
                   >Individual Packages</label
                 >
                 <InputNumber
                   v-model="physicalCounts[cookie.abbreviation].packages"
                   :min="0"
                   :max="11"
-                  class="w-full"
                   :use-grouping="false"
+                  input-class="w-20"
                 />
               </div>
               <div class="col-span-2 text-center">
-                <div class="text-xs text-surface-500">Total Physical</div>
+                <div class="text-surface-500 mb-1">Total Physical</div>
                 <div class="font-bold">
                   {{
                     physicalCounts[cookie.abbreviation].cases * 12 +
@@ -286,13 +303,13 @@ const getDiscrepancySeverity = (diff: number) => {
                 </div>
               </div>
               <div class="col-span-2 text-center">
-                <div class="text-xs text-surface-500">Digital Count</div>
+                <div class="text-surface-500 mb-1">Digital Count</div>
                 <div class="font-bold">
                   {{ expectedInventory[cookie.abbreviation] || 0 }}
                 </div>
               </div>
               <div class="col-span-1 text-center">
-                <div class="text-xs text-surface-500">Variance</div>
+                <div class="text-surface-500 mb-1">Variance</div>
                 <div
                   class="font-bold"
                   :class="{
@@ -320,7 +337,7 @@ const getDiscrepancySeverity = (diff: number) => {
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-2">Notes</label>
+          <label class="block font-medium mb-2">Notes</label>
           <Textarea v-model="notes" rows="3" class="w-full" />
         </div>
       </div>
