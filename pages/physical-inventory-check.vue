@@ -38,8 +38,14 @@ const startNewCheck = () => {
   physicalCounts.value = initializePhysicalCounts();
   conductedBy.value = profileStore.currentProfile?.display_name || '';
   notes.value = '';
+  editingCheckId.value = null;
+  snapshotExpectedInventory.value = {};
   checkDialogVisible.value = true;
 };
+
+// Track if we're editing an existing check
+const editingCheckId = ref<number | null>(null);
+const snapshotExpectedInventory = ref<Record<string, number>>({});
 
 const editCheck = (check: InventoryCheck) => {
   // Load the check data into the form
@@ -57,17 +63,28 @@ const editCheck = (check: InventoryCheck) => {
   physicalCounts.value = counts;
   conductedBy.value = check.conducted_by || '';
   notes.value = check.notes || '';
+  editingCheckId.value = check.id;
+  
+  // Load the snapshot of expected inventory from when the check was created
+  snapshotExpectedInventory.value = (check.expected_inventory as Record<string, number>) || {};
+  
   checkDialogVisible.value = true;
 };
 
 // Calculate expected inventory for displaying in dialog
+// Use snapshot if editing, otherwise calculate current
 const expectedInventory = computed(() => {
+  if (editingCheckId.value !== null) {
+    return snapshotExpectedInventory.value;
+  }
   return inventoryChecksStore.calculateExpectedInventory();
 });
 
 const cancelCheck = () => {
   checkDialogVisible.value = false;
   physicalCounts.value = {};
+  editingCheckId.value = null;
+  snapshotExpectedInventory.value = {};
 };
 
 const saveCheck = async () => {
@@ -100,6 +117,8 @@ const saveCheck = async () => {
 
   checkDialogVisible.value = false;
   physicalCounts.value = {};
+  editingCheckId.value = null;
+  snapshotExpectedInventory.value = {};
 };
 
 const deleteCheck = async (check: InventoryCheck) => {
@@ -251,89 +270,87 @@ const getDiscrepancySeverity = (diff: number) => {
 
         <div>
           <h3 class="font-semibold mb-3">Cookie Counts</h3>
-          <p class="text-surface-500 dark:text-surface-400 mb-4">
-            Count the number of full cases (12 packages each) and individual
-            packages for each cookie type.
-          </p>
-          <div class="space-y-3">
-            <div
-              v-for="cookie in cookiesStore.allCookies.filter(
-                (c) => !c.is_virtual,
-              )"
-              :key="cookie.id"
-              class="grid grid-cols-12 gap-3 items-center p-3 bg-surface-50 dark:bg-surface-800 rounded"
-            >
-              <div class="col-span-3 flex items-center gap-2">
-                <span
-                  class="w-3 h-3 rounded-full flex-shrink-0"
-                  :style="{ backgroundColor: cookie.color || '#888' }"
-                />
-                <span class="font-medium">{{ cookie.name }}</span>
-              </div>
-              <div class="col-span-2">
-                <label class="text-surface-500 block mb-1"
-                  >Cases (12 each)</label
-                >
+          <DataTable
+            :value="
+              cookiesStore.allCookies.filter((c) => !c.is_virtual)
+            "
+            size="small"
+          >
+            <Column field="name" header="Cookie Type">
+              <template #body="slotProps">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-3 h-3 rounded-full flex-shrink-0"
+                    :style="{ backgroundColor: slotProps.data.color || '#888' }"
+                  />
+                  <span>{{ slotProps.data.name }}</span>
+                </div>
+              </template>
+            </Column>
+            <Column header="Cases">
+              <template #body="slotProps">
                 <InputNumber
-                  v-model="physicalCounts[cookie.abbreviation].cases"
+                  v-model="physicalCounts[slotProps.data.abbreviation].cases"
                   :min="0"
                   :use-grouping="false"
-                  input-class="w-20"
+                  input-class="w-16"
                 />
-              </div>
-              <div class="col-span-2">
-                <label class="text-surface-500 block mb-1"
-                  >Individual Packages</label
-                >
+              </template>
+            </Column>
+            <Column header="Packages">
+              <template #body="slotProps">
                 <InputNumber
-                  v-model="physicalCounts[cookie.abbreviation].packages"
+                  v-model="physicalCounts[slotProps.data.abbreviation].packages"
                   :min="0"
                   :max="11"
                   :use-grouping="false"
-                  input-class="w-20"
+                  input-class="w-16"
                 />
-              </div>
-              <div class="col-span-2 text-center">
-                <div class="text-surface-500 mb-1">Total Physical</div>
-                <div class="font-bold">
+              </template>
+            </Column>
+            <Column header="Total Physical">
+              <template #body="slotProps">
+                <span class="font-bold">
                   {{
-                    physicalCounts[cookie.abbreviation].cases * 12 +
-                    physicalCounts[cookie.abbreviation].packages
+                    physicalCounts[slotProps.data.abbreviation].cases * 12 +
+                    physicalCounts[slotProps.data.abbreviation].packages
                   }}
-                </div>
-              </div>
-              <div class="col-span-2 text-center">
-                <div class="text-surface-500 mb-1">Digital Count</div>
-                <div class="font-bold">
-                  {{ expectedInventory[cookie.abbreviation] || 0 }}
-                </div>
-              </div>
-              <div class="col-span-1 text-center">
-                <div class="text-surface-500 mb-1">Variance</div>
-                <div
+                </span>
+              </template>
+            </Column>
+            <Column header="Digital Count">
+              <template #body="slotProps">
+                <span class="font-bold">
+                  {{ expectedInventory[slotProps.data.abbreviation] || 0 }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Variance">
+              <template #body="slotProps">
+                <span
                   class="font-bold"
                   :class="{
                     'text-red-600':
-                      physicalCounts[cookie.abbreviation].cases * 12 +
-                        physicalCounts[cookie.abbreviation].packages -
-                        (expectedInventory[cookie.abbreviation] || 0) !==
+                      physicalCounts[slotProps.data.abbreviation].cases * 12 +
+                        physicalCounts[slotProps.data.abbreviation].packages -
+                        (expectedInventory[slotProps.data.abbreviation] || 0) !==
                       0,
                     'text-green-600':
-                      physicalCounts[cookie.abbreviation].cases * 12 +
-                        physicalCounts[cookie.abbreviation].packages -
-                        (expectedInventory[cookie.abbreviation] || 0) ===
+                      physicalCounts[slotProps.data.abbreviation].cases * 12 +
+                        physicalCounts[slotProps.data.abbreviation].packages -
+                        (expectedInventory[slotProps.data.abbreviation] || 0) ===
                       0,
                   }"
                 >
                   {{
-                    physicalCounts[cookie.abbreviation].cases * 12 +
-                    physicalCounts[cookie.abbreviation].packages -
-                    (expectedInventory[cookie.abbreviation] || 0)
+                    physicalCounts[slotProps.data.abbreviation].cases * 12 +
+                    physicalCounts[slotProps.data.abbreviation].packages -
+                    (expectedInventory[slotProps.data.abbreviation] || 0)
                   }}
-                </div>
-              </div>
-            </div>
-          </div>
+                </span>
+              </template>
+            </Column>
+          </DataTable>
         </div>
 
         <div>
