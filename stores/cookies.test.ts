@@ -836,4 +836,67 @@ describe('stores/cookies', () => {
       });
     });
   });
+
+  describe('cookieFormFieldsNotVirtual computed property', () => {
+    it('includes min:0 validation for all non-virtual cookies', () => {
+      // Set up cookies with one virtual and some non-virtual
+      cookiesStore.allCookies = [
+        {
+          id: 1,
+          name: 'Thin Mints',
+          abbreviation: 'TM',
+          price: 5.0,
+          order: 1,
+          profile: 'test-profile-id',
+          season: 1,
+          is_virtual: false,
+        },
+        {
+          id: 2,
+          name: 'Virtual Cookie',
+          abbreviation: 'VC',
+          price: 5.0,
+          order: 2,
+          profile: 'test-profile-id',
+          season: 1,
+          is_virtual: true,
+        },
+        {
+          id: 3,
+          name: 'Samoas',
+          abbreviation: 'SM',
+          price: 5.0,
+          order: 3,
+          profile: 'test-profile-id',
+          season: 1,
+          is_virtual: false,
+        },
+      ] as Cookie[];
+
+      const fields = cookiesStore.cookieFormFieldsNotVirtual;
+
+      // Should only have 2 fields (excluding virtual cookie)
+      expect(fields).toHaveLength(2);
+
+      // Each field should have min:0 validation
+      fields.forEach((field) => {
+        expect(field.validation).toContain('min:0');
+        expect(field.validation).toContain('integer');
+        expect(field.validation).toContain('overBooking');
+      });
+
+      // Verify specific fields
+      const tmField = fields.find((f) => f.name === 'TM');
+      expect(tmField).toBeDefined();
+      expect(tmField?.validation).toBe('integer|min:0|overBooking');
+
+      const smField = fields.find((f) => f.name === 'SM');
+      expect(smField).toBeDefined();
+      expect(smField?.validation).toBe('integer|min:0|overBooking');
+
+      // Virtual cookie should not be present
+      const vcField = fields.find((f) => f.name === 'VC');
+      expect(vcField).toBeUndefined();
+    });
+  });
 });
