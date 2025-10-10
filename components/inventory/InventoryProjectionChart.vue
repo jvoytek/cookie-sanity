@@ -432,16 +432,7 @@ const updateChart = () => {
       zoom: {
         pan: {
           enabled: true,
-          mode: 'xy',
-        },
-        zoom: {
-          wheel: {
-            enabled: true,
-          },
-          pinch: {
-            enabled: true,
-          },
-          mode: 'xy',
+          mode: 'x',
         },
         limits: {
           x: {
@@ -479,12 +470,6 @@ const updateChart = () => {
       },
     },
   };
-};
-
-const resetZoom = () => {
-  if (chartRef.value) {
-    chartRef.value.resetZoom();
-  }
 };
 
 onMounted(() => {
@@ -547,18 +532,6 @@ watch(
     </div>
 
     <div v-if="chartData">
-      <div class="flex justify-between items-center mb-2">
-        <p class="text-sm text-gray-600">
-          Use mouse wheel to zoom, click and drag to pan
-        </p>
-        <Button
-          label="Reset Zoom"
-          icon="pi pi-refresh"
-          size="small"
-          severity="secondary"
-          @click="resetZoom"
-        />
-      </div>
       <Chart
         ref="chartRef"
         type="line"
