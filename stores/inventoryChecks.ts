@@ -32,10 +32,7 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
   const fetchInventoryChecks = async () => {
     const { data, error } = await _supabaseFetchInventoryChecks();
     if (error) {
-      notificationHelpers.error(
-        'Failed to fetch inventory checks',
-        error.message,
-      );
+      notificationHelpers.addError(new Error('Failed to fetch inventory checks: ' + error.message));
       return;
     }
     if (data) {
@@ -47,10 +44,7 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
     inventoryCheckData: Partial<InventoryCheck>,
   ) => {
     if (!profileStore.currentProfile || !seasonsStore.currentSeason) {
-      notificationHelpers.error(
-        'Failed to create inventory check',
-        'No profile or season selected',
-      );
+      notificationHelpers.addError(new Error('Failed to create inventory check: No profile or season selected'));
       return;
     }
 
@@ -62,28 +56,19 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
 
     const { data, error } = await _supabaseInsertInventoryCheck(newCheck);
     if (error) {
-      notificationHelpers.error(
-        'Failed to create inventory check',
-        error.message,
-      );
+      notificationHelpers.addError(new Error('Failed to create inventory check: ' + error.message));
       return;
     }
     if (data) {
       allInventoryChecks.value.push(data);
-      notificationHelpers.success(
-        'Inventory check saved',
-        'Physical inventory check has been recorded',
-      );
+      notificationHelpers.addSuccess('Physical inventory check has been recorded');
     }
   };
 
   const deleteInventoryCheck = async (id: number) => {
     const { error } = await _supabaseDeleteInventoryCheck(id);
     if (error) {
-      notificationHelpers.error(
-        'Failed to delete inventory check',
-        error.message,
-      );
+      notificationHelpers.addError(new Error('Failed to delete inventory check: ' + error.message));
       return;
     }
     const index = allInventoryChecks.value.findIndex(
@@ -92,10 +77,7 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
     if (index !== -1) {
       allInventoryChecks.value.splice(index, 1);
     }
-    notificationHelpers.success(
-      'Inventory check deleted',
-      'The inventory check record has been removed',
-    );
+    notificationHelpers.addSuccess('The inventory check record has been removed');
   };
 
   const setActiveInventoryCheck = (check: InventoryCheck | null) => {

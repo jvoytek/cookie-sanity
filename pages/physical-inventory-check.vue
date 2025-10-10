@@ -15,7 +15,6 @@ await inventoryChecksStore.fetchInventoryChecks();
 loading.value = false;
 
 const checkDialogVisible = ref(false);
-const viewHistoryDialogVisible = ref(false);
 
 // Form state for new check
 const physicalCounts = ref<Record<string, { cases: number; packages: number }>>(
@@ -41,6 +40,11 @@ const startNewCheck = () => {
   notes.value = '';
   checkDialogVisible.value = true;
 };
+
+// Calculate expected inventory for displaying in dialog
+const expectedInventory = computed(() => {
+  return inventoryChecksStore.calculateExpectedInventory();
+});
 
 const cancelCheck = () => {
   checkDialogVisible.value = false;
@@ -77,10 +81,6 @@ const saveCheck = async () => {
 
   checkDialogVisible.value = false;
   physicalCounts.value = {};
-};
-
-const showHistory = () => {
-  viewHistoryDialogVisible.value = true;
 };
 
 const deleteCheck = async (check: InventoryCheck) => {
@@ -122,87 +122,83 @@ const getDiscrepancySeverity = (diff: number) => {
               by {{ inventoryChecksStore.latestInventoryCheck.conducted_by }}
             </div>
           </div>
-          <div class="flex gap-2">
-            <Button
-              label="View History"
-              icon="pi pi-history"
-              severity="secondary"
-              @click="showHistory"
-            />
-            <Button
-              label="Start Physical Check"
-              icon="pi pi-plus"
-              @click="startNewCheck"
-            />
-          </div>
-        </div>
-
-        <!-- Summary Card -->
-        <div
-          v-if="inventoryChecksStore.latestInventoryCheck"
-          class="p-4 bg-surface-50 dark:bg-surface-800 rounded-lg"
-        >
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <div class="text-sm text-surface-500 dark:text-surface-400">
-                Status
-              </div>
-              <Tag
-                :value="inventoryChecksStore.latestInventoryCheck.status"
-                :severity="
-                  inventoryChecksStore.latestInventoryCheck
-                    .total_discrepancies === 0
-                    ? 'success'
-                    : 'warn'
-                "
-                class="mt-1"
-              />
-            </div>
-            <div>
-              <div class="text-sm text-surface-500 dark:text-surface-400">
-                Total Discrepancies
-              </div>
-              <div class="text-2xl font-bold mt-1">
-                {{
-                  inventoryChecksStore.latestInventoryCheck.total_discrepancies
-                }}
-                packages
-              </div>
-            </div>
-            <div>
-              <div class="text-sm text-surface-500 dark:text-surface-400">
-                Items Checked
-              </div>
-              <div class="text-2xl font-bold mt-1">
-                {{
-                  Object.keys(
-                    inventoryChecksStore.latestInventoryCheck
-                      .physical_inventory,
-                  ).length
-                }}
-                items
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div
-          v-else
-          class="text-center py-12 bg-surface-50 dark:bg-surface-800 rounded-lg"
-        >
-          <i
-            class="pi pi-clipboard-check text-6xl text-surface-300 dark:text-surface-600 mb-4"
+          <Button
+            label="Start Physical Check"
+            icon="pi pi-plus"
+            @click="startNewCheck"
           />
-          <h3 class="text-xl font-semibold mb-2">
-            Ready to Start Physical Count
-          </h3>
-          <p class="text-surface-500 dark:text-surface-400 mb-4">
-            Click "Start Physical Check" to begin counting your physical
-            inventory. You can save the check results for record-keeping or
-            reconcile discrepancies immediately.
-          </p>
         </div>
+
+        <!-- Physical Inventory Check History -->
+        <DataTable
+          :value="inventoryChecksStore.sortedInventoryChecks"
+          paginator
+          :rows="10"
+          size="small"
+        >
+          <template #empty>
+            <div class="text-center py-8">
+              <i
+                class="pi pi-clipboard-check text-6xl text-surface-300 dark:text-surface-600 mb-4"
+              />
+              <h3 class="text-xl font-semibold mb-2">
+                Ready to Start Physical Count
+              </h3>
+              <p class="text-surface-500 dark:text-surface-400">
+                Click "Start Physical Check" to begin counting your physical
+                inventory. You can save the check results for record-keeping or
+                reconcile discrepancies immediately.
+              </p>
+            </div>
+          </template>
+          <Column field="check_date" header="Check Date" sortable>
+            <template #body="slotProps">
+              {{ formatHelpers.formatDate(slotProps.data.check_date) }}
+            </template>
+          </Column>
+          <Column field="conducted_by" header="Conducted By" sortable />
+          <Column field="status" header="Status" sortable>
+            <template #body="slotProps">
+              <Tag :value="slotProps.data.status" severity="success" />
+            </template>
+          </Column>
+          <Column header="Items Checked">
+            <template #body="slotProps">
+              {{ Object.keys(slotProps.data.physical_inventory).length }} items
+            </template>
+          </Column>
+          <Column header="Total Discrepancies" sortable>
+            <template #body="slotProps">
+              <Tag
+                :value="`${slotProps.data.total_discrepancies} packages`"
+                :severity="
+                  getDiscrepancySeverity(slotProps.data.total_discrepancies)
+                "
+              />
+            </template>
+          </Column>
+          <Column field="notes" header="Notes" />
+          <Column header="Actions">
+            <template #body="slotProps">
+              <Button
+                icon="pi pi-eye"
+                text
+                rounded
+                severity="secondary"
+                @click="
+                  inventoryChecksStore.setActiveInventoryCheck(slotProps.data)
+                "
+              />
+              <Button
+                icon="pi pi-trash"
+                text
+                rounded
+                severity="danger"
+                @click="deleteCheck(slotProps.data)"
+              />
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
 
@@ -248,16 +244,16 @@ const getDiscrepancySeverity = (diff: number) => {
                 (c) => !c.is_virtual,
               )"
               :key="cookie.id"
-              class="grid grid-cols-12 gap-3 items-center p-3 bg-surface-50 dark:bg-surface-800 rounded"
+              class="grid grid-cols-12 gap-2 items-center p-3 bg-surface-50 dark:bg-surface-800 rounded"
             >
-              <div class="col-span-4 flex items-center gap-2">
+              <div class="col-span-3 flex items-center gap-2">
                 <span
                   class="w-3 h-3 rounded-full flex-shrink-0"
                   :style="{ backgroundColor: cookie.color || '#888' }"
                 />
                 <span class="font-medium">{{ cookie.name }}</span>
               </div>
-              <div class="col-span-3">
+              <div class="col-span-2">
                 <label class="text-xs text-surface-500 block mb-1"
                   >Cases (12 each)</label
                 >
@@ -268,7 +264,7 @@ const getDiscrepancySeverity = (diff: number) => {
                   :use-grouping="false"
                 />
               </div>
-              <div class="col-span-3">
+              <div class="col-span-2">
                 <label class="text-xs text-surface-500 block mb-1"
                   >Individual Packages</label
                 >
@@ -280,12 +276,42 @@ const getDiscrepancySeverity = (diff: number) => {
                   :use-grouping="false"
                 />
               </div>
-              <div class="col-span-2 text-right">
-                <div class="text-xs text-surface-500">Total</div>
+              <div class="col-span-2 text-center">
+                <div class="text-xs text-surface-500">Total Physical</div>
                 <div class="font-bold">
                   {{
                     physicalCounts[cookie.abbreviation].cases * 12 +
                     physicalCounts[cookie.abbreviation].packages
+                  }}
+                </div>
+              </div>
+              <div class="col-span-2 text-center">
+                <div class="text-xs text-surface-500">Digital Count</div>
+                <div class="font-bold">
+                  {{ expectedInventory[cookie.abbreviation] || 0 }}
+                </div>
+              </div>
+              <div class="col-span-1 text-center">
+                <div class="text-xs text-surface-500">Variance</div>
+                <div
+                  class="font-bold"
+                  :class="{
+                    'text-red-600':
+                      physicalCounts[cookie.abbreviation].cases * 12 +
+                        physicalCounts[cookie.abbreviation].packages -
+                        (expectedInventory[cookie.abbreviation] || 0) !==
+                      0,
+                    'text-green-600':
+                      physicalCounts[cookie.abbreviation].cases * 12 +
+                        physicalCounts[cookie.abbreviation].packages -
+                        (expectedInventory[cookie.abbreviation] || 0) ===
+                      0,
+                  }"
+                >
+                  {{
+                    physicalCounts[cookie.abbreviation].cases * 12 +
+                    physicalCounts[cookie.abbreviation].packages -
+                    (expectedInventory[cookie.abbreviation] || 0)
                   }}
                 </div>
               </div>
@@ -307,84 +333,6 @@ const getDiscrepancySeverity = (diff: number) => {
           @click="cancelCheck"
         />
         <Button label="Save Check" @click="saveCheck" />
-      </template>
-    </Dialog>
-
-    <!-- History Dialog -->
-    <Dialog
-      v-model:visible="viewHistoryDialogVisible"
-      modal
-      :style="{ width: '90vw', maxWidth: '1200px' }"
-      :dismissable-mask="true"
-    >
-      <template #header>
-        <div class="flex items-center gap-2">
-          <i class="pi pi-history" />
-          <span class="font-semibold">Physical Inventory Check History</span>
-        </div>
-      </template>
-
-      <DataTable
-        :value="inventoryChecksStore.sortedInventoryChecks"
-        paginator
-        :rows="10"
-        size="small"
-      >
-        <Column field="check_date" header="Check Date" sortable>
-          <template #body="slotProps">
-            {{ formatHelpers.formatDate(slotProps.data.check_date) }}
-          </template>
-        </Column>
-        <Column field="conducted_by" header="Conducted By" sortable />
-        <Column field="status" header="Status" sortable>
-          <template #body="slotProps">
-            <Tag :value="slotProps.data.status" severity="success" />
-          </template>
-        </Column>
-        <Column header="Items Checked">
-          <template #body="slotProps">
-            {{ Object.keys(slotProps.data.physical_inventory).length }} items
-          </template>
-        </Column>
-        <Column header="Total Discrepancies" sortable>
-          <template #body="slotProps">
-            <Tag
-              :value="`${slotProps.data.total_discrepancies} packages`"
-              :severity="
-                getDiscrepancySeverity(slotProps.data.total_discrepancies)
-              "
-            />
-          </template>
-        </Column>
-        <Column field="notes" header="Notes" />
-        <Column header="Actions">
-          <template #body="slotProps">
-            <Button
-              icon="pi pi-eye"
-              text
-              rounded
-              severity="secondary"
-              @click="
-                inventoryChecksStore.setActiveInventoryCheck(slotProps.data)
-              "
-            />
-            <Button
-              icon="pi pi-trash"
-              text
-              rounded
-              severity="danger"
-              @click="deleteCheck(slotProps.data)"
-            />
-          </template>
-        </Column>
-      </DataTable>
-
-      <template #footer>
-        <Button
-          label="Close"
-          text
-          @click="viewHistoryDialogVisible = false"
-        />
       </template>
     </Dialog>
   </div>
