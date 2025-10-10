@@ -104,20 +104,24 @@ boothsStore.$subscribe((mutation, _state) => {
   }
 
   // When auto-calculate is OFF: predicted_cookies changes → update expected_sales
-  if (
-    !autoCalculate &&
-    mutation.events?.oldValue?.predicted_cookies !== undefined
-  ) {
-    // Check if predicted_cookies actually changed to avoid infinite loop
-    const oldPredicted = JSON.stringify(
-      mutation.events.oldValue.predicted_cookies || {},
-    );
-    const newPredicted = JSON.stringify(
-      mutation.events.newValue?.predicted_cookies || {},
-    );
+  if (!autoCalculate) {
+    // Only proceed if predicted_cookies exists in either old or new value
+    const hasPredictedCookies =
+      mutation.events?.oldValue?.predicted_cookies !== undefined ||
+      mutation.events?.newValue?.predicted_cookies !== undefined;
 
-    if (oldPredicted !== newPredicted) {
-      boothsStore.setActiveBoothSaleTotalExpectedSales();
+    if (hasPredictedCookies) {
+      // Check if predicted_cookies actually changed to avoid infinite loop
+      const oldPredicted = JSON.stringify(
+        mutation.events.oldValue?.predicted_cookies || {},
+      );
+      const newPredicted = JSON.stringify(
+        mutation.events.newValue?.predicted_cookies || {},
+      );
+
+      if (oldPredicted !== newPredicted) {
+        boothsStore.setActiveBoothSaleTotalExpectedSales();
+      }
     }
   }
 });
