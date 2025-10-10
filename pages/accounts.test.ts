@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import AccountsPage from '@/pages/accounts.vue';
-import { useGirlsStore } from '@/stores/girls';
 import type { Girl } from '@/types/types';
 
 describe('AccountsPage', () => {
@@ -98,6 +97,7 @@ describe('AccountsPage', () => {
     });
 
     // Change selected account to a girl
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vm = wrapper.vm as any;
     vm.selectedAccount = 1;
     await wrapper.vm.$nextTick();
@@ -136,6 +136,7 @@ describe('AccountsPage', () => {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vm = wrapper.vm as any;
     const options = vm.accountOptions;
 
@@ -161,6 +162,7 @@ describe('AccountsPage', () => {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vm = wrapper.vm as any;
     const options = vm.accountOptions;
 
