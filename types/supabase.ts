@@ -133,7 +133,7 @@ export type Database = {
           order?: number | null;
           overbooking_allowed?: boolean | null;
           percent_of_sale?: number | null;
-          price?: number | null;
+          price?: string | null;
           profile?: string | null;
           season?: number;
         };
@@ -147,6 +147,66 @@ export type Database = {
           },
           {
             foreignKeyName: 'cookies_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      inventory_checks: {
+        Row: {
+          check_date: string;
+          conducted_by: string | null;
+          created_at: string;
+          discrepancies: Json;
+          expected_inventory: Json;
+          id: number;
+          notes: string | null;
+          physical_inventory: Json;
+          profile: string;
+          season: number;
+          status: string;
+          total_discrepancies: number;
+        };
+        Insert: {
+          check_date?: string;
+          conducted_by?: string | null;
+          created_at?: string;
+          discrepancies: Json;
+          expected_inventory: Json;
+          id?: number;
+          notes?: string | null;
+          physical_inventory: Json;
+          profile: string;
+          season?: number;
+          status?: string;
+          total_discrepancies?: number;
+        };
+        Update: {
+          check_date?: string;
+          conducted_by?: string | null;
+          created_at?: string;
+          discrepancies?: Json;
+          expected_inventory?: Json;
+          id?: number;
+          notes?: string | null;
+          physical_inventory?: Json;
+          profile?: string;
+          season?: number;
+          status?: string;
+          total_discrepancies?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'inventory_checks_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'inventory_checks_season_fkey';
             columns: ['season'];
             isOneToOne: false;
             referencedRelation: 'seasons';

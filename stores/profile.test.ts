@@ -56,6 +56,13 @@ describe('stores/profile', () => {
       })),
     );
 
+    vi.stubGlobal(
+      'useInventoryChecksStore',
+      vi.fn(() => ({
+        fetchInventoryChecks: vi.fn(),
+      })),
+    );
+
     profileStore = useProfileStore();
   });
 

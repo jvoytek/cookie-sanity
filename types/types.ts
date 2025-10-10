@@ -9,6 +9,8 @@ export type Payment = Database['public']['Tables']['payments']['Row'];
 export type BoothSale = Database['public']['Tables']['booth_sales']['Row'] & {
   auto_calculate_predicted_cookies?: boolean;
 };
+export type InventoryCheck =
+  Database['public']['Tables']['inventory_checks']['Row'];
 
 export type SCOrder2025 = {
   DATE: string;
