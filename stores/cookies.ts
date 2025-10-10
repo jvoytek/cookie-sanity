@@ -93,6 +93,28 @@ export const useCookiesStore = defineStore('cookies', () => {
         label: cookie.is_virtual
           ? `${cookie.name} <i class="pi pi-info-circle text-blue-500 ml-1" style="font-size: 0.75rem" title="Virtual packages don't count against your inventory"></i>`
           : cookie.name,
+        validation: 'integer|overBooking',
+        validationRules: '$validationRules',
+        validationMessages: {
+          overBooking:
+            'This would result in negative inventory. Overbooking is not allowed for this cookie',
+        },
+        wrapperClass: 'grid grid-cols-3 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-2 mt-1 mb-1',
+        class: 'w-full',
+      }));
+  });
+
+  const cookieFormFieldsForBoothSales = computed(() => {
+    return allCookies.value
+      .filter((cookie) => !cookie.is_virtual)
+      .map((cookie) => ({
+        $formkit: 'primeInputNumber',
+        name: cookie.abbreviation,
+        label: cookie.is_virtual
+          ? `${cookie.name} <i class="pi pi-info-circle text-blue-500 ml-1" style="font-size: 0.75rem" title="Virtual packages don't count against your inventory"></i>`
+          : cookie.name,
         validation: 'integer|min:0|overBooking',
         validationRules: '$validationRules',
         validationMessages: {
@@ -376,6 +398,7 @@ export const useCookiesStore = defineStore('cookies', () => {
     seasonCookies,
     cookieFormFields,
     cookieFormFieldsNotVirtual,
+    cookieFormFieldsForBoothSales,
     averageCookiePrice,
     customCookieValidationRules,
     fetchSeasonCookies,

@@ -837,7 +837,7 @@ describe('stores/cookies', () => {
     });
   });
 
-  describe('cookieFormFieldsNotVirtual computed property', () => {
+  describe('cookieFormFieldsForBoothSales computed property', () => {
     it('includes min:0 validation for all non-virtual cookies', () => {
       // Set up cookies with one virtual and some non-virtual
       cookiesStore.allCookies = [
@@ -873,7 +873,7 @@ describe('stores/cookies', () => {
         },
       ] as Cookie[];
 
-      const fields = cookiesStore.cookieFormFieldsNotVirtual;
+      const fields = cookiesStore.cookieFormFieldsForBoothSales;
 
       // Should only have 2 fields (excluding virtual cookie)
       expect(fields).toHaveLength(2);
@@ -897,6 +897,34 @@ describe('stores/cookies', () => {
       // Virtual cookie should not be present
       const vcField = fields.find((f) => f.name === 'VC');
       expect(vcField).toBeUndefined();
+    });
+  });
+
+  describe('cookieFormFieldsNotVirtual computed property', () => {
+    it('does not include min:0 validation for transaction forms', () => {
+      // Set up cookies
+      cookiesStore.allCookies = [
+        {
+          id: 1,
+          name: 'Thin Mints',
+          abbreviation: 'TM',
+          price: 5.0,
+          order: 1,
+          profile: 'test-profile-id',
+          season: 1,
+          is_virtual: false,
+        },
+      ] as Cookie[];
+
+      const fields = cookiesStore.cookieFormFieldsNotVirtual;
+
+      expect(fields).toHaveLength(1);
+
+      // Should NOT have min:0 validation (to allow negative quantities for transactions)
+      const tmField = fields.find((f) => f.name === 'TM');
+      expect(tmField).toBeDefined();
+      expect(tmField?.validation).toBe('integer|overBooking');
+      expect(tmField?.validation).not.toContain('min:0');
     });
   });
 });
