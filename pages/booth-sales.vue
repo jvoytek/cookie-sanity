@@ -88,7 +88,10 @@ boothsStore.$subscribe((mutation, _state) => {
     boothsStore.activeBoothSale.auto_calculate_predicted_cookies ?? true;
 
   // When auto-calculate is ON: expected_sales changes → update predicted_cookies
-  if (autoCalculate && mutation.events?.oldValue?.expected_sales !== undefined) {
+  if (
+    autoCalculate &&
+    mutation.events?.oldValue?.expected_sales !== undefined
+  ) {
     const previousExpectedSales = mutation.events.oldValue.expected_sales || 0;
     const newExpectedSales = mutation.events.newValue?.expected_sales || 0;
 
@@ -215,7 +218,8 @@ const getBoothSaleDialogFormSchema = () => {
       label: 'Total Estimated Sales',
       key: 'expected_sales',
       placeholder: '25, 50, 100, etc.',
-      validation: "$get('auto_calculate_predicted_cookies').value === true ? 'required|integer|min:0' : 'integer|min:0'",
+      validation:
+        "$get('auto_calculate_predicted_cookies').value === true ? 'required|integer|min:0' : 'integer|min:0'",
       wrapperClass: 'grid grid-cols-3 gap-4 items-center',
       labelClass: 'col-span-1',
       innerClass: 'col-span-2 mt-1 mb-1',
