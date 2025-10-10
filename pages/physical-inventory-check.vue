@@ -50,24 +50,28 @@ const snapshotExpectedInventory = ref<Record<string, number>>({});
 const editCheck = (check: InventoryCheck) => {
   // Load the check data into the form
   const counts: Record<string, { cases: number; packages: number }> = {};
-  
+
   cookiesStore.allCookies
     .filter((cookie) => !cookie.is_virtual)
     .forEach((cookie) => {
-      const totalPackages = (check.physical_inventory as Record<string, number>)[cookie.abbreviation] || 0;
+      const totalPackages =
+        (check.physical_inventory as Record<string, number>)[
+          cookie.abbreviation
+        ] || 0;
       const cases = Math.floor(totalPackages / 12);
       const packages = totalPackages % 12;
       counts[cookie.abbreviation] = { cases, packages };
     });
-  
+
   physicalCounts.value = counts;
   conductedBy.value = check.conducted_by || '';
   notes.value = check.notes || '';
   editingCheckId.value = check.id;
-  
+
   // Load the snapshot of expected inventory from when the check was created
-  snapshotExpectedInventory.value = (check.expected_inventory as Record<string, number>) || {};
-  
+  snapshotExpectedInventory.value =
+    (check.expected_inventory as Record<string, number>) || {};
+
   checkDialogVisible.value = true;
 };
 
@@ -243,15 +247,9 @@ const getDiscrepancySeverity = (diff: number) => {
       v-model:visible="checkDialogVisible"
       modal
       :style="{ width: '90vw', maxWidth: '800px' }"
+      header="Transaction Details"
       :dismissable-mask="true"
     >
-      <template #header>
-        <div class="flex items-center gap-2">
-          <i class="pi pi-clipboard-check" />
-          <span class="font-semibold">Physical Inventory Check</span>
-        </div>
-      </template>
-
       <div class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -271,9 +269,7 @@ const getDiscrepancySeverity = (diff: number) => {
         <div>
           <h3 class="font-semibold mb-3">Cookie Counts</h3>
           <DataTable
-            :value="
-              cookiesStore.allCookies.filter((c) => !c.is_virtual)
-            "
+            :value="cookiesStore.allCookies.filter((c) => !c.is_virtual)"
             size="small"
           >
             <Column field="name" header="Cookie Type">
@@ -302,7 +298,6 @@ const getDiscrepancySeverity = (diff: number) => {
                 <InputNumber
                   v-model="physicalCounts[slotProps.data.abbreviation].packages"
                   :min="0"
-                  :max="11"
                   :use-grouping="false"
                   input-class="w-16"
                 />
@@ -333,16 +328,26 @@ const getDiscrepancySeverity = (diff: number) => {
                     'text-red-600':
                       physicalCounts[slotProps.data.abbreviation].cases * 12 +
                         physicalCounts[slotProps.data.abbreviation].packages -
-                        (expectedInventory[slotProps.data.abbreviation] || 0) !==
+                        (expectedInventory[slotProps.data.abbreviation] ||
+                          0) !==
                       0,
                     'text-green-600':
                       physicalCounts[slotProps.data.abbreviation].cases * 12 +
                         physicalCounts[slotProps.data.abbreviation].packages -
-                        (expectedInventory[slotProps.data.abbreviation] || 0) ===
+                        (expectedInventory[slotProps.data.abbreviation] ||
+                          0) ===
                       0,
                   }"
                 >
-                  {{
+                  <span
+                    v-if="
+                      physicalCounts[slotProps.data.abbreviation].cases * 12 +
+                        physicalCounts[slotProps.data.abbreviation].packages -
+                        (expectedInventory[slotProps.data.abbreviation] || 0) >
+                      0
+                    "
+                    >+</span
+                  >{{
                     physicalCounts[slotProps.data.abbreviation].cases * 12 +
                     physicalCounts[slotProps.data.abbreviation].packages -
                     (expectedInventory[slotProps.data.abbreviation] || 0)
@@ -360,12 +365,7 @@ const getDiscrepancySeverity = (diff: number) => {
       </div>
 
       <template #footer>
-        <Button
-          label="Cancel"
-          severity="secondary"
-          text
-          @click="cancelCheck"
-        />
+        <Button label="Cancel" severity="secondary" text @click="cancelCheck" />
         <Button label="Save Check" @click="saveCheck" />
       </template>
     </Dialog>

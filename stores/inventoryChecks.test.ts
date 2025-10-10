@@ -232,7 +232,10 @@ describe('stores/inventoryChecks', () => {
       };
 
       const result = inventoryChecksStore.calculateDiscrepancies(
-        physicalInventory as Record<string, { cases: number; packages: number }>,
+        physicalInventory as Record<
+          string,
+          { cases: number; packages: number }
+        >,
         expectedInventory,
       );
 

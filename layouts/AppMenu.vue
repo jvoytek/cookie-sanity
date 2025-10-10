@@ -20,7 +20,7 @@ const model = ref([
       },
       {
         label: 'Physical Inventory Check',
-        icon: 'pi pi-fw pi-clipboard-check',
+        icon: 'pi pi-fw pi-clipboard',
         to: '/physical-inventory-check',
       },
       {
