@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import Chart from 'primevue/chart';
 import MultiSelect from 'primevue/multiselect';
 import DatePicker from 'primevue/datepicker';
+import Button from 'primevue/button';
 import 'chartjs-adapter-date-fns';
 import {
   Chart as ChartJS,
@@ -32,12 +33,20 @@ ChartJS.register(
   annotationPlugin,
 );
 
+// Register zoom plugin only on client side to avoid SSR issues
+if (process.client) {
+  import('chartjs-plugin-zoom').then((zoomPlugin) => {
+    ChartJS.register(zoomPlugin.default);
+  });
+}
+
 const cookiesStore = useCookiesStore();
 const transactionsStore = useTransactionsStore();
 const boothsStore = useBoothsStore();
 
 const chartData = ref();
 const chartOptions = ref();
+const chartRef = ref();
 
 // Filter state
 const startDate = ref<Date | null>(null);
@@ -151,6 +160,17 @@ const calculateInventoryProjection = () => {
     currentInventory = newInventory;
   });
 
+  // Add future projection point (5 years from last date)
+  if (dates.length > 0) {
+    const lastDate = dates[dates.length - 1];
+    const futureDate = new Date(lastDate);
+    futureDate.setFullYear(futureDate.getFullYear() + 5);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+
+    dates.push(futureDateStr);
+    inventoryByDate[futureDateStr] = currentInventory;
+  }
+
   // Build datasets for each cookie
   const datasets = cookies.map((cookie) => ({
     label: cookie.name,
@@ -162,6 +182,12 @@ const calculateInventoryProjection = () => {
     backgroundColor: cookie.color || '#888',
     tension: 0,
     fill: false,
+    segment: {
+      borderDash: (ctx: { p0DataIndex: number }) => {
+        // Make the last segment (to future point) dashed
+        return ctx.p0DataIndex === dates.length - 2 ? [5, 5] : undefined;
+      },
+    },
   }));
 
   // Create event markers
@@ -403,6 +429,22 @@ const updateChart = () => {
       annotation: {
         annotations,
       },
+      zoom: {
+        pan: {
+          enabled: true,
+          mode: 'x',
+        },
+        limits: {
+          x: {
+            min: 'original',
+            max: 'original',
+          },
+          y: {
+            min: 'original',
+            max: 'original',
+          },
+        },
+      },
     },
     scales: {
       x: {
@@ -462,7 +504,8 @@ watch(
     <h5>Inventory Projection</h5>
     <p class="text-sm text-gray-600 mb-4">
       Projected inventory over time based on pending and completed transactions.
-      Lines show inventory levels, with events marked along the timeline.
+      Lines show inventory levels, with events marked along the timeline. Use
+      mouse wheel to zoom and click-drag to pan the chart.
     </p>
 
     <!-- Filters -->
@@ -489,7 +532,12 @@ watch(
     </div>
 
     <div v-if="chartData">
-      <Chart type="line" :data="chartData" :options="chartOptions" />
+      <Chart
+        ref="chartRef"
+        type="line"
+        :data="chartData"
+        :options="chartOptions"
+      />
     </div>
     <div v-else class="text-center p-4 text-gray-500">
       No inventory data available. Add cookies and transactions to see the
