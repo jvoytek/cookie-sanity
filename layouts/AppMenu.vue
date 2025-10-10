@@ -19,6 +19,11 @@ const model = ref([
         to: '/girl-inventory',
       },
       {
+        label: 'Physical Inventory Check',
+        icon: 'pi pi-fw pi-clipboard',
+        to: '/physical-inventory-check',
+      },
+      {
         label: 'All Transactions',
         icon: 'pi pi-fw pi-table',
         to: '/all-transactions',
