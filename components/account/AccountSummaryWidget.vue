@@ -53,6 +53,14 @@ const showPackagesCookieList = ref(false);
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-arrow-right" />
           <span>Packages Distributed</span>
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Total physical packages transferred to girls (does not include direct shipped orders).',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
         </p>
       </template>
       <p class="text-xl">
@@ -74,7 +82,6 @@ const showPackagesCookieList = ref(false);
         :label="showPackagesCookieList ? 'Hide Details' : 'Show Details'"
         text
         size="small"
-        class="mt-2"
         @click="showPackagesCookieList = !showPackagesCookieList"
       />
       <CookieList
@@ -87,9 +94,6 @@ const showPackagesCookieList = ref(false);
         :cookies="accountsStore.troopAccountSummary.packagesDistributedByType"
         class="mt-2"
       />
-      <span class="text-sm leading-none text-muted-color"
-        >Does not include Direct Shipped transactions</span
-      >
     </Fieldset>
   </div>
   <div class="col-span-12 lg:col-span-6 xl:col-span-3">

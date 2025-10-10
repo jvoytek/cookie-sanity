@@ -53,6 +53,14 @@ const showPackagesCookieList = ref(false);
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-arrow-right" />
           <span>Packages Distributed</span>
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Total physical packages transferred to girl (does not include direct shipped orders).',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
         </p>
       </template>
       <p class="text-xl">{{ girlAccount!.numCookiesDistributed }}<br /></p>
@@ -67,7 +75,6 @@ const showPackagesCookieList = ref(false);
         :label="showPackagesCookieList ? 'Hide Details' : 'Show Details'"
         text
         size="small"
-        class="mt-2"
         @click="showPackagesCookieList = !showPackagesCookieList"
       />
       <CookieList
