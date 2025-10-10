@@ -1,6 +1,9 @@
 <script setup lang="ts">
 const accountsStore = useAccountsStore();
 const formatHelpers = useFormatHelpers();
+
+// State for toggling cookie list visibility
+const showPackagesCookieList = ref(false);
 </script>
 
 <template>
@@ -59,8 +62,24 @@ const formatHelpers = useFormatHelpers();
           troop inventory</span
         >
       </p>
+      <Button
+        v-if="
+          Object.keys(
+            accountsStore.troopAccountSummary.packagesDistributedByType,
+          ).length > 0
+        "
+        :icon="
+          showPackagesCookieList ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
+        "
+        :label="showPackagesCookieList ? 'Hide Details' : 'Show Details'"
+        text
+        size="small"
+        class="mt-2"
+        @click="showPackagesCookieList = !showPackagesCookieList"
+      />
       <CookieList
         v-if="
+          showPackagesCookieList &&
           Object.keys(
             accountsStore.troopAccountSummary.packagesDistributedByType,
           ).length > 0
@@ -79,6 +98,14 @@ const formatHelpers = useFormatHelpers();
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-tag" />
           <span>Estimated Sales</span>
+          <i
+            v-tooltip.bottom="{
+              value:
+                'Payments received/average cookie price + direct shipped orders. May not match actual sales.',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
         </p>
       </template>
       <p class="text-xl">

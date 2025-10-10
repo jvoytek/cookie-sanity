@@ -99,10 +99,21 @@ export const useAccountsStore = defineStore('accounts', () => {
       {} as Record<string, number>,
     );
 
+    // Calculate total direct ship cookies across all girls
+    const totalDirectShipCookies = balances.reduce((sum, balance) => {
+      const directShipTransactions = _getDirectShipTransactionsForGirl(
+        balance.girl.id,
+      );
+      const { numCookiesDistributed: directShipCookies } =
+        _getTotalsFromTransactionList(directShipTransactions);
+      return sum + directShipCookies;
+    }, 0);
+
     const estimatedTotalSales =
       troopBalance >= 0
-        ? numCookiesDistributed
-        : Math.round(totalPaymentsReceived / cookiesStore.averageCookiePrice);
+        ? numCookiesDistributed + totalDirectShipCookies
+        : Math.round(totalPaymentsReceived / cookiesStore.averageCookiePrice) +
+          totalDirectShipCookies;
 
     // Count active accounts (accounts with any activity)
     const activeAccounts = balances.filter(

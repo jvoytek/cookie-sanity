@@ -47,9 +47,9 @@ describe('AccountsPage', () => {
     });
 
     // Troop view should be visible
-    expect(wrapper.findComponent({ name: 'AccountSummaryWidget' }).exists()).toBe(
-      true,
-    );
+    expect(
+      wrapper.findComponent({ name: 'AccountSummaryWidget' }).exists(),
+    ).toBe(true);
     expect(
       wrapper.findComponent({ name: 'AccountBalancesTable' }).exists(),
     ).toBe(true);
