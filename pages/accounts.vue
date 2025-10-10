@@ -1,7 +1,19 @@
 <script setup lang="ts">
 const girlsStore = useGirlsStore();
 const paymentHelpers = usePaymentHelpers();
-const activeGirlAccount = ref(null);
+
+// Account selection - null means "Troop"
+const selectedAccount = ref<number | null>(null);
+
+// Options for account selector: "Troop" + all girls
+const accountOptions = computed(() => {
+  return [{ label: 'Troop', value: null }, ...girlsStore.girlOptions];
+});
+
+// Computed flags for conditional rendering
+const isTroopView = computed(() => selectedAccount.value === null);
+const isGirlView = computed(() => selectedAccount.value !== null);
+
 function openNew() {
   paymentHelpers.editPayment(null);
 }
@@ -25,57 +37,37 @@ function openNew() {
               class="mr-2"
               @click="openNew"
             />
+            <Select
+              v-model="selectedAccount"
+              :options="accountOptions"
+              option-label="label"
+              option-value="value"
+              placeholder="Select account"
+              class="w-64"
+            />
           </template>
         </Toolbar>
       </div>
     </div>
 
-    <div class="card">
-      <Tabs value="0">
-        <TabList>
-          <Tab value="0" class="flex items-center gap-2"
-            ><i class="pi pi-envelope" />Troop Summary</Tab
-          >
-          <Tab value="1" class="flex items-center gap-2"
-            ><i class="pi pi-exclamation-triangle" />Girl Details</Tab
-          >
-        </TabList>
-        <TabPanel value="0">
-          <div class="grid grid-cols-12 gap-6">
-            <AccountSummaryWidget />
-          </div>
+    <!-- Troop View -->
+    <div v-if="isTroopView" class="card">
+      <div class="grid grid-cols-12 gap-6">
+        <AccountSummaryWidget />
+      </div>
 
-          <AccountBalancesTable />
-        </TabPanel>
-        <TabPanel value="1">
-          <div class="flex flex-wrap items-center">
-            <label for="activeGirlAccount" class="m-4"
-              >Select a girl to view details:</label
-            >
-            <Select
-              v-model="activeGirlAccount"
-              :options="girlsStore.girlOptions"
-              option-label="label"
-              option-value="value"
-              placeholder="Select a girl"
-              class="m-4"
-            />
-          </div>
-          <div class="grid grid-cols-12 gap-6">
-            <AccountDetailWidget
-              v-if="activeGirlAccount !== null"
-              :girl-id="activeGirlAccount"
-            />
+      <AccountBalancesTable />
+    </div>
 
-            <div class="col-span-12">
-              <PaymentsDataTable
-                v-if="activeGirlAccount !== null"
-                :girl-id="activeGirlAccount"
-              />
-            </div>
-          </div>
-        </TabPanel>
-      </Tabs>
+    <!-- Girl View -->
+    <div v-if="isGirlView" class="card">
+      <div class="grid grid-cols-12 gap-6">
+        <AccountDetailWidget :girl-id="selectedAccount!" />
+
+        <div class="col-span-12">
+          <PaymentsDataTable :girl-id="selectedAccount!" />
+        </div>
+      </div>
     </div>
 
     <PaymentDialog />
