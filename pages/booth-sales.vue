@@ -108,7 +108,17 @@ boothsStore.$subscribe((mutation, _state) => {
     !autoCalculate &&
     mutation.events?.oldValue?.predicted_cookies !== undefined
   ) {
-    boothsStore.setActiveBoothSaleTotalExpectedSales();
+    // Check if predicted_cookies actually changed to avoid infinite loop
+    const oldPredicted = JSON.stringify(
+      mutation.events.oldValue.predicted_cookies || {},
+    );
+    const newPredicted = JSON.stringify(
+      mutation.events.newValue?.predicted_cookies || {},
+    );
+
+    if (oldPredicted !== newPredicted) {
+      boothsStore.setActiveBoothSaleTotalExpectedSales();
+    }
   }
 });
 
