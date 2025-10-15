@@ -84,16 +84,22 @@ describe('Transactions Store', () => {
       expect(transactionsStore.activeTransaction).toEqual(null);
       expect(transactionsStore.editTransactionDialogVisible).toBe(false);
       expect(transactionsStore.deleteTransactionDialogVisible).toBe(false);
-      expect(transactionsStore.transactionTypeOptions).toHaveLength(6);
+      expect(transactionsStore.troopTransactionTypeOptions).toHaveLength(2);
+      expect(transactionsStore.girlTransactionTypeOptions).toHaveLength(4);
     });
 
-    it('should have correct transaction type options', () => {
-      expect(transactionsStore.transactionTypeOptions).toEqual([
+    it('should have correct trooptransaction type options', () => {
+      expect(transactionsStore.troopTransactionTypeOptions).toEqual([
+        { value: 'T2T', label: 'Troop to Troop' },
+        { value: 'C2T', label: 'Council to Troop' },
+      ]);
+    });
+
+    it('should have correct girl transaction type options', () => {
+      expect(transactionsStore.girlTransactionTypeOptions).toEqual([
         { value: 'T2G', label: 'Troop to Girl' },
         { value: 'G2G', label: 'Girl to Girl' },
         { value: 'G2T', label: 'Girl to Troop' },
-        { value: 'T2T', label: 'Troop to Troop' },
-        { value: 'C2T', label: 'Council to Troop' },
         { value: 'DIRECT_SHIP', label: 'Direct Ship' },
       ]);
     });

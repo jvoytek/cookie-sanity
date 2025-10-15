@@ -11,13 +11,7 @@ const transactionHelpers = useTransactionHelpers();
 loading.value = false;
 
 function openNew() {
-  transactionHelpers.editTransaction(
-    {
-      cookies: {},
-      status: 'pending',
-    },
-    'new',
-  );
+  transactionHelpers.editTransaction({} as NewOrder, 'all');
 }
 </script>
 

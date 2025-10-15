@@ -307,10 +307,10 @@ describe('Transactions Store - DIRECT_SHIP Functionality', () => {
     expect(store.sumTransactionsByCookie('LEM')).toBe(-3);
   });
 
-  it('should have DIRECT_SHIP in transaction type options', () => {
+  it('should have DIRECT_SHIP in girl transaction type options', () => {
     const store = useTransactionsStore();
 
-    const directShipOption = store.transactionTypeOptions.find(
+    const directShipOption = store.girlTransactionTypeOptions.find(
       (opt) => opt.value === 'DIRECT_SHIP',
     );
 

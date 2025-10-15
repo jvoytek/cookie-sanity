@@ -24,12 +24,15 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const editTransactionDialogVisible = ref(false);
   const deleteTransactionDialogVisible = ref(false);
 
-  const transactionTypeOptions = [
+  const troopTransactionTypeOptions = [
+    { value: 'T2T', label: 'Troop to Troop' },
+    { value: 'C2T', label: 'Council to Troop' },
+  ];
+
+  const girlTransactionTypeOptions = [
     { value: 'T2G', label: 'Troop to Girl' },
     { value: 'G2G', label: 'Girl to Girl' },
     { value: 'G2T', label: 'Girl to Troop' },
-    { value: 'T2T', label: 'Troop to Troop' },
-    { value: 'C2T', label: 'Council to Troop' },
     { value: 'DIRECT_SHIP', label: 'Direct Ship' },
   ];
 
@@ -541,7 +544,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     updateTransactionStatus,
     friendlyTransactionTypes,
     _invertCookieQuantities,
-    transactionTypeOptions,
+    troopTransactionTypeOptions,
+    girlTransactionTypeOptions,
     getGirlTransactionsByStatus,
   };
 });
