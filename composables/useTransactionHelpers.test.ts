@@ -19,12 +19,15 @@ describe('useTransactionHelpers', () => {
       transactionDialogFormSchema: { value: [] },
       editTransactionDialogVisible: false,
       deleteTransactionDialogVisible: false,
-      transactionTypeOptions: [
-        { label: 'Council to Troop', value: 'C2T' },
-        { label: 'Troop to Troop', value: 'T2T' },
+      girlTransactionTypeOptions: [
         { label: 'Troop to Girl', value: 'T2G' },
         { label: 'Girl to Troop', value: 'G2T' },
         { label: 'Girl to Girl', value: 'G2G' },
+        { label: 'Direct Ship', value: 'DIRECT_SHIP' },
+      ],
+      troopTransactionTypeOptions: [
+        { label: 'Council to Troop', value: 'C2T' },
+        { label: 'Troop to Troop', value: 'T2T' },
       ],
       upsertTransaction: vi.fn(),
       insertNewTransaction: vi.fn(),

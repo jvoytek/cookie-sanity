@@ -33,11 +33,49 @@ export const useTransactionHelpers = () => {
         name: 'type',
         id: 'transaction-type',
         label: 'Type',
-        options: ordersStore.transactionTypeOptions,
+        // combine troop and girl types
+        options: [
+          ...ordersStore.troopTransactionTypeOptions,
+          ...ordersStore.girlTransactionTypeOptions,
+        ],
         validation: 'required',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
         'option-label': 'label',
         'option-value': 'value',
+        if: (dialogType === 'all').toString(),
+      },
+      {
+        $formkit: 'primeSelect',
+        name: 'type',
+        id: 'transaction-type',
+        label: 'Type',
+        options: ordersStore.troopTransactionTypeOptions,
+        validation: 'required',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
+        class: 'w-full',
+        'option-label': 'label',
+        'option-value': 'value',
+        if: (dialogType === 'troop').toString(),
+      },
+      {
+        $formkit: 'primeSelect',
+        name: 'type',
+        id: 'transaction-type',
+        label: 'Type',
+        options: ordersStore.girlTransactionTypeOptions,
+        validation: 'required',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
+        class: 'w-full',
+        'option-label': 'label',
+        'option-value': 'value',
+        if: (dialogType === 'girl').toString(),
       },
       {
         $formkit: 'primeInputText',
@@ -47,6 +85,9 @@ export const useTransactionHelpers = () => {
         key: 'supplier',
         placeholder: 'Council, Troop 1234, etc.',
         validation: 'required|alpha_numeric',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
       },
       {
@@ -59,6 +100,9 @@ export const useTransactionHelpers = () => {
         placeholder: 'Choose a scout',
         options: girlsStore.girlOptions,
         validation: 'required',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
         'option-label': 'label',
         'option-value': 'value',
@@ -72,6 +116,9 @@ export const useTransactionHelpers = () => {
         placeholder: 'Choose a scout',
         options: girlsStore.girlOptions,
         validation: 'required',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
         'option-label': 'label',
         'option-value': 'value',
@@ -82,6 +129,9 @@ export const useTransactionHelpers = () => {
         label: 'Order Number (optional)',
         placeholder: '#12345',
         validation: 'alpha_numeric',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
       },
       {
@@ -89,25 +139,21 @@ export const useTransactionHelpers = () => {
         name: 'order_date',
         label: 'Order Date',
         validation: 'required|date',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
         dateFormat: 'yy-mm-dd',
         placeholder: 'YYYY-MM-DD',
-      },
-      {
-        $formkit: 'primeSelect',
-        name: 'status',
-        id: 'transaction-status',
-        label: 'Status',
-        options: ['complete', 'pending', 'canceled'],
-        validation: 'required',
-        class: 'w-full',
-        if: (dialogType !== 'new').toString(),
       },
       {
         $formkit: 'primeDatePicker',
         name: 'processed_date',
         label: 'Processed Date',
         validation: 'date',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
         dateFormat: 'yy-mm-dd',
         placeholder: 'YYYY-MM-DD',
@@ -118,6 +164,9 @@ export const useTransactionHelpers = () => {
         name: 'notes',
         label: 'Notes (optional)',
         placeholder: 'Notes about this transaction',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
         rows: 2,
       },
@@ -267,16 +316,18 @@ export const useTransactionHelpers = () => {
       },
     ];
 
+    console.log(baseSchema);
     return baseSchema;
   };
 
   function editTransaction(
     order: Order,
-    type: 'new' | 'troop' | 'girl' | 'all' = 'troop',
+    type: 'troop' | 'girl' | 'all' = 'all',
   ) {
     ordersStore.setActiveTransaction({ ...order });
     ordersStore.transactionDialogFormSchema.value =
       getTransactionDialogFormSchema(type);
+    console.log(ordersStore.transactionDialogFormSchema.value);
     ordersStore.editTransactionDialogVisible = true;
   }
 

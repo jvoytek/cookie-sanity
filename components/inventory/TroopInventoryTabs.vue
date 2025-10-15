@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { NewOrder } from '@/types/types';
 const loading = ref(true);
 
 loading.value = true;
@@ -9,13 +10,7 @@ const transactionHelpers = useTransactionHelpers();
 loading.value = false;
 
 function openNew() {
-  transactionHelpers.editTransaction(
-    {
-      cookies: {},
-      status: 'pending',
-    },
-    'new',
-  );
+  transactionHelpers.editTransaction({} as NewOrder, 'troop');
 }
 </script>
 

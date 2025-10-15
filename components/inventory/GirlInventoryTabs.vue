@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Order } from '@/types/types';
+import type { Order, NewOrder } from '@/types/types';
 
 const loading = ref(true);
 
@@ -81,13 +81,7 @@ const filteredRejectedCount = computed(() => {
 });
 
 function openNew() {
-  transactionHelpers.editTransaction(
-    {
-      cookies: {},
-      status: 'requested',
-    },
-    'new',
-  );
+  transactionHelpers.editTransaction({} as NewOrder, 'girl');
 }
 </script>
 
