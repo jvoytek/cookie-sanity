@@ -316,7 +316,6 @@ export const useTransactionHelpers = () => {
       },
     ];
 
-    console.log(baseSchema);
     return baseSchema;
   };
 
@@ -327,7 +326,6 @@ export const useTransactionHelpers = () => {
     ordersStore.setActiveTransaction({ ...order });
     ordersStore.transactionDialogFormSchema.value =
       getTransactionDialogFormSchema(type);
-    console.log(ordersStore.transactionDialogFormSchema.value);
     ordersStore.editTransactionDialogVisible = true;
   }
 
