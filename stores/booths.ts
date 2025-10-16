@@ -231,7 +231,7 @@ export const useBoothsStore = defineStore('booths', () => {
     if (!activeBoothSale.value) return;
     const predictedCookies = activeBoothSale.value.predicted_cookies || {};
     activeBoothSale.value.expected_sales = Object.values(predictedCookies)
-      .map((val) => Number(val))
+      .map((val) => Number(val) || 0)
       .reduce((sum: number, val: number) => sum + val, 0);
   };
 

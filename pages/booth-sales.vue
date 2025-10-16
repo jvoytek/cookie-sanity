@@ -74,23 +74,32 @@ async function deleteBoothSale() {
 }
 
 boothsStore.$subscribe((mutation, _state) => {
+  const oldSale = mutation.events?.oldValue || {};
+  const newSale = mutation.events?.newValue || {};
+
+  const oldExpectedSales = Number(oldSale.expected_sales || 0);
+  const newExpectedSales = Number(newSale.expected_sales || 0);
+
+  const newPredictedCookies = newSale.predicted_cookies || {};
+
+  const sumNewPredictedCookies = Object.values(newPredictedCookies).reduce(
+    (sum, val) => sum + Number(val || 0),
+    0,
+  );
+
+  // If nothing relevant changed, skip
   if (
-    mutation.events?.oldValue?.length === 0 ||
-    mutation.events?.oldValue?.expected_sales === undefined
+    oldExpectedSales === newExpectedSales &&
+    sumNewPredictedCookies === newExpectedSales
   )
     return;
 
-  const previousExpectedSales = mutation.events?.oldValue?.expected_sales || 0;
-  const newExpectedSales = mutation.events?.newValue?.expected_sales || 0;
-
-  if (previousExpectedSales === 0 && newExpectedSales === 0) {
-    return;
+  if (sumNewPredictedCookies !== newExpectedSales) {
+    boothsStore.setActiveBoothSaleTotalExpectedSales();
   }
-
-  if (previousExpectedSales !== newExpectedSales) {
+  if (oldExpectedSales !== newExpectedSales) {
     boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
   }
-  boothsStore.setActiveBoothSaleTotalExpectedSales();
 });
 
 const getBoothSaleDialogFormSchema = () => {
