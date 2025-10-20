@@ -19,6 +19,8 @@ describe('TransactionsDataTable', () => {
             TransactionDialog: true,
             Badge: true,
             CookieList: true,
+            Checkbox: true,
+            Dialog: true,
           },
         },
       });
@@ -39,6 +41,8 @@ describe('TransactionsDataTable', () => {
           TransactionDialog: true,
           Badge: true,
           CookieList: true,
+          Checkbox: true,
+          Dialog: true,
         },
       },
     });
