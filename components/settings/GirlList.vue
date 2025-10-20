@@ -123,17 +123,21 @@ async function deleteGirl() {
             <Column :exportable="false" nowrap>
               <template #body="slotProps">
                 <Button
+                  v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                  aria-label="Edit"
                   icon="pi pi-pencil"
-                  outlined
-                  rounded
                   class="mr-2"
+                  variant="outlined"
+                  severity="secondary"
                   @click="editGirl(slotProps.data)"
                 />
                 <Button
+                  v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
+                  aria-label="Delete"
                   icon="pi pi-trash"
-                  outlined
-                  rounded
-                  severity="danger"
+                  class="mr-2"
+                  variant="outlined"
+                  severity="warn"
                   @click="confirmDeleteGirl(slotProps.data)"
                 />
               </template>

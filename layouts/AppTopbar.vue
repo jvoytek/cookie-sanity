@@ -1,6 +1,7 @@
 <script setup>
 import { useLayout } from '@/composables/useLayout';
 import AppConfigurator from './AppConfigurator.vue';
+import SeasonSelect from '~/components/settings/SeasonSelect.vue';
 const supabase = useSupabaseClient();
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
@@ -127,13 +128,8 @@ const saveCurrentSeasonInProfile = async () => {
         </div>
       </div>
 
-      <Select
-        v-model="seasonsStore.currentSeason"
-        :options="seasonsStore.allSeasons"
-        :option-label="seasonsStore.getSeasonName"
-        placeholder="Select a Season"
-        @change="saveCurrentSeasonInProfile"
-      />
+      <SeasonSelect />
+
       <button
         v-styleclass="{
           selector: '@next',

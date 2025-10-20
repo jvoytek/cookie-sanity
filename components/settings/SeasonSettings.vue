@@ -1,100 +1,125 @@
 <script setup>
+import { DataTable } from 'primevue';
+
 const seasonsStore = useSeasonsStore();
 const cookiesStore = useCookiesStore();
 const seasonDialog = ref(false);
 const season = ref({});
 const seasonSubmitted = ref(false);
+const isDeleteConfirmed = ref(false);
 //const selectedSeason = ref();
 
 //const deleteProductDialog = ref(false);
 
 function openNewSeason() {
-  season.value = {};
-  seasonSubmitted.value = false;
-  seasonDialog.value = true;
+  seasonsStore.setActiveSeason(null);
+  seasonsStore.showDialog();
 }
 
-async function saveSeason() {
-  seasonSubmitted.value = true;
-
-  if (season.value.id) {
-    seasonsStore.upsertSeason(season.value);
-  } else {
-    seasonsStore.insertSeason(season.value);
-  }
-
-  seasonDialog.value = false;
-  season.value = {};
-}
-
-function showSettingsForSeason() {
-  cookiesStore.fetchSeasonCookies();
+function deleteConfirmed() {
+  seasonsStore.deleteSeason();
+  isDeleteConfirmed.value = false;
 }
 </script>
 
 <template>
   <div class="col-span-12">
     <div class="card">
-      <h5>Season Settings</h5>
-      <Select
-        v-model="seasonsStore.settingsSelectedSeason"
-        :options="seasonsStore.allSeasons"
-        :option-label="seasonsStore.getSeasonName"
-        placeholder="Select a Season"
-        class="w-full md:w-56"
-        @change="showSettingsForSeason"
-      />
-      <Button
-        label="New"
-        icon="pi pi-plus"
-        severity="secondary"
-        class="mr-2"
-        @click="openNewSeason"
-      />
+      <h5>Seasons</h5>
 
-      <Dialog
-        v-model:visible="seasonDialog"
-        :style="{ width: '450px' }"
-        header="Season Details"
-        :modal="true"
-      >
-        <div class="flex flex-col gap-6">
-          <div>
-            <label for="name" class="block font-bold mb-3">Troop Number</label>
-            <InputText
-              id="troop_number"
-              v-model.trim="season.troop_number"
-              required="true"
-              autofocus
-              :invalid="seasonSubmitted && !season.troop_number"
-              fluid
+      <div>
+        <div class="card">
+          <Toolbar class="mb-6">
+            <template #start>
+              <Button
+                label="New"
+                icon="pi pi-plus"
+                severity="secondary"
+                class="mr-2"
+                @click="openNewSeason"
+              />
+            </template>
+          </Toolbar>
+          <DataTable
+            ref="dt"
+            :value="seasonsStore.allSeasons"
+            dataKey="id"
+            :paginator="false"
+            sortField="year"
+            :sortOrder="-1"
+          >
+            <Column
+              field="troop_number"
+              header="Troop Number"
+              :sortable="true"
             />
-            <small
-              v-if="seasonSubmitted && !season.troop_number"
-              class="text-red-500"
-              >Troop Number is required.</small
-            >
-          </div>
-          <div>
-            <label for="name" class="block font-bold mb-3">Year</label>
-            <DatePicker
-              v-model="season.year"
-              date-format="yy"
-              required="true"
-              :invalid="seasonSubmitted && !season.year"
-              fluid
-            />
-            <small v-if="seasonSubmitted && !season.year" class="text-red-500">
-              Year is required.</small
-            >
-          </div>
+            <Column field="year" header="Year" :sortable="true" />
+            <Column header="Actions">
+              <template #body="slotProps">
+                <Button
+                  v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                  aria-label="Edit"
+                  icon="pi pi-pencil"
+                  class="mr-2"
+                  variant="outlined"
+                  severity="secondary"
+                  @click="seasonsStore.editSeason(slotProps.data)"
+                />
+                <Button
+                  v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
+                  aria-label="Delete"
+                  icon="pi pi-trash"
+                  class="mr-2"
+                  variant="outlined"
+                  severity="warn"
+                  @click="seasonsStore.confirmDeleteSeason(slotProps.data)"
+                />
+              </template>
+            </Column>
+          </DataTable>
         </div>
-
-        <template #footer>
-          <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-          <Button label="Save" icon="pi pi-check" @click="saveSeason" />
-        </template>
-      </Dialog>
+      </div>
     </div>
   </div>
+
+  <Dialog
+    v-model:visible="seasonsStore.deleteSeasonDialogVisible"
+    :style="{ width: '450px' }"
+    header="Confirm"
+    :modal="true"
+  >
+    <div class="flex items-center gap-4">
+      <i class="pi pi-exclamation-triangle !text-3xl" />
+      <div>
+        <span v-if="seasonsStore.activeSeason"
+          >Are you sure you want to delete the season for
+          <b
+            >{{ seasonsStore.activeSeason.troop_number }} -
+            {{ seasonsStore.activeSeason.year }}</b
+          >? You will lose all data associated with this season.<br />
+        </span>
+        <div class="mt-3 items-center gap-2 flex">
+          <ToggleSwitch v-model="isDeleteConfirmed" />
+          <Message severity="error" variant="simple"
+            >I'm sure I want to delete this season.</Message
+          >
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <br />
+      <Button
+        label="No"
+        icon="pi pi-times"
+        text
+        @click="seasonsStore.deleteSeasonDialogVisible = false"
+      />
+      <Button
+        label="Yes"
+        icon="pi pi-check"
+        @click="deleteConfirmed"
+        :disabled="!isDeleteConfirmed"
+      />
+    </template>
+  </Dialog>
 </template>
