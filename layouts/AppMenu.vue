@@ -7,7 +7,6 @@ const model = ref([
   {
     items: [
       { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-      { label: 'Girls', icon: 'pi pi-fw pi-users', to: '/girls' },
       {
         label: 'Troop Inventory',
         icon: 'pi pi-fw pi-box',
@@ -37,6 +36,13 @@ const model = ref([
         label: 'Account Management',
         icon: 'pi pi-fw pi-wallet',
         to: '/accounts',
+      },
+      {
+        label: 'Settings',
+        items: [
+          { label: 'Girls', icon: 'pi pi-fw pi-users', to: '/girls' },
+          { label: 'Cookies', icon: 'pi pi-fw pi-box', to: '/cookies' },
+        ],
       },
     ],
   },

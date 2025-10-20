@@ -52,7 +52,6 @@ function showSettingsForSeason() {
         @click="openNewSeason"
       />
 
-      <CookieSettings v-if="seasonsStore.settingsSelectedSeason" />
       <Dialog
         v-model:visible="seasonDialog"
         :style="{ width: '450px' }"

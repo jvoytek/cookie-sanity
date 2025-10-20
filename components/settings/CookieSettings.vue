@@ -79,145 +79,150 @@ async function onRowReorder(event) {
 </script>
 
 <template>
-  <h5>
-    Cookie Settings for
-    {{ seasonsStore.getSeasonName(seasonsStore.settingsSelectedSeason) }}
-  </h5>
-
-  <div>
+  <div class="col-span-12">
     <div class="card">
-      <Toolbar class="mb-6">
-        <template #start>
-          <Button
-            label="New"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew"
-          />
-        </template>
-      </Toolbar>
+      <h5>
+        Cookie Settings for
+        {{ seasonsStore.getSeasonName(seasonsStore.currentSeason) }}
+      </h5>
 
-      <DataTable
-        ref="dt"
-        v-model:selection="selectedProducts"
-        :value="cookiesStore.seasonCookies"
-        data-key="id"
-        :filters="filters"
-        sort-field="order"
-        @row-reorder="onRowReorder"
-      >
-        <template #header>
-          <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Manage Cookies</h4>
-            <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText
-                v-model="filters['global'].value"
-                placeholder="Search..."
+      <div>
+        <div class="card">
+          <Toolbar class="mb-6">
+            <template #start>
+              <Button
+                label="New"
+                icon="pi pi-plus"
+                severity="secondary"
+                class="mr-2"
+                @click="openNew"
               />
-            </IconField>
-          </div>
-        </template>
+            </template>
+          </Toolbar>
 
-        <Column
-          row-reorder
-          header-style="width: 3rem"
-          :reorderable-column="false"
-        />
-        <Column field="order" header="Order" />
-        <Column field="name" header="Name" />
-        <Column field="price" header="Price">
-          <template #body="slotProps">
-            {{ formatHelpers.formatCurrency(slotProps.data.price) }}
-          </template>
-        </Column>
-        <Column field="color" header="Color">
-          <template #body="slotProps">
-            <Badge
-              size="xlarge"
-              :style="{ backgroundColor: slotProps.data.color }"
+          <DataTable
+            ref="dt"
+            v-model:selection="selectedProducts"
+            :value="cookiesStore.allCookies"
+            data-key="id"
+            :filters="filters"
+            sort-field="order"
+            @row-reorder="onRowReorder"
+          >
+            <template #header>
+              <div class="flex flex-wrap gap-2 items-center justify-between">
+                <h4 class="m-0">Manage Cookies</h4>
+                <IconField>
+                  <InputIcon>
+                    <i class="pi pi-search" />
+                  </InputIcon>
+                  <InputText
+                    v-model="filters['global'].value"
+                    placeholder="Search..."
+                  />
+                </IconField>
+              </div>
+            </template>
+
+            <Column
+              row-reorder
+              header-style="width: 3rem"
+              :reorderable-column="false"
             />
-          </template>
-        </Column>
-        <Column field="abbreviation" header="Abbrv." />
-        <Column field="percent_of_sale">
-          <template #header>
-            <strong>% of Sale</strong>
-            <i
-              v-tooltip.bottom="{
-                value:
-                  'Expected percentage of total sale. Used for inventory needs calculations.',
-                showDelay: 500,
-              }"
-              class="pi pi-info-circle ml-2"
-              style="cursor: pointer"
-            />
-          </template>
-          <template #body="slotProps">
-            {{ slotProps.data.percent_of_sale || 0 }}%
-          </template>
-        </Column>
-        <Column field="overbooking_allowed">
-          <template #header>
-            <strong>Overbooking Allowed</strong>
-            <i
-              v-tooltip.bottom="{
-                value:
-                  'When checked, allows creating transactions for more cookies than are currently available in inventory. Uncheck for limited varieties.',
-                showDelay: 500,
-              }"
-              class="pi pi-info-circle ml-2"
-              style="cursor: pointer"
-            />
-          </template>
-          <template #body="slotProps">
-            <i
-              v-if="slotProps.data.overbooking_allowed"
-              class="pi pi-check text-green-500"
-            />
-          </template>
-        </Column>
-        <Column field="is_virtual">
-          <template #header>
-            <strong>Virtual</strong>
-            <i
-              v-tooltip.bottom="{
-                value: 'Virtual packages don\'t count against your inventory',
-                showDelay: 500,
-              }"
-              class="pi pi-info-circle ml-2"
-              style="cursor: pointer"
-            />
-          </template>
-          <template #body="slotProps">
-            <i
-              v-if="slotProps.data.is_virtual"
-              class="pi pi-check text-green-500"
-            />
-          </template>
-        </Column>
-        <Column :exportable="false" nowrap>
-          <template #body="slotProps">
-            <Button
-              icon="pi pi-pencil"
-              outlined
-              rounded
-              class="mr-2"
-              @click="editProduct(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-trash"
-              outlined
-              rounded
-              severity="danger"
-              @click="confirmDeleteProduct(slotProps.data)"
-            />
-          </template>
-        </Column>
-      </DataTable>
+            <Column field="order" header="Order" />
+            <Column field="name" header="Name" />
+            <Column field="price" header="Price">
+              <template #body="slotProps">
+                {{ formatHelpers.formatCurrency(slotProps.data.price) }}
+              </template>
+            </Column>
+            <Column field="color" header="Color">
+              <template #body="slotProps">
+                <Badge
+                  size="xlarge"
+                  :style="{ backgroundColor: slotProps.data.color }"
+                />
+              </template>
+            </Column>
+            <Column field="abbreviation" header="Abbrv." />
+            <Column field="percent_of_sale">
+              <template #header>
+                <strong>% of Sale</strong>
+                <i
+                  v-tooltip.bottom="{
+                    value:
+                      'Expected percentage of total sale. Used for inventory needs calculations.',
+                    showDelay: 500,
+                  }"
+                  class="pi pi-info-circle ml-2"
+                  style="cursor: pointer"
+                />
+              </template>
+              <template #body="slotProps">
+                {{ slotProps.data.percent_of_sale || 0 }}%
+              </template>
+            </Column>
+            <Column field="overbooking_allowed">
+              <template #header>
+                <strong>Overbooking Allowed</strong>
+                <i
+                  v-tooltip.bottom="{
+                    value:
+                      'When checked, allows creating transactions for more cookies than are currently available in inventory. Uncheck for limited varieties.',
+                    showDelay: 500,
+                  }"
+                  class="pi pi-info-circle ml-2"
+                  style="cursor: pointer"
+                />
+              </template>
+              <template #body="slotProps">
+                <i
+                  v-if="slotProps.data.overbooking_allowed"
+                  class="pi pi-check text-green-500"
+                />
+              </template>
+            </Column>
+            <Column field="is_virtual">
+              <template #header>
+                <strong>Virtual</strong>
+                <i
+                  v-tooltip.bottom="{
+                    value:
+                      'Virtual packages don\'t count against your inventory',
+                    showDelay: 500,
+                  }"
+                  class="pi pi-info-circle ml-2"
+                  style="cursor: pointer"
+                />
+              </template>
+              <template #body="slotProps">
+                <i
+                  v-if="slotProps.data.is_virtual"
+                  class="pi pi-check text-green-500"
+                />
+              </template>
+            </Column>
+            <Column :exportable="false" nowrap>
+              <template #body="slotProps">
+                <Button
+                  icon="pi pi-pencil"
+                  outlined
+                  rounded
+                  class="mr-2"
+                  @click="editProduct(slotProps.data)"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  outlined
+                  rounded
+                  severity="danger"
+                  @click="confirmDeleteProduct(slotProps.data)"
+                />
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+      </div>
     </div>
 
     <Dialog

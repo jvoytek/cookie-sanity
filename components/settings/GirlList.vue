@@ -76,7 +76,7 @@ async function deleteGirl() {
 </script>
 
 <template>
-  <div class="col-span-12 lg:col-span-8 xl:col-span-8">
+  <div class="col-span-12">
     <div class="card">
       <h5>Girl Settings</h5>
 
