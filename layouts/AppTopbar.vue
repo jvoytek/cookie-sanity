@@ -42,11 +42,6 @@ async function signOut() {
     loading.value = false;
   }
 }
-
-const saveCurrentSeasonInProfile = async () => {
-  await profileStore.saveCurrentSeasonInProfile();
-  await profileStore.fetchProfile();
-};
 </script>
 
 <template>

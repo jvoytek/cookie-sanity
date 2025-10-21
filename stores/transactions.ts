@@ -499,7 +499,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     activeTransactionOriginal.value = transaction
       ? JSON.parse(JSON.stringify(transaction))
       : null;
-    console.log('activeTransactionOriginal', activeTransactionOriginal.value);
   };
 
   const resetActiveTransaction = () => {

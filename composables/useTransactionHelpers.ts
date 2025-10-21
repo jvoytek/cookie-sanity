@@ -126,7 +126,7 @@ export const useTransactionHelpers = () => {
       {
         $formkit: 'primeInputText',
         name: 'order_num',
-        label: 'Order Number (optional)',
+        label: 'TXN # (optional)',
         placeholder: '#12345',
         validation: 'alpha_numeric',
         wrapperClass: 'grid grid-cols-4 gap-4 items-center',

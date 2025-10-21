@@ -32,9 +32,10 @@ watch(selectAll, (newValue) => {
 watch(
   selectedTransactions,
   (newValue) => {
-    selectAll.value = newValue.length === props.orders.length && props.orders.length > 0;
+    selectAll.value =
+      newValue.length === props.orders.length && props.orders.length > 0;
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Reset selection when orders change
@@ -43,7 +44,7 @@ watch(
   () => {
     selectedTransactions.value = [];
     selectAll.value = false;
-  }
+  },
 );
 
 // Computed properties for button visibility and counts
@@ -51,36 +52,44 @@ const hasSelection = computed(() => selectedTransactions.value.length > 0);
 
 const canMarkComplete = computed(() => {
   if (props.transactionTypes === 'all') return false;
-  return selectedTransactions.value.some(t => t.status === 'pending');
+  return props.orders.some((t) => t.status === 'pending');
 });
 
 const canApprove = computed(() => {
   if (props.transactionTypes === 'all') return false;
-  return selectedTransactions.value.some(t => t.status === 'requested');
+  return props.orders.some((t) => t.status === 'requested');
 });
 
 const canMarkPending = computed(() => {
   if (props.transactionTypes === 'all') return false;
-  return selectedTransactions.value.some(t => t.status === 'complete' || t.status === 'rejected');
+  return props.orders.some(
+    (t) => t.status === 'complete' || t.status === 'rejected',
+  );
 });
 
 const canDelete = computed(() => {
   if (props.transactionTypes === 'all') return true;
   if (props.transactionTypes === 'troop') return true;
   if (props.transactionTypes === 'girl') {
-    return selectedTransactions.value.some(t => t.status === 'rejected' || t.status === 'complete');
+    return props.orders.some(
+      (t) => t.status === 'rejected' || t.status === 'complete',
+    );
   }
   return false;
 });
 
 const canReject = computed(() => {
   if (props.transactionTypes !== 'girl') return false;
-  return selectedTransactions.value.some(t => t.status === 'requested' || t.status === 'pending');
+  return props.orders.some(
+    (t) => t.status === 'requested' || t.status === 'pending',
+  );
 });
 
 // Bulk action handlers
 const bulkMarkComplete = async () => {
-  const toUpdate = selectedTransactions.value.filter(t => t.status === 'pending');
+  const toUpdate = selectedTransactions.value.filter(
+    (t) => t.status === 'pending',
+  );
   for (const transaction of toUpdate) {
     await ordersStore.updateTransactionStatus(transaction.id, 'complete');
   }
@@ -88,7 +97,9 @@ const bulkMarkComplete = async () => {
 };
 
 const bulkApprove = async () => {
-  const toUpdate = selectedTransactions.value.filter(t => t.status === 'requested');
+  const toUpdate = selectedTransactions.value.filter(
+    (t) => t.status === 'requested',
+  );
   for (const transaction of toUpdate) {
     await ordersStore.updateTransactionStatus(transaction.id, 'pending');
   }
@@ -96,7 +107,9 @@ const bulkApprove = async () => {
 };
 
 const bulkMarkPending = async () => {
-  const toUpdate = selectedTransactions.value.filter(t => t.status === 'complete' || t.status === 'rejected');
+  const toUpdate = selectedTransactions.value.filter(
+    (t) => t.status === 'complete' || t.status === 'rejected',
+  );
   for (const transaction of toUpdate) {
     await ordersStore.updateTransactionStatus(transaction.id, 'pending');
   }
@@ -104,7 +117,11 @@ const bulkMarkPending = async () => {
 };
 
 const bulkDelete = async () => {
-  if (!confirm(`Are you sure you want to delete ${selectedTransactions.value.length} transaction(s)?`)) {
+  if (
+    !confirm(
+      `Are you sure you want to delete ${selectedTransactions.value.length} transaction(s)?`,
+    )
+  ) {
     return;
   }
   for (const transaction of selectedTransactions.value) {
@@ -114,7 +131,9 @@ const bulkDelete = async () => {
 };
 
 const bulkReject = async () => {
-  const toUpdate = selectedTransactions.value.filter(t => t.status === 'requested' || t.status === 'pending');
+  const toUpdate = selectedTransactions.value.filter(
+    (t) => t.status === 'requested' || t.status === 'pending',
+  );
   for (const transaction of toUpdate) {
     await ordersStore.updateTransactionStatus(transaction.id, 'rejected');
   }
@@ -130,67 +149,71 @@ const bulkReject = async () => {
       </span>
       <Button
         v-if="canMarkComplete"
+        :disabled="!hasSelection"
+        @click="bulkMarkComplete"
         v-tooltip.bottom="{
-          value: 'Mark selected transactions as received/complete',
+          value:
+            'Mark all selected transactions as received/complete. Click this when physical inventory has changed hands',
           showDelay: 500,
         }"
         label="Mark Received"
         icon="pi pi-check"
-        :disabled="!hasSelection"
-        severity="secondary"
         class="mr-2"
-        @click="bulkMarkComplete"
+        variant="outlined"
       />
       <Button
         v-if="canApprove"
+        @click="bulkApprove"
+        :disabled="!hasSelection"
         v-tooltip.bottom="{
           value: 'Approve selected requests and mark as pending',
           showDelay: 500,
         }"
         label="Approve"
         icon="pi pi-check"
-        :disabled="!hasSelection"
-        severity="secondary"
         class="mr-2"
-        @click="bulkApprove"
+        variant="outlined"
       />
       <Button
         v-if="canMarkPending"
+        :disabled="!hasSelection"
+        @click="bulkMarkPending"
         v-tooltip.bottom="{
           value: 'Mark selected transactions as pending again',
           showDelay: 500,
         }"
         label="Mark Pending"
         icon="pi pi-undo"
-        :disabled="!hasSelection"
+        variant="outlined"
         severity="secondary"
         class="mr-2"
-        @click="bulkMarkPending"
       />
       <Button
         v-if="canReject"
+        :disabled="!hasSelection"
+        @click="bulkReject"
         v-tooltip.bottom="{
           value: 'Reject selected transaction requests',
           showDelay: 500,
         }"
         label="Reject"
         icon="pi pi-times"
-        :disabled="!hasSelection"
         severity="warn"
         class="mr-2"
-        @click="bulkReject"
+        variant="outlined"
       />
       <Button
         v-if="canDelete"
+        :disabled="!hasSelection"
+        @click="bulkDelete"
         v-tooltip.bottom="{
           value: 'Delete selected transactions',
           showDelay: 500,
         }"
         label="Delete"
         icon="pi pi-trash"
-        :disabled="!hasSelection"
         severity="warn"
-        @click="bulkDelete"
+        variant="outlined"
       />
     </template>
   </Toolbar>
@@ -210,11 +233,7 @@ const bulkReject = async () => {
       v-if="props.transactionTypes !== 'all'"
       selection-mode="multiple"
       header-style="width: 3rem"
-    >
-      <template #header>
-        <Checkbox v-model="selectAll" binary />
-      </template>
-    </Column>
+    />
     <Column
       v-if="
         props.transactionTypes === 'troop' || props.transactionTypes === 'all'
@@ -223,7 +242,7 @@ const bulkReject = async () => {
       header="Supplier"
       sortable
     />
-    <Column field="order_num" header="Transaction #" sortable />
+    <Column field="order_num" header="TXN #" sortable />
     <Column
       v-if="
         props.transactionTypes === 'girl' || props.transactionTypes === 'all'
@@ -335,7 +354,6 @@ const bulkReject = async () => {
           icon="pi pi-check"
           class="mr-2"
           variant="outlined"
-          severity="secondary"
           @click="
             ordersStore.updateTransactionStatus(slotProps.data.id, 'pending')
           "
