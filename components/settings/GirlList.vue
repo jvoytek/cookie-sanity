@@ -76,7 +76,7 @@ async function deleteGirl() {
 </script>
 
 <template>
-  <div class="col-span-12 lg:col-span-8 xl:col-span-8">
+  <div class="col-span-12">
     <div class="card">
       <h5>Girl Settings</h5>
 
@@ -123,17 +123,21 @@ async function deleteGirl() {
             <Column :exportable="false" nowrap>
               <template #body="slotProps">
                 <Button
+                  v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                  aria-label="Edit"
                   icon="pi pi-pencil"
-                  outlined
-                  rounded
                   class="mr-2"
+                  variant="outlined"
+                  severity="secondary"
                   @click="editGirl(slotProps.data)"
                 />
                 <Button
+                  v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
+                  aria-label="Delete"
                   icon="pi pi-trash"
-                  outlined
-                  rounded
-                  severity="danger"
+                  class="mr-2"
+                  variant="outlined"
+                  severity="warn"
                   @click="confirmDeleteGirl(slotProps.data)"
                 />
               </template>

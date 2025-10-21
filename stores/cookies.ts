@@ -18,7 +18,6 @@ export const useCookiesStore = defineStore('cookies', () => {
 
   /* State */
   const allCookies = ref<Cookie[]>([]);
-  const seasonCookies = ref<Cookie[]>([]);
   const customCookieValidationRules = {
     overBooking: (node) => {
       const boothType = node.parent.name === 'predicted_cookies';
@@ -198,19 +197,10 @@ export const useCookiesStore = defineStore('cookies', () => {
     if (index !== -1) {
       allCookies.value[index] = cookie;
     }
-    const seasonIndex = seasonCookies.value.findIndex(
-      (c) => c.id === cookie.id,
-    );
-    if (seasonIndex !== -1) {
-      seasonCookies.value[seasonIndex] = cookie;
-    }
   };
 
   const _sortCookies = () => {
     allCookies.value.sort(
-      (a: Cookie, b: Cookie) => (a.order ?? 0) - (b.order ?? 0),
-    );
-    seasonCookies.value.sort(
       (a: Cookie, b: Cookie) => (a.order ?? 0) - (b.order ?? 0),
     );
   };
@@ -244,18 +234,6 @@ export const useCookiesStore = defineStore('cookies', () => {
       .order('order');
   };
 
-  const _supabaseFetchSeasonCookies = async () => {
-    if (user.value == null || seasonsStore.settingsSelectedSeason == null)
-      return { data: null, error: { message: 'No user or season selected' } };
-
-    return await supabaseClient
-      .from('cookies')
-      .select(`*`)
-      .eq('profile', user.value.id)
-      .eq('season', seasonsStore.settingsSelectedSeason.id)
-      .order('order');
-  };
-
   const _supabaseInsertCookie = async (cookie: Cookie) => {
     return await supabaseClient
       .from('cookies')
@@ -272,10 +250,6 @@ export const useCookiesStore = defineStore('cookies', () => {
     return await supabaseClient.from('cookies').upsert(allCookies.value);
   };
 
-  const _supabaseUpdateSeasonCookies = async () => {
-    return await supabaseClient.from('cookies').upsert(seasonCookies.value);
-  };
-
   /* Actions */
 
   const fetchCookies = async () => {
@@ -290,22 +264,10 @@ export const useCookiesStore = defineStore('cookies', () => {
     }
   };
 
-  const fetchSeasonCookies = async () => {
-    try {
-      if (!seasonsStore.settingsSelectedSeason) return;
-
-      const { data, error } = await _supabaseFetchSeasonCookies();
-      if (error) throw error;
-      seasonCookies.value = data ?? [];
-    } catch (error) {
-      notificationHelpers.addError(error as Error);
-    }
-  };
-
   const insertCookie = async (cookie: Cookie) => {
-    if (!seasonsStore.settingsSelectedSeason || !user.value) return;
+    if (!seasonsStore.currentSeason || !user.value) return;
     cookie.profile = user.value.id;
-    cookie.season = seasonsStore.settingsSelectedSeason.id;
+    cookie.season = seasonsStore.currentSeason.id;
     try {
       const { data, error } = await _supabaseInsertCookie(cookie);
 
@@ -349,28 +311,15 @@ export const useCookiesStore = defineStore('cookies', () => {
 
   const reorderCookies = async (cookies: Cookie[]) => {
     cookies.forEach((cookie, i) => {
-      const index = seasonCookies.value.findIndex((c) => c.id === cookie.id);
-      seasonCookies.value[index].order = i;
+      const index = allCookies.value.findIndex((c) => c.id === cookie.id);
+      allCookies.value[index].order = i;
     });
-
-    if (
-      seasonsStore.currentSeason?.id === seasonsStore.settingsSelectedSeason?.id
-    ) {
-      allCookies.value = seasonCookies.value;
-    }
 
     _sortCookies();
 
     try {
-      const { error } = await _supabaseUpdateSeasonCookies();
-      if (error) throw error;
-      if (
-        seasonsStore.currentSeason?.id ===
-        seasonsStore.settingsSelectedSeason?.id
-      ) {
-        const { error: allError } = await _supabaseUpdateAllCookies();
-        if (allError) throw allError;
-      }
+      const { error: allError } = await _supabaseUpdateAllCookies();
+      if (allError) throw allError;
       notificationHelpers.addSuccess('Cookies Reordered');
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -395,13 +344,11 @@ export const useCookiesStore = defineStore('cookies', () => {
   return {
     allCookies,
     allCookiesWithInventoryTotals,
-    seasonCookies,
     cookieFormFields,
     cookieFormFieldsNotVirtual,
     cookieFormFieldsForBoothSales,
     averageCookiePrice,
     customCookieValidationRules,
-    fetchSeasonCookies,
     fetchCookies,
     getCookieByAbbreviation,
     insertCookie,
