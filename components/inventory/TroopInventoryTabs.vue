@@ -10,7 +10,10 @@ const transactionHelpers = useTransactionHelpers();
 loading.value = false;
 
 function openNew() {
-  transactionHelpers.editTransaction({} as NewOrder, 'troop');
+  transactionHelpers.editTransaction(
+    { status: 'pending' } as NewOrder,
+    'troop',
+  );
 }
 </script>
 

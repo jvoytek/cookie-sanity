@@ -294,7 +294,7 @@ describe('stores/seasons', () => {
       const season = {
         id: 1,
         troop_number: '12345',
-        year: '2024-01-01T00:00:00Z',
+        year: 2024,
         profile: 'test',
       } as Season;
       //      expect(helpers2.formatDate(new Date('2024-01-15T00:00:00Z'))).toBe('Jan 15, 2024')
@@ -318,6 +318,7 @@ describe('stores/seasons', () => {
         'useNotificationHelpers',
         vi.fn(() => ({
           addSuccess: toastSpy,
+          addError: vi.fn(),
         })),
       );
 
@@ -397,6 +398,7 @@ describe('stores/seasons', () => {
         'useNotificationHelpers',
         vi.fn(() => ({
           addSuccess: toastSpy,
+          addError: vi.fn(),
         })),
       );
 

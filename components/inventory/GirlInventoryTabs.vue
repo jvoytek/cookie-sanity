@@ -81,7 +81,10 @@ const filteredRejectedCount = computed(() => {
 });
 
 function openNew() {
-  transactionHelpers.editTransaction({} as NewOrder, 'girl');
+  transactionHelpers.editTransaction(
+    { status: 'requested' } as NewOrder,
+    'girl',
+  );
 }
 </script>
 
