@@ -14,6 +14,7 @@ const transactionHelpers = useTransactionHelpers();
 // Selection state
 const selectedTransactions = ref<Order[]>([]);
 const selectAll = ref(false);
+const deleteBulkTransactionsDialogVisible = ref(false);
 
 // Watch for select all changes
 watch(selectAll, (newValue) => {
@@ -117,17 +118,11 @@ const bulkMarkPending = async () => {
 };
 
 const bulkDelete = async () => {
-  if (
-    !confirm(
-      `Are you sure you want to delete ${selectedTransactions.value.length} transaction(s)?`,
-    )
-  ) {
-    return;
-  }
   for (const transaction of selectedTransactions.value) {
     await ordersStore.deleteTransaction(transaction.id);
   }
   selectedTransactions.value = [];
+  deleteBulkTransactionsDialogVisible.value = false;
 };
 
 const bulkReject = async () => {
@@ -205,7 +200,7 @@ const bulkReject = async () => {
       <Button
         v-if="canDelete"
         :disabled="!hasSelection"
-        @click="bulkDelete"
+        @click="deleteBulkTransactionsDialogVisible = true"
         v-tooltip.bottom="{
           value: 'Delete selected transactions',
           showDelay: 500,
@@ -457,6 +452,30 @@ const bulkReject = async () => {
         icon="pi pi-check"
         @click="transactionHelpers.deleteTransaction"
       />
+    </template>
+  </Dialog>
+
+  <Dialog
+    v-model:visible="deleteBulkTransactionsDialogVisible"
+    :style="{ width: '450px' }"
+    header="Confirm"
+    :modal="true"
+  >
+    <div class="flex items-center gap-4">
+      <i class="pi pi-exclamation-triangle !text-3xl" />
+      <span
+        >Are you sure you want to delete
+        <b>{{ selectedTransactions.length }} transaction(s)</b>?</span
+      >
+    </div>
+    <template #footer>
+      <Button
+        label="No"
+        icon="pi pi-times"
+        text
+        @click="deleteBulkTransactionsDialogVisible = false"
+      />
+      <Button label="Yes" icon="pi pi-check" @click="bulkDelete" />
     </template>
   </Dialog>
 </template>
