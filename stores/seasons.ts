@@ -17,6 +17,10 @@ export const useSeasonsStore = defineStore('seasons', () => {
   const allSeasons = ref<Season[]>([]);
   const currentSeason = ref<Season>();
   const settingsSelectedSeason = ref<Season>();
+  const seasonDialogVisible = ref(false);
+  const deleteSeasonDialogVisible = ref(false);
+  const activeSeason = ref<Season | null>(null);
+  const activeSeasonOriginal = ref<Season | null>(null);
 
   /* Private Functions */
 
@@ -29,7 +33,7 @@ export const useSeasonsStore = defineStore('seasons', () => {
       .from('seasons')
       .select(`*`)
       .eq('profile', profileStore.currentProfile.id)
-      .order('year');
+      .order('year', { ascending: false });
   };
 
   const _supabaseInsertSeason = async (season: Season) => {
@@ -38,6 +42,13 @@ export const useSeasonsStore = defineStore('seasons', () => {
       .insert(season)
       .select()
       .single();
+  };
+
+  const _updateSeason = (season: Season) => {
+    const index = allSeasons.value.findIndex((o) => o.id === season.id);
+    if (index !== -1) {
+      allSeasons.value[index] = season;
+    }
   };
 
   /* Actions */
@@ -76,14 +87,7 @@ export const useSeasonsStore = defineStore('seasons', () => {
 
   const getSeasonName = (season: Season | null) => {
     if (!season) return 'loading...';
-    return (
-      season.troop_number +
-      '-' +
-      new Date(season.year).toLocaleDateString('en-US', {
-        year: 'numeric',
-        timeZone: 'UTC',
-      })
-    );
+    return season.troop_number + '-' + season.year;
   };
 
   const insertSeason = async (season: Season) => {
@@ -91,7 +95,7 @@ export const useSeasonsStore = defineStore('seasons', () => {
     season.profile = user.value.id;
     try {
       const { error } = await _supabaseInsertSeason(season);
-
+      fetchSeasons();
       if (error) throw error;
       notificationHelpers.addSuccess('Season Created');
     } catch (error) {
@@ -110,14 +114,89 @@ export const useSeasonsStore = defineStore('seasons', () => {
     }
   };
 
+  const setActiveSeason = (season: Season | null) => {
+    console.log('setActiveSeason', season);
+    activeSeason.value = season;
+    // Create a deep copy of the original season for change tracking
+    activeSeasonOriginal.value = season
+      ? JSON.parse(JSON.stringify(season))
+      : null;
+  };
+
+  const resetActiveSeason = () => {
+    if (activeSeasonOriginal.value && activeSeason.value) {
+      // Revert changes by resetting to the original deep copy
+      _updateSeason(activeSeasonOriginal.value);
+    }
+    // Clear active season
+    activeSeason.value = null;
+    activeSeasonOriginal.value = null;
+  };
+
+  const hideDialog = () => {
+    seasonDialogVisible.value = false;
+  };
+  const showDialog = () => {
+    seasonDialogVisible.value = true;
+  };
+
+  const cancelEditSeason = () => {
+    if (activeSeason.value?.id) {
+      resetActiveSeason();
+    } else {
+      // Clear active season if creating a new one
+      setActiveSeason(null);
+    }
+    hideDialog();
+  };
+
+  const editSeason = (season: Season) => {
+    setActiveSeason(season);
+    showDialog();
+  };
+
+  const confirmDeleteSeason = (season: Season) => {
+    setActiveSeason(season);
+    deleteSeasonDialogVisible.value = true;
+  };
+
+  const deleteSeason = async () => {
+    if (!activeSeason.value?.id) return;
+    try {
+      const { error } = await supabaseClient
+        .from('seasons')
+        .delete()
+        .eq('id', activeSeason.value.id);
+
+      if (error) throw error;
+      notificationHelpers.addSuccess('Season Deleted');
+      deleteSeasonDialogVisible.value = false;
+      activeSeason.value = null;
+      await fetchSeasons();
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     fetchSeasons,
     allSeasons,
     currentSeason,
     settingsSelectedSeason,
+    seasonDialogVisible,
+    deleteSeasonDialogVisible,
+    activeSeason,
     getCurrentSeason,
     getSeasonName,
     insertSeason,
     upsertSeason,
+    setActiveSeason,
+    resetActiveSeason,
+    hideDialog,
+    showDialog,
+    cancelEditSeason,
+    editSeason,
+    confirmDeleteSeason,
+    deleteSeason,
   };
 });
