@@ -25,7 +25,7 @@ function deleteConfirmed() {
 <template>
   <div class="col-span-12">
     <div class="card">
-      <h5>Seasons</h5>
+      <h5>All Seasons</h5>
 
       <div>
         <div class="card">
@@ -96,7 +96,8 @@ function deleteConfirmed() {
           <b
             >{{ seasonsStore.activeSeason.troop_number }} -
             {{ seasonsStore.activeSeason.year }}</b
-          >? You will lose all data associated with this season.<br />
+          >? You will lose all data associated with this season, all girls
+          cookies and transactions and they will not be recoverable.<br />
         </span>
         <div class="mt-3 items-center gap-2 flex">
           <ToggleSwitch v-model="isDeleteConfirmed" />
