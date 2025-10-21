@@ -69,7 +69,10 @@ const canApprove = computed(() => {
 const canMarkPending = computed(() => {
   if (props.transactionTypes === 'all') return false;
   return props.orders.some(
-    (t) => t.status === 'complete' || t.status === 'rejected' || t.status === 'recorded',
+    (t) =>
+      t.status === 'complete' ||
+      t.status === 'rejected' ||
+      t.status === 'recorded',
   );
 });
 
@@ -78,7 +81,10 @@ const canDelete = computed(() => {
   if (props.transactionTypes === 'troop') return true;
   if (props.transactionTypes === 'girl') {
     return props.orders.some(
-      (t) => t.status === 'rejected' || t.status === 'complete' || t.status === 'recorded',
+      (t) =>
+        t.status === 'rejected' ||
+        t.status === 'complete' ||
+        t.status === 'recorded',
     );
   }
   return false;
@@ -124,7 +130,10 @@ const bulkApprove = async () => {
 
 const bulkMarkPending = async () => {
   const toUpdate = selectedTransactions.value.filter(
-    (t) => t.status === 'complete' || t.status === 'rejected' || t.status === 'recorded',
+    (t) =>
+      t.status === 'complete' ||
+      t.status === 'rejected' ||
+      t.status === 'recorded',
   );
   for (const transaction of toUpdate) {
     await ordersStore.updateTransactionStatus(transaction.id, 'pending');
@@ -371,7 +380,8 @@ const bulkReject = async () => {
             slotProps.data.status === 'complete'
           "
           v-tooltip.bottom="{
-            value: 'Click this when you have recorded this transaction in your council\'s cookie management system (Smart Cookies or eBudde)',
+            value:
+              'Click this when you have recorded this transaction in your council\'s cookie management system (Smart Cookies or eBudde)',
             showDelay: 500,
           }"
           aria-label="Mark Recorded"

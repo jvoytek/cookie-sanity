@@ -92,7 +92,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
           if (transaction.type === 'DIRECT_SHIP') return sum;
           if (
             transaction.cookies &&
-            (transaction.status === 'complete' || transaction.status === 'recorded')
+            (transaction.status === 'complete' ||
+              transaction.status === 'recorded')
           ) {
             const quantity = transaction.cookies[cookieAbbreviation] || 0;
             return sum + (typeof quantity === 'number' ? quantity : 0);
