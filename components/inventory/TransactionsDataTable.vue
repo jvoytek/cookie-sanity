@@ -56,6 +56,11 @@ const canMarkComplete = computed(() => {
   return props.orders.some((t) => t.status === 'pending');
 });
 
+const canMarkRecorded = computed(() => {
+  if (props.transactionTypes === 'all') return false;
+  return props.orders.some((t) => t.status === 'complete');
+});
+
 const canApprove = computed(() => {
   if (props.transactionTypes === 'all') return false;
   return props.orders.some((t) => t.status === 'requested');
@@ -64,7 +69,7 @@ const canApprove = computed(() => {
 const canMarkPending = computed(() => {
   if (props.transactionTypes === 'all') return false;
   return props.orders.some(
-    (t) => t.status === 'complete' || t.status === 'rejected',
+    (t) => t.status === 'complete' || t.status === 'rejected' || t.status === 'recorded',
   );
 });
 
@@ -73,7 +78,7 @@ const canDelete = computed(() => {
   if (props.transactionTypes === 'troop') return true;
   if (props.transactionTypes === 'girl') {
     return props.orders.some(
-      (t) => t.status === 'rejected' || t.status === 'complete',
+      (t) => t.status === 'rejected' || t.status === 'complete' || t.status === 'recorded',
     );
   }
   return false;
@@ -97,6 +102,16 @@ const bulkMarkComplete = async () => {
   selectedTransactions.value = [];
 };
 
+const bulkMarkRecorded = async () => {
+  const toUpdate = selectedTransactions.value.filter(
+    (t) => t.status === 'complete',
+  );
+  for (const transaction of toUpdate) {
+    await ordersStore.updateTransactionStatus(transaction.id, 'recorded');
+  }
+  selectedTransactions.value = [];
+};
+
 const bulkApprove = async () => {
   const toUpdate = selectedTransactions.value.filter(
     (t) => t.status === 'requested',
@@ -109,7 +124,7 @@ const bulkApprove = async () => {
 
 const bulkMarkPending = async () => {
   const toUpdate = selectedTransactions.value.filter(
-    (t) => t.status === 'complete' || t.status === 'rejected',
+    (t) => t.status === 'complete' || t.status === 'rejected' || t.status === 'recorded',
   );
   for (const transaction of toUpdate) {
     await ordersStore.updateTransactionStatus(transaction.id, 'pending');
@@ -153,6 +168,20 @@ const bulkReject = async () => {
         }"
         label="Mark Received"
         icon="pi pi-check"
+        class="mr-2"
+        variant="outlined"
+      />
+      <Button
+        v-if="canMarkRecorded"
+        :disabled="!hasSelection"
+        @click="bulkMarkRecorded"
+        v-tooltip.bottom="{
+          value:
+            'Click this when you have recorded these transactions in your council\'s cookie management system (Smart Cookies or eBudde)',
+          showDelay: 500,
+        }"
+        label="Mark Recorded"
+        icon="pi pi-check-circle"
         class="mr-2"
         variant="outlined"
       />
@@ -339,6 +368,23 @@ const bulkReject = async () => {
         <Button
           v-if="
             props.transactionTypes !== 'all' &&
+            slotProps.data.status === 'complete'
+          "
+          v-tooltip.bottom="{
+            value: 'Click this when you have recorded this transaction in your council\'s cookie management system (Smart Cookies or eBudde)',
+            showDelay: 500,
+          }"
+          aria-label="Mark Recorded"
+          icon="pi pi-check-circle"
+          class="mr-2"
+          variant="outlined"
+          @click="
+            ordersStore.updateTransactionStatus(slotProps.data.id, 'recorded')
+          "
+        />
+        <Button
+          v-if="
+            props.transactionTypes !== 'all' &&
             slotProps.data.status === 'requested'
           "
           v-tooltip.bottom="{
@@ -356,7 +402,7 @@ const bulkReject = async () => {
         <Button
           v-if="
             (props.transactionTypes !== 'all' &&
-              slotProps.data.status === 'complete') ||
+              slotProps.data.status === 'recorded') ||
             slotProps.data.status === 'rejected'
           "
           v-tooltip.bottom="{
@@ -392,7 +438,8 @@ const bulkReject = async () => {
             props.transactionTypes === 'troop' ||
             (props.transactionTypes === 'girl' &&
               (slotProps.data.status === 'rejected' ||
-                slotProps.data.status === 'complete'))
+                slotProps.data.status === 'complete' ||
+                slotProps.data.status === 'recorded'))
           "
           v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
           aria-label="Delete"

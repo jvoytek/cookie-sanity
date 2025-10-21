@@ -47,6 +47,11 @@ function openNew() {
               ordersStore.completedTroopTransactionListCount
             }})</Tab
           >
+          <Tab value="3" class="flex items-center gap-2"
+            ><i class="pi pi-check-circle" />Recorded ({{
+              ordersStore.recordedTroopTransactionListCount
+            }})</Tab
+          >
         </TabList>
         <TabPanels>
           <TabPanel value="0">
@@ -62,6 +67,13 @@ function openNew() {
             <TransactionsDataTable
               :orders="ordersStore.completedTroopTransactionList"
               transaction-types="troop"
+            />
+          </TabPanel>
+          <TabPanel value="3">
+            <TransactionsDataTable
+              :orders="ordersStore.recordedTroopTransactionList"
+              transaction-types="troop"
+              :paginated="true"
             />
           </TabPanel>
         </TabPanels>
