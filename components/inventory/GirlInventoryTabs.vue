@@ -56,6 +56,13 @@ const filteredCompletedTransactions = computed((): Order[] => {
   );
 });
 
+const filteredRecordedTransactions = computed((): Order[] => {
+  return ordersStore.getGirlTransactionsByStatus(
+    'recorded',
+    selectedGirlFilter.value,
+  );
+});
+
 const filteredRejectedTransactions = computed((): Order[] => {
   return ordersStore.getGirlTransactionsByStatus(
     'rejected',
@@ -74,6 +81,10 @@ const filteredPendingCount = computed(() => {
 
 const filteredCompletedCount = computed(() => {
   return filteredCompletedTransactions.value.length;
+});
+
+const filteredRecordedCount = computed(() => {
+  return filteredRecordedTransactions.value.length;
 });
 
 const filteredRejectedCount = computed(() => {
@@ -136,6 +147,11 @@ function openNew() {
             }})</Tab
           >
           <Tab value="3" class="flex items-center gap-2"
+            ><i class="pi pi-check-circle" />Recorded ({{
+              filteredRecordedCount
+            }})</Tab
+          >
+          <Tab value="4" class="flex items-center gap-2"
             ><i class="pi pi-times" />Rejected ({{
               filteredRejectedCount
             }})</Tab
@@ -162,6 +178,13 @@ function openNew() {
             />
           </TabPanel>
           <TabPanel value="3">
+            <TransactionsDataTable
+              :orders="filteredRecordedTransactions"
+              transaction-types="girl"
+              :paginated="true"
+            />
+          </TabPanel>
+          <TabPanel value="4">
             <TransactionsDataTable
               :orders="filteredRejectedTransactions"
               transaction-types="girl"

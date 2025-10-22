@@ -90,7 +90,11 @@ export const useTransactionsStore = defineStore('transactions', () => {
         }
         return allTransactions.value.reduce((sum, transaction) => {
           if (transaction.type === 'DIRECT_SHIP') return sum;
-          if (transaction.cookies && transaction.status === 'complete') {
+          if (
+            transaction.cookies &&
+            (transaction.status === 'complete' ||
+              transaction.status === 'recorded')
+          ) {
             const quantity = transaction.cookies[cookieAbbreviation] || 0;
             return sum + (typeof quantity === 'number' ? quantity : 0);
           }
@@ -105,6 +109,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const completedGirlTransactionListCount = computed(() => {
     return completedGirlTransactionList.value.length;
+  });
+
+  const recordedGirlTransactionList = computed(() => {
+    return _getTransactionListByStatusAndType('recorded', 'girl');
+  });
+
+  const recordedGirlTransactionListCount = computed(() => {
+    return recordedGirlTransactionList.value.length;
   });
 
   const pendingGirlTransactionList = computed(() => {
@@ -145,6 +157,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const completedTroopTransactionListCount = computed(() => {
     return completedTroopTransactionList.value.length;
+  });
+
+  const recordedTroopTransactionList = computed(() => {
+    return _getTransactionListByStatusAndType('recorded', 'troop');
+  });
+
+  const recordedTroopTransactionListCount = computed(() => {
+    return recordedTroopTransactionList.value.length;
   });
 
   /* Private Functions */
@@ -309,6 +329,16 @@ export const useTransactionsStore = defineStore('transactions', () => {
       .eq('id', transactionId)
       .select()
       .single();
+  };
+
+  const _supabaseUpdateTransactionStatusBulk = async (
+    transactionIds: number[],
+    status: string,
+  ) => {
+    return await supabaseClient
+      .from('orders')
+      .update({ status: status })
+      .in('id', transactionIds);
   };
 
   /* Actions */
@@ -486,6 +516,29 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
+  const updateTransactionStatusBulk = async (
+    transactionIds: number[],
+    status: string,
+  ) => {
+    try {
+      console.log(transactionIds);
+      const { error } = await _supabaseUpdateTransactionStatusBulk(
+        transactionIds,
+        status,
+      );
+      if (error) throw error;
+      // Since data is a single record, we need to refetch all transactions
+      await fetchTransactions();
+      notificationHelpers.addSuccess(
+        `Transactions Marked ${
+          status.charAt(0).toUpperCase() + status.slice(1)
+        }`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   const getGirlTransactionsByStatus = (
     status: string,
     girlId: number | null,
@@ -523,6 +576,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     deleteTransactionDialogVisible,
     completedGirlTransactionList,
     completedGirlTransactionListCount,
+    recordedGirlTransactionList,
+    recordedGirlTransactionListCount,
     pendingGirlTransactionList,
     pendingGirlTransactionListCount,
     requestedGirlTransactionrList,
@@ -533,6 +588,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     pendingTroopTransactionListCount,
     completedTroopTransactionList,
     completedTroopTransactionListCount,
+    recordedTroopTransactionList,
+    recordedTroopTransactionListCount,
     totalTransactionsByStatusAllCookies,
     fetchTransactions,
     insertNewTransactionFromUploads,
@@ -541,6 +598,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     deleteTransaction,
     convertSCOrderToNewTransaction,
     updateTransactionStatus,
+    updateTransactionStatusBulk,
     friendlyTransactionTypes,
     _invertCookieQuantities,
     troopTransactionTypeOptions,
