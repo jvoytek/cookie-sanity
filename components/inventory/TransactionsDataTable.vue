@@ -13,6 +13,15 @@ const transactionHelpers = useTransactionHelpers();
 
 // Selection state
 const selectedTransactions = ref<Order[]>([]);
+
+// Receipt dialog state
+const receiptDialogVisible = ref(false);
+const receiptTransaction = ref<Order | null>(null);
+
+const showReceipt = (transaction: Order) => {
+  receiptTransaction.value = transaction;
+  receiptDialogVisible.value = true;
+};
 const selectAll = ref(false);
 const deleteBulkTransactionsDialogVisible = ref(false);
 
@@ -162,99 +171,99 @@ const bulkReject = async () => {
       </span>
       <Button
         v-if="canMarkComplete"
-        :disabled="!hasSelection"
-        @click="bulkMarkComplete"
         v-tooltip.bottom="{
           value:
             'Mark all selected transactions as complete. Click this when physical inventory has changed hands',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Mark Complete"
         icon="pi pi-check"
         class="mr-2"
         variant="outlined"
+        @click="bulkMarkComplete"
       />
       <Button
         v-if="canUndoRecorded"
-        :disabled="!hasSelection"
-        @click="bulkMarkComplete"
         v-tooltip.bottom="{
           value:
             'Undo marking selected transactions as recorded and mark them as complete again.',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Undo Mark Recorded"
         icon="pi pi-undo"
         class="mr-2"
         variant="outlined"
+        @click="bulkMarkComplete"
       />
       <Button
         v-if="canMarkRecorded"
-        :disabled="!hasSelection"
-        @click="bulkMarkRecorded"
         v-tooltip.bottom="{
           value:
             'Click this when you have recorded these transactions in your council\'s cookie management system (Smart Cookies or eBudde)',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Mark Recorded"
         icon="pi pi-check-circle"
         class="mr-2"
         variant="outlined"
+        @click="bulkMarkRecorded"
       />
       <Button
         v-if="canApprove"
-        @click="bulkApprove"
-        :disabled="!hasSelection"
         v-tooltip.bottom="{
           value: 'Approve selected requests and mark as pending',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Approve"
         icon="pi pi-check"
         class="mr-2"
         variant="outlined"
+        @click="bulkApprove"
       />
       <Button
         v-if="canMarkPending"
-        :disabled="!hasSelection"
-        @click="bulkMarkPending"
         v-tooltip.bottom="{
           value: 'Mark selected transactions as pending again',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Mark Pending"
         icon="pi pi-undo"
         variant="outlined"
         severity="secondary"
         class="mr-2"
+        @click="bulkMarkPending"
       />
       <Button
         v-if="canReject"
-        :disabled="!hasSelection"
-        @click="bulkReject"
         v-tooltip.bottom="{
           value: 'Reject selected transaction requests',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Reject"
         icon="pi pi-times"
         severity="warn"
         class="mr-2"
         variant="outlined"
+        @click="bulkReject"
       />
       <Button
         v-if="canDelete"
-        :disabled="!hasSelection"
-        @click="deleteBulkTransactionsDialogVisible = true"
         v-tooltip.bottom="{
           value: 'Delete selected transactions',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Delete"
         icon="pi pi-trash"
         severity="warn"
         variant="outlined"
+        @click="deleteBulkTransactionsDialogVisible = true"
       />
     </template>
   </Toolbar>
@@ -365,6 +374,15 @@ const bulkReject = async () => {
     </Column>
     <Column field="actions" header="Actions" style="min-width: 182px">
       <template #body="slotProps">
+        <Button
+          v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
+          aria-label="View Receipt"
+          icon="pi pi-file"
+          class="mr-2"
+          variant="outlined"
+          severity="secondary"
+          @click="showReceipt(slotProps.data)"
+        />
         <Button
           v-if="
             props.transactionTypes !== 'all' &&
@@ -562,4 +580,9 @@ const bulkReject = async () => {
       <Button label="Yes" icon="pi pi-check" @click="bulkDelete" />
     </template>
   </Dialog>
+
+  <ReceiptDialog
+    v-model:visible="receiptDialogVisible"
+    :transaction="receiptTransaction"
+  />
 </template>
