@@ -66,7 +66,9 @@ const getToName = (transaction: Order | null) => {
           </div>
           <div>
             <label class="font-semibold">Type:</label>
-            <p>{{ ordersStore.friendlyTransactionTypes(transaction.type || '') }}</p>
+            <p>
+              {{ ordersStore.friendlyTransactionTypes(transaction.type || '') }}
+            </p>
           </div>
         </div>
 
@@ -113,11 +115,7 @@ const getToName = (transaction: Order | null) => {
         text
         @click="dialogVisible = false"
       />
-      <Button
-        label="Print"
-        icon="pi pi-print"
-        @click="printReceipt"
-      />
+      <Button label="Print" icon="pi pi-print" @click="printReceipt" />
     </template>
   </Dialog>
 </template>

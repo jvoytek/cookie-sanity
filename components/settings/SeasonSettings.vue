@@ -97,7 +97,7 @@ function deleteConfirmed() {
             >{{ seasonsStore.activeSeason.troop_number }} -
             {{ seasonsStore.activeSeason.year }}</b
           >? You will lose all data associated with this season, all girls
-          cookies and transactions and they will not be recoverable.<br >
+          cookies and transactions and they will not be recoverable.<br />
         </span>
         <div class="mt-3 items-center gap-2 flex">
           <ToggleSwitch v-model="isDeleteConfirmed" />
@@ -108,7 +108,7 @@ function deleteConfirmed() {
       </div>
     </div>
     <template #footer>
-      <br >
+      <br />
       <Button
         label="No"
         icon="pi pi-times"
