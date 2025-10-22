@@ -56,6 +56,11 @@ const canMarkComplete = computed(() => {
   return props.orders.some((t) => t.status === 'pending');
 });
 
+const canUndoRecorded = computed(() => {
+  if (props.transactionTypes === 'all') return false;
+  return props.orders.some((t) => t.status === 'recorded');
+});
+
 const canMarkRecorded = computed(() => {
   if (props.transactionTypes === 'all') return false;
   return props.orders.some((t) => t.status === 'complete');
@@ -69,10 +74,7 @@ const canApprove = computed(() => {
 const canMarkPending = computed(() => {
   if (props.transactionTypes === 'all') return false;
   return props.orders.some(
-    (t) =>
-      t.status === 'complete' ||
-      t.status === 'rejected' ||
-      t.status === 'recorded',
+    (t) => t.status === 'complete' || t.status === 'rejected',
   );
 });
 
@@ -100,11 +102,10 @@ const canReject = computed(() => {
 // Bulk action handlers
 const bulkMarkComplete = async () => {
   const toUpdate = selectedTransactions.value.filter(
-    (t) => t.status === 'pending',
+    (t) => t.status === 'pending' || t.status === 'recorded',
   );
-  for (const transaction of toUpdate) {
-    await ordersStore.updateTransactionStatus(transaction.id, 'complete');
-  }
+  const transactionIds = toUpdate.map((t) => t.id);
+  await ordersStore.updateTransactionStatusBulk(transactionIds, 'complete');
   selectedTransactions.value = [];
 };
 
@@ -112,9 +113,8 @@ const bulkMarkRecorded = async () => {
   const toUpdate = selectedTransactions.value.filter(
     (t) => t.status === 'complete',
   );
-  for (const transaction of toUpdate) {
-    await ordersStore.updateTransactionStatus(transaction.id, 'recorded');
-  }
+  const transactionIds = toUpdate.map((t) => t.id);
+  await ordersStore.updateTransactionStatusBulk(transactionIds, 'recorded');
   selectedTransactions.value = [];
 };
 
@@ -122,22 +122,17 @@ const bulkApprove = async () => {
   const toUpdate = selectedTransactions.value.filter(
     (t) => t.status === 'requested',
   );
-  for (const transaction of toUpdate) {
-    await ordersStore.updateTransactionStatus(transaction.id, 'pending');
-  }
+  const transactionIds = toUpdate.map((t) => t.id);
+  await ordersStore.updateTransactionStatusBulk(transactionIds, 'pending');
   selectedTransactions.value = [];
 };
 
 const bulkMarkPending = async () => {
   const toUpdate = selectedTransactions.value.filter(
-    (t) =>
-      t.status === 'complete' ||
-      t.status === 'rejected' ||
-      t.status === 'recorded',
+    (t) => t.status === 'complete' || t.status === 'rejected',
   );
-  for (const transaction of toUpdate) {
-    await ordersStore.updateTransactionStatus(transaction.id, 'pending');
-  }
+  const transactionIds = toUpdate.map((t) => t.id);
+  await ordersStore.updateTransactionStatusBulk(transactionIds, 'pending');
   selectedTransactions.value = [];
 };
 
@@ -153,9 +148,8 @@ const bulkReject = async () => {
   const toUpdate = selectedTransactions.value.filter(
     (t) => t.status === 'requested' || t.status === 'pending',
   );
-  for (const transaction of toUpdate) {
-    await ordersStore.updateTransactionStatus(transaction.id, 'rejected');
-  }
+  const transactionIds = toUpdate.map((t) => t.id);
+  await ordersStore.updateTransactionStatusBulk(transactionIds, 'rejected');
   selectedTransactions.value = [];
 };
 </script>
@@ -172,11 +166,25 @@ const bulkReject = async () => {
         @click="bulkMarkComplete"
         v-tooltip.bottom="{
           value:
-            'Mark all selected transactions as received/complete. Click this when physical inventory has changed hands',
+            'Mark all selected transactions as complete. Click this when physical inventory has changed hands',
           showDelay: 500,
         }"
-        label="Mark Received"
+        label="Mark Complete"
         icon="pi pi-check"
+        class="mr-2"
+        variant="outlined"
+      />
+      <Button
+        v-if="canUndoRecorded"
+        :disabled="!hasSelection"
+        @click="bulkMarkComplete"
+        v-tooltip.bottom="{
+          value:
+            'Undo marking selected transactions as recorded and mark them as complete again.',
+          showDelay: 500,
+        }"
+        label="Undo Mark Recorded"
+        icon="pi pi-undo"
         class="mr-2"
         variant="outlined"
       />
@@ -355,7 +363,7 @@ const bulkReject = async () => {
         }}
       </template>
     </Column>
-    <Column field="actions" header="Actions" style="min-width: 140px">
+    <Column field="actions" header="Actions" style="min-width: 182px">
       <template #body="slotProps">
         <Button
           v-if="
@@ -366,7 +374,7 @@ const bulkReject = async () => {
             value: 'Click this when physical inventory has changed hands',
             showDelay: 500,
           }"
-          aria-label="Mark Received"
+          aria-label="Mark Complete"
           icon="pi pi-check"
           class="mr-2"
           variant="outlined"
@@ -411,9 +419,9 @@ const bulkReject = async () => {
         />
         <Button
           v-if="
+            slotProps.data.status === 'rejected' ||
             (props.transactionTypes !== 'all' &&
-              slotProps.data.status === 'recorded') ||
-            slotProps.data.status === 'rejected'
+              slotProps.data.status === 'complete')
           "
           v-tooltip.bottom="{
             value: 'Click this to mark this transaction as pending again',
@@ -426,6 +434,25 @@ const bulkReject = async () => {
           severity="secondary"
           @click="
             ordersStore.updateTransactionStatus(slotProps.data.id, 'pending')
+          "
+        />
+        <Button
+          v-if="
+            props.transactionTypes !== 'all' &&
+            slotProps.data.status === 'recorded'
+          "
+          v-tooltip.bottom="{
+            value:
+              'Click this to undo marking as recorded and mark as completed again',
+            showDelay: 500,
+          }"
+          aria-label="Undo Mark Recorded"
+          icon="pi pi-undo"
+          class="mr-2"
+          variant="outlined"
+          severity="secondary"
+          @click="
+            ordersStore.updateTransactionStatus(slotProps.data.id, 'complete')
           "
         />
         <Button

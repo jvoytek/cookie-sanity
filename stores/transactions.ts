@@ -331,6 +331,16 @@ export const useTransactionsStore = defineStore('transactions', () => {
       .single();
   };
 
+  const _supabaseUpdateTransactionStatusBulk = async (
+    transactionIds: number[],
+    status: string,
+  ) => {
+    return await supabaseClient
+      .from('orders')
+      .update({ status: status })
+      .in('id', transactionIds);
+  };
+
   /* Actions */
 
   const friendlyTransactionTypes = (type: string): string => {
@@ -506,6 +516,29 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
+  const updateTransactionStatusBulk = async (
+    transactionIds: number[],
+    status: string,
+  ) => {
+    try {
+      console.log(transactionIds);
+      const { error } = await _supabaseUpdateTransactionStatusBulk(
+        transactionIds,
+        status,
+      );
+      if (error) throw error;
+      // Since data is a single record, we need to refetch all transactions
+      await fetchTransactions();
+      notificationHelpers.addSuccess(
+        `Transactions Marked ${
+          status.charAt(0).toUpperCase() + status.slice(1)
+        }`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   const getGirlTransactionsByStatus = (
     status: string,
     girlId: number | null,
@@ -565,6 +598,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     deleteTransaction,
     convertSCOrderToNewTransaction,
     updateTransactionStatus,
+    updateTransactionStatusBulk,
     friendlyTransactionTypes,
     _invertCookieQuantities,
     troopTransactionTypeOptions,
