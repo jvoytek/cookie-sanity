@@ -22,6 +22,7 @@ describe('stores/cookies', () => {
           LEM: 50,
           TRE: 25,
           CD: 15,
+          PBP: 0,
         };
         return mockInventory[abbreviation] || 0;
       }),
@@ -38,6 +39,7 @@ describe('stores/cookies', () => {
               LEM: 5,
               TRE: 3,
               CD: 3,
+              PBP: 0,
             };
           }
           if (status === 'pending' && type === 'girl') {
@@ -47,6 +49,7 @@ describe('stores/cookies', () => {
               LEM: 3,
               TRE: 1,
               CD: 1,
+              PBP: -5,
             };
           }
           if (status === 'pending' && type === 'troop') {
@@ -56,6 +59,7 @@ describe('stores/cookies', () => {
               LEM: 12,
               TRE: 4,
               CD: 4,
+              PBP: 0,
             };
           }
           return {};
@@ -113,6 +117,15 @@ describe('stores/cookies', () => {
         profile: 'test-profile-id',
         season: 1,
       },
+      {
+        id: 6,
+        name: 'Peanut Butter Patties',
+        abbreviation: 'PBP',
+        price: 5.0,
+        order: 6,
+        profile: 'test-profile-id',
+        season: 1,
+      },
     ] as Cookie[];
   });
 
@@ -124,7 +137,7 @@ describe('stores/cookies', () => {
     it('calculates inventory totals correctly for each cookie', () => {
       const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals;
 
-      expect(inventoryTotals).toHaveLength(5);
+      expect(inventoryTotals).toHaveLength(6);
 
       // Test Adventurefuls (ADV): onHand=100, requestedGirl=10, pendingGirl=3, pendingTroop=2, pendedBooth=-9
       const advCookie = inventoryTotals.find((c) => c.abbreviation === 'ADV');
@@ -173,17 +186,23 @@ describe('stores/cookies', () => {
       expect(lemCookie?.afterPendingStatusSeverity).toBe('success');
       expect(lemCookie?.afterPendingStatus).toBe('Good');
 
-      // TRE: afterPending=21 (>20 but <=50) should be "warn"/"Ok"
+      // TRE: afterPending=21 (>20 but <=50) should be "secondary"/"Ok"
       const treCookie = inventoryTotals.find((c) => c.abbreviation === 'TRE');
       expect(treCookie?.afterPending).toBe(21); // 25 + 3 + 2 -9
-      expect(treCookie?.afterPendingStatusSeverity).toBe('warn');
+      expect(treCookie?.afterPendingStatusSeverity).toBe('secondary');
       expect(treCookie?.afterPendingStatus).toBe('Ok');
 
-      // CD: afterPending=11 (<=20) should be "danger"/"Low"
+      // CD: afterPending=11 (<=20) should be "warn"/"Low"
       const cdCookie = inventoryTotals.find((c) => c.abbreviation === 'CD');
       expect(cdCookie?.afterPending).toBe(11); // 15 + 3 + 2 -9
-      expect(cdCookie?.afterPendingStatusSeverity).toBe('danger');
+      expect(cdCookie?.afterPendingStatusSeverity).toBe('warn');
       expect(cdCookie?.afterPendingStatus).toBe('Low');
+
+      // PBP: afterPending=-5 (<0) should be "danger"/"Critical"
+      const pbpCookie = inventoryTotals.find((c) => c.abbreviation === 'PBP');
+      expect(pbpCookie?.afterPending).toBe(-14); // 0 -5 + 0 -9
+      expect(pbpCookie?.afterPendingStatusSeverity).toBe('danger');
+      expect(pbpCookie?.afterPendingStatus).toBe('Critical');
     });
 
     it('preserves original cookie properties in inventory totals', () => {
