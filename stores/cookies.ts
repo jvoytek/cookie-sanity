@@ -186,9 +186,11 @@ export const useCookiesStore = defineStore('cookies', () => {
     if (quantity > 50) {
       return ['success', 'Good'];
     } else if (quantity > 20) {
-      return ['warn', 'Ok'];
+      return ['secondary', 'Ok'];
+    } else if (quantity >= 0) {
+      return ['warn', 'Low'];
     } else {
-      return ['danger', 'Low'];
+      return ['danger', 'Critical'];
     }
   };
 
