@@ -43,10 +43,10 @@ function deleteConfirmed() {
           <DataTable
             ref="dt"
             :value="seasonsStore.allSeasons"
-            data-key="id"
+            dataKey="id"
             :paginator="false"
-            sort-field="year"
-            :sort-order="-1"
+            sortField="year"
+            :sortOrder="-1"
           >
             <Column
               field="troop_number"
@@ -118,8 +118,8 @@ function deleteConfirmed() {
       <Button
         label="Yes"
         icon="pi pi-check"
-        :disabled="!isDeleteConfirmed"
         @click="deleteConfirmed"
+        :disabled="!isDeleteConfirmed"
       />
     </template>
   </Dialog>

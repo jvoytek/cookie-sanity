@@ -24,7 +24,7 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ formatHelpers.formatCurrency(girlAccount!.balance) }}<br />
+        {{ formatHelpers.formatCurrency(girlAccount!.balance) }}<br >
         <span class="text-sm leading-none text-muted-color"
           >total still owed</span
         >
@@ -40,7 +40,7 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ formatHelpers.formatCurrency(girlAccount!.paymentsReceived) }}<br />
+        {{ formatHelpers.formatCurrency(girlAccount!.paymentsReceived) }}<br >
         <span class="text-sm leading-none text-muted-color"
           >total received</span
         >
@@ -63,7 +63,7 @@ const showPackagesCookieList = ref(false);
           />
         </p>
       </template>
-      <p class="text-xl">{{ girlAccount!.numCookiesDistributed }}<br /></p>
+      <p class="text-xl">{{ girlAccount!.numCookiesDistributed }}<br ></p>
       <Button
         v-if="
           girlAccount!.cookieTotals &&
