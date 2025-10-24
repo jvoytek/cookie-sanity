@@ -18,6 +18,7 @@ export const useCookiesStore = defineStore('cookies', () => {
 
   /* State */
   const allCookies = ref<Cookie[]>([]);
+
   const customCookieValidationRules = {
     overBooking: (node) => {
       const boothType = node.parent.name === 'predicted_cookies';
@@ -25,6 +26,10 @@ export const useCookiesStore = defineStore('cookies', () => {
     },
   };
   /* Computed */
+
+  const allCookiesNotVirtual = computed(() => {
+    return allCookies.value.filter((cookie) => !cookie.is_virtual);
+  });
 
   const overBooking = (
     transactionQuantity: number,
@@ -345,12 +350,14 @@ export const useCookiesStore = defineStore('cookies', () => {
 
   return {
     allCookies,
+    allCookiesNotVirtual,
     allCookiesWithInventoryTotals,
     cookieFormFields,
     cookieFormFieldsNotVirtual,
     cookieFormFieldsForBoothSales,
     averageCookiePrice,
     customCookieValidationRules,
+
     fetchCookies,
     getCookieByAbbreviation,
     insertCookie,

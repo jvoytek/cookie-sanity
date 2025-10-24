@@ -18,6 +18,11 @@ const model = ref([
         to: '/girl-inventory',
       },
       {
+        label: 'Pending Receipts',
+        icon: 'pi pi-fw pi-file',
+        to: '/pending-receipts',
+      },
+      {
         label: 'Physical Inventory Check',
         icon: 'pi pi-fw pi-clipboard',
         to: '/physical-inventory-check',

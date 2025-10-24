@@ -10,17 +10,16 @@ const props = defineProps<{
 const ordersStore = useTransactionsStore();
 const girlsStore = useGirlsStore();
 const transactionHelpers = useTransactionHelpers();
+const transactionsStore = useTransactionsStore();
 
 // Selection state
 const selectedTransactions = ref<Order[]>([]);
 
-// Receipt dialog state
 const receiptDialogVisible = ref(false);
-const receiptTransaction = ref<Order | null>(null);
 
 const showReceipt = (transaction: Order) => {
-  receiptTransaction.value = transaction;
-  receiptDialogVisible.value = true;
+  transactionsStore.receiptTransaction = transaction;
+  transactionHelpers.receiptDialogVisible.value = true;
 };
 const selectAll = ref(false);
 const deleteBulkTransactionsDialogVisible = ref(false);
@@ -160,6 +159,10 @@ const bulkReject = async () => {
   const transactionIds = toUpdate.map((t) => t.id);
   await ordersStore.updateTransactionStatusBulk(transactionIds, 'rejected');
   selectedTransactions.value = [];
+};
+
+const printReceipt = () => {
+  window.print();
 };
 </script>
 
@@ -375,15 +378,6 @@ const bulkReject = async () => {
     <Column field="actions" header="Actions" style="min-width: 182px">
       <template #body="slotProps">
         <Button
-          v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
-          aria-label="View Receipt"
-          icon="pi pi-file"
-          class="mr-2"
-          variant="outlined"
-          severity="secondary"
-          @click="showReceipt(slotProps.data)"
-        />
-        <Button
           v-if="
             props.transactionTypes !== 'all' &&
             slotProps.data.status === 'pending'
@@ -524,6 +518,16 @@ const bulkReject = async () => {
             ordersStore.updateTransactionStatus(slotProps.data.id, 'rejected')
           "
         />
+        <Button
+          v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
+          aria-label="View Receipt"
+          icon="pi pi-file"
+          class="mr-2"
+          variant="outlined"
+          severity="secondary"
+          @click="showReceipt(slotProps.data)"
+          v-if="transactionsStore.transactionRequiresReceipt(slotProps.data)"
+        />
       </template>
     </Column>
   </DataTable>
@@ -581,8 +585,48 @@ const bulkReject = async () => {
     </template>
   </Dialog>
 
-  <ReceiptDialog
-    v-model:visible="receiptDialogVisible"
-    :transaction="receiptTransaction"
-  />
+  <Dialog
+    v-model:visible="transactionHelpers.receiptDialogVisible.value"
+    :style="{ width: '600px' }"
+    header="Money and/or Cookie Receipt"
+    :modal="true"
+    class="receipt-dialog"
+  >
+    <p>
+      You can use the information here to write a receipt for this transaction,
+      or (if your council accepts printed receipts), print it. Be sure to check
+      with your council before assuming printed receipts are acceptable.
+    </p>
+    <TransactionReceipt :transaction="transactionsStore.receiptTransaction" />
+
+    <template #footer>
+      <Button
+        label="Close"
+        icon="pi pi-times"
+        text
+        @click="transactionHelpers.receiptDialogVisible.value = false"
+      />
+      <Button label="Print" icon="pi pi-print" @click="printReceipt" />
+    </template>
+  </Dialog>
 </template>
+
+<style scoped>
+@media print {
+  :deep(.p-dialog-header),
+  :deep(.p-dialog-footer),
+  .receipt-dialog :deep(.p-dialog-header),
+  .receipt-dialog :deep(.p-dialog-footer) {
+    display: none !important;
+  }
+
+  :deep(.p-dialog-content) {
+    padding: 0 !important;
+  }
+
+  :deep(.p-dialog) {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
+</style>

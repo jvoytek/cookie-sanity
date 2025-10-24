@@ -23,6 +23,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const activeTransactionOriginal = ref<Order | null>(null);
   const editTransactionDialogVisible = ref(false);
   const deleteTransactionDialogVisible = ref(false);
+  const receiptTransaction = ref<Order | null>(null);
 
   const troopTransactionTypeOptions = [
     { value: 'T2T', label: 'Troop to Troop' },
@@ -165,6 +166,16 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const recordedTroopTransactionListCount = computed(() => {
     return recordedTroopTransactionList.value.length;
+  });
+
+  const pendingTransactionsRequiringReceipt = computed(() => {
+    const pendingGirl = pendingGirlTransactionList.value.filter((transaction) =>
+      transactionRequiresReceipt(transaction),
+    );
+    const pendingTroop = pendingTroopTransactionList.value.filter(
+      (transaction) => transactionRequiresReceipt(transaction),
+    );
+    return [...pendingGirl, ...pendingTroop];
   });
 
   /* Private Functions */
@@ -564,6 +575,11 @@ export const useTransactionsStore = defineStore('transactions', () => {
     activeTransactionOriginal.value = null;
   };
 
+  const transactionRequiresReceipt = (transaction: Order): boolean => {
+    const receiptRequiredTypes = ['T2G', 'G2G', 'G2T', 'T2T'];
+    return receiptRequiredTypes.includes(transaction.type || '');
+  };
+
   return {
     allTransactions,
     sumTransactionsByCookie,
@@ -571,6 +587,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     resetActiveTransaction,
     activeTransaction,
     activeTransactionOriginal,
+    receiptTransaction,
     transactionDialogFormSchema,
     editTransactionDialogVisible,
     deleteTransactionDialogVisible,
@@ -591,6 +608,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     recordedTroopTransactionList,
     recordedTroopTransactionListCount,
     totalTransactionsByStatusAllCookies,
+    pendingTransactionsRequiringReceipt,
     fetchTransactions,
     insertNewTransactionFromUploads,
     insertNewTransaction,
@@ -604,5 +622,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     troopTransactionTypeOptions,
     girlTransactionTypeOptions,
     getGirlTransactionsByStatus,
+    transactionRequiresReceipt,
   };
 });
