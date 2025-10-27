@@ -257,6 +257,81 @@ export const useCookiesStore = defineStore('cookies', () => {
     return await supabaseClient.from('cookies').upsert(allCookies.value);
   };
 
+  const _getCookiePercentages = (
+    cookieRatioTotal?: number,
+  ): Record<string, number> => {
+    const safeCookieRatioTotal =
+      typeof cookieRatioTotal === 'number' ? cookieRatioTotal : 0;
+    return allCookies.value.reduce(
+      (acc: Record<string, number>, cookie: Cookie) => {
+        const percentOfSale =
+          safeCookieRatioTotal > 0 ? (cookie.percent_of_sale ?? 0) : 1;
+        acc[cookie.abbreviation] =
+          safeCookieRatioTotal > 0
+            ? percentOfSale / safeCookieRatioTotal
+            : percentOfSale / allCookies.value.length;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+  };
+
+  const _getTotalPercentOfSale = (): number => {
+    return allCookies.value.reduce(
+      (total: number, cookie: Cookie) => total + (cookie.percent_of_sale ?? 0),
+      0,
+    );
+  };
+
+  const _getBaseCookiePredictions = (
+    cookie: Cookie,
+    expectedSales: number,
+    cookiePercentages: Record<string, number>,
+  ): Record<string, Prediction> => {
+    const predictedExact =
+      expectedSales * cookiePercentages[cookie.abbreviation];
+    const predictedFloor = Math.floor(predictedExact);
+    return {
+      [cookie.abbreviation]: {
+        exact: predictedExact,
+        floor: predictedFloor,
+        remainder: predictedExact - predictedFloor,
+        final: predictedFloor, // Final value to be adjusted later
+      },
+    };
+  };
+
+  const _getTotalFloored = (
+    predictions: Record<
+      string,
+      { floor: number; remainder: number; final: number; exact: number }
+    >,
+  ): number => {
+    return Object.values(predictions).reduce((sum, val) => sum + val.floor, 0);
+  };
+
+  interface Prediction {
+    floor: number;
+    remainder: number;
+    final: number;
+    exact: number;
+  }
+
+  const _distributeRemainder = (
+    predictions: Record<string, Prediction>,
+    remainder: number,
+  ): Record<string, Prediction> => {
+    Object.entries(predictions)
+      .sort((a, b) => b[1].remainder - a[1].remainder)
+      .forEach(([_key, prediction]) => {
+        if (remainder > 0) {
+          prediction.final += 1;
+          remainder -= 1;
+        }
+      });
+    return predictions;
+  };
+
   /* Actions */
 
   const fetchCookies = async () => {
@@ -348,6 +423,40 @@ export const useCookiesStore = defineStore('cookies', () => {
     );
   };
 
+  const getPredictedCookiesFromExpectedSales = (
+    expectedSales: number,
+  ): Record<string, number> => {
+    const predictions: Record<string, number> = {};
+
+    const cookieRatioTotal = _getTotalPercentOfSale();
+    const cookiePercentages = _getCookiePercentages(cookieRatioTotal);
+
+    const predictionCalculations = allCookies.value
+      .map((cookie: Cookie) =>
+        _getBaseCookiePredictions(cookie, expectedSales, cookiePercentages),
+      )
+      .reduce(
+        (
+          acc: Record<string, Prediction>,
+          curr: Record<string, Prediction>,
+        ) => ({ ...acc, ...curr }),
+        {} as Record<string, Prediction>,
+      );
+
+    const totalFloored = _getTotalFloored(predictionCalculations);
+
+    const predictionsWithRemainder = _distributeRemainder(
+      predictionCalculations,
+      expectedSales - totalFloored,
+    );
+
+    Object.keys(predictionsWithRemainder).forEach((cookieAbbr) => {
+      predictions[cookieAbbr] = predictionCalculations[cookieAbbr].final;
+    });
+
+    return predictions;
+  };
+
   return {
     allCookies,
     allCookiesNotVirtual,
@@ -363,5 +472,6 @@ export const useCookiesStore = defineStore('cookies', () => {
     upsertCookie,
     deleteCookie,
     reorderCookies,
+    getPredictedCookiesFromExpectedSales,
   };
 });
