@@ -115,6 +115,13 @@ function checkActiveRoute(item) {
     >
       <i :class="item.icon" class="layout-menuitem-icon" />
       <span class="layout-menuitem-text">{{ item.label }}</span>
+      <Badge
+        v-if="item.badge && item.badge > 0"
+        :value="item.badge"
+        :severity="item.badgeSeverity"
+        size="small"
+        class="ml-1"
+      />
       <i
         v-if="item.items"
         class="pi pi-fw pi-angle-down layout-submenu-toggler"
