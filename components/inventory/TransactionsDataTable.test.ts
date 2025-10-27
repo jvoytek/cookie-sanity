@@ -21,7 +21,6 @@ describe('TransactionsDataTable', () => {
             CookieList: true,
             Checkbox: true,
             Dialog: true,
-            ReceiptDialog: true,
           },
         },
       });
@@ -44,7 +43,6 @@ describe('TransactionsDataTable', () => {
           CookieList: true,
           Checkbox: true,
           Dialog: true,
-          ReceiptDialog: true,
         },
       },
     });
