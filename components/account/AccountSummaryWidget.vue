@@ -20,7 +20,7 @@ const showPackagesCookieList = ref(false);
           formatHelpers.formatCurrency(
             accountsStore.troopAccountSummary.troopBalance,
           )
-        }}<br >
+        }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total still owed by all girls</span
         >
@@ -40,7 +40,7 @@ const showPackagesCookieList = ref(false);
           formatHelpers.formatCurrency(
             accountsStore.troopAccountSummary.totalPaymentsReceived,
           )
-        }}<br >
+        }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total received</span
         >
@@ -64,7 +64,7 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ accountsStore.troopAccountSummary.numCookiesDistributed }}<br >
+        {{ accountsStore.troopAccountSummary.numCookiesDistributed }}<br />
         <span class="text-sm leading-none text-muted-color"
           >{{ accountsStore.troopAccountSummary.numCookiesRemaining }} remain in
           troop inventory</span
@@ -113,7 +113,7 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ accountsStore.troopAccountSummary.estimatedTotalSales }}<br >
+        {{ accountsStore.troopAccountSummary.estimatedTotalSales }}<br />
         <span class="text-sm leading-none text-muted-color"
           >payments received/average cookie price</span
         >

@@ -12,9 +12,30 @@ describe('CookieReceiptTable', () => {
   };
 
   const mockCookiesList = [
-    { id: 1, abbreviation: 'ABC', name: 'Amazing Cookies', price: 5.0, is_virtual: false, order: 1 },
-    { id: 2, abbreviation: 'DEF', name: 'Delicious Cookies', price: 6.0, is_virtual: false, order: 2 },
-    { id: 3, abbreviation: 'GHI', name: 'Great Cookies', price: 5.0, is_virtual: false, order: 3 },
+    {
+      id: 1,
+      abbreviation: 'ABC',
+      name: 'Amazing Cookies',
+      price: 5.0,
+      is_virtual: false,
+      order: 1,
+    },
+    {
+      id: 2,
+      abbreviation: 'DEF',
+      name: 'Delicious Cookies',
+      price: 6.0,
+      is_virtual: false,
+      order: 2,
+    },
+    {
+      id: 3,
+      abbreviation: 'GHI',
+      name: 'Great Cookies',
+      price: 5.0,
+      is_virtual: false,
+      order: 3,
+    },
   ];
 
   it('renders without crashing', () => {
