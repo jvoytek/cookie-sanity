@@ -29,6 +29,7 @@ const girlAccount = computed(() => {
         {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
       </template>
     </Column>
+    <Column field="type" header="Type" sortable />
     <Column field="notes" header="Notes" sortable />
     <Column field="actions" header="Actions" style="min-width: 140px">
       <template #body="slotProps">

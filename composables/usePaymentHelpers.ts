@@ -45,6 +45,22 @@ export const usePaymentHelpers = () => {
         'show-icon': true,
       },
       {
+        $formkit: 'primeSelect',
+        name: 'type',
+        label: 'Type',
+        key: 'type',
+        placeholder: 'Select payment type',
+        options: [
+          { label: 'Cash', value: 'Cash' },
+          { label: 'Check', value: 'Check' },
+          { label: 'Digital Cookie', value: 'Digital Cookie' },
+          { label: 'Other', value: 'Other' },
+        ],
+        class: 'w-full',
+        'option-label': 'label',
+        'option-value': 'value',
+      },
+      {
         $formkit: 'primeTextarea',
         name: 'notes',
         label: 'Notes (optional)',

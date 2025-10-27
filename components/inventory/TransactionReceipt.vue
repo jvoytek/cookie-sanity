@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Order } from '@/types/types';
 import CookieReceiptTable from '../other/CookieReceiptTable.vue';
-import { value } from 'happy-dom/lib/PropertySymbol.js';
 
 const props = defineProps<{
   transaction: Order | null;
@@ -83,6 +82,26 @@ const girlAccount = computed(() => {
     true,
   );
 });
+
+const cashCheckOtherPayments = computed(() => {
+  if (!girlAccount.value?.girlPaymentsList) return 0;
+  return girlAccount.value.girlPaymentsList
+    .filter(
+      (payment) =>
+        payment.type === 'Cash' ||
+        payment.type === 'Check' ||
+        payment.type === 'Other' ||
+        payment.type === null,
+    )
+    .reduce((sum, payment) => sum + payment.amount, 0);
+});
+
+const digitalCookiePayments = computed(() => {
+  if (!girlAccount.value?.girlPaymentsList) return 0;
+  return girlAccount.value.girlPaymentsList
+    .filter((payment) => payment.type === 'Digital Cookie')
+    .reduce((sum, payment) => sum + payment.amount, 0);
+});
 </script>
 <template>
   <div class="receipt-content">
@@ -149,6 +168,14 @@ const girlAccount = computed(() => {
       <h6>Payments</h6>
       <DataTable
         :value="[
+          {
+            descripton: 'CASH/CHECK/OTHER',
+            amount: cashCheckOtherPayments,
+          },
+          {
+            descripton: 'DIGITAL COOKIE',
+            amount: digitalCookiePayments,
+          },
           {
             descripton: 'AMOUNT PAID',
             amount: girlAccount?.paymentsReceived || 0,
