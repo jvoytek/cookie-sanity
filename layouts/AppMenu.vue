@@ -1,6 +1,4 @@
 <script setup>
-import { ref, computed } from 'vue';
-
 import AppMenuItem from './AppMenuItem.vue';
 
 const transactionsStore = useTransactionsStore();

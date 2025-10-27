@@ -119,6 +119,8 @@ function checkActiveRoute(item) {
         v-if="item.badge && item.badge > 0"
         :value="item.badge"
         :severity="item.badgeSeverity"
+        size="small"
+        class="ml-1"
       />
       <i
         v-if="item.items"
