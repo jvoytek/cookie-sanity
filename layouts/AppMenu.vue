@@ -1,7 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 import AppMenuItem from './AppMenuItem.vue';
+
+const transactionsStore = useTransactionsStore();
+
+const requestedCount = computed(
+  () => transactionsStore.requestedGirlTransactionrListCount,
+);
 
 const model = ref([
   {
@@ -16,6 +22,8 @@ const model = ref([
         label: 'Girl Inventory',
         icon: 'pi pi-fw pi-arrow-right-arrow-left',
         to: '/girl-inventory',
+        badge: requestedCount,
+        badgeSeverity: 'danger',
       },
       {
         label: 'Physical Inventory Check',
