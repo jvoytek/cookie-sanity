@@ -28,6 +28,10 @@ const getFromName = (transaction: Order | null) => {
       return seasonsStore.currentSeason?.troop_number
         ? `Troop #${seasonsStore.currentSeason.troop_number}`
         : 'Troop';
+    case 'C2T':
+      return transaction.supplier || 'Council';
+    case 'DIRECT_SHIP':
+      return 'Cookie Baker';
     default:
       return '';
   }
@@ -46,6 +50,12 @@ const getToName = (transaction: Order | null) => {
       return girlsStore.getGirlNameById(transaction.to);
     case 'T2T':
       return transaction.supplier || 'Troop';
+    case 'C2T':
+      return seasonsStore.currentSeason?.troop_number
+        ? `Troop #${seasonsStore.currentSeason.troop_number}`
+        : 'Troop';
+    case 'DIRECT_SHIP':
+      return 'Customer of ' + girlsStore.getGirlNameById(transaction.to);
     default:
       return '';
   }
@@ -73,6 +83,10 @@ const girlAccount = computed(() => {
 <template>
   <div class="receipt-content">
     <div class="flex justify-end">
+      <div>TYPE:</div>
+      <div class="w-30 ml-2 flex-none border-b border-gray-400 pb-1">
+        {{ transaction.type }}
+      </div>
       <div>ORDER #:</div>
       <div class="w-30 ml-2 flex-none border-b border-gray-400 pb-1">
         {{ transaction.order_num }}

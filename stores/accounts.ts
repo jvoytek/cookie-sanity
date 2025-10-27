@@ -32,38 +32,7 @@ export const useAccountsStore = defineStore('accounts', () => {
   /* Computed */
 
   const girlAccountBalances = computed((): AccountBalance[] => {
-    return girlsStore.allGirls.map((girl: Girl) => {
-      const completedTransactions = _getCompletedTransactionsForGirl(girl.id);
-      const { distributedValue, cookieTotals, numCookiesDistributed } =
-        _getTotalsFromTransactionList(completedTransactions);
-      const girlPaymentsList = _getPaymentsForGirl(girl.id);
-      const paymentsReceived = _getTotalofPayments(girlPaymentsList);
-      const balance = paymentsReceived - distributedValue;
-      const status = _getStatus(balance);
-
-      // Include DIRECT_SHIP orders in estimated sales
-      const directShipTransactions = _getDirectShipTransactionsForGirl(girl.id);
-      const { numCookiesDistributed: directShipCookies } =
-        _getTotalsFromTransactionList(directShipTransactions);
-
-      const estimatedSales =
-        balance >= 0
-          ? numCookiesDistributed + directShipCookies
-          : Math.round(paymentsReceived / cookiesStore.averageCookiePrice) +
-            directShipCookies;
-
-      return {
-        girl,
-        distributedValue,
-        paymentsReceived,
-        balance,
-        status,
-        numCookiesDistributed,
-        cookieTotals,
-        estimatedSales,
-        girlPaymentsList,
-      };
-    });
+    return getGirlAccountBalances();
   });
 
   const troopAccountSummary = computed((): TroopAccountSummary => {
@@ -145,12 +114,22 @@ export const useAccountsStore = defineStore('accounts', () => {
     return allPayments.value.filter((p: Payment) => p.seller_id === girlId);
   };
 
-  const _getCompletedTransactionsForGirl = (girlId: number): Order[] => {
+  const _getCompletedTransactionsForGirl = (
+    girlId: number,
+    untilId?: number,
+  ): Order[] => {
+    console.log(
+      'Getting completed transactions for girl ID:',
+      girlId,
+      'until ID:',
+      untilId,
+    );
     return ordersStore.allTransactions.filter(
       (order) =>
         (order.to === girlId || order.from === girlId) &&
         order.status === 'complete' &&
-        order.type !== 'DIRECT_SHIP', // Exclude DIRECT_SHIP from balance calculations
+        order.type !== 'DIRECT_SHIP' && // Exclude DIRECT_SHIP from balance calculations
+        order.id <= (untilId || Infinity),
     );
   };
 
@@ -313,6 +292,46 @@ export const useAccountsStore = defineStore('accounts', () => {
 
   const getGirlAccountById = (id: number) => {
     return girlAccountBalances.value.find((account) => account.girl.id === id);
+  };
+
+  const getGirlAccountBalances = () => {
+    return girlsStore.allGirls.map((girl) => getGirlAccountBalance(girl));
+  };
+
+  const getGirlAccountBalance = (girl: Girl, untilId?: number) => {
+    const completedTransactions = _getCompletedTransactionsForGirl(
+      girl.id,
+      untilId,
+    );
+    const { distributedValue, cookieTotals, numCookiesDistributed } =
+      _getTotalsFromTransactionList(completedTransactions);
+    const girlPaymentsList = _getPaymentsForGirl(girl.id);
+    const paymentsReceived = _getTotalofPayments(girlPaymentsList);
+    const balance = paymentsReceived - distributedValue;
+    const status = _getStatus(balance);
+
+    // Include DIRECT_SHIP orders in estimated sales
+    const directShipTransactions = _getDirectShipTransactionsForGirl(girl.id);
+    const { numCookiesDistributed: directShipCookies } =
+      _getTotalsFromTransactionList(directShipTransactions);
+
+    const estimatedSales =
+      balance >= 0
+        ? numCookiesDistributed + directShipCookies
+        : Math.round(paymentsReceived / cookiesStore.averageCookiePrice) +
+          directShipCookies;
+
+    return {
+      girl,
+      distributedValue,
+      paymentsReceived,
+      balance,
+      status,
+      numCookiesDistributed,
+      cookieTotals,
+      estimatedSales,
+      girlPaymentsList,
+    };
   };
 
   return {

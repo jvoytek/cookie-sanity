@@ -18,8 +18,12 @@ const selectedTransactions = ref<Order[]>([]);
 const receiptDialogVisible = ref(false);
 
 const showReceipt = (transaction: Order) => {
-  transactionsStore.receiptTransaction = transaction;
-  transactionHelpers.receiptDialogVisible.value = true;
+  // Open new tab with /pages/receipts?id=transaction.id
+  window.open(
+    `/receipts?id=${transaction.id}`,
+    '_blank',
+    'noopener,noreferrer',
+  );
 };
 const selectAll = ref(false);
 const deleteBulkTransactionsDialogVisible = ref(false);
@@ -161,6 +165,18 @@ const bulkReject = async () => {
   selectedTransactions.value = [];
 };
 
+const bulkShowReceipt = () => {
+  // Open new tab with /pages/receipts?id=transactionIds
+  const transactionIds = selectedTransactions.value
+    .map((t) => t.id)
+    .join('&id=');
+  window.open(
+    `/receipts?id=${transactionIds}`,
+    '_blank',
+    'noopener,noreferrer',
+  );
+};
+
 const printReceipt = () => {
   window.print();
 };
@@ -267,6 +283,19 @@ const printReceipt = () => {
         severity="warn"
         variant="outlined"
         @click="deleteBulkTransactionsDialogVisible = true"
+      />
+      <Button
+        :disabled="!hasSelection"
+        v-tooltip.bottom="{
+          value: 'View receipt for selected transaction(s)',
+          showDelay: 500,
+        }"
+        label="View Receipt"
+        icon="pi pi-file"
+        class="ml-2"
+        variant="outlined"
+        severity="secondary"
+        @click="bulkShowReceipt"
       />
     </template>
   </Toolbar>
@@ -526,7 +555,6 @@ const printReceipt = () => {
           variant="outlined"
           severity="secondary"
           @click="showReceipt(slotProps.data)"
-          v-if="transactionsStore.transactionRequiresReceipt(slotProps.data)"
         />
       </template>
     </Column>

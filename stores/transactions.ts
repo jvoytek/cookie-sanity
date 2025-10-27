@@ -580,6 +580,18 @@ export const useTransactionsStore = defineStore('transactions', () => {
     return receiptRequiredTypes.includes(transaction.type || '');
   };
 
+  const getTransactionsById = (
+    transactionIds: number | string | number[] | string[],
+  ): Order[] => {
+    const idsAsNumbers = Array.isArray(transactionIds)
+      ? transactionIds.map((id) => Number(id))
+      : [Number(transactionIds)];
+    const transactions = allTransactions.value.filter((transaction) =>
+      idsAsNumbers.includes(transaction.id),
+    );
+    return transactions;
+  };
+
   return {
     allTransactions,
     sumTransactionsByCookie,
@@ -623,5 +635,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     girlTransactionTypeOptions,
     getGirlTransactionsByStatus,
     transactionRequiresReceipt,
+    getTransactionsById,
   };
 });
