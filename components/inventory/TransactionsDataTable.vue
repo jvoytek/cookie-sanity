@@ -15,8 +15,6 @@ const transactionsStore = useTransactionsStore();
 // Selection state
 const selectedTransactions = ref<Order[]>([]);
 
-const receiptDialogVisible = ref(false);
-
 const showReceipt = (transaction: Order) => {
   // Open new tab with /pages/receipts?id=transaction.id
   window.open(
@@ -177,9 +175,17 @@ const bulkShowReceipt = () => {
   );
 };
 
-const printReceipt = () => {
-  window.print();
-};
+const canShowReceipt = computed(() => {
+  return selectedTransactions.value.every((transaction) =>
+    transactionsStore.transactionRequiresReceipt(transaction),
+  );
+});
+
+const anyReceiptsAvailable = computed(() => {
+  return props.orders.some((transaction) =>
+    transactionsStore.transactionRequiresReceipt(transaction),
+  );
+});
 </script>
 
 <template>
@@ -285,7 +291,8 @@ const printReceipt = () => {
         @click="deleteBulkTransactionsDialogVisible = true"
       />
       <Button
-        :disabled="!hasSelection"
+        :disabled="!hasSelection || !canShowReceipt"
+        v-if="anyReceiptsAvailable"
         v-tooltip.bottom="{
           value: 'View receipt for selected transaction(s)',
           showDelay: 500,
@@ -305,7 +312,7 @@ const printReceipt = () => {
     :value="orders"
     data-key="id"
     sort-field="order_date"
-    :sort-order="1"
+    :sort-order="-1"
     :paginator="props.paginated !== false"
     :rows="20"
     :rows-per-page-options="[20, 50, 100]"
@@ -555,6 +562,7 @@ const printReceipt = () => {
           variant="outlined"
           severity="secondary"
           @click="showReceipt(slotProps.data)"
+          v-if="transactionsStore.transactionRequiresReceipt(slotProps.data)"
         />
       </template>
     </Column>
@@ -612,49 +620,4 @@ const printReceipt = () => {
       <Button label="Yes" icon="pi pi-check" @click="bulkDelete" />
     </template>
   </Dialog>
-
-  <Dialog
-    v-model:visible="transactionHelpers.receiptDialogVisible.value"
-    :style="{ width: '600px' }"
-    header="Money and/or Cookie Receipt"
-    :modal="true"
-    class="receipt-dialog"
-  >
-    <p>
-      You can use the information here to write a receipt for this transaction,
-      or (if your council accepts printed receipts), print it. Be sure to check
-      with your council before assuming printed receipts are acceptable.
-    </p>
-    <TransactionReceipt :transaction="transactionsStore.receiptTransaction" />
-
-    <template #footer>
-      <Button
-        label="Close"
-        icon="pi pi-times"
-        text
-        @click="transactionHelpers.receiptDialogVisible.value = false"
-      />
-      <Button label="Print" icon="pi pi-print" @click="printReceipt" />
-    </template>
-  </Dialog>
 </template>
-
-<style scoped>
-@media print {
-  :deep(.p-dialog-header),
-  :deep(.p-dialog-footer),
-  .receipt-dialog :deep(.p-dialog-header),
-  .receipt-dialog :deep(.p-dialog-footer) {
-    display: none !important;
-  }
-
-  :deep(.p-dialog-content) {
-    padding: 0 !important;
-  }
-
-  :deep(.p-dialog) {
-    box-shadow: none !important;
-    border: none !important;
-  }
-}
-</style>

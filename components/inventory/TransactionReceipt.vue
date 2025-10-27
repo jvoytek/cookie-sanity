@@ -77,7 +77,11 @@ const subTotal = computed(() => {
 
 const girlAccount = computed(() => {
   if (!props.transaction || !props.transaction.to) return null;
-  return accountsStore.getGirlAccountById(props.transaction.to);
+  return accountsStore.getGirlAccountById(
+    props.transaction.to,
+    props.transaction.id,
+    true,
+  );
 });
 </script>
 <template>
@@ -112,39 +116,57 @@ const girlAccount = computed(() => {
     </div>
 
     <CookieReceiptTable :cookies="transaction.cookies" class="mb-4" />
+    <div v-if="transaction.type === 'G2T' || transaction.type === 'T2G'">
+      <h6>Balance</h6>
+      <DataTable
+        :value="[
+          {
+            descripton: 'SUBTOTAL',
+            amount: subTotal,
+          },
+          {
+            descripton: 'PREVIOUS BALANCE',
+            amount: girlAccount?.balance || 0,
+          },
 
-    <DataTable
-      :value="[
-        {
-          descripton: 'SUBTOTAL',
-          amount: subTotal,
-        },
-        {
-          descripton: 'PREVIOUS BALANCE',
-          amount: girlAccount?.balance || 0,
-        },
-        {
-          descripton: 'AMOUNT PAID',
-          amount: girlAccount?.paymentsReceived || 0,
-        },
-        {
-          descripton: 'AMOUNT STILL DUE',
-          amount: girlAccount?.balance + subTotal || 0,
-        },
-      ]"
-      size="small"
-      show-gridlines
-      class="no-header-datatable mb-4"
-      v-if="transaction.type === 'G2T' || transaction.type === 'T2G'"
-    >
-      <template #header></template>
-      <Column field="descripton"></Column>
-      <Column field="amount">
-        <template #body="slotProps">
-          {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
-        </template>
-      </Column>
-    </DataTable>
+          {
+            descripton: 'AMOUNT STILL DUE',
+            amount: girlAccount?.balance + subTotal || 0,
+          },
+        ]"
+        size="small"
+        show-gridlines
+        class="no-header-datatable mb-4"
+      >
+        <template #header></template>
+        <Column field="descripton"></Column>
+        <Column field="amount">
+          <template #body="slotProps">
+            {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
+          </template>
+        </Column>
+      </DataTable>
+      <h6>Payments</h6>
+      <DataTable
+        :value="[
+          {
+            descripton: 'AMOUNT PAID',
+            amount: girlAccount?.paymentsReceived || 0,
+          },
+        ]"
+        size="small"
+        show-gridlines
+        class="no-header-datatable mb-4"
+      >
+        <template #header></template>
+        <Column field="descripton"></Column>
+        <Column field="amount">
+          <template #body="slotProps">
+            {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
+          </template>
+        </Column>
+      </DataTable>
+    </div>
 
     <div class="flex justify-end mt-8">
       <div>RECEIVED BY:</div>

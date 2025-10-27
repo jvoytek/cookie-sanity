@@ -357,7 +357,6 @@ export const useCookiesStore = defineStore('cookies', () => {
     cookieFormFieldsForBoothSales,
     averageCookiePrice,
     customCookieValidationRules,
-
     fetchCookies,
     getCookieByAbbreviation,
     insertCookie,
