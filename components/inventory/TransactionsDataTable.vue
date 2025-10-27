@@ -10,9 +10,19 @@ const props = defineProps<{
 const ordersStore = useTransactionsStore();
 const girlsStore = useGirlsStore();
 const transactionHelpers = useTransactionHelpers();
+const transactionsStore = useTransactionsStore();
 
 // Selection state
 const selectedTransactions = ref<Order[]>([]);
+
+const showReceipt = (transaction: Order) => {
+  // Open new tab with /pages/receipts?id=transaction.id
+  window.open(
+    `/receipts?id=${transaction.id}`,
+    '_blank',
+    'noopener,noreferrer',
+  );
+};
 const selectAll = ref(false);
 const deleteBulkTransactionsDialogVisible = ref(false);
 
@@ -152,6 +162,30 @@ const bulkReject = async () => {
   await ordersStore.updateTransactionStatusBulk(transactionIds, 'rejected');
   selectedTransactions.value = [];
 };
+
+const bulkShowReceipt = () => {
+  // Open new tab with /pages/receipts?id=transactionIds
+  const transactionIds = selectedTransactions.value
+    .map((t) => t.id)
+    .join('&id=');
+  window.open(
+    `/receipts?id=${transactionIds}`,
+    '_blank',
+    'noopener,noreferrer',
+  );
+};
+
+const canShowReceipt = computed(() => {
+  return selectedTransactions.value.every((transaction) =>
+    transactionsStore.transactionRequiresReceipt(transaction),
+  );
+});
+
+const anyReceiptsAvailable = computed(() => {
+  return props.orders.some((transaction) =>
+    transactionsStore.transactionRequiresReceipt(transaction),
+  );
+});
 </script>
 
 <template>
@@ -162,99 +196,113 @@ const bulkReject = async () => {
       </span>
       <Button
         v-if="canMarkComplete"
-        :disabled="!hasSelection"
-        @click="bulkMarkComplete"
         v-tooltip.bottom="{
           value:
             'Mark all selected transactions as complete. Click this when physical inventory has changed hands',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Mark Complete"
         icon="pi pi-check"
         class="mr-2"
         variant="outlined"
+        @click="bulkMarkComplete"
       />
       <Button
         v-if="canUndoRecorded"
-        :disabled="!hasSelection"
-        @click="bulkMarkComplete"
         v-tooltip.bottom="{
           value:
             'Undo marking selected transactions as recorded and mark them as complete again.',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Undo Mark Recorded"
         icon="pi pi-undo"
         class="mr-2"
         variant="outlined"
+        @click="bulkMarkComplete"
       />
       <Button
         v-if="canMarkRecorded"
-        :disabled="!hasSelection"
-        @click="bulkMarkRecorded"
         v-tooltip.bottom="{
           value:
             'Click this when you have recorded these transactions in your council\'s cookie management system (Smart Cookies or eBudde)',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Mark Recorded"
         icon="pi pi-check-circle"
         class="mr-2"
         variant="outlined"
+        @click="bulkMarkRecorded"
       />
       <Button
         v-if="canApprove"
-        @click="bulkApprove"
-        :disabled="!hasSelection"
         v-tooltip.bottom="{
           value: 'Approve selected requests and mark as pending',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Approve"
         icon="pi pi-check"
         class="mr-2"
         variant="outlined"
+        @click="bulkApprove"
       />
       <Button
         v-if="canMarkPending"
-        :disabled="!hasSelection"
-        @click="bulkMarkPending"
         v-tooltip.bottom="{
           value: 'Mark selected transactions as pending again',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Mark Pending"
         icon="pi pi-undo"
         variant="outlined"
         severity="secondary"
         class="mr-2"
+        @click="bulkMarkPending"
       />
       <Button
         v-if="canReject"
-        :disabled="!hasSelection"
-        @click="bulkReject"
         v-tooltip.bottom="{
           value: 'Reject selected transaction requests',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Reject"
         icon="pi pi-times"
         severity="warn"
         class="mr-2"
         variant="outlined"
+        @click="bulkReject"
       />
       <Button
         v-if="canDelete"
-        :disabled="!hasSelection"
-        @click="deleteBulkTransactionsDialogVisible = true"
         v-tooltip.bottom="{
           value: 'Delete selected transactions',
           showDelay: 500,
         }"
+        :disabled="!hasSelection"
         label="Delete"
         icon="pi pi-trash"
         severity="warn"
         variant="outlined"
+        @click="deleteBulkTransactionsDialogVisible = true"
+      />
+      <Button
+        :disabled="!hasSelection || !canShowReceipt"
+        v-if="anyReceiptsAvailable"
+        v-tooltip.bottom="{
+          value: 'View receipt for selected transaction(s)',
+          showDelay: 500,
+        }"
+        label="View Receipt"
+        icon="pi pi-file"
+        class="ml-2"
+        variant="outlined"
+        severity="secondary"
+        @click="bulkShowReceipt"
       />
     </template>
   </Toolbar>
@@ -264,7 +312,7 @@ const bulkReject = async () => {
     :value="orders"
     data-key="id"
     sort-field="order_date"
-    :sort-order="1"
+    :sort-order="-1"
     :paginator="props.paginated !== false"
     :rows="20"
     :rows-per-page-options="[20, 50, 100]"
@@ -505,6 +553,16 @@ const bulkReject = async () => {
           @click="
             ordersStore.updateTransactionStatus(slotProps.data.id, 'rejected')
           "
+        />
+        <Button
+          v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
+          aria-label="View Receipt"
+          icon="pi pi-file"
+          class="mr-2"
+          variant="outlined"
+          severity="secondary"
+          @click="showReceipt(slotProps.data)"
+          v-if="transactionsStore.transactionRequiresReceipt(slotProps.data)"
         />
       </template>
     </Column>

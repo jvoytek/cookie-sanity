@@ -564,6 +564,27 @@ export const useTransactionsStore = defineStore('transactions', () => {
     activeTransactionOriginal.value = null;
   };
 
+  const transactionRequiresReceipt = (transaction: Order): boolean => {
+    const receiptRequiredTypes = ['T2G', 'G2G', 'G2T', 'T2T'];
+    return (
+      receiptRequiredTypes.includes(transaction.type || '') &&
+      transaction.status !== 'requested' &&
+      transaction.status !== 'rejected'
+    );
+  };
+
+  const getTransactionsById = (
+    transactionIds: number | string | number[] | string[],
+  ): Order[] => {
+    const idsAsNumbers = Array.isArray(transactionIds)
+      ? transactionIds.map((id) => Number(id))
+      : [Number(transactionIds)];
+    const transactions = allTransactions.value.filter((transaction) =>
+      idsAsNumbers.includes(transaction.id),
+    );
+    return transactions;
+  };
+
   return {
     allTransactions,
     sumTransactionsByCookie,
@@ -604,5 +625,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     troopTransactionTypeOptions,
     girlTransactionTypeOptions,
     getGirlTransactionsByStatus,
+    transactionRequiresReceipt,
+    getTransactionsById,
   };
 });

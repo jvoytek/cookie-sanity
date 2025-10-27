@@ -6,6 +6,7 @@ export const useTransactionHelpers = () => {
   const girlsStore = useGirlsStore();
   const submitted = ref(false);
   const notificationHelpers = useNotificationHelpers();
+  const receiptDialogVisible = ref(false);
 
   const transactionTypeBadgeSeverity = (type: string) => {
     switch (type) {
@@ -396,6 +397,7 @@ export const useTransactionHelpers = () => {
 
   return {
     submitted,
+    receiptDialogVisible,
     editTransaction,
     cancelEditTransaction,
     hideDialog,

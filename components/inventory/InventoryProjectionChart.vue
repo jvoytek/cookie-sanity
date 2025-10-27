@@ -82,7 +82,9 @@ const calculateInventoryProjection = () => {
   const relevantTransactions = transactionsStore.allTransactions.filter(
     (t) =>
       t.order_date &&
-      (t.status === 'pending' || t.status === 'complete') &&
+      (t.status === 'pending' ||
+        t.status === 'complete' ||
+        t.status === 'recorded') &&
       t.type !== 'DIRECT_SHIP' &&
       t.type !== 'G2G',
   );

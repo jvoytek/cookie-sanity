@@ -30,3 +30,11 @@
 .p-multiselect-overlay {
   z-index: 1200 !important;
 }
+
+.no-header-datatable thead {
+  display: none;
+}
+
+.no-header-datatable .p-datatable-header {
+  padding: 0 !important;
+}

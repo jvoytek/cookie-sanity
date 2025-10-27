@@ -179,5 +179,6 @@ export const useGirlsStore = defineStore('girls', () => {
     deleteGirl,
     getGirlNameById,
     getGirlNamesByIdList,
+    getGirlById,
   };
 });
