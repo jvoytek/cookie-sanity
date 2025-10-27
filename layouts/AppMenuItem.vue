@@ -116,8 +116,8 @@ function checkActiveRoute(item) {
       <i :class="item.icon" class="layout-menuitem-icon" />
       <span class="layout-menuitem-text">{{ item.label }}</span>
       <Badge
-        v-if="item.badge && item.badge.value > 0"
-        :value="item.badge.value"
+        v-if="item.badge && item.badge > 0"
+        :value="item.badge"
         :severity="item.badgeSeverity"
       />
       <i
