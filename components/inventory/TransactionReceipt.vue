@@ -88,9 +88,9 @@ const cashCheckOtherPayments = computed(() => {
   return girlAccount.value.girlPaymentsList
     .filter(
       (payment) =>
-        payment.type === 'Cash' ||
-        payment.type === 'Check' ||
-        payment.type === 'Other' ||
+        payment.type === 'cash' ||
+        payment.type === 'check' ||
+        payment.type === 'other' ||
         payment.type === null,
     )
     .reduce((sum, payment) => sum + payment.amount, 0);
@@ -99,7 +99,7 @@ const cashCheckOtherPayments = computed(() => {
 const digitalCookiePayments = computed(() => {
   if (!girlAccount.value?.girlPaymentsList) return 0;
   return girlAccount.value.girlPaymentsList
-    .filter((payment) => payment.type === 'Digital Cookie')
+    .filter((payment) => payment.type === 'digital_cookie')
     .reduce((sum, payment) => sum + payment.amount, 0);
 });
 </script>

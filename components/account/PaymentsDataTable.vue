@@ -8,8 +8,24 @@ const paymentHelpers = usePaymentHelpers();
 const formatHelpers = useFormatHelpers();
 
 const girlAccount = computed(() => {
+  console.log('getting girlAccountById for girlId:', props.girlId);
   return accountsStore.getGirlAccountById(props.girlId);
 });
+
+const formatPaymentType = (type: string) => {
+  switch (type) {
+    case 'cash':
+      return 'Cash';
+    case 'check':
+      return 'Check';
+    case 'digital_cookie':
+      return 'Digital Cookie';
+    case 'other':
+      return 'Other';
+    default:
+      return type;
+  }
+};
 </script>
 
 <template>
@@ -29,7 +45,11 @@ const girlAccount = computed(() => {
         {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
       </template>
     </Column>
-    <Column field="type" header="Type" sortable />
+    <Column field="type" header="Type" sortable>
+      <template #body="slotProps">
+        {{ formatPaymentType(slotProps.data.type) }}
+      </template>
+    </Column>
     <Column field="notes" header="Notes" sortable />
     <Column field="actions" header="Actions" style="min-width: 140px">
       <template #body="slotProps">

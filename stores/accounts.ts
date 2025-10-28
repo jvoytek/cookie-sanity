@@ -32,7 +32,7 @@ export const useAccountsStore = defineStore('accounts', () => {
   /* Computed */
 
   const girlAccountBalances = computed((): AccountBalance[] => {
-    return getGirlAccountBalances();
+    return girlsStore.allGirls.map((girl) => getGirlAccountBalance(girl));
   });
 
   const troopAccountSummary = computed((): TroopAccountSummary => {
@@ -114,12 +114,6 @@ export const useAccountsStore = defineStore('accounts', () => {
     girlId: number,
     untilDate: Date = new Date(), // Return only payments before this date (not inclusive)
   ): Payment[] => {
-    console.log(
-      'Getting payments for girl ID:',
-      girlId,
-      'until date:',
-      untilDate,
-    );
     return allPayments.value.filter((p: Payment) => {
       if (p.seller_id !== girlId) return false;
       if (!p.payment_date) return false;
@@ -132,12 +126,6 @@ export const useAccountsStore = defineStore('accounts', () => {
     untilIdInclusive?: number, // Return only transaction before this transaction ID (including this one)
     includePending: boolean = false,
   ): Order[] => {
-    console.log(
-      'Getting completed transactions for girl ID:',
-      girlId,
-      'until ID:',
-      untilIdInclusive,
-    );
     const statusTest = includePending
       ? function (order: Order) {
           return (
@@ -149,7 +137,6 @@ export const useAccountsStore = defineStore('accounts', () => {
       : function (order: Order) {
           return order.status === 'complete' || order.status === 'recorded';
         };
-    console.log('Status test function:', statusTest.toString());
     if (!untilIdInclusive) {
       return ordersStore.allTransactions
         .filter(
@@ -366,7 +353,6 @@ export const useAccountsStore = defineStore('accounts', () => {
       _removePayment(payment);
       notificationHelpers.addSuccess('Payment Deleted');
     } catch (error) {
-      console.log(error);
       notificationHelpers.addError(error as Error);
     }
   };
@@ -376,6 +362,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     untilId?: number,
     includePending: boolean = false,
   ) => {
+    console.log(untilId);
     if (!untilId) {
       return girlAccountBalances.value.find(
         (account) => account.girl.id === id,
@@ -385,10 +372,6 @@ export const useAccountsStore = defineStore('accounts', () => {
       if (!girl) return null;
       return getGirlAccountBalance(girl, untilId, includePending);
     }
-  };
-
-  const getGirlAccountBalances = () => {
-    return girlsStore.allGirls.map((girl) => getGirlAccountBalance(girl));
   };
 
   const getGirlAccountBalance = (
@@ -401,24 +384,34 @@ export const useAccountsStore = defineStore('accounts', () => {
       untilId, // Including this transaction ID
       includePending,
     );
-    console.log(completedTransactions);
     const { distributedValue, cookieTotals, numCookiesDistributed } = untilId
       ? _getTotalsFromTransactionList(completedTransactions.slice(0, -1))
       : _getTotalsFromTransactionList(completedTransactions);
     // derive an explicit Date | undefined from the last completed transaction's order_date (if present)
     let untilDate: Date | undefined = undefined;
-    if (completedTransactions.length > 0) {
-      const lastOrderDate =
-        completedTransactions[completedTransactions.length - 1].order_date;
-      if (
-        lastOrderDate !== null &&
-        lastOrderDate !== undefined &&
-        typeof lastOrderDate === 'string'
-      ) {
-        untilDate = new Date(lastOrderDate);
+    if (untilId) {
+      // Prefer the order from the completed list, fall back to all transactions if needed
+      const untilOrder = completedTransactions.find((o) => o.id === untilId);
+
+      if (untilOrder && untilOrder.order_date) {
+        const od = untilOrder.order_date;
+        if (typeof od === 'string' || typeof od === 'number') {
+          untilDate = new Date(od);
+        } else if (od instanceof Date) {
+          untilDate = new Date(od.getTime());
+        }
       }
     }
+    console.log(
+      'girlId:',
+      girl.id,
+      'untilId:',
+      untilId,
+      'untilDate:',
+      untilDate,
+    );
     const girlPaymentsList = _getPaymentsForGirl(girl.id, untilDate);
+    console.log(girlPaymentsList);
     const paymentsReceived = _getTotalofPayments(girlPaymentsList);
     const balance = paymentsReceived - distributedValue;
     const status = _getStatus(balance);
