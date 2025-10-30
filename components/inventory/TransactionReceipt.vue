@@ -136,7 +136,7 @@ const digitalCookiePayments = computed(() => {
 
     <CookieReceiptTable :cookies="transaction.cookies" class="mb-4" />
     <div v-if="transaction.type === 'G2T' || transaction.type === 'T2G'">
-      <h6>Balance</h6>
+      <h6>BALANCE</h6>
       <DataTable
         :value="[
           {
@@ -165,7 +165,7 @@ const digitalCookiePayments = computed(() => {
           </template>
         </Column>
       </DataTable>
-      <h6>Payments</h6>
+      <h6>PAYMENTS</h6>
       <DataTable
         :value="[
           {
@@ -177,7 +177,7 @@ const digitalCookiePayments = computed(() => {
             amount: digitalCookiePayments,
           },
           {
-            descripton: 'AMOUNT PAID',
+            descripton: 'TOTAL PAID',
             amount: girlAccount?.paymentsReceived || 0,
           },
         ]"

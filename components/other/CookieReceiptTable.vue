@@ -19,15 +19,17 @@ const cookiesByCasesAndPackages = computed(() => {
   const packagesPerCase = 12;
   const counts = props.cookies;
   return cookiesStore.allCookies.reduce<
-    Record<string, { cases: number; packages: number }>
+    Record<string, { cases: number | null; packages: number | null }>
   >((acc, cookie) => {
     const count = counts[cookie.abbreviation] ?? 0;
     if (count === 0) return acc;
     const cases =
       Math.abs(count) >= packagesPerCase
-        ? Math.floor(count / packagesPerCase)
+        ? count >= 0
+          ? Math.floor(count / packagesPerCase)
+          : Math.ceil(count / packagesPerCase)
         : null;
-    let packages = cases ? count - cases * packagesPerCase : count;
+    let packages = cases !== null ? count - cases * packagesPerCase : count;
     packages = packages === 0 ? null : packages;
 
     acc[cookie.abbreviation] = { cases, packages };
