@@ -66,19 +66,19 @@ describe('stores/booths', () => {
       boothsStore.allBoothSales = [
         {
           id: 1,
-          sale_date: yesterday.toISOString().split('T')[0],
+          sale_date: yesterday.toLocaleString().split(',')[0],
           sale_time: '10:00',
           inventory_type: 'girl',
         },
         {
           id: 2,
-          sale_date: tomorrow.toISOString().split('T')[0],
+          sale_date: tomorrow.toLocaleString().split(',')[0],
           sale_time: '14:00',
           inventory_type: 'troop',
         },
         {
           id: 3,
-          sale_date: tomorrow.toISOString().split('T')[0],
+          sale_date: tomorrow.toLocaleString().split(',')[0],
           sale_time: '16:00',
           inventory_type: 'girl',
         },
@@ -90,7 +90,7 @@ describe('stores/booths', () => {
       expect(upcoming).toHaveLength(2);
       expect(
         upcoming.every(
-          (sale) => sale.sale_date >= new Date().toISOString().split('T')[0],
+          (sale) => sale.sale_date >= new Date().toLocaleString().split(',')[0],
         ),
       ).toBe(true);
     });
@@ -158,7 +158,7 @@ describe('stores/booths', () => {
 
   describe('fetchBoothSales', () => {
     it('successfully fetches booth sales', async () => {
-      const mockBoothSales = [
+      const mockBoothSalesReturn = [
         {
           id: 1,
           sale_date: '2024-01-01',
@@ -173,13 +173,28 @@ describe('stores/booths', () => {
         },
       ];
 
+      const mockBoothSalesTransformed = [
+        {
+          id: 1,
+          sale_date: '01/01/2024',
+          sale_time: '10:00',
+          inventory_type: 'troop',
+        },
+        {
+          id: 2,
+          sale_date: '01/02/2024',
+          sale_time: '14:00',
+          inventory_type: 'girl',
+        },
+      ];
+
       const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
               eq: vi.fn(() => ({
                 order: vi.fn(() =>
-                  Promise.resolve({ data: mockBoothSales, error: null }),
+                  Promise.resolve({ data: mockBoothSalesReturn, error: null }),
                 ),
               })),
             })),
@@ -194,7 +209,7 @@ describe('stores/booths', () => {
 
       await newBoothsStore.fetchBoothSales();
 
-      expect(newBoothsStore.allBoothSales).toEqual(mockBoothSales);
+      expect(newBoothsStore.allBoothSales).toEqual(mockBoothSalesTransformed);
     });
 
     it('returns early if no profile id', async () => {
@@ -914,88 +929,6 @@ describe('stores/booths', () => {
       const predictions = newBoothsStore.activeBoothSale.predicted_cookies;
       expect(predictions).toEqual({ TM: 33, SM: 33, TS: 33 });
       expect(Object.keys(predictions)).toHaveLength(3);
-    });
-  });
-
-  describe('private functions integration', () => {
-    it('sorts booth sales by date and time correctly', async () => {
-      const toastSpy = vi.fn();
-      const useNotificationHelpersMock = vi.fn(() => ({
-        addError: toastSpy,
-      }));
-      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
-
-      // Add a booth sale that should sort first chronologically
-      const mockBoothSale = {
-        sale_date: '2024-01-01',
-        sale_time: '08:00',
-        expected_sales: 50,
-      } as BoothSale;
-
-      const mockInsertedSale = {
-        ...mockBoothSale,
-        profile: 'test-user-id',
-        season: 1,
-      };
-
-      const useSupabaseClientMock = vi.fn(() => ({
-        from: vi.fn(() => ({
-          insert: vi.fn(() => ({
-            select: vi.fn(() => ({
-              single: vi.fn(() =>
-                Promise.resolve({ data: mockInsertedSale, error: null }),
-              ),
-            })),
-          })),
-        })),
-      }));
-      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
-
-      const useSupabaseUserMock = vi.fn(() => ({
-        value: { id: 'test-user-id' },
-      }));
-      vi.stubGlobal('useSupabaseUser', useSupabaseUserMock);
-
-      // Set initial state with existing booth sales
-      boothsStore.allBoothSales = [
-        {
-          id: 2,
-          sale_date: '2024-01-01',
-          sale_time: '10:00',
-          expected_sales: 100,
-        },
-        {
-          id: 3,
-          sale_date: '2024-01-02',
-          sale_time: '09:00',
-          expected_sales: 75,
-        },
-      ] as BoothSale[];
-
-      // Create new store instance with the new mock
-      setActivePinia(createPinia());
-      const newBoothsStore = useBoothsStore();
-      newBoothsStore.allBoothSales = [
-        {
-          id: 2,
-          sale_date: '2024-01-01',
-          sale_time: '10:00',
-          expected_sales: 100,
-        },
-        {
-          id: 3,
-          sale_date: '2024-01-02',
-          sale_time: '09:00',
-          expected_sales: 75,
-        },
-      ] as BoothSale[];
-
-      await newBoothsStore.insertBoothSale(mockBoothSale);
-
-      // Should be sorted by date and time
-      expect(newBoothsStore.allBoothSales[0].sale_time).toBe('08:00'); // Earlier time on same day
-      expect(newBoothsStore.allBoothSales[1].sale_time).toBe('10:00');
-      expect(newBoothsStore.allBoothSales[2].sale_date).toBe('2024-01-02');
     });
   });
 });

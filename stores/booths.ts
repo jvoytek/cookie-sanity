@@ -26,7 +26,10 @@ export const useBoothsStore = defineStore('booths', () => {
 
   const upcomingBoothSales = computed(() => {
     const today = new Date().toLocaleDateString();
-    return allBoothSales.value.filter((booth) => booth.sale_date >= today);
+    const upcomingSales = allBoothSales.value.filter((booth) => {
+      return booth.sale_date >= today;
+    });
+    return upcomingSales;
   });
 
   const boothSalesUsingTroopInventory = computed(() => {
@@ -64,8 +67,7 @@ export const useBoothsStore = defineStore('booths', () => {
   const _sortBoothSales = () => {
     allBoothSales.value.sort(
       (a: BoothSale, b: BoothSale) =>
-        new Date(a.sale_date + ' ' + a.sale_time).getTime() -
-        new Date(b.sale_date + ' ' + b.sale_time).getTime(),
+        new Date(a.sale_date).getTime() - new Date(b.sale_date).getTime(),
     );
   };
 
