@@ -115,7 +115,6 @@ export const useSeasonsStore = defineStore('seasons', () => {
   };
 
   const setActiveSeason = (season: Season | null) => {
-    console.log('setActiveSeason', season);
     activeSeason.value = season;
     // Create a deep copy of the original season for change tracking
     activeSeasonOriginal.value = season

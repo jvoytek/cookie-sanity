@@ -297,6 +297,7 @@ export type Database = {
           profile: string | null;
           season: number;
           seller_id: number;
+          type: string | null;
         };
         Insert: {
           amount: number;
@@ -307,6 +308,7 @@ export type Database = {
           profile?: string | null;
           season?: number;
           seller_id: number;
+          type?: string | null;
         };
         Update: {
           amount?: number;
@@ -317,6 +319,7 @@ export type Database = {
           profile?: string | null;
           season?: number;
           seller_id?: number;
+          type?: string | null;
         };
         Relationships: [
           {

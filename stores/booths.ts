@@ -25,8 +25,11 @@ export const useBoothsStore = defineStore('booths', () => {
   /* Computed */
 
   const upcomingBoothSales = computed(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return allBoothSales.value.filter((booth) => booth.sale_date >= today);
+    const today = new Date().toLocaleDateString();
+    const upcomingSales = allBoothSales.value.filter((booth) => {
+      return booth.sale_date >= today;
+    });
+    return upcomingSales;
   });
 
   const boothSalesUsingTroopInventory = computed(() => {
@@ -64,8 +67,7 @@ export const useBoothsStore = defineStore('booths', () => {
   const _sortBoothSales = () => {
     allBoothSales.value.sort(
       (a: BoothSale, b: BoothSale) =>
-        new Date(a.sale_date + ' ' + a.sale_time).getTime() -
-        new Date(b.sale_date + ' ' + b.sale_time).getTime(),
+        new Date(a.sale_date).getTime() - new Date(b.sale_date).getTime(),
     );
   };
 
@@ -241,9 +243,17 @@ export const useBoothsStore = defineStore('booths', () => {
         return;
 
       const { data, error } = await _supabaseSelectBoothSales();
-
       if (error) throw error;
-      allBoothSales.value = data ?? [];
+
+      //convert sale_date string to mm/dd/yyyy format
+      allBoothSales.value = data.map((boothSale) => {
+        const dateParts = boothSale.sale_date.split('-');
+        const formattedDate = `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
+        return {
+          ...boothSale,
+          sale_date: formattedDate,
+        };
+      });
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
