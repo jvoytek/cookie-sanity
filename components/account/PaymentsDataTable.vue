@@ -10,6 +10,21 @@ const formatHelpers = useFormatHelpers();
 const girlAccount = computed(() => {
   return accountsStore.getGirlAccountById(props.girlId);
 });
+
+const formatPaymentType = (type: string) => {
+  switch (type) {
+    case 'cash':
+      return 'Cash';
+    case 'check':
+      return 'Check';
+    case 'digital_cookie':
+      return 'Digital Cookie';
+    case 'other':
+      return 'Other';
+    default:
+      return type;
+  }
+};
 </script>
 
 <template>
@@ -23,10 +38,19 @@ const girlAccount = computed(() => {
     :sort-order="1"
     size="small"
   >
-    <Column field="payment_date" header="Date" sortable />
+    <Column field="payment_date" header="Date" sortable>
+      <template #body="slotProps">
+        <NuxtTime :datetime="slotProps.data.payment_date" timeZone="UTC" />
+      </template>
+    </Column>
     <Column field="amount" header="Amount" sortable>
       <template #body="slotProps">
         {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
+      </template>
+    </Column>
+    <Column field="type" header="Type" sortable>
+      <template #body="slotProps">
+        {{ formatPaymentType(slotProps.data.type) }}
       </template>
     </Column>
     <Column field="notes" header="Notes" sortable />
@@ -64,7 +88,10 @@ const girlAccount = computed(() => {
       <i class="pi pi-exclamation-triangle !text-3xl" />
       <span v-if="accountsStore.activePayment"
         >Are you sure you want to delete the payment from
-        <b>{{ accountsStore.activePayment.payment_date }}</b
+        <b
+          ><NuxtTime
+            :datetime="accountsStore.activePayment.payment_date"
+            timeZone="UTC" /></b
         >?</span
       >
     </div>

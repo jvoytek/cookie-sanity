@@ -2,6 +2,7 @@ import type { Database } from './supabase';
 export type Order = Database['public']['Tables']['orders']['Row'] & {
   auto_calculate_cookies?: boolean;
   total_cookies?: number;
+  sortDate?: Date;
 };
 export type Girl = Database['public']['Tables']['sellers']['Row'];
 export type Cookie = Database['public']['Tables']['cookies']['Row'];
@@ -11,6 +12,7 @@ export type Season = Database['public']['Tables']['seasons']['Row'];
 export type Payment = Database['public']['Tables']['payments']['Row'];
 export type BoothSale = Database['public']['Tables']['booth_sales']['Row'] & {
   auto_calculate_predicted_cookies?: boolean;
+  sale_date_date?: Date;
 };
 export type InventoryCheck =
   Database['public']['Tables']['inventory_checks']['Row'];

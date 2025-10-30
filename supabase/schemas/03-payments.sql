@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS "public"."payments" (
     "amount" decimal(10,2) not null,
     "payment_date" date not null,
     "notes" text,
+    "type" character varying,
     constraint "payments_pkey" primary key ("id"),
     constraint "payments_profile_fkey" foreign key ("profile") references "public"."profiles"("id") on delete cascade,
     constraint "payments_season_fkey" foreign key ("season") references "public"."seasons"("id") on delete cascade,

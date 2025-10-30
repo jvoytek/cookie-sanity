@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Order } from '@/types/types';
 import CookieReceiptTable from '../other/CookieReceiptTable.vue';
-import { value } from 'happy-dom/lib/PropertySymbol.js';
 
 const props = defineProps<{
   transaction: Order | null;
@@ -83,6 +82,26 @@ const girlAccount = computed(() => {
     true,
   );
 });
+
+const cashCheckOtherPayments = computed(() => {
+  if (!girlAccount.value?.girlPaymentsList) return 0;
+  return girlAccount.value.girlPaymentsList
+    .filter(
+      (payment) =>
+        payment.type === 'cash' ||
+        payment.type === 'check' ||
+        payment.type === 'other' ||
+        payment.type === null,
+    )
+    .reduce((sum, payment) => sum + payment.amount, 0);
+});
+
+const digitalCookiePayments = computed(() => {
+  if (!girlAccount.value?.girlPaymentsList) return 0;
+  return girlAccount.value.girlPaymentsList
+    .filter((payment) => payment.type === 'digital_cookie')
+    .reduce((sum, payment) => sum + payment.amount, 0);
+});
 </script>
 <template>
   <div class="receipt-content">
@@ -97,7 +116,7 @@ const girlAccount = computed(() => {
       </div>
       <div>DATE:</div>
       <div class="flex-2 ml-2 border-b border-gray-400 pb-1">
-        {{ transaction.order_date }}
+        <NuxtTime :datetime="transaction.order_date" />
       </div>
     </div>
     <div class="flex mb-4">
@@ -117,7 +136,7 @@ const girlAccount = computed(() => {
 
     <CookieReceiptTable :cookies="transaction.cookies" class="mb-4" />
     <div v-if="transaction.type === 'G2T' || transaction.type === 'T2G'">
-      <h6>Balance</h6>
+      <h6>BALANCE</h6>
       <DataTable
         :value="[
           {
@@ -146,11 +165,19 @@ const girlAccount = computed(() => {
           </template>
         </Column>
       </DataTable>
-      <h6>Payments</h6>
+      <h6>PAYMENTS</h6>
       <DataTable
         :value="[
           {
-            descripton: 'AMOUNT PAID',
+            descripton: 'CASH/CHECK/OTHER',
+            amount: cashCheckOtherPayments,
+          },
+          {
+            descripton: 'DIGITAL COOKIE',
+            amount: digitalCookiePayments,
+          },
+          {
+            descripton: 'TOTAL PAID',
             amount: girlAccount?.paymentsReceived || 0,
           },
         ]"
@@ -166,6 +193,13 @@ const girlAccount = computed(() => {
           </template>
         </Column>
       </DataTable>
+    </div>
+
+    <div class="flex justify-end mt-8" v-if="transaction?.notes">
+      <div>NOTES:</div>
+      <div class="flex-3 border-b border-gray-400 ml-4">
+        {{ transaction?.notes }}
+      </div>
     </div>
 
     <div class="flex justify-end mt-8">

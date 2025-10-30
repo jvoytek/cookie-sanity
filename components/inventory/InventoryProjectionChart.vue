@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import Chart from 'primevue/chart';
-import MultiSelect from 'primevue/multiselect';
-import DatePicker from 'primevue/datepicker';
-import Button from 'primevue/button';
+import { onMounted } from 'vue';
 import 'chartjs-adapter-date-fns';
 import {
   Chart as ChartJS,
@@ -16,9 +12,6 @@ import {
   Legend,
 } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import { useCookiesStore } from '@/stores/cookies';
-import { useTransactionsStore } from '@/stores/transactions';
-import { useBoothsStore } from '@/stores/booths';
 import type { Order, BoothSale, InventoryEvent, Cookie } from '@/types/types';
 
 // Register Chart.js components and plugins
@@ -67,7 +60,7 @@ onMounted(() => {
 
 // Available cookies for selection
 const availableCookies = computed(() => {
-  return cookiesStore.allCookies.filter((c) => !c.is_virtual);
+  return cookiesStore.allCookies?.filter((c) => !c.is_virtual) || [];
 });
 
 // Calculate inventory projection data
@@ -79,7 +72,7 @@ const calculateInventoryProjection = () => {
   if (cookies.length === 0) return;
 
   // Get all relevant transactions (pending and complete, not requested)
-  const relevantTransactions = transactionsStore.allTransactions.filter(
+  const relevantTransactions = (transactionsStore.allTransactions || []).filter(
     (t) =>
       t.order_date &&
       (t.status === 'pending' ||
@@ -90,7 +83,7 @@ const calculateInventoryProjection = () => {
   );
 
   // Get booth sales that affect troop inventory
-  const relevantBooths = boothsStore.boothSalesUsingTroopInventory;
+  const relevantBooths = boothsStore.boothSalesUsingTroopInventory || [];
 
   // Create events list combining transactions and booth sales
   const events: InventoryEvent[] = [];
@@ -117,7 +110,7 @@ const calculateInventoryProjection = () => {
         date: booth.sale_date,
         type: 'BOOTH',
         boothSale: booth,
-        cookies: transactionsStore._invertCookieQuantities(cookiesRecord),
+        cookies: transactionsStore.invertCookieQuantities(cookiesRecord),
         description: getEventDescription(booth),
       });
     }
@@ -275,7 +268,6 @@ const updateChart = () => {
 
   // Add today marker line
   const today = new Date().toISOString().split('T')[0];
-  //const today = new Date('2025-02-4').toISOString().split('T')[0]; // For testing
   annotations.todayLine = {
     type: 'line',
     xMin: today,
@@ -481,9 +473,9 @@ onMounted(() => {
 // Watch for changes in stores and update chart
 const shouldUpdate = computed(
   () =>
-    cookiesStore.allCookies.length +
-    transactionsStore.allTransactions.length +
-    boothsStore.allBoothSales.length,
+    (cookiesStore.allCookies?.length || 0) +
+    (transactionsStore.allTransactions?.length || 0) +
+    (boothsStore.allBoothSales?.length || 0),
 );
 
 // Update chart when data changes
@@ -514,11 +506,11 @@ watch(
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium">Start Date</label>
-        <DatePicker v-model="startDate" date-format="yy-mm-dd" show-icon />
+        <DatePicker v-model="startDate" show-icon />
       </div>
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium">End Date</label>
-        <DatePicker v-model="endDate" date-format="yy-mm-dd" show-icon />
+        <DatePicker v-model="endDate" show-icon />
       </div>
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium">Cookies</label>

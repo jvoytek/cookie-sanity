@@ -270,22 +270,44 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const _invertCookieQuantities = (cookies: Json | null | undefined) => {
-    if (!cookies) return cookies;
+  const _convertDateStringToMMDDYYYY = (
+    date: string | null | undefined,
+  ): string | null => {
+    if (!date) return null;
+    const dateParts = date.split('-');
+    if (dateParts.length !== 3) return date ?? null;
+    return `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
+  };
+
+  const invertCookieQuantities = (
+    cookies: Json | null | undefined,
+  ): Json | null => {
+    if (!cookies) return null;
     return Object.fromEntries(
       Object.entries(cookies).map(([key, value]) => [
         key,
         typeof value === 'number' ? (value === 0 ? null : value * -1) : value,
       ]),
-    );
+    ) as Json;
   };
 
   const _invertCookieQuantitiesInTransaction = (transaction: Order) => {
-    const invertedCookies = _invertCookieQuantities(transaction.cookies);
+    const invertedCookies = invertCookieQuantities(transaction.cookies);
     transaction.cookies = invertedCookies
       ? invertedCookies
       : transaction.cookies;
     return transaction;
+  };
+
+  const _transformDataForTransaction = (transaction: Order): Order => {
+    return {
+      ...transaction,
+      cookies: invertCookieQuantities(transaction.cookies),
+      order_date: _convertDateStringToMMDDYYYY(transaction.order_date),
+      sortDate: transaction.order_date
+        ? new Date(transaction.order_date)
+        : new Date(0),
+    } as Order;
   };
 
   const _supabaseFetchTransactions = async () => {
@@ -364,8 +386,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         return;
       const { data, error } = await _supabaseFetchTransactions();
       if (error) throw error;
-      allTransactions.value =
-        data.map(_invertCookieQuantitiesInTransaction) ?? [];
+      allTransactions.value = data.map(_transformDataForTransaction) ?? [];
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -378,7 +399,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     transaction.season =
       profileStore.currentProfile.season || seasonsStore.allSeasons[0].id;
     transaction.order_date = _returnDateStringOrNull(transaction.order_date);
-    transaction.cookies = _invertCookieQuantities(transaction.cookies);
+    transaction.cookies = invertCookieQuantities(transaction.cookies);
 
     if (transaction.auto_calculate_cookies !== undefined)
       delete transaction.auto_calculate_cookies;
@@ -390,9 +411,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       const { data, error } = await _supabaseInsertTransaction(transaction);
 
       if (error) throw error;
-      const invertedCookies = _invertCookieQuantities(data.cookies);
-      data.cookies = invertedCookies ? invertedCookies : data.cookies;
-      _addTransaction(data);
+      _addTransaction(_transformDataForTransaction(data));
       _sortTransactions();
       notificationHelpers.addSuccess('Transaction Created');
     } catch (error) {
@@ -421,7 +440,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   };
 
   const upsertTransaction = async (transaction: Order) => {
-    const invertedCookies = _invertCookieQuantities(transaction.cookies);
+    const invertedCookies = invertCookieQuantities(transaction.cookies);
     transaction.cookies = invertedCookies
       ? invertedCookies
       : transaction.cookies;
@@ -436,10 +455,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       const { data, error } = await _supabaseUpsertTransaction(transaction);
 
       if (error) throw error;
-      const reinvertedCookies = _invertCookieQuantities(data.cookies);
-      data.cookies = reinvertedCookies ? reinvertedCookies : data.cookies;
 
-      _updateTransaction(data);
+      _updateTransaction(_transformDataForTransaction(data));
       _sortTransactions();
       notificationHelpers.addSuccess('Transaction Updated');
     } catch (error) {
@@ -517,9 +534,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         status,
       );
       if (error) throw error;
-      const invertedCookies = _invertCookieQuantities(data.cookies);
-      data.cookies = invertedCookies ? invertedCookies : data.cookies;
-      _updateTransaction(data);
+      _updateTransaction(_transformDataForTransaction(data));
       _sortTransactions();
       notificationHelpers.addSuccess(
         `Transaction Marked ${status.charAt(0).toUpperCase() + status.slice(1)}`,
@@ -534,7 +549,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     status: string,
   ) => {
     try {
-      console.log(transactionIds);
       const { error } = await _supabaseUpdateTransactionStatusBulk(
         transactionIds,
         status,
@@ -648,7 +662,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     updateTransactionStatus,
     updateTransactionStatusBulk,
     friendlyTransactionTypes,
-    _invertCookieQuantities,
+    invertCookieQuantities,
     troopTransactionTypeOptions,
     girlTransactionTypeOptions,
     getGirlTransactionsByStatus,

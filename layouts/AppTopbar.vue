@@ -31,7 +31,6 @@ function toggleOverlayMenu(event) {
 }
 
 async function signOut() {
-  console.log('signing out');
   try {
     loading.value = true;
     const { error } = await supabase.auth.signOut();
