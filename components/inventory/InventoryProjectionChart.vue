@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import 'chartjs-adapter-date-fns';
 import {
   Chart as ChartJS,
@@ -41,18 +42,25 @@ const chartOptions = ref();
 const chartRef = ref();
 
 // Filter state
-const today = new Date();
-const startDate = ref<Date>(new Date(today));
-startDate.value.setDate(startDate.value.getDate() - 7); // 1 weeks ago
+const startDate = ref<Date | null>(null);
+const endDate = ref<Date | null>(null);
+const selectedCookies = ref<Cookie[]>([]);
 
-const endDate = ref<Date>(new Date(today));
-endDate.value.setDate(endDate.value.getDate() + 14); // 2 weeks from now
+// Initialize selected cookies with all non-virtual cookies
+onMounted(() => {
+  selectedCookies.value = cookiesStore.allCookies.filter((c) => !c.is_virtual);
 
-const selectedCookies = ref<Cookie[]>(cookiesStore.allCookiesNotVirtual);
+  // Set default date range
+  const today = new Date();
+  startDate.value = new Date(today);
+  startDate.value.setMonth(today.getMonth() - 1); // 1 month ago
+  endDate.value = new Date(today);
+  endDate.value.setMonth(today.getMonth() + 2); // 2 months from now
+});
 
 // Available cookies for selection
 const availableCookies = computed(() => {
-  return cookiesStore.allCookies.filter((c) => !c.is_virtual);
+  return cookiesStore.allCookies?.filter((c) => !c.is_virtual) || [];
 });
 
 // Calculate inventory projection data
@@ -64,7 +72,7 @@ const calculateInventoryProjection = () => {
   if (cookies.length === 0) return;
 
   // Get all relevant transactions (pending and complete, not requested)
-  const relevantTransactions = transactionsStore.allTransactions.filter(
+  const relevantTransactions = (transactionsStore.allTransactions || []).filter(
     (t) =>
       t.order_date &&
       (t.status === 'pending' ||
@@ -75,7 +83,7 @@ const calculateInventoryProjection = () => {
   );
 
   // Get booth sales that affect troop inventory
-  const relevantBooths = boothsStore.boothSalesUsingTroopInventory;
+  const relevantBooths = boothsStore.boothSalesUsingTroopInventory || [];
 
   // Create events list combining transactions and booth sales
   const events: InventoryEvent[] = [];
@@ -465,9 +473,9 @@ onMounted(() => {
 // Watch for changes in stores and update chart
 const shouldUpdate = computed(
   () =>
-    cookiesStore.allCookies.length +
-    transactionsStore.allTransactions.length +
-    boothsStore.allBoothSales.length,
+    (cookiesStore.allCookies?.length || 0) +
+    (transactionsStore.allTransactions?.length || 0) +
+    (boothsStore.allBoothSales?.length || 0),
 );
 
 // Update chart when data changes
