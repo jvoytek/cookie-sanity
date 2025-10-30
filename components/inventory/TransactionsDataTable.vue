@@ -311,7 +311,7 @@ const anyReceiptsAvailable = computed(() => {
     v-model:selection="selectedTransactions"
     :value="orders"
     data-key="id"
-    sort-field="order_date"
+    sort-field="sortDate"
     :sort-order="-1"
     :paginator="props.paginated !== false"
     :rows="20"
@@ -392,7 +392,7 @@ const anyReceiptsAvailable = computed(() => {
         <CookieList :cookies="slotProps.data.cookies" />
       </template>
     </Column>
-    <Column field="order_date" header="Date" sortable>
+    <Column field="order_date" header="Date" sortField="sortDate" sortable>
       <template #body="slotProps">
         <NuxtTime :datetime="slotProps.data.order_date" timeZone="UTC" />
       </template>

@@ -311,6 +311,19 @@ export const useAccountsStore = defineStore('accounts', () => {
     });
   };
 
+  const _transformDataForPayment = (payment: Payment) => {
+    const transformedPayment = { ...payment };
+    // Convert payment_date from yyyy-mm-dd to mm/dd/yyyy
+    if (payment.payment_date) {
+      const dateParts = payment.payment_date.split('-');
+      const year = dateParts[0];
+      const month = dateParts[1].padStart(2, '0');
+      const day = dateParts[2].padStart(2, '0');
+      transformedPayment.payment_date = `${month}/${day}/${year}`;
+    }
+    return transformedPayment;
+  };
+
   /* Actions */
 
   const fetchPayments = async () => {
@@ -320,16 +333,7 @@ export const useAccountsStore = defineStore('accounts', () => {
       const { data, error } = await _supabaseGetPayments();
       // convert payment_date strings to mm/dd/yyyy format
       if (data) {
-        allPayments.value = data.map((payment) => {
-          if (payment.payment_date) {
-            const dateParts = payment.payment_date.split('-');
-            const year = dateParts[0];
-            const month = dateParts[1].padStart(2, '0');
-            const day = dateParts[2].padStart(2, '0');
-            payment.payment_date = `${month}/${day}/${year}`;
-          }
-          return payment;
-        });
+        allPayments.value = data.map(_transformDataForPayment);
       }
       if (error) throw error;
     } catch (error) {
@@ -349,7 +353,7 @@ export const useAccountsStore = defineStore('accounts', () => {
       );
 
       if (error) throw error;
-      _addPayment(data);
+      _addPayment(_transformDataForPayment(data));
       notificationHelpers.addSuccess('Payment Added');
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -362,7 +366,7 @@ export const useAccountsStore = defineStore('accounts', () => {
 
       if (error) throw error;
 
-      _updatePayment(data);
+      _updatePayment(_transformDataForPayment(data));
       _sortPayments();
       notificationHelpers.addSuccess('Payment Updated');
     } catch (error) {

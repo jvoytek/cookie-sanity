@@ -304,6 +304,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
       ...transaction,
       cookies: invertCookieQuantities(transaction.cookies),
       order_date: _convertDateStringToMMDDYYYY(transaction.order_date),
+      sortDate: transaction.order_date
+        ? new Date(transaction.order_date)
+        : new Date(0),
     } as Order;
   };
 

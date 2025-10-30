@@ -1,5 +1,7 @@
 import type { Database } from './supabase';
-export type Order = Database['public']['Tables']['orders']['Row'];
+export type Order = Database['public']['Tables']['orders']['Row'] & {
+  sortDate?: Date;
+};
 export type Girl = Database['public']['Tables']['sellers']['Row'];
 export type Cookie = Database['public']['Tables']['cookies']['Row'];
 export type User = Database['public']['Tables']['profiles']['Row'];
