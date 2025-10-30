@@ -25,7 +25,7 @@ export const useBoothsStore = defineStore('booths', () => {
   /* Computed */
 
   const upcomingBoothSales = computed(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString();
     return allBoothSales.value.filter((booth) => booth.sale_date >= today);
   });
 
@@ -241,9 +241,17 @@ export const useBoothsStore = defineStore('booths', () => {
         return;
 
       const { data, error } = await _supabaseSelectBoothSales();
-
       if (error) throw error;
-      allBoothSales.value = data ?? [];
+
+      //convert sale_date string to mm/dd/yyyy format
+      allBoothSales.value = data.map((boothSale) => {
+        const dateParts = boothSale.sale_date.split('-');
+        const formattedDate = `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
+        return {
+          ...boothSale,
+          sale_date: formattedDate,
+        };
+      });
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }

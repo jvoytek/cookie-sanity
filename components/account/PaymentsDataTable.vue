@@ -8,7 +8,6 @@ const paymentHelpers = usePaymentHelpers();
 const formatHelpers = useFormatHelpers();
 
 const girlAccount = computed(() => {
-  console.log('getting girlAccountById for girlId:', props.girlId);
   return accountsStore.getGirlAccountById(props.girlId);
 });
 
@@ -39,7 +38,11 @@ const formatPaymentType = (type: string) => {
     :sort-order="1"
     size="small"
   >
-    <Column field="payment_date" header="Date" sortable />
+    <Column field="payment_date" header="Date" sortable>
+      <template #body="slotProps">
+        <NuxtTime :datetime="slotProps.data.payment_date" timeZone="UTC" />
+      </template>
+    </Column>
     <Column field="amount" header="Amount" sortable>
       <template #body="slotProps">
         {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
@@ -85,7 +88,10 @@ const formatPaymentType = (type: string) => {
       <i class="pi pi-exclamation-triangle !text-3xl" />
       <span v-if="accountsStore.activePayment"
         >Are you sure you want to delete the payment from
-        <b>{{ accountsStore.activePayment.payment_date }}</b
+        <b
+          ><NuxtTime
+            :datetime="accountsStore.activePayment.payment_date"
+            timeZone="UTC" /></b
         >?</span
       >
     </div>

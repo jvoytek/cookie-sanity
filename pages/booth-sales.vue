@@ -47,7 +47,7 @@ const submitButtonClickHandler = () => {
   if (formNode.value) formNode.value.submit();
 };
 
-function editBoothSale(sale: BoothSale | null) {
+function editBoothSale(sale: BoothSale) {
   boothsStore.boothDialogFormSchema.value = getBoothSaleDialogFormSchema();
   boothsStore.setActiveBoothSale(sale);
   boothsStore.boothDialogVisible = true;
@@ -115,7 +115,7 @@ const getBoothSaleDialogFormSchema = () => {
       labelClass: 'col-span-1',
       innerClass: 'col-span-3 mt-1 mb-1',
       class: 'w-full',
-      'date-format': 'yy-mm-dd',
+      'date-format': 'mm/dd/yy',
       'show-icon': true,
     },
     {
@@ -258,7 +258,7 @@ const data = {
         >
           <Column field="sale_date" header="Date" sortable>
             <template #body="slotProps">
-              {{ formatHelpers.formatDate(slotProps.data.sale_date) }}
+              <NuxtTime :datetime="slotProps.data.sale_date" timeZone="UTC" />
             </template>
           </Column>
           <Column field="sale_time" header="Time" sortable>
@@ -356,9 +356,9 @@ const data = {
             <span v-if="boothsStore.activeBoothSale">
               Are you sure you want to delete the booth sale at
               <b>{{ boothsStore.activeBoothSale.location }}</b> on
-              <b>{{
-                formatHelpers.formatDate(boothsStore.activeBoothSale.sale_date)
-              }}</b
+              <b
+                ><NuxtTime
+                  :datetime="boothsStore.activeBoothSale.sale_date" /></b
               >?
             </span>
           </div>

@@ -28,7 +28,6 @@ describe('CookieList Component', () => {
         ],
       },
     });
-    console.log(wrapper.html());
     expect(wrapper.find('div > span:last-child').text()).toContain('Total: 7');
     expect(wrapper.text()).toContain('5 Adventurefuls');
     expect(wrapper.text()).toContain('2 Thin Mints');

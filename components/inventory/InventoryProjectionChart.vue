@@ -1,9 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import Chart from 'primevue/chart';
-import MultiSelect from 'primevue/multiselect';
-import DatePicker from 'primevue/datepicker';
-import Button from 'primevue/button';
 import 'chartjs-adapter-date-fns';
 import {
   Chart as ChartJS,
@@ -16,9 +11,6 @@ import {
   Legend,
 } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import { useCookiesStore } from '@/stores/cookies';
-import { useTransactionsStore } from '@/stores/transactions';
-import { useBoothsStore } from '@/stores/booths';
 import type { Order, BoothSale, InventoryEvent, Cookie } from '@/types/types';
 
 // Register Chart.js components and plugins
@@ -49,21 +41,14 @@ const chartOptions = ref();
 const chartRef = ref();
 
 // Filter state
-const startDate = ref<Date | null>(null);
-const endDate = ref<Date | null>(null);
-const selectedCookies = ref<Cookie[]>([]);
+const today = new Date();
+const startDate = ref<Date>(new Date(today));
+startDate.value.setDate(startDate.value.getDate() - 7); // 1 weeks ago
 
-// Initialize selected cookies with all non-virtual cookies
-onMounted(() => {
-  selectedCookies.value = cookiesStore.allCookies.filter((c) => !c.is_virtual);
+const endDate = ref<Date>(new Date(today));
+endDate.value.setDate(endDate.value.getDate() + 14); // 2 weeks from now
 
-  // Set default date range
-  const today = new Date();
-  startDate.value = new Date(today);
-  startDate.value.setMonth(today.getMonth() - 1); // 1 month ago
-  endDate.value = new Date(today);
-  endDate.value.setMonth(today.getMonth() + 2); // 2 months from now
-});
+const selectedCookies = ref<Cookie[]>(cookiesStore.allCookiesNotVirtual);
 
 // Available cookies for selection
 const availableCookies = computed(() => {
@@ -117,7 +102,7 @@ const calculateInventoryProjection = () => {
         date: booth.sale_date,
         type: 'BOOTH',
         boothSale: booth,
-        cookies: transactionsStore._invertCookieQuantities(cookiesRecord),
+        cookies: transactionsStore.invertCookieQuantities(cookiesRecord),
         description: getEventDescription(booth),
       });
     }
@@ -275,7 +260,6 @@ const updateChart = () => {
 
   // Add today marker line
   const today = new Date().toISOString().split('T')[0];
-  //const today = new Date('2025-02-4').toISOString().split('T')[0]; // For testing
   annotations.todayLine = {
     type: 'line',
     xMin: today,
@@ -514,11 +498,11 @@ watch(
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium">Start Date</label>
-        <DatePicker v-model="startDate" date-format="yy-mm-dd" show-icon />
+        <DatePicker v-model="startDate" show-icon />
       </div>
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium">End Date</label>
-        <DatePicker v-model="endDate" date-format="yy-mm-dd" show-icon />
+        <DatePicker v-model="endDate" show-icon />
       </div>
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium">Cookies</label>

@@ -112,11 +112,12 @@ export const useAccountsStore = defineStore('accounts', () => {
 
   const _getPaymentsForGirl = (
     girlId: number,
-    untilDate: Date = new Date(), // Return only payments before this date (not inclusive)
+    untilDate?: Date, // Return only payments before this date (not inclusive)
   ): Payment[] => {
     return allPayments.value.filter((p: Payment) => {
       if (p.seller_id !== girlId) return false;
       if (!p.payment_date) return false;
+      if (!untilDate) return true;
       return new Date(p.payment_date) < untilDate;
     });
   };
@@ -298,6 +299,18 @@ export const useAccountsStore = defineStore('accounts', () => {
     return await supabaseClient.from('payments').delete().eq('id', payment.id);
   };
 
+  const _sortPayments = () => {
+    allPayments.value.sort((a, b) => {
+      const dateA = a.payment_date
+        ? new Date(a.payment_date).getTime()
+        : Number.NEGATIVE_INFINITY;
+      const dateB = b.payment_date
+        ? new Date(b.payment_date).getTime()
+        : Number.NEGATIVE_INFINITY;
+      return dateB - dateA;
+    });
+  };
+
   /* Actions */
 
   const fetchPayments = async () => {
@@ -305,8 +318,20 @@ export const useAccountsStore = defineStore('accounts', () => {
       if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
         return;
       const { data, error } = await _supabaseGetPayments();
+      // convert payment_date strings to mm/dd/yyyy format
+      if (data) {
+        allPayments.value = data.map((payment) => {
+          if (payment.payment_date) {
+            const dateParts = payment.payment_date.split('-');
+            const year = dateParts[0];
+            const month = dateParts[1].padStart(2, '0');
+            const day = dateParts[2].padStart(2, '0');
+            payment.payment_date = `${month}/${day}/${year}`;
+          }
+          return payment;
+        });
+      }
       if (error) throw error;
-      allPayments.value = data ?? [];
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -338,6 +363,7 @@ export const useAccountsStore = defineStore('accounts', () => {
       if (error) throw error;
 
       _updatePayment(data);
+      _sortPayments();
       notificationHelpers.addSuccess('Payment Updated');
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -362,11 +388,11 @@ export const useAccountsStore = defineStore('accounts', () => {
     untilId?: number,
     includePending: boolean = false,
   ) => {
-    console.log(untilId);
     if (!untilId) {
-      return girlAccountBalances.value.find(
+      const girlAccount = girlAccountBalances.value.find(
         (account) => account.girl.id === id,
       );
+      return girlAccount;
     } else {
       const girl = girlsStore.getGirlById(id);
       if (!girl) return null;
@@ -402,16 +428,7 @@ export const useAccountsStore = defineStore('accounts', () => {
         }
       }
     }
-    console.log(
-      'girlId:',
-      girl.id,
-      'untilId:',
-      untilId,
-      'untilDate:',
-      untilDate,
-    );
     const girlPaymentsList = _getPaymentsForGirl(girl.id, untilDate);
-    console.log(girlPaymentsList);
     const paymentsReceived = _getTotalofPayments(girlPaymentsList);
     const balance = paymentsReceived - distributedValue;
     const status = _getStatus(balance);

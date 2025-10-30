@@ -116,7 +116,7 @@ const digitalCookiePayments = computed(() => {
       </div>
       <div>DATE:</div>
       <div class="flex-2 ml-2 border-b border-gray-400 pb-1">
-        {{ transaction.order_date }}
+        <NuxtTime :datetime="transaction.order_date" />
       </div>
     </div>
     <div class="flex mb-4">
@@ -193,6 +193,13 @@ const digitalCookiePayments = computed(() => {
           </template>
         </Column>
       </DataTable>
+    </div>
+
+    <div class="flex justify-end mt-8" v-if="transaction?.notes">
+      <div>NOTES:</div>
+      <div class="flex-3 border-b border-gray-400 ml-4">
+        {{ transaction?.notes }}
+      </div>
     </div>
 
     <div class="flex justify-end mt-8">

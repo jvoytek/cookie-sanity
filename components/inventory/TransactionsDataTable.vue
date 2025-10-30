@@ -392,25 +392,12 @@ const anyReceiptsAvailable = computed(() => {
         <CookieList :cookies="slotProps.data.cookies" />
       </template>
     </Column>
-    <Column field="order_date" header="Expected" sortable />
-    <Column
-      v-if="
-        props.transactionTypes === 'girl' || props.transactionTypes === 'all'
-      "
-      field="completed_date"
-      header="Completed"
-      sortable
-    >
+    <Column field="order_date" header="Date" sortable>
       <template #body="slotProps">
-        {{
-          slotProps.data.status === 'complete'
-            ? slotProps.data.completed_date
-              ? slotProps.data.completed_date
-              : slotProps.data.order_date
-            : 'N/A'
-        }}
+        <NuxtTime :datetime="slotProps.data.order_date" timeZone="UTC" />
       </template>
     </Column>
+    <Column field="notes" header="Notes" />
     <Column field="actions" header="Actions" style="min-width: 182px">
       <template #body="slotProps">
         <Button

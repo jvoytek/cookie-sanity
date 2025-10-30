@@ -156,11 +156,9 @@ const getDiscrepancySeverity = (diff: number) => {
               class="mt-2 text-sm text-surface-600 dark:text-surface-300"
             >
               Last check:
-              {{
-                formatHelpers.formatDate(
-                  inventoryChecksStore.latestInventoryCheck.check_date,
-                )
-              }}
+              <NuxtTime
+                :datetime="inventoryChecksStore.latestInventoryCheck.check_date"
+              />
               by {{ inventoryChecksStore.latestInventoryCheck.conducted_by }}
             </div>
           </div>
@@ -195,7 +193,7 @@ const getDiscrepancySeverity = (diff: number) => {
           </template>
           <Column field="check_date" header="Check Date" sortable>
             <template #body="slotProps">
-              {{ formatHelpers.formatDate(slotProps.data.check_date) }}
+              <NuxtTime :datetime="slotProps.data.check_date" relative />
             </template>
           </Column>
           <Column field="conducted_by" header="Conducted By" sortable />
@@ -259,7 +257,7 @@ const getDiscrepancySeverity = (diff: number) => {
           <div>
             <label class="block font-medium mb-2">Date</label>
             <InputText
-              :value="formatHelpers.formatDate(new Date().toISOString())"
+              :value="new Date().toLocaleString()"
               disabled
               class="w-full"
             />
