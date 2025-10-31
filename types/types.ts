@@ -1,5 +1,7 @@
 import type { Database } from './supabase';
 export type Order = Database['public']['Tables']['orders']['Row'] & {
+  auto_calculate_cookies?: boolean;
+  total_cookies?: number;
   sortDate?: Date;
 };
 export type Girl = Database['public']['Tables']['sellers']['Row'];

@@ -401,6 +401,12 @@ export const useTransactionsStore = defineStore('transactions', () => {
     transaction.order_date = _returnDateStringOrNull(transaction.order_date);
     transaction.cookies = invertCookieQuantities(transaction.cookies);
 
+    if (transaction.auto_calculate_cookies !== undefined)
+      delete transaction.auto_calculate_cookies;
+
+    if (transaction.total_cookies !== undefined)
+      delete transaction.total_cookies;
+
     try {
       const { data, error } = await _supabaseInsertTransaction(transaction);
 
@@ -425,6 +431,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
           : profileStore.currentProfile?.season ||
             seasonsStore.allSeasons[0].id,
     }));
+
     const { error } = await supabaseClient
       .from('orders')
       .insert(validTransactionsList)
@@ -437,6 +444,12 @@ export const useTransactionsStore = defineStore('transactions', () => {
     transaction.cookies = invertedCookies
       ? invertedCookies
       : transaction.cookies;
+
+    if (transaction.auto_calculate_cookies !== undefined)
+      delete transaction.auto_calculate_cookies;
+
+    if (transaction.total_cookies !== undefined)
+      delete transaction.total_cookies;
 
     try {
       const { data, error } = await _supabaseUpsertTransaction(transaction);
@@ -599,6 +612,20 @@ export const useTransactionsStore = defineStore('transactions', () => {
     return transactions;
   };
 
+  const setActiveTransactionPredictedCookies = (expectedSales: number) => {
+    if (!activeTransaction.value) return;
+    activeTransaction.value.cookies =
+      cookiesStore.getPredictedCookiesFromExpectedSales(expectedSales);
+  };
+
+  const setActiveTransactionTotalExpectedSales = () => {
+    if (!activeTransaction.value) return;
+    const predictedCookies = activeTransaction.value.cookies || {};
+    activeTransaction.value.total_cookies = Object.values(predictedCookies)
+      .map((val) => Number(val) || 0)
+      .reduce((sum: number, val: number) => sum + val, 0);
+  };
+
   return {
     allTransactions,
     sumTransactionsByCookie,
@@ -641,5 +668,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     getGirlTransactionsByStatus,
     transactionRequiresReceipt,
     getTransactionsById,
+    setActiveTransactionPredictedCookies,
+    setActiveTransactionTotalExpectedSales,
   };
 });

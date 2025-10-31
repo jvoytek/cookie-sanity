@@ -1,9 +1,11 @@
 import type { Order } from '@/types/types';
+import { watchDebounced, watchDeep } from '@vueuse/core';
 
 export const useTransactionHelpers = () => {
   const ordersStore = useTransactionsStore();
   const cookiesStore = useCookiesStore();
   const girlsStore = useGirlsStore();
+  const transactionsStore = useTransactionsStore();
   const submitted = ref(false);
   const notificationHelpers = useNotificationHelpers();
   const receiptDialogVisible = ref(false);
@@ -26,6 +28,49 @@ export const useTransactionHelpers = () => {
         return null;
     }
   };
+
+  watchDebounced(
+    () => ordersStore.activeTransaction?.total_cookies,
+    (newTotalCookies, oldTotalCookies) => {
+      if (
+        !ordersStore.activeTransaction?.auto_calculate_cookies ||
+        oldTotalCookies === newTotalCookies
+      ) {
+        return;
+      }
+
+      if (oldTotalCookies !== newTotalCookies) {
+        transactionsStore.setActiveTransactionPredictedCookies(
+          newTotalCookies || 0,
+        );
+      }
+    },
+    { debounce: 200, maxWait: 1000 },
+  );
+
+  watchDeep(
+    () => ordersStore.activeTransaction?.cookies,
+    (newCookies, _oldCookies) => {
+      if (
+        ordersStore.activeTransaction?.auto_calculate_cookies ||
+        newCookies === undefined
+      ) {
+        return;
+      }
+
+      const sumNewPredictedCookies = Object.values(newCookies).reduce(
+        (sum, val) => sum + Number(val || 0),
+        0,
+      );
+
+      const activeTransactionTotalCookies =
+        ordersStore.activeTransaction?.total_cookies || 0;
+
+      if (sumNewPredictedCookies !== activeTransactionTotalCookies || 0) {
+        transactionsStore.setActiveTransactionTotalExpectedSales();
+      }
+    },
+  );
 
   const getTransactionDialogFormSchema = (dialogType: string) => {
     const baseSchema = [
@@ -291,16 +336,45 @@ export const useTransactionHelpers = () => {
         if: "$get('transaction-type').value === 'DIRECT_SHIP'",
       },
       {
+        $formkit: 'primeToggleSwitch',
+        name: 'auto_calculate_cookies',
+        label: 'Auto-Calculate Cookies',
+        key: 'auto_calculate_cookies',
+        id: 'auto_calculate_cookies',
+        value: false,
+        wrapperClass: 'grid grid-cols-3 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-2 mt-1 mb-1',
+        class: 'w-full',
+        if: "$get('transaction-type').value",
+      },
+      {
+        $formkit: 'primeInputNumber',
+        name: 'total_cookies',
+        label: 'Total',
+        key: 'total_cookies',
+        placeholder: '25, 50, 100, etc.',
+        validation: 'required|integer',
+        wrapperClass: 'grid grid-cols-3 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-2 mt-1 mb-1',
+        class: 'w-full',
+        if: "$get('transaction-type').value",
+        disabled: "!$get('auto_calculate_cookies').value",
+      },
+      {
         $formkit: 'group',
         name: 'cookies',
         children: cookiesStore.cookieFormFields,
         if: "$get('transaction-type').value && $get('transaction-type').value === 'T2G'",
+        disabled: "$get('auto_calculate_cookies').value === true",
       },
       {
         $formkit: 'group',
         name: 'cookies',
         children: cookiesStore.cookieFormFieldsNotVirtual,
         if: "$get('transaction-type').value && $get('transaction-type').value !== 'T2G'",
+        disabled: "$get('auto_calculate_cookies').value === true",
       },
     ];
 
