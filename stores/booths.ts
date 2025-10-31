@@ -112,6 +112,16 @@ export const useBoothsStore = defineStore('booths', () => {
       .eq('id', boothSale.id);
   };
 
+  const _transformDataForBoothSale = (booth: BoothSale) => {
+    // transform sale_date from yyyy-mm-dd to mm/dd/yyyy
+    const dateParts = booth.sale_date.split('-');
+    const formattedDate = `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
+    return {
+      ...booth,
+      sale_date: formattedDate,
+    };
+  };
+
   /* Actions */
 
   const setActiveBoothSalePredictedCookies = (expectedSales: number) => {
@@ -137,14 +147,7 @@ export const useBoothsStore = defineStore('booths', () => {
       if (error) throw error;
 
       //convert sale_date string to mm/dd/yyyy format
-      allBoothSales.value = data.map((boothSale) => {
-        const dateParts = boothSale.sale_date.split('-');
-        const formattedDate = `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
-        return {
-          ...boothSale,
-          sale_date: formattedDate,
-        };
-      });
+      allBoothSales.value = data.map(_transformDataForBoothSale);
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -171,7 +174,7 @@ export const useBoothsStore = defineStore('booths', () => {
 
       if (error) throw error;
 
-      _addBoothSale(data as BoothSale);
+      _addBoothSale(_transformDataForBoothSale(data) as BoothSale);
       _sortBoothSales();
       notificationHelpers.addSuccess('Booth Sale Created');
     } catch (error) {

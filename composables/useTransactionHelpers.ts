@@ -1,4 +1,5 @@
 import type { Order } from '@/types/types';
+import { watchDebounced, watchDeep } from '@vueuse/core';
 
 export const useTransactionHelpers = () => {
   const ordersStore = useTransactionsStore();
@@ -28,34 +29,48 @@ export const useTransactionHelpers = () => {
     }
   };
 
-  transactionsStore.$subscribe((mutation, _state) => {
-    const oldSale = mutation.events?.oldValue || {};
-    const newSale = mutation.events?.newValue || {};
+  watchDebounced(
+    () => ordersStore.activeTransaction?.total_cookies,
+    (newTotalCookies, oldTotalCookies) => {
+      if (
+        !ordersStore.activeTransaction?.auto_calculate_cookies ||
+        oldTotalCookies === newTotalCookies
+      ) {
+        return;
+      }
 
-    const oldExpectedSales = Number(oldSale.total_cookies || 0);
-    const newExpectedSales = Number(newSale.total_cookies || 0);
+      if (oldTotalCookies !== newTotalCookies) {
+        transactionsStore.setActiveTransactionPredictedCookies(
+          newTotalCookies || 0,
+        );
+      }
+    },
+    { debounce: 200, maxWait: 1000 },
+  );
 
-    const newPredictedCookies = newSale.cookies || {};
+  watchDeep(
+    () => ordersStore.activeTransaction?.cookies,
+    (newCookies, _oldCookies) => {
+      if (
+        ordersStore.activeTransaction?.auto_calculate_cookies ||
+        newCookies === undefined
+      ) {
+        return;
+      }
 
-    const sumNewPredictedCookies = Object.values(newPredictedCookies).reduce(
-      (sum, val) => sum + Number(val || 0),
-      0,
-    );
+      const sumNewPredictedCookies = Object.values(newCookies).reduce(
+        (sum, val) => sum + Number(val || 0),
+        0,
+      );
 
-    // If nothing relevant changed, skip
-    if (
-      oldExpectedSales === newExpectedSales &&
-      sumNewPredictedCookies === newExpectedSales
-    )
-      return;
+      const activeTransactionTotalCookies =
+        ordersStore.activeTransaction?.total_cookies || 0;
 
-    if (sumNewPredictedCookies !== newExpectedSales) {
-      transactionsStore.setActiveTransactionTotalExpectedSales();
-    }
-    if (oldExpectedSales !== newExpectedSales) {
-      transactionsStore.setActiveTransactionPredictedCookies(newExpectedSales);
-    }
-  });
+      if (sumNewPredictedCookies !== activeTransactionTotalCookies || 0) {
+        transactionsStore.setActiveTransactionTotalExpectedSales();
+      }
+    },
+  );
 
   const getTransactionDialogFormSchema = (dialogType: string) => {
     const baseSchema = [

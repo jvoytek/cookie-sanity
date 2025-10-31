@@ -2,6 +2,7 @@
 import { useToast } from 'primevue/usetoast';
 import type { BoothSale } from '@/types/types';
 import { useFormKitNodeById } from '@formkit/vue';
+import { watchDebounced, watchDeep } from '@vueuse/core';
 
 const formNode = useFormKitNodeById('booth-form');
 
@@ -73,7 +74,7 @@ async function deleteBoothSale() {
   }
 }
 
-boothsStore.$subscribe((mutation, _state) => {
+/*boothsStore.$subscribe((mutation, _state) => {
   const oldSale = mutation.events?.oldValue || {};
   const newSale = mutation.events?.newValue || {};
 
@@ -100,7 +101,48 @@ boothsStore.$subscribe((mutation, _state) => {
   if (oldExpectedSales !== newExpectedSales) {
     boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
   }
-});
+});*/
+
+watchDebounced(
+  () => boothsStore.activeBoothSale?.expected_sales,
+  (newTotalCookies, oldTotalCookies) => {
+    if (
+      !boothsStore.activeBoothSale?.auto_calculate_predicted_cookies ||
+      oldTotalCookies === newTotalCookies
+    ) {
+      return;
+    }
+
+    if (oldTotalCookies !== newTotalCookies) {
+      boothsStore.setActiveBoothSalePredictedCookies(newTotalCookies || 0);
+    }
+  },
+  { debounce: 200, maxWait: 1000 },
+);
+
+watchDeep(
+  () => boothsStore.activeBoothSale?.predicted_cookies,
+  (newCookies, _oldCookies) => {
+    if (
+      boothsStore.activeBoothSale?.auto_calculate_predicted_cookies ||
+      newCookies === undefined
+    ) {
+      return;
+    }
+
+    const sumNewPredictedCookies = Object.values(newCookies).reduce(
+      (sum, val) => sum + Number(val || 0),
+      0,
+    );
+
+    const activeBoothSaleTotalCookies =
+      boothsStore.activeBoothSale?.expected_sales || 0;
+
+    if (sumNewPredictedCookies !== activeBoothSaleTotalCookies || 0) {
+      boothsStore.setActiveBoothSaleTotalExpectedSales();
+    }
+  },
+);
 
 const getBoothSaleDialogFormSchema = () => {
   return [
