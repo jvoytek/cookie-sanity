@@ -28,6 +28,13 @@ const useSupabaseClientMock = vi.fn(() => ({
         })),
       })),
       upsert: vi.fn(() => Promise.resolve({ error: null })),
+      update: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn(() => Promise.resolve({ data: {}, error: null })),
+          })),
+        })),
+      })),
       delete: vi.fn(() => ({
         eq: vi.fn(() => Promise.resolve({ error: null })),
       })),
