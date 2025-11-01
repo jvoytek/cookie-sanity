@@ -92,8 +92,11 @@ const cancelCheck = () => {
 };
 
 const saveCheck = async () => {
-  // Calculate expected inventory based on completed transactions
-  const expectedInventory = inventoryChecksStore.calculateExpectedInventory();
+  // Use snapshot expected inventory when editing, otherwise calculate current
+  const expectedInventory =
+    editingCheckId.value !== null
+      ? snapshotExpectedInventory.value
+      : inventoryChecksStore.calculateExpectedInventory();
 
   // Calculate discrepancies
   const { discrepancies, totalDiscrepancies } =
