@@ -75,6 +75,33 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
     }
   };
 
+  const updateInventoryCheck = async (
+    id: number,
+    inventoryCheckData: Partial<InventoryCheck>,
+  ) => {
+    const { data, error } = await _supabaseUpdateInventoryCheck(
+      id,
+      inventoryCheckData,
+    );
+    if (error) {
+      notificationHelpers.addError(
+        new Error('Failed to update inventory check: ' + error.message),
+      );
+      return;
+    }
+    if (data) {
+      const index = allInventoryChecks.value.findIndex(
+        (check) => check.id === id,
+      );
+      if (index !== -1) {
+        allInventoryChecks.value[index] = data;
+      }
+      notificationHelpers.addSuccess(
+        'Physical inventory check has been updated',
+      );
+    }
+  };
+
   const deleteInventoryCheck = async (id: number) => {
     const { error } = await _supabaseDeleteInventoryCheck(id);
     if (error) {
@@ -164,6 +191,18 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
       .single();
   };
 
+  const _supabaseUpdateInventoryCheck = async (
+    id: number,
+    check: Partial<InventoryCheck>,
+  ) => {
+    return await supabaseClient
+      .from('inventory_checks')
+      .update(check)
+      .eq('id', id)
+      .select()
+      .single();
+  };
+
   const _supabaseDeleteInventoryCheck = async (id: number) => {
     return await supabaseClient.from('inventory_checks').delete().eq('id', id);
   };
@@ -177,6 +216,7 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
     deleteInventoryCheckDialogVisible,
     fetchInventoryChecks,
     insertInventoryCheck,
+    updateInventoryCheck,
     deleteInventoryCheck,
     setActiveInventoryCheck,
     calculateExpectedInventory,

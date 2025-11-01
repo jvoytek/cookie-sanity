@@ -109,7 +109,7 @@ const saveCheck = async () => {
     physicalInventoryPackages[cookieAbbr] = cases * 12 + packages;
   });
 
-  await inventoryChecksStore.insertInventoryCheck({
+  const checkData = {
     physical_inventory: physicalInventoryPackages,
     expected_inventory: expectedInventory,
     discrepancies,
@@ -117,7 +117,18 @@ const saveCheck = async () => {
     conducted_by: conductedBy.value,
     notes: notes.value,
     status: 'completed',
-  });
+  };
+
+  if (editingCheckId.value !== null) {
+    // Update existing check
+    await inventoryChecksStore.updateInventoryCheck(
+      editingCheckId.value,
+      checkData,
+    );
+  } else {
+    // Insert new check
+    await inventoryChecksStore.insertInventoryCheck(checkData);
+  }
 
   checkDialogVisible.value = false;
   physicalCounts.value = {};
