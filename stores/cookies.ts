@@ -72,9 +72,10 @@ export const useCookiesStore = defineStore('cookies', () => {
     return allCookies.value.map((cookie) => ({
       $formkit: 'primeInputNumber',
       name: cookie.abbreviation,
-      label: cookie.is_virtual
-        ? `${cookie.name} <i class="pi pi-info-circle text-blue-500 ml-1" style="font-size: 0.75rem" title="Virtual packages don't count against your inventory"></i>`
-        : cookie.name,
+      label: cookie.is_virtual ? cookie.name + ' (Virtual)' : cookie.name,
+      help: cookie.is_virtual
+        ? "Virtual packages don't count against your inventory"
+        : undefined,
       validation: 'integer|overBooking',
       validationRules: '$validationRules',
       validationMessages: {
