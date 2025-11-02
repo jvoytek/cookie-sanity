@@ -407,6 +407,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     if (transaction.total_cookies !== undefined)
       delete transaction.total_cookies;
 
+    if (transaction.sortDate !== undefined) delete transaction.sortDate;
+
     try {
       const { data, error } = await _supabaseInsertTransaction(transaction);
 
@@ -450,6 +452,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
     if (transaction.total_cookies !== undefined)
       delete transaction.total_cookies;
+
+    if (transaction.sortDate !== undefined) delete transaction.sortDate;
 
     try {
       const { data, error } = await _supabaseUpsertTransaction(transaction);
@@ -621,8 +625,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const setActiveTransactionTotalExpectedSales = () => {
     if (!activeTransaction.value) return;
     const predictedCookies = activeTransaction.value.cookies || {};
-    activeTransaction.value.total_cookies = Object.values(predictedCookies)
-      .map((val) => Number(val) || 0)
+    activeTransaction.value.total_cookies = cookiesStore.allCookies
+      .map((cookie) => predictedCookies[cookie.abbreviation] || 0)
       .reduce((sum: number, val: number) => sum + val, 0);
   };
 

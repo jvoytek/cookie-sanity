@@ -360,7 +360,7 @@ export const useTransactionHelpers = () => {
         innerClass: 'col-span-2 mt-1 mb-1',
         class: 'w-full',
         if: "$get('transaction-type').value",
-        disabled: "!$get('auto_calculate_cookies').value",
+        disabled: "$get('auto_calculate_cookies').value === false",
       },
       {
         $formkit: 'group',
