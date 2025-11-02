@@ -245,6 +245,89 @@ describe('stores/inventoryChecks', () => {
     });
   });
 
+  describe('updateInventoryCheck', () => {
+    beforeEach(() => {
+      inventoryChecksStore.allInventoryChecks = [
+        {
+          id: 1,
+          check_date: '2025-01-15T10:00:00Z',
+          conducted_by: 'User 1',
+          physical_inventory: { TM: 95, SM: 48 },
+          expected_inventory: { TM: 100, SM: 50 },
+          discrepancies: { TM: -5, SM: -2 },
+          total_discrepancies: 7,
+          status: 'completed',
+          notes: 'Regular check',
+          profile: 'test-profile-id',
+          season: 1,
+          created_at: '2025-01-15T10:00:00Z',
+        },
+      ] as InventoryCheck[];
+    });
+
+    it('updates an existing inventory check in the store', async () => {
+      const updatedData = {
+        notes: 'Updated notes',
+        conducted_by: 'Updated User',
+      };
+
+      // Mock the supabase client to return the updated check
+      const mockUpdate = vi.fn(() => ({
+        eq: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn(() =>
+              Promise.resolve({
+                data: {
+                  ...inventoryChecksStore.allInventoryChecks[0],
+                  ...updatedData,
+                },
+                error: null,
+              }),
+            ),
+          })),
+        })),
+      }));
+
+      const mockSupabaseClient = {
+        from: vi.fn(() => ({
+          update: mockUpdate,
+        })),
+      };
+
+      vi.stubGlobal('useSupabaseClient', vi.fn(() => mockSupabaseClient));
+
+      // Re-initialize the store to use the updated mock
+      setActivePinia(createPinia());
+      inventoryChecksStore = useInventoryChecksStore();
+      inventoryChecksStore.allInventoryChecks = [
+        {
+          id: 1,
+          check_date: '2025-01-15T10:00:00Z',
+          conducted_by: 'User 1',
+          physical_inventory: { TM: 95, SM: 48 },
+          expected_inventory: { TM: 100, SM: 50 },
+          discrepancies: { TM: -5, SM: -2 },
+          total_discrepancies: 7,
+          status: 'completed',
+          notes: 'Regular check',
+          profile: 'test-profile-id',
+          season: 1,
+          created_at: '2025-01-15T10:00:00Z',
+        },
+      ] as InventoryCheck[];
+
+      await inventoryChecksStore.updateInventoryCheck(1, updatedData);
+
+      expect(mockUpdate).toHaveBeenCalled();
+      expect(inventoryChecksStore.allInventoryChecks[0].notes).toBe(
+        'Updated notes',
+      );
+      expect(inventoryChecksStore.allInventoryChecks[0].conducted_by).toBe(
+        'Updated User',
+      );
+    });
+  });
+
   describe('setActiveInventoryCheck', () => {
     it('sets the active inventory check', () => {
       const check: InventoryCheck = {

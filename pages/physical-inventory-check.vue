@@ -7,7 +7,6 @@ loading.value = true;
 const inventoryChecksStore = useInventoryChecksStore();
 const cookiesStore = useCookiesStore();
 const profileStore = useProfileStore();
-const formatHelpers = useFormatHelpers();
 
 // Fetch inventory checks when page loads
 await inventoryChecksStore.fetchInventoryChecks();
@@ -15,6 +14,8 @@ await inventoryChecksStore.fetchInventoryChecks();
 loading.value = false;
 
 const checkDialogVisible = ref(false);
+const deleteDialogVisible = ref(false);
+const checkToDelete = ref<InventoryCheck | null>(null);
 
 // Form state for new check
 const physicalCounts = ref<Record<string, { cases: number; packages: number }>>(
@@ -22,6 +23,7 @@ const physicalCounts = ref<Record<string, { cases: number; packages: number }>>(
 );
 const conductedBy = ref('');
 const notes = ref('');
+const check_date = ref<string>(new Date().toLocaleString());
 
 // Initialize physical counts for all non-virtual cookies
 const initializePhysicalCounts = () => {
@@ -41,6 +43,7 @@ const startNewCheck = () => {
   editingCheckId.value = null;
   snapshotExpectedInventory.value = {};
   checkDialogVisible.value = true;
+  check_date.value = new Date().toLocaleString();
 };
 
 // Track if we're editing an existing check
@@ -67,6 +70,7 @@ const editCheck = (check: InventoryCheck) => {
   conductedBy.value = check.conducted_by || '';
   notes.value = check.notes || '';
   editingCheckId.value = check.id;
+  check_date.value = new Date(check.check_date).toLocaleString();
 
   // Load the snapshot of expected inventory from when the check was created
   snapshotExpectedInventory.value =
@@ -92,8 +96,11 @@ const cancelCheck = () => {
 };
 
 const saveCheck = async () => {
-  // Calculate expected inventory based on completed transactions
-  const expectedInventory = inventoryChecksStore.calculateExpectedInventory();
+  // Use snapshot expected inventory when editing, otherwise calculate current
+  const expectedInventory =
+    editingCheckId.value !== null
+      ? snapshotExpectedInventory.value
+      : inventoryChecksStore.calculateExpectedInventory();
 
   // Calculate discrepancies
   const { discrepancies, totalDiscrepancies } =
@@ -109,7 +116,7 @@ const saveCheck = async () => {
     physicalInventoryPackages[cookieAbbr] = cases * 12 + packages;
   });
 
-  await inventoryChecksStore.insertInventoryCheck({
+  const checkData = {
     physical_inventory: physicalInventoryPackages,
     expected_inventory: expectedInventory,
     discrepancies,
@@ -117,7 +124,18 @@ const saveCheck = async () => {
     conducted_by: conductedBy.value,
     notes: notes.value,
     status: 'completed',
-  });
+  };
+
+  if (editingCheckId.value !== null) {
+    // Update existing check
+    await inventoryChecksStore.updateInventoryCheck(
+      editingCheckId.value,
+      checkData,
+    );
+  } else {
+    // Insert new check
+    await inventoryChecksStore.insertInventoryCheck(checkData);
+  }
 
   checkDialogVisible.value = false;
   physicalCounts.value = {};
@@ -125,16 +143,38 @@ const saveCheck = async () => {
   snapshotExpectedInventory.value = {};
 };
 
-const deleteCheck = async (check: InventoryCheck) => {
-  if (confirm('Are you sure you want to delete this inventory check?')) {
-    await inventoryChecksStore.deleteInventoryCheck(check.id);
+const confirmDelete = async (check: InventoryCheck) => {
+  deleteDialogVisible.value = true;
+  checkToDelete.value = check;
+};
+
+const cancelDelete = () => {
+  deleteDialogVisible.value = false;
+  checkToDelete.value = null;
+};
+
+const deleteCheck = async () => {
+  if (checkToDelete.value) {
+    await inventoryChecksStore.deleteInventoryCheck(checkToDelete.value.id);
   }
+  deleteDialogVisible.value = false;
+  checkToDelete.value = null;
 };
 
 const getDiscrepancySeverity = (diff: number) => {
   if (diff === 0) return 'success';
   if (Math.abs(diff) <= 5) return 'warn';
   return 'danger';
+};
+
+const aLongTimeAgo = (datetime: string) => {
+  const date = new Date(datetime);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+  if (diffInDays < 1) return true;
+  else return false;
 };
 </script>
 
@@ -193,7 +233,10 @@ const getDiscrepancySeverity = (diff: number) => {
           </template>
           <Column field="check_date" header="Check Date" sortable>
             <template #body="slotProps">
-              <NuxtTime :datetime="slotProps.data.check_date" relative />
+              <NuxtTime
+                :datetime="slotProps.data.check_date"
+                :relative="aLongTimeAgo(slotProps.data.check_date)"
+              />
             </template>
           </Column>
           <Column field="conducted_by" header="Conducted By" sortable />
@@ -232,7 +275,7 @@ const getDiscrepancySeverity = (diff: number) => {
                 text
                 rounded
                 severity="danger"
-                @click="deleteCheck(slotProps.data)"
+                @click="confirmDelete(slotProps.data)"
               />
             </template>
           </Column>
@@ -256,11 +299,7 @@ const getDiscrepancySeverity = (diff: number) => {
           </div>
           <div>
             <label class="block font-medium mb-2">Date</label>
-            <InputText
-              :value="new Date().toLocaleString()"
-              disabled
-              class="w-full"
-            />
+            <InputText :value="check_date" disabled class="w-full" />
           </div>
         </div>
 
@@ -365,6 +404,29 @@ const getDiscrepancySeverity = (diff: number) => {
       <template #footer>
         <Button label="Cancel" severity="secondary" text @click="cancelCheck" />
         <Button label="Save Check" @click="saveCheck" />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="deleteDialogVisible"
+      :style="{ width: '450px' }"
+      header="Confirm"
+      :modal="true"
+    >
+      <div class="flex items-center gap-4">
+        <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
+        <span v-if="checkToDelete">
+          Are you sure you want to delete the check from
+          <b
+            ><NuxtTime
+              :datetime="checkToDelete.check_date"
+              :relative="aLongTimeAgo(checkToDelete.check_date)" /></b
+          >?
+        </span>
+      </div>
+      <template #footer>
+        <Button label="No" icon="pi pi-times" text @click="cancelDelete" />
+        <Button label="Yes" icon="pi pi-check" @click="deleteCheck" />
       </template>
     </Dialog>
   </div>
