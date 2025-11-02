@@ -54,7 +54,7 @@ const totalCases = computed(() => {
 
 <template>
   <DataTable
-    :value="cookiesStore.allCookiesNotVirtual"
+    :value="cookiesStore.allCookies"
     data-key="id"
     sort-field="order"
     size="small"
