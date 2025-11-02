@@ -7,7 +7,6 @@ loading.value = true;
 const inventoryChecksStore = useInventoryChecksStore();
 const cookiesStore = useCookiesStore();
 const profileStore = useProfileStore();
-const formatHelpers = useFormatHelpers();
 
 // Fetch inventory checks when page loads
 await inventoryChecksStore.fetchInventoryChecks();
@@ -22,6 +21,7 @@ const physicalCounts = ref<Record<string, { cases: number; packages: number }>>(
 );
 const conductedBy = ref('');
 const notes = ref('');
+const check_date = ref<string>(new Date().toLocaleString());
 
 // Initialize physical counts for all non-virtual cookies
 const initializePhysicalCounts = () => {
@@ -41,6 +41,7 @@ const startNewCheck = () => {
   editingCheckId.value = null;
   snapshotExpectedInventory.value = {};
   checkDialogVisible.value = true;
+  check_date.value = new Date().toLocaleString();
 };
 
 // Track if we're editing an existing check
@@ -67,6 +68,7 @@ const editCheck = (check: InventoryCheck) => {
   conductedBy.value = check.conducted_by || '';
   notes.value = check.notes || '';
   editingCheckId.value = check.id;
+  check_date.value = new Date(check.check_date).toLocaleString();
 
   // Load the snapshot of expected inventory from when the check was created
   snapshotExpectedInventory.value =
@@ -270,11 +272,7 @@ const getDiscrepancySeverity = (diff: number) => {
           </div>
           <div>
             <label class="block font-medium mb-2">Date</label>
-            <InputText
-              :value="new Date().toLocaleString()"
-              disabled
-              class="w-full"
-            />
+            <InputText :value="check_date" disabled class="w-full" />
           </div>
         </div>
 
