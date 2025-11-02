@@ -408,15 +408,10 @@ const data = {
             <Button
               label="No"
               icon="pi pi-times"
-              outlined
+              text
               @click="deleteBoothSaleDialog = false"
             />
-            <Button
-              label="Yes"
-              icon="pi pi-check"
-              severity="danger"
-              @click="deleteBoothSale"
-            />
+            <Button label="Yes" icon="pi pi-check" @click="deleteBoothSale" />
           </template>
         </Dialog>
       </div>

@@ -14,6 +14,8 @@ await inventoryChecksStore.fetchInventoryChecks();
 loading.value = false;
 
 const checkDialogVisible = ref(false);
+const deleteDialogVisible = ref(false);
+const checkToDelete = ref<InventoryCheck | null>(null);
 
 // Form state for new check
 const physicalCounts = ref<Record<string, { cases: number; packages: number }>>(
@@ -141,16 +143,38 @@ const saveCheck = async () => {
   snapshotExpectedInventory.value = {};
 };
 
-const deleteCheck = async (check: InventoryCheck) => {
-  if (confirm('Are you sure you want to delete this inventory check?')) {
-    await inventoryChecksStore.deleteInventoryCheck(check.id);
+const confirmDelete = async (check: InventoryCheck) => {
+  deleteDialogVisible.value = true;
+  checkToDelete.value = check;
+};
+
+const cancelDelete = () => {
+  deleteDialogVisible.value = false;
+  checkToDelete.value = null;
+};
+
+const deleteCheck = async () => {
+  if (checkToDelete.value) {
+    await inventoryChecksStore.deleteInventoryCheck(checkToDelete.value.id);
   }
+  deleteDialogVisible.value = false;
+  checkToDelete.value = null;
 };
 
 const getDiscrepancySeverity = (diff: number) => {
   if (diff === 0) return 'success';
   if (Math.abs(diff) <= 5) return 'warn';
   return 'danger';
+};
+
+const aLongTimeAgo = (datetime: string) => {
+  const date = new Date(datetime);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+  if (diffInDays < 1) return true;
+  else return false;
 };
 </script>
 
@@ -209,7 +233,10 @@ const getDiscrepancySeverity = (diff: number) => {
           </template>
           <Column field="check_date" header="Check Date" sortable>
             <template #body="slotProps">
-              <NuxtTime :datetime="slotProps.data.check_date" relative />
+              <NuxtTime
+                :datetime="slotProps.data.check_date"
+                :relative="aLongTimeAgo(slotProps.data.check_date)"
+              />
             </template>
           </Column>
           <Column field="conducted_by" header="Conducted By" sortable />
@@ -248,7 +275,7 @@ const getDiscrepancySeverity = (diff: number) => {
                 text
                 rounded
                 severity="danger"
-                @click="deleteCheck(slotProps.data)"
+                @click="confirmDelete(slotProps.data)"
               />
             </template>
           </Column>
@@ -377,6 +404,29 @@ const getDiscrepancySeverity = (diff: number) => {
       <template #footer>
         <Button label="Cancel" severity="secondary" text @click="cancelCheck" />
         <Button label="Save Check" @click="saveCheck" />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="deleteDialogVisible"
+      :style="{ width: '450px' }"
+      header="Confirm"
+      :modal="true"
+    >
+      <div class="flex items-center gap-4">
+        <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
+        <span v-if="checkToDelete">
+          Are you sure you want to delete the check from
+          <b
+            ><NuxtTime
+              :datetime="checkToDelete.check_date"
+              :relative="aLongTimeAgo(checkToDelete.check_date)" /></b
+          >?
+        </span>
+      </div>
+      <template #footer>
+        <Button label="No" icon="pi pi-times" text @click="cancelDelete" />
+        <Button label="Yes" icon="pi pi-check" @click="deleteCheck" />
       </template>
     </Dialog>
   </div>
