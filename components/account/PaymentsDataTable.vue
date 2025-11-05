@@ -40,7 +40,7 @@ const formatPaymentType = (type: string) => {
   >
     <Column field="payment_date" header="Date" sortable>
       <template #body="slotProps">
-        <NuxtTime :datetime="slotProps.data.payment_date" timeZone="UTC" />
+        <NuxtTime :datetime="slotProps.data.payment_date" time-zone="UTC" />
       </template>
     </Column>
     <Column field="amount" header="Amount" sortable>
@@ -91,7 +91,7 @@ const formatPaymentType = (type: string) => {
         <b
           ><NuxtTime
             :datetime="accountsStore.activePayment.payment_date"
-            timeZone="UTC" /></b
+            time-zone="UTC" /></b
         >?</span
       >
     </div>

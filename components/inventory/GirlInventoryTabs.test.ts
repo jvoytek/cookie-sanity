@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mount, VueWrapper } from '@vue/test-utils';
+import type { VueWrapper } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import GirlInventoryTabs from '@/components/inventory/GirlInventoryTabs.vue';
 import { useGirlsStore } from '@/stores/girls';

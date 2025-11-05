@@ -5,6 +5,9 @@ const paymentHelpers = usePaymentHelpers();
 // Account selection - null means "Troop"
 const selectedAccount = ref<number | null>(null);
 
+// Import dialog visibility
+const importDialogVisible = ref(false);
+
 // Options for account selector: "Troop" + all girls
 const accountOptions = computed(() => {
   return [{ label: 'Troop', value: null }, ...girlsStore.girlOptions];
@@ -16,6 +19,10 @@ const isGirlView = computed(() => selectedAccount.value !== null);
 
 function openNew() {
   paymentHelpers.editPayment(null);
+}
+
+function openImport() {
+  importDialogVisible.value = true;
 }
 </script>
 
@@ -36,6 +43,13 @@ function openNew() {
               severity="secondary"
               class="mr-2"
               @click="openNew"
+            />
+            <Button
+              label="Import"
+              icon="pi pi-upload"
+              severity="secondary"
+              class="mr-2"
+              @click="openImport"
             />
             <Select
               v-model="selectedAccount"
@@ -71,5 +85,6 @@ function openNew() {
     </div>
 
     <PaymentDialog />
+    <ImportPaymentsDialog v-model:visible="importDialogVisible" />
   </div>
 </template>

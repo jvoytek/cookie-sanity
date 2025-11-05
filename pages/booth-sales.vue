@@ -300,7 +300,7 @@ const data = {
         >
           <Column field="sale_date" header="Date" sortable>
             <template #body="slotProps">
-              <NuxtTime :datetime="slotProps.data.sale_date" timeZone="UTC" />
+              <NuxtTime :datetime="slotProps.data.sale_date" time-zone="UTC" />
             </template>
           </Column>
           <Column field="sale_time" header="Time" sortable>

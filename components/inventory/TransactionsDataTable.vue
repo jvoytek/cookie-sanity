@@ -291,12 +291,12 @@ const anyReceiptsAvailable = computed(() => {
         @click="deleteBulkTransactionsDialogVisible = true"
       />
       <Button
-        :disabled="!hasSelection || !canShowReceipt"
         v-if="anyReceiptsAvailable"
         v-tooltip.bottom="{
           value: 'View receipt for selected transaction(s)',
           showDelay: 500,
         }"
+        :disabled="!hasSelection || !canShowReceipt"
         label="View Receipt"
         icon="pi pi-file"
         class="ml-2"
@@ -392,9 +392,9 @@ const anyReceiptsAvailable = computed(() => {
         <CookieList :cookies="slotProps.data.cookies" />
       </template>
     </Column>
-    <Column field="order_date" header="Date" sortField="sortDate" sortable>
+    <Column field="order_date" header="Date" sort-field="sortDate" sortable>
       <template #body="slotProps">
-        <NuxtTime :datetime="slotProps.data.order_date" timeZone="UTC" />
+        <NuxtTime :datetime="slotProps.data.order_date" time-zone="UTC" />
       </template>
     </Column>
     <Column field="notes" header="Notes" />
@@ -542,6 +542,7 @@ const anyReceiptsAvailable = computed(() => {
           "
         />
         <Button
+          v-if="transactionsStore.transactionRequiresReceipt(slotProps.data)"
           v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
           aria-label="View Receipt"
           icon="pi pi-file"
@@ -549,7 +550,6 @@ const anyReceiptsAvailable = computed(() => {
           variant="outlined"
           severity="secondary"
           @click="showReceipt(slotProps.data)"
-          v-if="transactionsStore.transactionRequiresReceipt(slotProps.data)"
         />
       </template>
     </Column>

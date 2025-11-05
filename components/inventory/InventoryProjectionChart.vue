@@ -27,7 +27,7 @@ ChartJS.register(
 );
 
 // Register zoom plugin only on client side to avoid SSR issues
-if (process.client) {
+if (import.meta.client) {
   import('chartjs-plugin-zoom').then((zoomPlugin) => {
     ChartJS.register(zoomPlugin.default);
   });

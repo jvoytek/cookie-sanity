@@ -93,7 +93,7 @@ const showPackagesCookieList = ref(false);
           ).length > 0
         "
         :cookies="accountsStore.troopAccountSummary.packagesDistributedByType"
-        :filterVirtual="true"
+        :filter-virtual="true"
         class="mt-2"
       />
     </Fieldset>

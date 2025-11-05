@@ -157,8 +157,8 @@ const digitalCookiePayments = computed(() => {
         show-gridlines
         class="no-header-datatable mb-4"
       >
-        <template #header></template>
-        <Column field="descripton"></Column>
+        <template #header />
+        <Column field="descripton" />
         <Column field="amount">
           <template #body="slotProps">
             {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
@@ -185,8 +185,8 @@ const digitalCookiePayments = computed(() => {
         show-gridlines
         class="no-header-datatable mb-4"
       >
-        <template #header></template>
-        <Column field="descripton"></Column>
+        <template #header />
+        <Column field="descripton" />
         <Column field="amount">
           <template #body="slotProps">
             {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
@@ -195,7 +195,7 @@ const digitalCookiePayments = computed(() => {
       </DataTable>
     </div>
 
-    <div class="flex justify-end mt-8" v-if="transaction?.notes">
+    <div v-if="transaction?.notes" class="flex justify-end mt-8">
       <div>NOTES:</div>
       <div class="flex-3 border-b border-gray-400 ml-4">
         {{ transaction?.notes }}
@@ -204,15 +204,15 @@ const digitalCookiePayments = computed(() => {
 
     <div class="flex justify-end mt-8">
       <div>RECEIVED BY:</div>
-      <div class="flex-3 border-b border-gray-400 ml-4"></div>
+      <div class="flex-3 border-b border-gray-400 ml-4" />
       <div>TROOP #:</div>
-      <div class="flex-1 border-b border-gray-400 ml-4"></div>
+      <div class="flex-1 border-b border-gray-400 ml-4" />
     </div>
     <div class="flex justify-end mt-8">
       <div>RECEIVED FROM:</div>
-      <div class="flex-3 border-b border-gray-400 ml-4"></div>
+      <div class="flex-3 border-b border-gray-400 ml-4" />
       <div>TROOP #:</div>
-      <div class="flex-1 border-b border-gray-400 ml-4"></div>
+      <div class="flex-1 border-b border-gray-400 ml-4" />
     </div>
   </div>
 </template>

@@ -10,11 +10,11 @@ const transactionIds = route.query.id;
 
 <template>
   <div
-    class="card page"
     v-for="transaction in transactionsStore
       .getTransactionsById(transactionIds)
       .sort((a, b) => a.id - b.id)"
     :key="transaction.id"
+    class="card page"
   >
     <TransactionReceipt :transaction="transaction" />
   </div>
