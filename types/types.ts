@@ -46,8 +46,11 @@ export interface AccountBalance {
   paymentsReceived: number;
   balance: number;
   status: string;
-  numCookiesDistributed: number;
-  cookieTotals: Record<string, number>;
+  totalAllCookiesDistributed: number;
+  totalDirectShipCookies: number;
+  totalVirtualCookiesDistributed: number;
+  totalPhysicalCookiesDistributed: number;
+  cookieTotalsByVariety: Record<string, number>;
   estimatedSales: number;
   girlPaymentsList: Payment[];
 }
@@ -57,9 +60,12 @@ export interface TroopAccountSummary {
   packagesDistributedByType: Record<string, number>;
   totalPaymentsReceived: number;
   troopBalance: number;
+  totalDirectShipCookies: number;
+  totalVirtualCookiesDistributed: number;
   estimatedTotalSales: number;
-  numCookiesDistributed: number;
-  numCookiesRemaining: number;
+  totalAllCookiesDistributed: number;
+  totalPhysicalCookiesDistributed: number;
+  totalCookiesRemaining: number;
   activeAccounts: number;
 }
 

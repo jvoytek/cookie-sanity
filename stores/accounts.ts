@@ -48,15 +48,20 @@ export const useAccountsStore = defineStore('accounts', () => {
     );
     const troopBalance = totalPaymentsReceived - totalDistributedValue;
 
-    const numCookiesDistributed = balances.reduce(
-      (sum, balance) => sum + (balance.numCookiesDistributed || 0),
+    const totalAllCookiesDistributed = balances.reduce(
+      (sum, balance) => sum + (balance.totalAllCookiesDistributed || 0),
+      0,
+    );
+
+    const totalPhysicalCookiesDistributed = balances.reduce(
+      (sum, balance) => sum + (balance.totalPhysicalCookiesDistributed || 0),
       0,
     );
 
     const packagesDistributedByType: Record<string, number> = balances.reduce(
       (acc, balance) => {
         for (const [abbreviation, quantity] of Object.entries(
-          balance.cookieTotals || {},
+          balance.cookieTotalsByVariety || {},
         )) {
           if (!acc[abbreviation]) {
             acc[abbreviation] = 0;
@@ -68,19 +73,28 @@ export const useAccountsStore = defineStore('accounts', () => {
       {} as Record<string, number>,
     );
 
+    const totalVirtualCookiesDistributed = Object.entries(
+      packagesDistributedByType,
+    ).reduce((sum, [abbreviation, quantity]) => {
+      const cookie = cookiesStore.getCookieByAbbreviation(abbreviation);
+      if (cookie?.is_virtual) {
+        return sum + quantity;
+      }
+      return sum;
+    }, 0);
     // Calculate total direct ship cookies across all girls
     const totalDirectShipCookies = balances.reduce((sum, balance) => {
       const directShipTransactions = _getDirectShipTransactionsForGirl(
         balance.girl.id,
       );
-      const { numCookiesDistributed: directShipCookies } =
+      const { totalAllCookiesDistributed: directShipCookies } =
         _getTotalsFromTransactionList(directShipTransactions);
       return sum + directShipCookies;
     }, 0);
 
     const estimatedTotalSales =
       troopBalance >= 0
-        ? numCookiesDistributed + totalDirectShipCookies
+        ? totalAllCookiesDistributed + totalDirectShipCookies
         : Math.round(totalPaymentsReceived / cookiesStore.averageCookiePrice) +
           totalDirectShipCookies;
 
@@ -95,9 +109,12 @@ export const useAccountsStore = defineStore('accounts', () => {
       totalPaymentsReceived,
       troopBalance,
       estimatedTotalSales,
+      totalDirectShipCookies,
+      totalVirtualCookiesDistributed,
       activeAccounts,
-      numCookiesDistributed: numCookiesDistributed,
-      numCookiesRemaining: cookiesStore.allCookiesWithInventoryTotals.reduce(
+      totalAllCookiesDistributed: totalAllCookiesDistributed,
+      totalPhysicalCookiesDistributed: totalPhysicalCookiesDistributed,
+      totalCookiesRemaining: cookiesStore.allCookiesWithInventoryTotals.reduce(
         (sum, cookie) => sum + (cookie.onHand || 0),
         0,
       ),
@@ -206,7 +223,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     return ordersStore.allTransactions.filter(
       (order) =>
         order.to === girlId &&
-        order.status === 'complete' &&
+        (order.status === 'complete' || order.status === 'recorded') &&
         order.type === 'DIRECT_SHIP',
     );
   };
@@ -214,8 +231,10 @@ export const useAccountsStore = defineStore('accounts', () => {
   const _getTotalsFromTransactionList = (transactionList: Order[]) => {
     const totals = {
       distributedValue: 0,
-      numCookiesDistributed: 0,
-      cookieTotals: {} as Record<string, number>,
+      totalAllCookiesDistributed: 0,
+      totalPhysicalCookiesDistributed: 0,
+      totalVirtualCookiesDistributed: 0,
+      cookieTotalsByVariety: {} as Record<string, number>,
     };
     transactionList.forEach((transaction: Order) => {
       const cookies = transaction.cookies;
@@ -224,9 +243,17 @@ export const useAccountsStore = defineStore('accounts', () => {
         const quantity = (cookies as Record<string, number>)[abbreviation] || 0;
         if (quantity) {
           totals.distributedValue -= quantity * (price || 0);
-          totals.numCookiesDistributed -= quantity;
-          totals.cookieTotals[abbreviation] =
-            (totals.cookieTotals[abbreviation] || 0) + quantity;
+          totals.totalAllCookiesDistributed -= quantity;
+          totals.totalPhysicalCookiesDistributed -=
+            cookiesStore.getCookieByAbbreviation(abbreviation)?.is_virtual
+              ? 0
+              : quantity;
+          totals.totalVirtualCookiesDistributed -=
+            cookiesStore.getCookieByAbbreviation(abbreviation)?.is_virtual
+              ? quantity
+              : 0;
+          totals.cookieTotalsByVariety[abbreviation] =
+            (totals.cookieTotalsByVariety[abbreviation] || 0) + quantity;
         }
       }
       return totals;
@@ -414,7 +441,13 @@ export const useAccountsStore = defineStore('accounts', () => {
       untilId, // Including this transaction ID
       includePending,
     );
-    const { distributedValue, cookieTotals, numCookiesDistributed } = untilId
+    const {
+      distributedValue,
+      totalVirtualCookiesDistributed,
+      totalPhysicalCookiesDistributed,
+      totalAllCookiesDistributed,
+      cookieTotalsByVariety,
+    } = untilId
       ? _getTotalsFromTransactionList(completedTransactions.slice(0, -1))
       : _getTotalsFromTransactionList(completedTransactions);
     // derive an explicit Date | undefined from the last completed transaction's order_date (if present)
@@ -439,14 +472,16 @@ export const useAccountsStore = defineStore('accounts', () => {
 
     // Include DIRECT_SHIP orders in estimated sales
     const directShipTransactions = _getDirectShipTransactionsForGirl(girl.id);
-    const { numCookiesDistributed: directShipCookies } =
+    const { totalAllCookiesDistributed: totalDirectShipCookies } =
       _getTotalsFromTransactionList(directShipTransactions);
+
+    // Include virtual cookie totals in cookieTotalsByVariety
 
     const estimatedSales =
       balance >= 0
-        ? numCookiesDistributed + directShipCookies
+        ? totalAllCookiesDistributed + totalDirectShipCookies
         : Math.round(paymentsReceived / cookiesStore.averageCookiePrice) +
-          directShipCookies;
+          totalDirectShipCookies;
 
     return {
       girl,
@@ -454,8 +489,11 @@ export const useAccountsStore = defineStore('accounts', () => {
       paymentsReceived,
       balance,
       status,
-      numCookiesDistributed,
-      cookieTotals,
+      totalAllCookiesDistributed,
+      totalDirectShipCookies,
+      totalVirtualCookiesDistributed,
+      totalPhysicalCookiesDistributed,
+      cookieTotalsByVariety,
       estimatedSales,
       girlPaymentsList,
     };

@@ -184,11 +184,11 @@ async function onRowReorder(event) {
             </Column>
             <Column field="is_virtual">
               <template #header>
-                <strong>Virtual</strong>
+                <strong>Virtual (Donated)</strong>
                 <i
                   v-tooltip.bottom="{
                     value:
-                      'Virtual packages don\'t count against your inventory',
+                      'Virtual packages don\'t count against your inventory. These are packages that are donated or not physically distributed to customers. Sometimes called Cookie Share or Gift of Caring.',
                     showDelay: 500,
                   }"
                   class="pi pi-info-circle ml-2"
@@ -324,10 +324,11 @@ async function onRowReorder(event) {
             :binary="true"
           />
           <label for="is_virtual" class="font-bold">
-            Virtual Cookie
+            Virtual (Donated)
             <i
               v-tooltip.bottom="{
-                value: 'Virtual packages don\'t count against your inventory',
+                value:
+                  'Virtual packages don\'t count against your inventory. These are packages that are donated or not physically distributed to customers. Sometimes called Cookie Share or Gift of Caring.',
                 showDelay: 500,
               }"
               class="pi pi-info-circle ml-2"

@@ -52,13 +52,13 @@ function openNewForGirl(girlId: number) {
       </template>
     </Column>
 
-    <Column field="paymentsReceived" header="Payments Received" sortable>
+    <Column field="paymentsReceived" header="Payments" sortable>
       <template #body="slotProps">
         {{ formatHelpers.formatCurrency(slotProps.data.paymentsReceived) }}
       </template>
     </Column>
 
-    <Column field="balance" header="Balance" sortable>
+    <Column field="balance" header="Outstanding" sortable>
       <template #body="slotProps">
         {{ formatHelpers.formatCurrency(slotProps.data.balance) }}
       </template>
@@ -76,10 +76,12 @@ function openNewForGirl(girlId: number) {
     </Column>
 
     <Column
-      field="numCookiesDistributed"
-      header="Packages Distributed"
+      field="totalPhysicalCookiesDistributed"
+      header="Physical"
       sortable
     />
+    <Column field="totalVirtualCookiesDistributed" header="Virtual" sortable />
+    <Column field="totalDirectShipCookies" header="Direct" sortable />
     <Column field="estimatedSales" sortable>
       <template #header>
         <span class="flex items-center gap-2">

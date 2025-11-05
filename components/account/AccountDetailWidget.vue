@@ -15,12 +15,12 @@ const showPackagesCookieList = ref(false);
 </script>
 
 <template>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-exclamation-triangle" />
-          <span>Total Outstanding</span>
+          <span>Outstanding</span>
         </p>
       </template>
       <p class="text-xl">
@@ -31,12 +31,12 @@ const showPackagesCookieList = ref(false);
       </p>
     </Fieldset>
   </div>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-dollar" />
-          <span>Payments Received</span>
+          <span>Payments</span>
         </p>
       </template>
       <p class="text-xl">
@@ -47,12 +47,12 @@ const showPackagesCookieList = ref(false);
       </p>
     </Fieldset>
   </div>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
           <i class="pi pi-arrow-right" />
-          <span>Packages Distributed</span>
+          <span>Physical</span>
           <i
             v-tooltip.bottom="{
               value:
@@ -63,11 +63,13 @@ const showPackagesCookieList = ref(false);
           />
         </p>
       </template>
-      <p class="text-xl">{{ girlAccount!.numCookiesDistributed }}<br /></p>
+      <p class="text-xl">
+        {{ girlAccount!.totalPhysicalCookiesDistributed }}<br />
+      </p>
       <Button
         v-if="
-          girlAccount!.cookieTotals &&
-          Object.keys(girlAccount!.cookieTotals).length > 0
+          girlAccount!.cookieTotalsByVariety &&
+          Object.keys(girlAccount!.cookieTotalsByVariety).length > 0
         "
         :icon="
           showPackagesCookieList ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
@@ -80,15 +82,54 @@ const showPackagesCookieList = ref(false);
       <CookieList
         v-if="
           showPackagesCookieList &&
-          girlAccount!.cookieTotals &&
-          Object.keys(girlAccount!.cookieTotals).length > 0
+          girlAccount!.cookieTotalsByVariety &&
+          Object.keys(girlAccount!.cookieTotalsByVariety).length > 0
         "
-        :cookies="girlAccount!.cookieTotals"
+        :cookies="girlAccount!.cookieTotalsByVariety"
+        :filter-virtual="true"
         class="mt-2"
       />
     </Fieldset>
   </div>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
+    <Fieldset>
+      <template #legend>
+        <p class="flex flex-wrap gap-2 items-center">
+          <i class="pi pi-box" />
+          <span>Virtual (Donated)</span>
+          <i
+            v-tooltip.bottom="{
+              value: 'Total virtual or donated packages transferred to girl.',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
+        </p>
+      </template>
+      <p class="text-xl">
+        {{ girlAccount!.totalVirtualCookiesDistributed }}<br />
+      </p>
+    </Fieldset>
+  </div>
+  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
+    <Fieldset>
+      <template #legend>
+        <p class="flex flex-wrap gap-2 items-center">
+          <i class="pi pi-truck" />
+          <span>Direct</span>
+          <i
+            v-tooltip.bottom="{
+              value: 'Total direct shipped packages for girl.',
+              showDelay: 500,
+            }"
+            class="pi pi-info-circle"
+          />
+        </p>
+      </template>
+      <p class="text-xl">{{ girlAccount!.totalDirectShipCookies }}<br /></p>
+    </Fieldset>
+  </div>
+  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">

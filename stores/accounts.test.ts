@@ -70,7 +70,7 @@ describe('Accounts Store', () => {
       paymentsReceived: 5,
       balance: -10,
       status: 'Balance Due',
-      numCookiesDistributed: 3,
+      totalAllCookiesDistributed: 3,
       estimatedSales: 1,
     });
   });
@@ -115,7 +115,7 @@ describe('Accounts Store', () => {
       troopBalance: -33,
       estimatedTotalSales: 1,
       activeAccounts: 2,
-      numCookiesDistributed: 8,
+      totalAllCookiesDistributed: 8,
     });
   });
 
