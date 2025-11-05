@@ -11,6 +11,14 @@ const notificationHelpers = useNotificationHelpers();
 const importDialogVisible = defineModel<boolean>('visible', { required: true });
 const loading = ref(false);
 
+// Constants
+const MAX_FILE_SIZE = 1000000; // 1MB in bytes
+const PAYMENT_METHOD_MAP: Record<string, string> = {
+  cash: 'cash',
+  check: 'check',
+  'credit card': 'digital-cookie',
+};
+
 interface SmartCookiesPayment {
   District?: string;
   'Service Unit'?: string;
@@ -37,8 +45,8 @@ const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
     return;
   }
 
-  // Validate file size (1MB limit)
-  if (file.size > 1000000) {
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
     notificationHelpers.addError(new Error('File size exceeds 1MB limit.'));
     return;
   }
@@ -156,15 +164,9 @@ const processPayments = (
       continue;
     }
 
-    // Convert amount to float
-    let amount: number;
-    if (typeof row.Amount === 'string') {
-      amount = parseFloat(row.Amount.replace(/[^0-9.-]/g, ''));
-    } else {
-      amount = row.Amount;
-    }
-
-    if (isNaN(amount)) {
+    // Convert amount to float using helper
+    const amount = parseAmount(row.Amount);
+    if (amount === null) {
       console.warn(`Invalid amount: ${row.Amount}`);
       continue;
     }
@@ -214,12 +216,23 @@ const convertDateToYYYYMMDD = (dateValue: string): string | null => {
 
 const mapPaymentMethod = (method: string): string | null => {
   const methodLower = method.toLowerCase().trim();
+  return PAYMENT_METHOD_MAP[methodLower] || null;
+};
 
-  if (methodLower === 'cash') return 'cash';
-  if (methodLower === 'check') return 'check';
-  if (methodLower === 'credit card') return 'digital-cookie';
-
-  return null;
+const parseAmount = (value: number | string): number | null => {
+  try {
+    let amount: number;
+    if (typeof value === 'string') {
+      // Remove currency symbols, commas, and other non-numeric characters except decimal point and minus sign
+      const cleaned = value.replace(/[^0-9.-]/g, '');
+      amount = parseFloat(cleaned);
+    } else {
+      amount = value;
+    }
+    return isNaN(amount) ? null : amount;
+  } catch {
+    return null;
+  }
 };
 
 const insertPayments = async (payments: Partial<Payment>[]): Promise<void> => {
@@ -229,18 +242,25 @@ const insertPayments = async (payments: Partial<Payment>[]): Promise<void> => {
 
   // Insert payments one by one to handle any individual errors
   let errorCount = 0;
+  const errors: string[] = [];
 
   for (const payment of payments) {
     try {
       await accountsStore.insertNewPayment(payment);
     } catch (error) {
-      console.error('Error inserting payment:', error);
       errorCount++;
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      errors.push(
+        `Payment for seller ${payment.seller_id} on ${payment.payment_date}: ${errorMsg}`,
+      );
+      console.error('Error inserting payment:', error);
     }
   }
 
   if (errorCount > 0) {
-    console.warn(`${errorCount} payment(s) failed to import.`);
+    const errorSummary = `${errorCount} payment(s) failed to import:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? `\n... and ${errors.length - 5} more` : ''}`;
+    console.warn(errorSummary);
+    throw new Error(errorSummary);
   }
 };
 </script>
@@ -266,7 +286,7 @@ const insertPayments = async (payments: Partial<Payment>[]): Promise<void> => {
           accept=".xlsx"
           :custom-upload="true"
           :auto="true"
-          :max-file-size="1000000"
+          :max-file-size="MAX_FILE_SIZE"
           choose-label="Choose File"
           :disabled="loading"
           @select="handleFileUpload"

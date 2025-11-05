@@ -56,27 +56,45 @@ describe('ImportPaymentsDialog', () => {
   });
 
   describe('amount parsing', () => {
+    // Helper function that mimics the parseAmount logic in the component
+    const parseAmount = (value: number | string): number | null => {
+      try {
+        let amount: number;
+        if (typeof value === 'string') {
+          const cleaned = value.replace(/[^0-9.-]/g, '');
+          amount = parseFloat(cleaned);
+        } else {
+          amount = value;
+        }
+        return isNaN(amount) ? null : amount;
+      } catch {
+        return null;
+      }
+    };
+
     it('should parse numeric amounts', () => {
-      const amount = 150.50;
-      expect(amount).toBe(150.50);
+      const amount = parseAmount(150.5);
+      expect(amount).toBe(150.5);
     });
 
-    it('should parse string amounts', () => {
-      const amountStr = '$150.50';
-      const parsed = parseFloat(amountStr.replace(/[^0-9.-]/g, ''));
-      expect(parsed).toBe(150.50);
+    it('should parse string amounts with currency symbols', () => {
+      const amount = parseAmount('$150.50');
+      expect(amount).toBe(150.5);
     });
 
     it('should handle amounts with commas', () => {
-      const amountStr = '1,250.75';
-      const parsed = parseFloat(amountStr.replace(/[^0-9.-]/g, ''));
-      expect(parsed).toBe(1250.75);
+      const amount = parseAmount('1,250.75');
+      expect(amount).toBe(1250.75);
     });
 
     it('should handle negative amounts', () => {
-      const amountStr = '-50.00';
-      const parsed = parseFloat(amountStr.replace(/[^0-9.-]/g, ''));
-      expect(parsed).toBe(-50.00);
+      const amount = parseAmount('-50.00');
+      expect(amount).toBe(-50.0);
+    });
+
+    it('should return null for invalid amounts', () => {
+      const amount = parseAmount('invalid');
+      expect(amount).toBeNull();
     });
   });
 
