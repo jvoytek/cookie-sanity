@@ -2,8 +2,21 @@
 const girlsStore = useGirlsStore();
 const paymentHelpers = usePaymentHelpers();
 
+const route = useRoute();
+
+// Safely parse account query which can be string | string[] | null | undefined
+const rawAccount = route.query?.account;
+let accountIdParam: number | null = null;
+if (rawAccount) {
+  const first = Array.isArray(rawAccount) ? rawAccount[0] : rawAccount;
+  if (typeof first === 'string') {
+    const parsed = parseInt(first, 10);
+    accountIdParam = Number.isNaN(parsed) ? null : parsed;
+  }
+}
+
 // Account selection - null means "Troop"
-const selectedAccount = ref<number | null>(null);
+const selectedAccount = ref<number | null>(accountIdParam);
 
 // Import dialog visibility
 const importDialogVisible = ref(false);
@@ -23,6 +36,16 @@ function openNew() {
 
 function openImport() {
   importDialogVisible.value = true;
+}
+
+function setQueryParam() {
+  const query = { ...route.query };
+  if (selectedAccount.value !== null) {
+    query.account = selectedAccount.value.toString();
+  } else {
+    delete query.account;
+  }
+  useRouter().replace({ query });
 }
 </script>
 
@@ -58,6 +81,7 @@ function openImport() {
               option-value="value"
               placeholder="Select account"
               class="w-64"
+              @change="setQueryParam"
             />
           </template>
         </Toolbar>

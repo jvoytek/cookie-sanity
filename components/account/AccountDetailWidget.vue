@@ -7,7 +7,19 @@ const props = defineProps<{
 }>();
 
 const girlAccount = computed(() => {
-  return accountsStore.getGirlAccountById(props.girlId);
+  return (
+    accountsStore.getGirlAccountById(props.girlId) || {
+      girl: { first_name: '' },
+      girlPaymentsList: [],
+      balance: 0,
+      paymentsReceived: 0,
+      totalPhysicalCookiesDistributed: 0,
+      totalVirtualCookiesDistributed: 0,
+      totalDirectShipCookies: 0,
+      estimatedSales: 0,
+      cookieTotalsByVariety: {},
+    }
+  );
 });
 
 // State for toggling cookie list visibility
@@ -24,7 +36,7 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ formatHelpers.formatCurrency(girlAccount!.balance) }}<br />
+        {{ formatHelpers.formatCurrency(girlAccount.balance) }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total still owed</span
         >
@@ -40,7 +52,7 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ formatHelpers.formatCurrency(girlAccount!.paymentsReceived) }}<br />
+        {{ formatHelpers.formatCurrency(girlAccount.paymentsReceived) }}<br />
         <span class="text-sm leading-none text-muted-color"
           >total received</span
         >
@@ -64,12 +76,12 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ girlAccount!.totalPhysicalCookiesDistributed }}<br />
+        {{ girlAccount.totalPhysicalCookiesDistributed }}<br />
       </p>
       <Button
         v-if="
-          girlAccount!.cookieTotalsByVariety &&
-          Object.keys(girlAccount!.cookieTotalsByVariety).length > 0
+          girlAccount.cookieTotalsByVariety &&
+          Object.keys(girlAccount.cookieTotalsByVariety).length > 0
         "
         :icon="
           showPackagesCookieList ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
@@ -83,7 +95,7 @@ const showPackagesCookieList = ref(false);
         v-if="
           showPackagesCookieList &&
           girlAccount!.cookieTotalsByVariety &&
-          Object.keys(girlAccount!.cookieTotalsByVariety).length > 0
+          Object.keys(girlAccount.cookieTotalsByVariety).length > 0
         "
         :cookies="girlAccount!.cookieTotalsByVariety"
         :filter-virtual="true"
@@ -107,7 +119,7 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ girlAccount!.totalVirtualCookiesDistributed }}<br />
+        {{ girlAccount.totalVirtualCookiesDistributed }}<br />
       </p>
     </Fieldset>
   </div>
@@ -126,7 +138,7 @@ const showPackagesCookieList = ref(false);
           />
         </p>
       </template>
-      <p class="text-xl">{{ girlAccount!.totalDirectShipCookies }}<br /></p>
+      <p class="text-xl">{{ girlAccount.totalDirectShipCookies }}<br /></p>
     </Fieldset>
   </div>
   <div class="col-span-12 lg:col-span-6 xl:col-span-2">
@@ -146,7 +158,7 @@ const showPackagesCookieList = ref(false);
         </p>
       </template>
       <p class="text-xl">
-        {{ girlAccount!.estimatedSales }}
+        {{ girlAccount.estimatedSales }}
       </p>
     </Fieldset>
   </div>
