@@ -249,19 +249,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const _getGirlId = (name: string) => {
-    try {
-      const [first_name, last_name] = name.split(' ');
-      const matchingGirl = girlsStore.allGirls?.find(
-        (girl) =>
-          girl.first_name === first_name && girl.last_name === last_name,
-      );
-      return matchingGirl?.id ?? null;
-    } catch (error) {
-      notificationHelpers.addError(error as Error);
-    }
-  };
-
   const _returnDateStringOrNull = (date: Date | string | null | undefined) => {
     if (!date || typeof date === 'string') {
       return date;
@@ -504,8 +491,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       !profileStore.currentProfile?.season
     )
       return;
-    const toGirlId = _getGirlId(obj.TO);
-    const fromGirlId = _getGirlId(obj.FROM);
+    const toGirlId = girlsStore.getGirlIdByName(obj.TO);
+    const fromGirlId = girlsStore.getGirlIdByName(obj.FROM);
     // Convert COOKIE_SHARE types to T2G
     let type = obj.TYPE;
     if (

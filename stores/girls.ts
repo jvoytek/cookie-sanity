@@ -170,6 +170,19 @@ export const useGirlsStore = defineStore('girls', () => {
     return idList.map((id) => getGirlNameById(id)).join(', ');
   };
 
+  const getGirlIdByName = (name: string) => {
+    try {
+      const [first_name, last_name] = name.split(' ');
+      const matchingGirl = allGirls.value.find(
+        (girl) =>
+          girl.first_name === first_name && girl.last_name === last_name,
+      );
+      return matchingGirl?.id ?? null;
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     fetchGirls,
     allGirls,
@@ -180,5 +193,6 @@ export const useGirlsStore = defineStore('girls', () => {
     getGirlNameById,
     getGirlNamesByIdList,
     getGirlById,
+    getGirlIdByName,
   };
 });
