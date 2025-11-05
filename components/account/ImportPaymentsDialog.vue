@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ExcelJS from 'exceljs';
-import type { Payment } from '@/types/types';
+import type { Payment, SmartCookiesPayment } from '@/types/types';
 
 const accountsStore = useAccountsStore();
 const girlsStore = useGirlsStore();
@@ -16,19 +16,8 @@ const MAX_FILE_SIZE = 1000000; // 1MB in bytes
 const PAYMENT_METHOD_MAP: Record<string, string> = {
   cash: 'cash',
   check: 'check',
-  'credit card': 'digital-cookie',
+  creditcard: 'digital_cookie',
 };
-
-interface SmartCookiesPayment {
-  District?: string;
-  'Service Unit'?: string;
-  Troop?: string;
-  Girl: string;
-  Date: string;
-  'Payment Method': string;
-  Amount: number | string;
-  'Ref #'?: string;
-}
 
 // Handle file upload event
 const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
@@ -214,9 +203,9 @@ const convertDateToYYYYMMDD = (dateValue: string): string | null => {
   }
 };
 
-const mapPaymentMethod = (method: string): string | null => {
+const mapPaymentMethod = (method: string): string => {
   const methodLower = method.toLowerCase().trim();
-  return PAYMENT_METHOD_MAP[methodLower] || null;
+  return PAYMENT_METHOD_MAP[methodLower] || 'other';
 };
 
 const parseAmount = (value: number | string): number | null => {

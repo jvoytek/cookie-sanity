@@ -495,12 +495,12 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const fromGirlId = girlsStore.getGirlIdByName(obj.FROM);
     // Convert COOKIE_SHARE types to T2G
     let type = obj.TYPE;
-    if (
-      type === 'COOKIE_SHARE' ||
-      type === 'COOKIE_SHARE(B)' ||
-      type === 'COOKIE_SHARE(VB)'
-    ) {
+    if (type === 'COOKIE_SHARE') {
       type = 'T2G';
+    } else if (type === 'COOKIE_SHARE(B)') {
+      type = 'T2G(B)';
+    } else if (type === 'COOKIE_SHARE(VB)') {
+      type = 'T2G(VB)';
     }
     return {
       profile: profileStore.currentProfile?.id,

@@ -88,7 +88,7 @@ export const useAccountsStore = defineStore('accounts', () => {
         balance.girl.id,
       );
       const { totalAllCookiesDistributed: directShipCookies } =
-        _getTotalsFromTransactionList(directShipTransactions);
+        _getTotalsFromTransactionList(directShipTransactions, balance.girl.id);
       return sum + directShipCookies;
     }, 0);
 
@@ -228,7 +228,10 @@ export const useAccountsStore = defineStore('accounts', () => {
     );
   };
 
-  const _getTotalsFromTransactionList = (transactionList: Order[]) => {
+  const _getTotalsFromTransactionList = (
+    transactionList: Order[],
+    girlId: number,
+  ) => {
     const totals = {
       distributedValue: 0,
       totalAllCookiesDistributed: 0,
@@ -239,8 +242,18 @@ export const useAccountsStore = defineStore('accounts', () => {
     transactionList.forEach((transaction: Order) => {
       const cookies = transaction.cookies;
       if (!cookies) return;
-      for (const { abbreviation, price = 0 } of cookiesStore.allCookies) {
-        const quantity = (cookies as Record<string, number>)[abbreviation] || 0;
+      for (const cookie of cookiesStore.allCookies) {
+        const abbreviation = cookie.abbreviation;
+        let price = cookie.price ?? 0;
+        let quantity = (cookies as Record<string, number>)[abbreviation] || 0;
+        const type = transaction.type;
+        const from = transaction.from;
+        if (type === 'G2G' && from === girlId) {
+          quantity = -quantity;
+        }
+        if (type === 'T2G(B)' || type === 'T2G(VB)') {
+          price = 0; // Booth and Virtual Booth transfers are already paid for
+        }
         if (quantity) {
           totals.distributedValue -= quantity * (price || 0);
           totals.totalAllCookiesDistributed -= quantity;
@@ -448,8 +461,11 @@ export const useAccountsStore = defineStore('accounts', () => {
       totalAllCookiesDistributed,
       cookieTotalsByVariety,
     } = untilId
-      ? _getTotalsFromTransactionList(completedTransactions.slice(0, -1))
-      : _getTotalsFromTransactionList(completedTransactions);
+      ? _getTotalsFromTransactionList(
+          completedTransactions.slice(0, -1),
+          girl.id,
+        )
+      : _getTotalsFromTransactionList(completedTransactions, girl.id);
     // derive an explicit Date | undefined from the last completed transaction's order_date (if present)
     let untilDate: Date | undefined = undefined;
     if (untilId) {
@@ -473,7 +489,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     // Include DIRECT_SHIP orders in estimated sales
     const directShipTransactions = _getDirectShipTransactionsForGirl(girl.id);
     const { totalAllCookiesDistributed: totalDirectShipCookies } =
-      _getTotalsFromTransactionList(directShipTransactions);
+      _getTotalsFromTransactionList(directShipTransactions, girl.id);
 
     // Include virtual cookie totals in cookieTotalsByVariety
 

@@ -77,3 +77,13 @@ export interface InventoryEvent {
   cookies: Record<string, number>;
   description: string;
 }
+export interface SmartCookiesPayment {
+  District?: string;
+  'Service Unit'?: string;
+  Troop?: string;
+  Girl: string;
+  Date: string;
+  'Payment Method': string;
+  Amount: number | string;
+  'Ref #'?: string;
+}
