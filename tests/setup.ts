@@ -222,6 +222,7 @@ const useCookiesStoreMock = vi.fn(() => ({
     }
     return null;
   }),
+  getPredictedCookiesFromExpectedSales: vi.fn(() => ({ ABC: 2, DEF: 8 })),
 }));
 vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 

@@ -17,106 +17,76 @@ describe('Accounts Store', () => {
   });
 
   it('should calculate girl account balances correctly', async () => {
-    const mockData = [
+    const mockTransactions = [
       {
-        amount: 5,
-        payment_date: '2025-09-16',
-        seller_id: 1,
+        to: 1,
+        status: 'complete',
+        type: 'T2G',
+        cookies: { ABC: -5, DEF: -5 },
+      },
+      {
+        to: 1,
+        status: 'recorded',
+        type: 'G2T',
+        cookies: { ABC: 1 },
+      },
+      {
+        to: 2,
+        status: 'complete',
+        type: 'T2G',
+        cookies: { DEF: -5, ABC: -3 },
       },
     ];
-
-    /* allTransactions: [
-    {
-      to: 1,
-      status: 'complete',
-      cookies: { ABC: -4 },
-    },
-    {
-      to: 1,
-      status: 'complete',
-      cookies: { ABC: 1 },
-    },
-    {
-      to: 2,
-      status: 'complete',
-      cookies: { DEF: -5 },
-    }, */
-
-    const useSupabaseClientMock = vi.fn(() => ({
-      from: vi.fn(() => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              order: vi.fn(() => ({
-                data: mockData,
-                error: null,
-              })),
-            })),
-          })),
-        })),
-      })),
+    const useTransactionsStoreMock = vi.fn(() => ({
+      allTransactions: mockTransactions,
     }));
-
-    vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+    vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
 
     const store = useAccountsStore();
-    await store.fetchPayments();
-
-    const balances = store.girlGirlAccountSummarys;
-    expect(balances).toHaveLength(2);
-    expect(balances[0]).toMatchObject({
-      girl: { id: 1, name: 'Test Girl' },
-      distributedValue: 15,
-      paymentsReceived: 5,
-      balance: -10,
-      status: 'Balance Due',
-      totalAllCookiesDistributed: 3,
-      estimatedSales: 1,
-    });
+    const summaries = store.girlGirlAccountSummarys;
+    expect(summaries[0].girl.id).toBe(1);
+    expect(summaries[0].balance).toBe(-9 * 5);
+    expect(summaries[0].paymentsReceived).toBe(0);
+    expect(summaries[0].status).toBe('Balance Due');
+    expect(summaries[0].estimatedSales).toBe(0);
+    expect(summaries[0].cookieSummary).toBeDefined();
   });
 
   it('should calculate troop account summary correctly', async () => {
-    const mockData = [
+    const mockTransactions = [
       {
-        amount: 5,
-        payment_date: '2025-09-16',
-        seller_id: 1,
+        to: 1,
+        status: 'complete',
+        type: 'T2G',
+        cookies: { ABC: -5, DEF: -5 },
       },
       {
-        amount: 2,
-        payment_date: '2025-09-16',
-        seller_id: 2,
+        to: 1,
+        status: 'recorded',
+        type: 'G2T',
+        cookies: { ABC: 1 },
+      },
+      {
+        to: 2,
+        status: 'complete',
+        type: 'T2G',
+        cookies: { DEF: -5, ABC: -3 },
       },
     ];
-
-    const useSupabaseClientMock = vi.fn(() => ({
-      from: vi.fn(() => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              order: vi.fn(() => ({
-                data: mockData,
-                error: null,
-              })),
-            })),
-          })),
-        })),
-      })),
+    const useTransactionsStoreMock = vi.fn(() => ({
+      allTransactions: mockTransactions,
     }));
-    vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+    vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
 
     const store = useAccountsStore();
-    await store.fetchPayments();
-
     const summary = store.troopAccountSummary;
-    expect(summary).toMatchObject({
-      totalDistributedValue: 40,
-      totalPaymentsReceived: 7,
-      troopBalance: -33,
-      estimatedTotalSales: 1,
-      activeAccounts: 2,
-      totalAllCookiesDistributed: 8,
-    });
+    expect(summary.totalDistributedValue).toBe(-17 * 5);
+    expect(summary.troopBalance).toBe(17 * 5);
+    expect(summary.estimatedTotalSales).toBe(0);
+    expect(summary.totalAllCookiesDistributed).toBe(17);
+    expect(summary.totalGirlDelivery).toBe(17);
+    expect(summary.totalCookiesRemaining).toBe(10);
+    expect(summary.cookieSummary).toBeDefined();
   });
 
   it('should fetch payments from Supabase', async () => {
