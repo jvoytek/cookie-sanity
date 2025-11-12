@@ -288,10 +288,12 @@ export const useTransactionsStore = defineStore('transactions', () => {
   ): Json | null => {
     if (!cookies) return null;
     return Object.fromEntries(
-      Object.entries(cookies).map(([key, value]) => [
-        key,
-        typeof value === 'number' ? (value === 0 ? null : value * -1) : value,
-      ]),
+      Object.entries(cookies).map(([key, value]) => {
+        return [
+          key,
+          typeof value === 'number' ? (value === 0 ? null : value * -1) : value,
+        ];
+      }),
     ) as Json;
   };
 
@@ -699,6 +701,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     updateTransactionStatusBulk,
     friendlyTransactionTypes,
     invertCookieQuantities,
+    transactionTypesToInvert,
     troopTransactionTypeOptions,
     girlTransactionTypeOptions,
     getGirlTransactionsByStatus,

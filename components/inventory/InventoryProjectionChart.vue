@@ -95,10 +95,18 @@
     // Add transaction events
     relevantTransactions.forEach((transaction) => {
       if (transaction.order_date && transaction.cookies && transaction.type) {
-        const cookiesRecord = transaction.cookies as Record<string, number>;
+        const cookiesRecord =
+          !transactionsStore.transactionTypesToInvert.includes(transaction.type)
+            ? transactionsStore.invertCookieQuantities(
+                transaction.cookies as Record<string, number>,
+              )
+            : (transaction.cookies as Record<string, number>);
         events.push({
-          date: transaction.order_date,
-          type: transaction.type as 'T2G' | 'G2T' | 'C2T' | 'T2T' | 'G2G',
+          date: transaction.order_date.replace(
+            /(\d\d)\/(\d\d)\/(\d{4})/,
+            '$3-$1-$2',
+          ), // Ensure date is in correct format
+          type: transaction.type,
           transaction,
           cookies: cookiesRecord,
           description: getEventDescription(transaction),
@@ -110,8 +118,12 @@
     relevantBooths.forEach((booth) => {
       if (booth.predicted_cookies) {
         const cookiesRecord = booth.predicted_cookies as Record<string, number>;
+        const date =
+          typeof booth.sale_date === 'string'
+            ? booth.sale_date.replace(/(\d\d)\/(\d\d)\/(\d{4})/, '$3-$1-$2')
+            : booth.sale_date.toISOString().split('T')[0];
         events.push({
-          date: booth.sale_date,
+          date: date,
           type: 'BOOTH',
           boothSale: booth,
           cookies: transactionsStore.invertCookieQuantities(cookiesRecord),
@@ -124,7 +136,6 @@
     events.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
-
     // Build time series data
     const dates: string[] = [];
     const inventoryByDate: Record<string, Record<string, number>> = {};
