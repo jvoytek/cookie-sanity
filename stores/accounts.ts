@@ -297,7 +297,7 @@ export const useAccountsStore = defineStore('accounts', () => {
             if (type === 'G2G' && from === girlId) {
               quantity = -quantity;
             }
-            if (type === 'G2T' && from === girlId) {
+            if (type === 'G2T') {
               quantity = -quantity;
             }
           }

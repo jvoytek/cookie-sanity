@@ -129,7 +129,7 @@ describe('Transactions Store', () => {
           id: 7,
           status: 'complete',
           type: 'G2T',
-          cookies: { ABC: -2 },
+          cookies: { ABC: 2 },
           order_date: '2024-01-01',
         },
         {
@@ -179,9 +179,9 @@ describe('Transactions Store', () => {
       const sumABC = transactionsStore.sumTransactionsByCookie('ABC');
       const sumDEF = transactionsStore.sumTransactionsByCookie('DEF');
 
-      // Only complete transactions are counted: ABC: 5 + 10 - 2 = 13, DEF: 3
-      expect(sumABC).toBe(13);
-      expect(sumDEF).toBe(3);
+      // Only complete transactions are counted: ABC: 10 + 2 - 5 = 7, DEF: 3
+      expect(sumABC).toBe(7);
+      expect(sumDEF).toBe(-3);
     });
 
     it('should filter completedGirlTransactionList correctly', () => {
@@ -1101,7 +1101,7 @@ describe('Transactions Store', () => {
         const sumDEF = transactionsStore.sumTransactionsByCookie('DEF');
 
         expect(sumABC).toBe(0);
-        expect(sumDEF).toBe(5);
+        expect(sumDEF).toBe(-5);
       });
 
       it('should handle non-number values', () => {
@@ -1123,7 +1123,7 @@ describe('Transactions Store', () => {
 
         expect(sumABC).toBe(0); // Non-number values are ignored
         expect(sumDEF).toBe(0);
-        expect(sumGHI).toBe(5);
+        expect(sumGHI).toBe(-5);
       });
     });
 
@@ -1215,7 +1215,7 @@ describe('Transactions Store', () => {
           id: 1,
           status: 'complete',
           type: 'T2G',
-          cookies: { ABC: 10, VIRTUAL: 5 },
+          cookies: { ABC: -10, VIRTUAL: -5 },
         },
       ];
 
