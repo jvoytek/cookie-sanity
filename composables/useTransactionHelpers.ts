@@ -131,9 +131,22 @@ export const useTransactionHelpers = () => {
         $formkit: 'primeInputText',
         name: 'supplier',
         label: 'Supplier',
-        if: "$get('transaction-type').value === 'C2T' || $get('transaction-type').value === 'T2T'",
+        if: "$get('transaction-type').value === 'C2T'",
         key: 'supplier',
-        placeholder: 'Council, Troop 1234, etc.',
+        placeholder: 'Council, Cupboard, etc.',
+        validation: 'required|alpha_numeric',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
+        class: 'w-full',
+      },
+      {
+        $formkit: 'primeInputText',
+        name: 'supplier',
+        label: 'Other Troop',
+        if: "$get('transaction-type').value === 'T2T'",
+        key: 'supplier',
+        placeholder: 'Troop 1234, etc.',
         validation: 'required|alpha_numeric',
         wrapperClass: 'grid grid-cols-4 gap-4 items-center',
         labelClass: 'col-span-1',
@@ -259,7 +272,21 @@ export const useTransactionHelpers = () => {
             attrs: {
               class: 'text-md',
             },
-            children: 'Cookies to be given to the girl',
+            children: 'Cookie to be given to the girl',
+          },
+        ],
+
+        if: "$get('transaction-type').value === 'T2G'",
+      },
+      {
+        $el: 'div',
+        children: [
+          {
+            $el: 'div',
+            attrs: {
+              class: 'text-md',
+            },
+            children: 'Cookies to be credited to the girl',
           },
           {
             $el: 'div',
@@ -267,11 +294,11 @@ export const useTransactionHelpers = () => {
               class: 'text-sm',
             },
             children:
-              '(quantities should be negative, as these cookies are removed from your troop inventory)',
+              '(Troop to Girl (Booth) and Troop to Girl (Virtual Booth) transactions represent cookies sold at a booth sale or "virtual" booth sale online using troop inventory. These cookies will not affect the girl\'s balance. Quantities should be positive.)',
           },
         ],
 
-        if: "$get('transaction-type').value === 'T2G' || $get('transaction-type').value === 'T2G(B)' || $get('transaction-type').value === 'T2G(VB)'",
+        if: "$get('transaction-type').value === 'T2G(B)' || $get('transaction-type').value === 'T2G(VB)'",
       },
       {
         $el: 'div',
@@ -289,7 +316,7 @@ export const useTransactionHelpers = () => {
               class: 'text-sm',
             },
             children:
-              '(quantities should be positive, as these cookies are added to your troop inventory)',
+              '(Quantities should be positive. Use Troop to Girl transaction type to give cookies to a girl.)',
           },
         ],
 
@@ -303,7 +330,7 @@ export const useTransactionHelpers = () => {
             attrs: {
               class: 'text-md',
             },
-            children: 'Cookies to be given from one girl to another',
+            children: 'Cookies to be transferred from one girl to another',
           },
           {
             $el: 'div',
@@ -311,7 +338,7 @@ export const useTransactionHelpers = () => {
               class: 'text-sm',
             },
             children:
-              '(negative quantities are removed from girl in "From" field and added to girl in "To" field)',
+              '(positive quantities are removed from girl in "From" field and added to girl in "To" field and vice versa)',
           },
         ],
 
@@ -333,7 +360,7 @@ export const useTransactionHelpers = () => {
               class: 'text-sm',
             },
             children:
-              '(quantities should be negative; direct ship orders are included in estimated sales but NOT in inventory or balance calculations)',
+              '(direct ship orders are included in estimated sales but NOT in on-hand inventory or balance calculations)',
           },
         ],
 

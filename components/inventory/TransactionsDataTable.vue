@@ -398,7 +398,7 @@
       </template>
     </Column>
     <Column field="notes" header="Notes" />
-    <Column field="actions" header="Actions" style="min-width: 182px">
+    <Column field="actions" header="Actions" style="min-width: 224px">
       <template #body="slotProps">
         <Button
           v-if="

@@ -129,7 +129,7 @@ describe('Transactions Store', () => {
           id: 7,
           status: 'complete',
           type: 'G2T',
-          cookies: { ABC: -2 },
+          cookies: { ABC: 2 },
           order_date: '2024-01-01',
         },
         {
@@ -179,9 +179,9 @@ describe('Transactions Store', () => {
       const sumABC = transactionsStore.sumTransactionsByCookie('ABC');
       const sumDEF = transactionsStore.sumTransactionsByCookie('DEF');
 
-      // Only complete transactions are counted: ABC: 5 + 10 - 2 = 13, DEF: 3
-      expect(sumABC).toBe(13);
-      expect(sumDEF).toBe(3);
+      // Only complete transactions are counted: ABC: 10 + 2 - 5 = 7, DEF: 3
+      expect(sumABC).toBe(7);
+      expect(sumDEF).toBe(-3);
     });
 
     it('should filter completedGirlTransactionList correctly', () => {
@@ -313,7 +313,7 @@ describe('Transactions Store', () => {
           id: 1,
           status: 'complete',
           type: 'T2G',
-          cookies: { ABC: -5 }, // Will be inverted
+          cookies: { ABC: -5 },
         },
       ];
 
@@ -341,7 +341,7 @@ describe('Transactions Store', () => {
       await newOrdersStore.fetchTransactions();
 
       expect(newOrdersStore.allTransactions).toHaveLength(1);
-      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted from -5
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(-5);
     });
 
     it('should return early if no profile or season', async () => {
@@ -423,7 +423,7 @@ describe('Transactions Store', () => {
         ...mockOrder,
         profile: 'test-profile-id',
         season: 1,
-        cookies: { ABC: -5 }, // Will be inverted back
+        cookies: { ABC: -5 },
       };
 
       vi.stubGlobal(
@@ -451,7 +451,7 @@ describe('Transactions Store', () => {
       await newOrdersStore.insertNewTransaction(mockOrder);
 
       expect(newOrdersStore.allTransactions).toHaveLength(1);
-      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted back
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(-5);
       expect(toastSpy).toHaveBeenCalledWith('Transaction Created');
     });
 
@@ -588,7 +588,7 @@ describe('Transactions Store', () => {
 
       const mockUpsertedOrder = {
         ...mockOrder,
-        cookies: { ABC: -5 }, // Will be inverted back
+        cookies: { ABC: -5 },
       };
 
       vi.stubGlobal(
@@ -618,7 +618,7 @@ describe('Transactions Store', () => {
 
       await newOrdersStore.upsertTransaction(mockOrder);
 
-      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5);
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(-5);
       expect(toastSpy).toHaveBeenCalledWith('Transaction Updated');
     });
 
@@ -833,7 +833,7 @@ describe('Transactions Store', () => {
       await newOrdersStore.updateTransactionStatus(1, 'complete');
 
       expect(newOrdersStore.allTransactions[0].status).toBe('complete');
-      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted back
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(-5); // Inverted back
       expect(toastSpy).toHaveBeenCalledWith('Transaction Marked Complete');
     });
 
@@ -1101,7 +1101,7 @@ describe('Transactions Store', () => {
         const sumDEF = transactionsStore.sumTransactionsByCookie('DEF');
 
         expect(sumABC).toBe(0);
-        expect(sumDEF).toBe(5);
+        expect(sumDEF).toBe(-5);
       });
 
       it('should handle non-number values', () => {
@@ -1123,7 +1123,7 @@ describe('Transactions Store', () => {
 
         expect(sumABC).toBe(0); // Non-number values are ignored
         expect(sumDEF).toBe(0);
-        expect(sumGHI).toBe(5);
+        expect(sumGHI).toBe(-5);
       });
     });
 
@@ -1215,7 +1215,7 @@ describe('Transactions Store', () => {
           id: 1,
           status: 'complete',
           type: 'T2G',
-          cookies: { ABC: 10, VIRTUAL: 5 },
+          cookies: { ABC: -10, VIRTUAL: -5 },
         },
       ];
 

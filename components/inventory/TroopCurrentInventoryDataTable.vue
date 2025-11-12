@@ -33,6 +33,7 @@
           </div>
         </template>
       </Column>
+      <Column field="totalReceivedByTroop" header="Total Received" sortable />
       <Column field="onHand" header="On Hand" sortable />
       <Column field="pendingTroop" header="Pending Troop" sortable />
       <Column field="pendingGirl" header="Pending (Req.)" sortable>
@@ -43,9 +44,9 @@
           </span>
         </template>
       </Column>
-      <Column field="pendingBooth" header="Booth" sortable />
+      <Column field="pendingBooth" header="Pending Booth" sortable />
 
-      <Column field="afterPending" header="Net" sortable>
+      <Column field="afterPending" header="After Pending" sortable>
         <template #body="slotProps">
           {{ slotProps.data.afterPending }}
           <span

@@ -22,7 +22,7 @@ describe('Accounts Store', () => {
         to: 1,
         status: 'complete',
         type: 'T2G',
-        cookies: { ABC: -5, DEF: -5 },
+        cookies: { ABC: 5, DEF: 5 },
       },
       {
         to: 1,
@@ -34,7 +34,7 @@ describe('Accounts Store', () => {
         to: 2,
         status: 'complete',
         type: 'T2G',
-        cookies: { DEF: -5, ABC: -3 },
+        cookies: { DEF: 5, ABC: 3 },
       },
     ];
     const useTransactionsStoreMock = vi.fn(() => ({
@@ -58,7 +58,7 @@ describe('Accounts Store', () => {
         to: 1,
         status: 'complete',
         type: 'T2G',
-        cookies: { ABC: -5, DEF: -5 },
+        cookies: { ABC: 5, DEF: 5 },
       },
       {
         to: 1,
@@ -70,7 +70,7 @@ describe('Accounts Store', () => {
         to: 2,
         status: 'complete',
         type: 'T2G',
-        cookies: { DEF: -5, ABC: -3 },
+        cookies: { DEF: 5, ABC: 3 },
       },
     ];
     const useTransactionsStoreMock = vi.fn(() => ({
@@ -81,7 +81,7 @@ describe('Accounts Store', () => {
     const store = useAccountsStore();
     const summary = store.troopAccountSummary;
     expect(summary.totalDistributedValue).toBe(-17 * 5);
-    expect(summary.troopBalance).toBe(17 * 5);
+    expect(summary.troopBalance).toBe(-17 * 5);
     expect(summary.estimatedTotalSales).toBe(0);
     expect(summary.totalAllCookiesDistributed).toBe(17);
     expect(summary.totalGirlDelivery).toBe(17);

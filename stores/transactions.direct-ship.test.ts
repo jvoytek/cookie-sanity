@@ -150,7 +150,7 @@ describe('Transactions Store - DIRECT_SHIP Functionality', () => {
     const sum = store.sumTransactionsByCookie('TM');
 
     // Should only count non-DIRECT_SHIP orders: -10
-    expect(sum).toBe(-10);
+    expect(sum).toBe(10);
   });
 
   it('should recognize DIRECT_SHIP as a girl transaction type', () => {
@@ -302,9 +302,9 @@ describe('Transactions Store - DIRECT_SHIP Functionality', () => {
     store.allTransactions = mockOrders;
 
     // Test each cookie type - should exclude DIRECT_SHIP
-    expect(store.sumTransactionsByCookie('TM')).toBe(-10);
-    expect(store.sumTransactionsByCookie('ADV')).toBe(-5);
-    expect(store.sumTransactionsByCookie('LEM')).toBe(-3);
+    expect(store.sumTransactionsByCookie('TM')).toBe(10);
+    expect(store.sumTransactionsByCookie('ADV')).toBe(5);
+    expect(store.sumTransactionsByCookie('LEM')).toBe(3);
   });
 
   it('should have DIRECT_SHIP in girl transaction type options', () => {
