@@ -58,7 +58,6 @@ export const useAccountsStore = defineStore('accounts', () => {
       (sum, balance) => sum + (balance.cookieSummary.countGirlDelivery || 0),
       0,
     );
-    console.log(balances);
 
     const estimatedTotalSales = balances.reduce(
       (sum, balance) => sum + balance.estimatedSales,
@@ -146,7 +145,6 @@ export const useAccountsStore = defineStore('accounts', () => {
     girlId: number,
     untilDate?: Date, // Return only payments before this date (not inclusive)
   ): Payment[] => {
-    console.log(untilDate);
     return allPayments.value.filter((p: Payment) => {
       if (p.seller_id !== girlId) return false;
       if (!p.payment_date) return false;
@@ -571,7 +569,6 @@ export const useAccountsStore = defineStore('accounts', () => {
       untilId, // Including this transaction ID
       includePending,
     );
-    console.log(untilId);
 
     const cookieSummary = untilId
       ? _getCookieSummaryFromTransactionList(
@@ -580,14 +577,11 @@ export const useAccountsStore = defineStore('accounts', () => {
         )
       : _getCookieSummaryFromTransactionList(completedTransactions, girl.id);
 
-    console.log('cookieSummary for girlId', girl.id, cookieSummary);
-
     // derive an explicit Date | undefined from the last completed transaction's order_date (if present)
     let untilDate: Date | undefined = undefined;
     if (untilId) {
       // Prefer the order from the completed list, fall back to all transactions if needed
       const untilOrder = completedTransactions.find((o) => o.id === untilId);
-      console.log('untilOrder from completedTransactions:', untilOrder);
 
       if (untilOrder && untilOrder.order_date) {
         const od = untilOrder.order_date;
@@ -599,7 +593,6 @@ export const useAccountsStore = defineStore('accounts', () => {
       }
     }
     const girlPaymentsList = _getPaymentsForGirl(girl.id, untilDate);
-    console.log(girlPaymentsList);
     const paymentsReceived = _getTotalofPayments(girlPaymentsList);
     const balance = cookieSummary.totalDue + paymentsReceived;
     const status = _getStatus(balance);

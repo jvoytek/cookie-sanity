@@ -84,7 +84,6 @@ const subTotal = computed(() => {
 const girlAccount = computed(() => {
   if (!props.transaction || (!props.transaction.to && !props.transaction.from))
     return null;
-  console.log(props.transaction.type?.slice(1, 3));
   return accountsStore.getGirlAccountById(
     props.transaction.type?.slice(1, 3) === '2G'
       ? props.transaction.to
@@ -95,7 +94,6 @@ const girlAccount = computed(() => {
 });
 
 const cashCheckOtherPayments = computed(() => {
-  console.log(girlAccount.value);
   if (!girlAccount.value?.girlPaymentsList) return 0;
   return girlAccount.value.girlPaymentsList
     .filter(
