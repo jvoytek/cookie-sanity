@@ -1,27 +1,27 @@
 <script setup lang="ts">
-const props = defineProps<{
-  girlId: number;
-  girlAccount: ReturnType<typeof accountsStore.getGirlAccountById>;
-}>();
+  const props = defineProps<{
+    girlId: number;
+    girlAccount: ReturnType<typeof accountsStore.getGirlAccountById>;
+  }>();
 
-const accountsStore = useAccountsStore();
-const paymentHelpers = usePaymentHelpers();
-const formatHelpers = useFormatHelpers();
+  const accountsStore = useAccountsStore();
+  const paymentHelpers = usePaymentHelpers();
+  const formatHelpers = useFormatHelpers();
 
-const formatPaymentType = (type: string) => {
-  switch (type) {
-    case 'cash':
-      return 'Cash';
-    case 'check':
-      return 'Check';
-    case 'digital_cookie':
-      return 'Digital Cookie';
-    case 'other':
-      return 'Other';
-    default:
-      return type;
-  }
-};
+  const formatPaymentType = (type: string) => {
+    switch (type) {
+      case 'cash':
+        return 'Cash';
+      case 'check':
+        return 'Check';
+      case 'digital_cookie':
+        return 'Digital Cookie';
+      case 'other':
+        return 'Other';
+      default:
+        return type;
+    }
+  };
 </script>
 
 <template>

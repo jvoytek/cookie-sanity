@@ -1,46 +1,44 @@
 <script setup>
-import { useLayout } from '@/composables/useLayout';
-import AppConfigurator from './AppConfigurator.vue';
-import SeasonSelect from '~/components/settings/SeasonSelect.vue';
-const supabase = useSupabaseClient();
+  import { useLayout } from '@/composables/useLayout';
+  import AppConfigurator from './AppConfigurator.vue';
+  import SeasonSelect from '~/components/settings/SeasonSelect.vue';
+  const supabase = useSupabaseClient();
 
-const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
-const user = useSupabaseUser();
-const loading = ref(false);
-loading.value = false;
-const profileStore = useProfileStore();
-const seasonsStore = useSeasonsStore();
+  const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
+  const user = useSupabaseUser();
+  const loading = ref(false);
+  loading.value = false;
 
-const menu = ref(null);
-const userMenuItems = ref([
-  {
-    label: 'Settings',
-    icon: 'pi pi-cog',
-    url: '/settings',
-  },
-  {
-    label: 'Sign Out',
-    icon: 'pi pi-sign-out',
-    command: () => signOut(),
-    disabled: loading.value,
-  },
-]);
+  const menu = ref(null);
+  const userMenuItems = ref([
+    {
+      label: 'Settings',
+      icon: 'pi pi-cog',
+      url: '/settings',
+    },
+    {
+      label: 'Sign Out',
+      icon: 'pi pi-sign-out',
+      command: () => signOut(),
+      disabled: loading.value,
+    },
+  ]);
 
-function toggleOverlayMenu(event) {
-  menu.value.toggle(event);
-}
-
-async function signOut() {
-  try {
-    loading.value = true;
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    loading.value = false;
+  function toggleOverlayMenu(event) {
+    menu.value.toggle(event);
   }
-}
+
+  async function signOut() {
+    try {
+      loading.value = true;
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      loading.value = false;
+    }
+  }
 </script>
 
 <template>

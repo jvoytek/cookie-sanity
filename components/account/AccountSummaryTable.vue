@@ -1,60 +1,13 @@
 <script setup lang="ts">
-import type { CookieSummary } from '@/types/types';
-const cookiesStore = useCookiesStore();
-const formatHelpers = useFormatHelpers();
+  import type { CookieSummary } from '@/types/types';
+  const cookiesStore = useCookiesStore();
+  const formatHelpers = useFormatHelpers();
 
-const props = defineProps<{
-  cookieSummary: CookieSummary | {};
-  totalPayments: number;
-  stillDue: number;
-}>();
-
-const accountsStore = useAccountsStore();
-
-const listofCookieAbbreviations = computed(() => {
-  return cookiesStore.allCookies.map((cookie) => cookie.abbreviation);
-});
-
-interface AccountSummaryRow {
-  label: string;
-  // Dynamic keys for each cookie abbreviation
-  [key: string]: string | number;
-  total: number | string;
-}
-
-const cookieSummaryDataTableFormat = computed(() => {
-  // reformat props.cookieSummary into an array of AccountSummaryRow
-  const rows: AccountSummaryRow[] = [
-    /*{
-      label: '',
-      CShare: 'Num Packages', //the last cookie abbreviation key set to empty string
-      total: (props.cookieSummary as CookieSummary).countAllPackages || 0,
-    },
-    {
-      label: '',
-      CShare: 'Total Due', //the last cookie abbreviation key set to empty string
-      total:
-        formatHelpers.formatCurrency(
-          (props.cookieSummary as CookieSummary).totalDue,
-        ) || formatHelpers.formatCurrency(0),
-    },
-    {
-      label: '',
-      CShare: 'Payments', //the last cookie abbreviation key set to empty string
-      total:
-        formatHelpers.formatCurrency(props.totalPayments) ||
-        formatHelpers.formatCurrency(0),
-    },
-    {
-      label: '',
-      CShare: 'Still Due', //the last cookie abbreviation key set to empty string
-      total:
-        formatHelpers.formatCurrency(props.stillDue) ||
-        formatHelpers.formatCurrency(0),
-    },*/
-  ];
-  return rows;
-});
+  const props = defineProps<{
+    cookieSummary: CookieSummary;
+    totalPayments: number;
+    stillDue: number;
+  }>();
 </script>
 
 <template>
@@ -74,7 +27,7 @@ const cookieSummaryDataTableFormat = computed(() => {
                 'border-left': 'none',
                 'border-bottom': '2px solid #333',
               }"
-            ></th>
+            />
             <th
               v-for="cookie in cookiesStore.allCookies"
               :key="cookie.abbreviation"
@@ -91,7 +44,7 @@ const cookieSummaryDataTableFormat = computed(() => {
                 'border-right': 'none',
                 'border-bottom': '2px solid #333',
               }"
-            ></th>
+            />
           </tr>
         </thead>
         <tbody class="p-datatable-tbody">
@@ -318,7 +271,7 @@ const cookieSummaryDataTableFormat = computed(() => {
             <td
               :colspan="cookiesStore.allCookies.length - 1"
               :style="{ 'border-left': 'none', 'border-bottom': 'none' }"
-            ></td>
+            />
             <td
               colspan="2"
               :style="{
@@ -343,7 +296,7 @@ const cookieSummaryDataTableFormat = computed(() => {
             <td
               :colspan="cookiesStore.allCookies.length - 1"
               :style="{ 'border-left': 'none', 'border-bottom': 'none' }"
-            ></td>
+            />
             <td
               colspan="2"
               :style="{
@@ -372,7 +325,7 @@ const cookieSummaryDataTableFormat = computed(() => {
             <td
               :colspan="cookiesStore.allCookies.length - 1"
               :style="{ 'border-left': 'none', 'border-bottom': 'none' }"
-            ></td>
+            />
             <td
               colspan="2"
               :style="{
@@ -397,7 +350,7 @@ const cookieSummaryDataTableFormat = computed(() => {
             <td
               :colspan="cookiesStore.allCookies.length - 1"
               :style="{ 'border-left': 'none', 'border-bottom': 'none' }"
-            ></td>
+            />
             <td
               colspan="2"
               :style="{

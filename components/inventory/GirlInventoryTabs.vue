@@ -1,102 +1,102 @@
 <script setup lang="ts">
-import type { Order, NewOrder } from '@/types/types';
+  import type { Order, NewOrder } from '@/types/types';
 
-const loading = ref(true);
+  const loading = ref(true);
 
-loading.value = true;
+  loading.value = true;
 
-const ordersStore = useTransactionsStore();
-const girlsStore = useGirlsStore();
+  const ordersStore = useTransactionsStore();
+  const girlsStore = useGirlsStore();
 
-loading.value = false;
+  loading.value = false;
 
-const transactionHelpers = useTransactionHelpers();
+  const transactionHelpers = useTransactionHelpers();
 
-// Filter state - null means show all girls (troop view)
-const selectedGirlFilter = ref<number | null>(null);
+  // Filter state - null means show all girls (troop view)
+  const selectedGirlFilter = ref<number | null>(null);
 
-// Computed property for filter options
-const filterOptions = computed(() => {
-  const options = [{ label: 'Troop (All Girls)', value: null }];
-  const girlOptions = girlsStore.girlOptions.map((option) => ({
-    label: option.label,
-    value: option.value,
-  }));
-  return [...options, ...girlOptions];
-});
+  // Computed property for filter options
+  const filterOptions = computed(() => {
+    const options = [{ label: 'Troop (All Girls)', value: null }];
+    const girlOptions = girlsStore.girlOptions.map((option) => ({
+      label: option.label,
+      value: option.value,
+    }));
+    return [...options, ...girlOptions];
+  });
 
-// Computed property for subheader text
-const subheaderText = computed(() => {
-  if (selectedGirlFilter.value === null) {
-    return 'All Girl Transactions';
+  // Computed property for subheader text
+  const subheaderText = computed(() => {
+    if (selectedGirlFilter.value === null) {
+      return 'All Girl Transactions';
+    }
+    const girlName = girlsStore.getGirlNameById(selectedGirlFilter.value);
+    return `${girlName}'s Transactions`;
+  });
+
+  // Filtered transaction lists based on selected girl
+  const filteredRequestedTransactions = computed((): Order[] => {
+    return ordersStore.getGirlTransactionsByStatus(
+      'requested',
+      selectedGirlFilter.value,
+    );
+  });
+
+  const filteredPendingTransactions = computed((): Order[] => {
+    return ordersStore.getGirlTransactionsByStatus(
+      'pending',
+      selectedGirlFilter.value,
+    );
+  });
+
+  const filteredCompletedTransactions = computed((): Order[] => {
+    return ordersStore.getGirlTransactionsByStatus(
+      'complete',
+      selectedGirlFilter.value,
+    );
+  });
+
+  const filteredRecordedTransactions = computed((): Order[] => {
+    return ordersStore.getGirlTransactionsByStatus(
+      'recorded',
+      selectedGirlFilter.value,
+    );
+  });
+
+  const filteredRejectedTransactions = computed((): Order[] => {
+    return ordersStore.getGirlTransactionsByStatus(
+      'rejected',
+      selectedGirlFilter.value,
+    );
+  });
+
+  // Computed properties for filtered counts
+  const filteredRequestedCount = computed(() => {
+    return filteredRequestedTransactions.value.length;
+  });
+
+  const filteredPendingCount = computed(() => {
+    return filteredPendingTransactions.value.length;
+  });
+
+  const filteredCompletedCount = computed(() => {
+    return filteredCompletedTransactions.value.length;
+  });
+
+  const filteredRecordedCount = computed(() => {
+    return filteredRecordedTransactions.value.length;
+  });
+
+  const filteredRejectedCount = computed(() => {
+    return filteredRejectedTransactions.value.length;
+  });
+
+  function openNew() {
+    transactionHelpers.editTransaction(
+      { status: 'requested' } as NewOrder,
+      'girl',
+    );
   }
-  const girlName = girlsStore.getGirlNameById(selectedGirlFilter.value);
-  return `${girlName}'s Transactions`;
-});
-
-// Filtered transaction lists based on selected girl
-const filteredRequestedTransactions = computed((): Order[] => {
-  return ordersStore.getGirlTransactionsByStatus(
-    'requested',
-    selectedGirlFilter.value,
-  );
-});
-
-const filteredPendingTransactions = computed((): Order[] => {
-  return ordersStore.getGirlTransactionsByStatus(
-    'pending',
-    selectedGirlFilter.value,
-  );
-});
-
-const filteredCompletedTransactions = computed((): Order[] => {
-  return ordersStore.getGirlTransactionsByStatus(
-    'complete',
-    selectedGirlFilter.value,
-  );
-});
-
-const filteredRecordedTransactions = computed((): Order[] => {
-  return ordersStore.getGirlTransactionsByStatus(
-    'recorded',
-    selectedGirlFilter.value,
-  );
-});
-
-const filteredRejectedTransactions = computed((): Order[] => {
-  return ordersStore.getGirlTransactionsByStatus(
-    'rejected',
-    selectedGirlFilter.value,
-  );
-});
-
-// Computed properties for filtered counts
-const filteredRequestedCount = computed(() => {
-  return filteredRequestedTransactions.value.length;
-});
-
-const filteredPendingCount = computed(() => {
-  return filteredPendingTransactions.value.length;
-});
-
-const filteredCompletedCount = computed(() => {
-  return filteredCompletedTransactions.value.length;
-});
-
-const filteredRecordedCount = computed(() => {
-  return filteredRecordedTransactions.value.length;
-});
-
-const filteredRejectedCount = computed(() => {
-  return filteredRejectedTransactions.value.length;
-});
-
-function openNew() {
-  transactionHelpers.editTransaction(
-    { status: 'requested' } as NewOrder,
-    'girl',
-  );
-}
 </script>
 
 <template>

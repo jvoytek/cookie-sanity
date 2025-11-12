@@ -1,25 +1,18 @@
 <script setup>
-import { DataTable } from 'primevue';
+  import { DataTable } from 'primevue';
 
-const seasonsStore = useSeasonsStore();
-const cookiesStore = useCookiesStore();
-const seasonDialog = ref(false);
-const season = ref({});
-const seasonSubmitted = ref(false);
-const isDeleteConfirmed = ref(false);
-//const selectedSeason = ref();
+  const seasonsStore = useSeasonsStore();
+  const isDeleteConfirmed = ref(false);
 
-//const deleteProductDialog = ref(false);
+  function openNewSeason() {
+    seasonsStore.setActiveSeason(null);
+    seasonsStore.showDialog();
+  }
 
-function openNewSeason() {
-  seasonsStore.setActiveSeason(null);
-  seasonsStore.showDialog();
-}
-
-function deleteConfirmed() {
-  seasonsStore.deleteSeason();
-  isDeleteConfirmed.value = false;
-}
+  function deleteConfirmed() {
+    seasonsStore.deleteSeason();
+    isDeleteConfirmed.value = false;
+  }
 </script>
 
 <template>

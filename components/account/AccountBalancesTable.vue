@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import type { GirlAccountSummary } from '@/types/types';
+  import type { GirlAccountSummary } from '@/types/types';
 
-const accountsStore = useAccountsStore();
-const paymentHelpers = usePaymentHelpers();
-const formatHelpers = useFormatHelpers();
+  const accountsStore = useAccountsStore();
+  const paymentHelpers = usePaymentHelpers();
+  const formatHelpers = useFormatHelpers();
 
-const getGirlDisplayName = (balance: GirlAccountSummary): string => {
-  const girl = balance.girl;
-  return `${girl.first_name} ${girl.last_name.charAt(0)}.`;
-};
+  const getGirlDisplayName = (balance: GirlAccountSummary): string => {
+    const girl = balance.girl;
+    return `${girl.first_name} ${girl.last_name.charAt(0)}.`;
+  };
 
-const getStatusClass = (status: string): string => {
-  if (status === 'Balance Due') {
-    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-  } else if (status === 'Overpaid') {
-    return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-  } else {
-    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+  const getStatusClass = (status: string): string => {
+    if (status === 'Balance Due') {
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    } else if (status === 'Overpaid') {
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    } else {
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    }
+  };
+
+  function openNewForGirl(girlId: number) {
+    paymentHelpers.editPayment({ seller_id: girlId });
   }
-};
-
-function openNewForGirl(girlId: number) {
-  paymentHelpers.editPayment({ seller_id: girlId });
-}
 </script>
 
 <template>

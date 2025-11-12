@@ -375,9 +375,9 @@ describe('stores/cookies', () => {
   });
 
   describe('FormKit overbooking validation', () => {
-    let useTransactionsStoreMock: any;
-    let useBoothsStoreMock: any;
-    let useSeasonsStoreMock: any;
+    let useTransactionsStoreMock: ReturnType<typeof vi.fn>;
+    let useBoothsStoreMock: ReturnType<typeof vi.fn>;
+    let useSeasonsStoreMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
       setActivePinia(createPinia());
@@ -406,7 +406,7 @@ describe('stores/cookies', () => {
           return inventory[abbreviation] || 0;
         }),
         totalTransactionsByStatusAllCookies: vi.fn(
-          (status: string, type: string) => {
+          (_status: string, _type: string) => {
             // Return maps with 0 for all cookies to keep calculations simple
             // afterPending = onHand + pendingGirl + pendingTroop + pendingBooth
             return {

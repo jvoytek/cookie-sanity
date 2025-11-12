@@ -1,13 +1,13 @@
 <script setup>
-import { useLayout } from '@/composables/useLayout';
-import { onMounted } from 'vue';
+  import { useLayout } from '@/composables/useLayout';
+  import { onMounted } from 'vue';
 
-const { initializeDarkMode } = useLayout();
+  const { initializeDarkMode } = useLayout();
 
-// Initialize dark mode on mount
-onMounted(() => {
-  initializeDarkMode();
-});
+  // Initialize dark mode on mount
+  onMounted(() => {
+    initializeDarkMode();
+  });
 </script>
 
 <template>

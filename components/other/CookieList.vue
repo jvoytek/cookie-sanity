@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import { useCookiesStore } from '@/stores/cookies';
-const cookiesStore = useCookiesStore();
+  import { useCookiesStore } from '@/stores/cookies';
+  const cookiesStore = useCookiesStore();
 
-const props = withDefaults(
-  defineProps<{
-    cookies: Record<string, number>;
-    filterVirtual?: boolean;
-  }>(),
-  {
-    filterVirtual: false,
-  },
-);
-
-const totalCookies = (cookies: Record<string, number>) => {
-  return cookiesStore.allCookies.reduce((total, cookie) => {
-    const count = cookies[cookie.abbreviation] ?? 0;
-    if (cookie.is_virtual && props.filterVirtual) {
-      return total;
-    }
-    return count ? total + count : total;
-  }, 0);
-};
-
-const cookiesWithValues = (cookies: Record<string, number>) => {
-  return cookiesStore.allCookies.filter(
-    (cookie) =>
-      cookies[cookie.abbreviation] != null &&
-      cookies[cookie.abbreviation] !== 0 &&
-      (!props.filterVirtual || !cookie.is_virtual),
+  const props = withDefaults(
+    defineProps<{
+      cookies: Record<string, number>;
+      filterVirtual?: boolean;
+    }>(),
+    {
+      filterVirtual: false,
+    },
   );
-};
+
+  const totalCookies = (cookies: Record<string, number>) => {
+    return cookiesStore.allCookies.reduce((total, cookie) => {
+      const count = cookies[cookie.abbreviation] ?? 0;
+      if (cookie.is_virtual && props.filterVirtual) {
+        return total;
+      }
+      return count ? total + count : total;
+    }, 0);
+  };
+
+  const cookiesWithValues = (cookies: Record<string, number>) => {
+    return cookiesStore.allCookies.filter(
+      (cookie) =>
+        cookies[cookie.abbreviation] != null &&
+        cookies[cookie.abbreviation] !== 0 &&
+        (!props.filterVirtual || !cookie.is_virtual),
+    );
+  };
 </script>
 
 <template>

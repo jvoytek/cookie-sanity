@@ -1,14 +1,11 @@
 <script setup lang="ts">
-const accountsStore = useAccountsStore();
-const formatHelpers = useFormatHelpers();
+  import type { GirlAccountSummary } from '@/types/types';
+  const formatHelpers = useFormatHelpers();
 
-const props = defineProps<{
-  girlId: number;
-  girlAccount: ReturnType<typeof accountsStore.getGirlAccountById>;
-}>();
-
-// State for toggling cookie list visibility
-const showPackagesCookieList = ref(false);
+  const props = defineProps<{
+    girlId: number;
+    girlAccount: GirlAccountSummary;
+  }>();
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InventoryProjectionChart from '@/components/inventory/InventoryProjectionChart.vue';
+  import InventoryProjectionChart from '@/components/inventory/InventoryProjectionChart.vue';
 </script>
 
 <template>

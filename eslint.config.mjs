@@ -10,6 +10,7 @@ export default createConfigForNuxt({
   plugins: ['@typescript-eslint'],
   extends: [
     'eslint:recommended',
+    'plugin:vue/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended', // Integrates Prettier
   ],

@@ -6,7 +6,6 @@ import type { SCOrder2025 } from '@/types/types';
 import { useUploadsStore } from '@/stores/uploads';
 
 describe('stores/uploads', () => {
-  let uploadsStore;
   const baseSCOrder2025 = {
     DATE: '2025-01-01',
     'ORDER #': 123,

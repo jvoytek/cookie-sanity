@@ -1,7 +1,7 @@
 <script setup>
-import { useLayout } from '@/composables/useLayout';
+  import { useLayout } from '@/composables/useLayout';
 
-const { toggleDarkMode, isDarkTheme } = useLayout();
+  const { toggleDarkMode, isDarkTheme } = useLayout();
 </script>
 
 <template>

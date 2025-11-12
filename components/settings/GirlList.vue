@@ -1,78 +1,78 @@
 <script setup>
-import { FilterMatchMode } from '@primevue/core/api';
-import { useToast } from 'primevue/usetoast';
-import { useGirlsStore } from '@/stores/girls';
+  import { FilterMatchMode } from '@primevue/core/api';
+  import { useToast } from 'primevue/usetoast';
+  import { useGirlsStore } from '@/stores/girls';
 
-const loading = ref(true);
+  const loading = ref(true);
 
-loading.value = true;
+  loading.value = true;
 
-const profileStore = useProfileStore();
-const girlsStore = useGirlsStore();
+  const profileStore = useProfileStore();
+  const girlsStore = useGirlsStore();
 
-loading.value = false;
+  loading.value = false;
 
-const toast = useToast();
-const dt = ref();
-const girlDialog = ref(false);
-const deleteGirlDialog = ref(false);
-const girl = ref({});
-const selectedGirls = ref();
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
-const submitted = ref(false);
+  const toast = useToast();
+  const dt = ref();
+  const girlDialog = ref(false);
+  const deleteGirlDialog = ref(false);
+  const girl = ref({});
+  const selectedGirls = ref();
+  const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  });
+  const submitted = ref(false);
 
-function openNew() {
-  girl.value = {
-    season: profileStore.currentProfile.season,
-  };
-  submitted.value = false;
-  girlDialog.value = true;
-}
+  function openNew() {
+    girl.value = {
+      season: profileStore.currentProfile.season,
+    };
+    submitted.value = false;
+    girlDialog.value = true;
+  }
 
-function hideDialog() {
-  girlDialog.value = false;
-  submitted.value = false;
-}
-
-async function saveGirl() {
-  submitted.value = true;
-  if (girl?.value.first_name?.trim()) {
-    if (girl.value.id) {
-      girlsStore.upsertGirl(girl.value);
-    } else {
-      girlsStore.insertGirl(girl.value);
-    }
+  function hideDialog() {
     girlDialog.value = false;
-    girl.value = {};
+    submitted.value = false;
   }
-}
 
-function editGirl(g) {
-  girl.value = { ...g };
-  girlDialog.value = true;
-}
-
-function confirmDeleteGirl(g) {
-  girl.value = g;
-  deleteGirlDialog.value = true;
-}
-
-async function deleteGirl() {
-  try {
-    girlsStore.deleteGirl(girl.value);
-    deleteGirlDialog.value = false;
-    girl.value = {};
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: error.message,
-      life: 3000,
-    });
+  async function saveGirl() {
+    submitted.value = true;
+    if (girl?.value.first_name?.trim()) {
+      if (girl.value.id) {
+        girlsStore.upsertGirl(girl.value);
+      } else {
+        girlsStore.insertGirl(girl.value);
+      }
+      girlDialog.value = false;
+      girl.value = {};
+    }
   }
-}
+
+  function editGirl(g) {
+    girl.value = { ...g };
+    girlDialog.value = true;
+  }
+
+  function confirmDeleteGirl(g) {
+    girl.value = g;
+    deleteGirlDialog.value = true;
+  }
+
+  async function deleteGirl() {
+    try {
+      girlsStore.deleteGirl(girl.value);
+      deleteGirlDialog.value = false;
+      girl.value = {};
+    } catch (error) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: error.message,
+        life: 3000,
+      });
+    }
+  }
 </script>
 
 <template>

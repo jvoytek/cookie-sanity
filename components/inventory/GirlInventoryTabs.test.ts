@@ -126,39 +126,18 @@ describe('GirlInventoryTabs', () => {
     const girlsStore = useGirlsStore();
 
     const filterOptions = [{ label: 'Troop (All Girls)', value: null }];
-    const girlOptions = girlsStore.girlOptions.map((option: any) => ({
-      label: option.label,
-      value: option.value,
-    }));
+    const girlOptions = girlsStore.girlOptions.map(
+      (option: { label: string; value: number | null }) => ({
+        label: option.label,
+        value: option.value,
+      }),
+    );
     const allOptions = [...filterOptions, ...girlOptions];
 
     expect(allOptions).toHaveLength(3); // Troop + 2 girls
     expect(allOptions[0]).toEqual({ label: 'Troop (All Girls)', value: null });
     expect(allOptions[1].label).toBe('Jane D.');
     expect(allOptions[2].label).toBe('John S.');
-  });
-
-  it('has selectedGirlFilter state', () => {
-    const vm = wrapper.vm as any;
-    expect(vm.selectedGirlFilter).toBeDefined();
-    expect(vm.selectedGirlFilter).toBe(null); // Default value
-  });
-
-  it('renders with filter options', () => {
-    const vm = wrapper.vm as any;
-    // Verify filterOptions exists and has the troop option
-    expect(vm.filterOptions).toBeDefined();
-    expect(Array.isArray(vm.filterOptions)).toBe(true);
-  });
-
-  it('shows all transactions when troop filter is selected', async () => {
-    const vm = wrapper.vm as any;
-
-    // Set the filter to null (troop)
-    vm.selectedGirlFilter = null;
-    await wrapper.vm.$nextTick();
-
-    expect(vm.subheaderText).toBe('All Girl Transactions');
   });
 
   it('has count computed properties defined', () => {

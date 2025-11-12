@@ -1,59 +1,59 @@
 <script setup>
-import AppMenuItem from './AppMenuItem.vue';
+  import AppMenuItem from './AppMenuItem.vue';
 
-const transactionsStore = useTransactionsStore();
+  const transactionsStore = useTransactionsStore();
 
-const requestedCount = computed(
-  () => transactionsStore.requestedGirlTransactionrListCount,
-);
+  const requestedCount = computed(
+    () => transactionsStore.requestedGirlTransactionrListCount,
+  );
 
-const model = ref([
-  {
-    items: [
-      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-      {
-        label: 'Troop Inventory',
-        icon: 'pi pi-fw pi-box',
-        to: '/troop-inventory',
-      },
-      {
-        label: 'Girl Inventory',
-        icon: 'pi pi-fw pi-arrow-right-arrow-left',
-        to: '/girl-inventory',
-        badge: requestedCount,
-        badgeSeverity: 'danger',
-      },
-      {
-        label: 'Physical Inventory Check',
-        icon: 'pi pi-fw pi-clipboard',
-        to: '/physical-inventory-check',
-      },
-      {
-        label: 'All Transactions',
-        icon: 'pi pi-fw pi-table',
-        to: '/all-transactions',
-      },
-      {
-        label: 'Booth Sales',
-        icon: 'pi pi-fw pi-calendar',
-        to: '/booth-sales',
-      },
-      {
-        label: 'Account Management',
-        icon: 'pi pi-fw pi-wallet',
-        to: '/accounts',
-      },
-      {
-        label: 'Settings',
-        icon: 'pi pi-fw pi-cog',
-        items: [
-          { label: 'Girls', icon: 'pi pi-fw pi-users', to: '/girls' },
-          { label: 'Cookies', icon: 'pi pi-fw pi-box', to: '/cookies' },
-        ],
-      },
-    ],
-  },
-]);
+  const model = ref([
+    {
+      items: [
+        { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
+        {
+          label: 'Troop Inventory',
+          icon: 'pi pi-fw pi-box',
+          to: '/troop-inventory',
+        },
+        {
+          label: 'Girl Inventory',
+          icon: 'pi pi-fw pi-arrow-right-arrow-left',
+          to: '/girl-inventory',
+          badge: requestedCount,
+          badgeSeverity: 'danger',
+        },
+        {
+          label: 'Physical Inventory Check',
+          icon: 'pi pi-fw pi-clipboard',
+          to: '/physical-inventory-check',
+        },
+        {
+          label: 'All Transactions',
+          icon: 'pi pi-fw pi-table',
+          to: '/all-transactions',
+        },
+        {
+          label: 'Booth Sales',
+          icon: 'pi pi-fw pi-calendar',
+          to: '/booth-sales',
+        },
+        {
+          label: 'Account Management',
+          icon: 'pi pi-fw pi-wallet',
+          to: '/accounts',
+        },
+        {
+          label: 'Settings',
+          icon: 'pi pi-fw pi-cog',
+          items: [
+            { label: 'Girls', icon: 'pi pi-fw pi-users', to: '/girls' },
+            { label: 'Cookies', icon: 'pi pi-fw pi-box', to: '/cookies' },
+          ],
+        },
+      ],
+    },
+  ]);
 </script>
 
 <template>

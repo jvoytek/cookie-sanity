@@ -1,72 +1,72 @@
 <script setup lang="ts">
-const girlsStore = useGirlsStore();
-const paymentHelpers = usePaymentHelpers();
-const accountsStore = useAccountsStore();
+  const girlsStore = useGirlsStore();
+  const paymentHelpers = usePaymentHelpers();
+  const accountsStore = useAccountsStore();
 
-const route = useRoute();
+  const route = useRoute();
 
-// Safely parse account query which can be string | string[] | null | undefined
-const rawAccount = route.query?.account;
-let accountIdParam: number | null = null;
-if (rawAccount) {
-  const first = Array.isArray(rawAccount) ? rawAccount[0] : rawAccount;
-  if (typeof first === 'string') {
-    const parsed = parseInt(first, 10);
-    accountIdParam = Number.isNaN(parsed) ? null : parsed;
-  }
-}
-
-// Account selection - null means "Troop"
-const selectedAccount = ref<number | null>(accountIdParam);
-
-const girlAccount = computed(() => {
-  return (
-    (selectedAccount.value !== null
-      ? accountsStore.getGirlAccountById(selectedAccount.value)
-      : undefined) || {
-      girl: { first_name: '' },
-      girlPaymentsList: [],
-      balance: 0,
-      paymentsReceived: 0,
-      totalPhysicalCookiesDistributed: 0,
-      totalVirtualCookiesDistributed: 0,
-      totalDirectShipCookies: 0,
-      estimatedSales: 0,
-      cookieTotalsByVariety: {},
-      cookieSummary: {},
+  // Safely parse account query which can be string | string[] | null | undefined
+  const rawAccount = route.query?.account;
+  let accountIdParam: number | null = null;
+  if (rawAccount) {
+    const first = Array.isArray(rawAccount) ? rawAccount[0] : rawAccount;
+    if (typeof first === 'string') {
+      const parsed = parseInt(first, 10);
+      accountIdParam = Number.isNaN(parsed) ? null : parsed;
     }
-  );
-});
-
-// Import dialog visibility
-const importDialogVisible = ref(false);
-
-// Options for account selector: "Troop" + all girls
-const accountOptions = computed(() => {
-  return [{ label: 'Troop', value: null }, ...girlsStore.girlOptions];
-});
-
-// Computed flags for conditional rendering
-const isTroopView = computed(() => selectedAccount.value === null);
-const isGirlView = computed(() => selectedAccount.value !== null);
-
-function openNew() {
-  paymentHelpers.editPayment(null);
-}
-
-function openImport() {
-  importDialogVisible.value = true;
-}
-
-function setQueryParam() {
-  const query = { ...route.query };
-  if (selectedAccount.value !== null) {
-    query.account = selectedAccount.value.toString();
-  } else {
-    delete query.account;
   }
-  useRouter().replace({ query });
-}
+
+  // Account selection - null means "Troop"
+  const selectedAccount = ref<number | null>(accountIdParam);
+
+  const girlAccount = computed(() => {
+    return (
+      (selectedAccount.value !== null
+        ? accountsStore.getGirlAccountById(selectedAccount.value)
+        : undefined) || {
+        girl: { first_name: '' },
+        girlPaymentsList: [],
+        balance: 0,
+        paymentsReceived: 0,
+        totalPhysicalCookiesDistributed: 0,
+        totalVirtualCookiesDistributed: 0,
+        totalDirectShipCookies: 0,
+        estimatedSales: 0,
+        cookieTotalsByVariety: {},
+        cookieSummary: {},
+      }
+    );
+  });
+
+  // Import dialog visibility
+  const importDialogVisible = ref(false);
+
+  // Options for account selector: "Troop" + all girls
+  const accountOptions = computed(() => {
+    return [{ label: 'Troop', value: null }, ...girlsStore.girlOptions];
+  });
+
+  // Computed flags for conditional rendering
+  const isTroopView = computed(() => selectedAccount.value === null);
+  const isGirlView = computed(() => selectedAccount.value !== null);
+
+  function openNew() {
+    paymentHelpers.editPayment(null);
+  }
+
+  function openImport() {
+    importDialogVisible.value = true;
+  }
+
+  function setQueryParam() {
+    const query = { ...route.query };
+    if (selectedAccount.value !== null) {
+      query.account = selectedAccount.value.toString();
+    } else {
+      delete query.account;
+    }
+    useRouter().replace({ query });
+  }
 </script>
 
 <template>

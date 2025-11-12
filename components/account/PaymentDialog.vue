@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { useFormKitNodeById } from '@formkit/vue';
+  import { useFormKitNodeById } from '@formkit/vue';
 
-const formNode = useFormKitNodeById('payment-form');
-const accountsStore = useAccountsStore();
-const paymentHelpers = usePaymentHelpers();
+  const formNode = useFormKitNodeById('payment-form');
+  const accountsStore = useAccountsStore();
+  const paymentHelpers = usePaymentHelpers();
 
-const submitHandler = () => {
-  paymentHelpers.savePayment();
-};
+  const submitHandler = () => {
+    paymentHelpers.savePayment();
+  };
 
-const submitButtonClickHandler = () => {
-  if (formNode.value) formNode.value.submit();
-};
+  const submitButtonClickHandler = () => {
+    if (formNode.value) formNode.value.submit();
+  };
 </script>
 
 <template>

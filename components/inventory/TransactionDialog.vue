@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { useFormKitNodeById } from '@formkit/vue';
+  import { useFormKitNodeById } from '@formkit/vue';
 
-const ordersStore = useTransactionsStore();
-const cookiesStore = useCookiesStore();
-const formNode = useFormKitNodeById('transaction-form');
-const transactionHelpers = useTransactionHelpers();
+  const ordersStore = useTransactionsStore();
+  const cookiesStore = useCookiesStore();
+  const formNode = useFormKitNodeById('transaction-form');
+  const transactionHelpers = useTransactionHelpers();
 
-const submitHandler = () => {
-  transactionHelpers.saveTransaction();
-};
+  const submitHandler = () => {
+    transactionHelpers.saveTransaction();
+  };
 
-const submitButtonClickHandler = () => {
-  if (formNode.value) formNode.value.submit();
-};
+  const submitButtonClickHandler = () => {
+    if (formNode.value) formNode.value.submit();
+  };
 
-const data = {
-  validationRules: cookiesStore.customCookieValidationRules, // Add the 'overBooking' function to the validationRules
-};
+  const data = {
+    validationRules: cookiesStore.customCookieValidationRules, // Add the 'overBooking' function to the validationRules
+  };
 
-const handleAfterHide = () => {
-  transactionHelpers.cancelEditTransaction();
-};
+  const handleAfterHide = () => {
+    transactionHelpers.cancelEditTransaction();
+  };
 </script>
 
 <template>

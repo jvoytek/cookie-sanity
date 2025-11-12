@@ -1,9 +1,6 @@
 <script setup lang="ts">
-const accountsStore = useAccountsStore();
-const formatHelpers = useFormatHelpers();
-
-// State for toggling cookie list visibility
-const showPackagesCookieList = ref(false);
+  const accountsStore = useAccountsStore();
+  const formatHelpers = useFormatHelpers();
 </script>
 
 <template>
