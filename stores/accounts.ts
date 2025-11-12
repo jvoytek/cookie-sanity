@@ -47,7 +47,7 @@ export const useAccountsStore = defineStore('accounts', () => {
       (sum, balance) => sum + balance.paymentsReceived,
       0,
     );
-    const troopBalance = totalPaymentsReceived - totalDistributedValue;
+    const troopBalance = totalDistributedValue + totalPaymentsReceived;
 
     const totalAllCookiesDistributed = balances.reduce(
       (sum, balance) => sum + (balance.cookieSummary.countAllPackages || 0),
@@ -297,33 +297,36 @@ export const useAccountsStore = defineStore('accounts', () => {
             if (type === 'G2G' && from === girlId) {
               quantity = -quantity;
             }
+            if (type === 'G2T' && from === girlId) {
+              quantity = -quantity;
+            }
           }
 
           if (!quantity) return;
 
           // Update the appropriate category totals object
           totals[mappedType][abbreviation] =
-            (totals[mappedType][abbreviation] || 0) - quantity;
+            (totals[mappedType][abbreviation] || 0) + quantity;
 
           // Global package count
-          totals.countAllPackages -= quantity;
+          totals.countAllPackages += quantity;
 
           // Update specific counters
           if (mappedType === 'directShipped') {
-            totals.countDirectShipped -= quantity;
+            totals.countDirectShipped += quantity;
           } else if (mappedType === 'boothSales') {
-            totals.countBoothSales -= quantity;
+            totals.countBoothSales += quantity;
           } else if (mappedType === 'virtualBoothSales') {
-            totals.countVirtualBoothSales -= quantity;
+            totals.countVirtualBoothSales += quantity;
           } else if (mappedType === 'girlDelivery') {
-            totals.countGirlDelivery -= quantity;
+            totals.countGirlDelivery += quantity;
           }
 
           // Girl owes money for girlDelivery transactions
           if (mappedType === 'girlDelivery') {
-            totals.totalDue += quantity * (cookie.price || 0);
+            totals.totalDue -= quantity * (cookie.price || 0);
             totals.girlDeliveryTotals[abbreviation] =
-              (totals.girlDeliveryTotals[abbreviation] || 0) +
+              (totals.girlDeliveryTotals[abbreviation] || 0) -
               quantity * (cookie.price || 0);
           }
         });
@@ -340,53 +343,6 @@ export const useAccountsStore = defineStore('accounts', () => {
     for (const abbreviation in totals.virtualBoothSales) {
       totals.virtualBoothSalesTotals[abbreviation] = 0;
     }
-    return totals;
-  };
-
-  const _getTotalsFromTransactionList = (
-    transactionList: Order[],
-    girlId: number,
-  ) => {
-    const totals = {
-      distributedValue: 0,
-      totalAllCookiesDistributed: 0,
-      totalPhysicalCookiesDistributed: 0,
-      totalVirtualCookiesDistributed: 0,
-      cookieTotalsByVariety: {} as Record<string, number>,
-    };
-    transactionList.forEach((transaction: Order) => {
-      const cookies = transaction.cookies;
-      if (!cookies) return;
-      for (const cookie of cookiesStore.allCookies) {
-        const abbreviation = cookie.abbreviation;
-        let price = cookie.price ?? 0;
-        let quantity = (cookies as Record<string, number>)[abbreviation] || 0;
-        const type = transaction.type;
-        const from = transaction.from;
-        if (type === 'G2G' && from === girlId) {
-          quantity = -quantity;
-        }
-        if (type === 'T2G(B)' || type === 'T2G(VB)') {
-          price = 0; // Booth and Virtual Booth transfers are already paid for
-        }
-        if (quantity) {
-          totals.distributedValue -= quantity * (price || 0);
-          totals.totalAllCookiesDistributed -= quantity;
-          totals.totalPhysicalCookiesDistributed -=
-            cookiesStore.getCookieByAbbreviation(abbreviation)?.is_virtual
-              ? 0
-              : quantity;
-          totals.totalVirtualCookiesDistributed -=
-            cookiesStore.getCookieByAbbreviation(abbreviation)?.is_virtual
-              ? quantity
-              : 0;
-          totals.cookieTotalsByVariety[abbreviation] =
-            (totals.cookieTotalsByVariety[abbreviation] || 0) + quantity;
-        }
-      }
-      return totals;
-    });
-
     return totals;
   };
 

@@ -74,7 +74,7 @@ export const useCookiesStore = defineStore('cookies', () => {
       name: cookie.abbreviation,
       label: cookie.is_virtual ? cookie.name + ' (Virtual)' : cookie.name,
       help: cookie.is_virtual
-        ? "Virtual packages don't count against your inventory"
+        ? 'Virtual packages are not included in inventory calculations but are included in girl balance calculations.'
         : undefined,
       validation: 'integer|overBooking',
       validationRules: '$validationRules',
@@ -156,9 +156,17 @@ export const useCookiesStore = defineStore('cookies', () => {
       'pending',
       'troop',
     );
+    const completedTroopMap = ordersStore.totalTransactionsByStatusAllCookies(
+      'complete',
+      'troop',
+    );
 
     return allCookies.value.map((cookie) => {
-      const onHand = ordersStore.sumTransactionsByCookie(cookie.abbreviation);
+      const totalReceivedByTroop = completedTroopMap[cookie.abbreviation] || 0;
+      const onHand = ordersStore.sumTransactionsByCookie(
+        cookie.abbreviation,
+        true,
+      );
       const requestedGirl = requestedGirlMap[cookie.abbreviation];
       const pendingGirl = pendingGirlMap[cookie.abbreviation];
       const pendingTroop = pendingTroopMap[cookie.abbreviation];
@@ -172,6 +180,7 @@ export const useCookiesStore = defineStore('cookies', () => {
 
       return {
         ...cookie,
+        totalReceivedByTroop,
         onHand,
         requestedGirl,
         pendingGirl,

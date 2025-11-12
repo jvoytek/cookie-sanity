@@ -313,7 +313,7 @@ describe('Transactions Store', () => {
           id: 1,
           status: 'complete',
           type: 'T2G',
-          cookies: { ABC: -5 }, // Will be inverted
+          cookies: { ABC: -5 },
         },
       ];
 
@@ -341,7 +341,7 @@ describe('Transactions Store', () => {
       await newOrdersStore.fetchTransactions();
 
       expect(newOrdersStore.allTransactions).toHaveLength(1);
-      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted from -5
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(-5);
     });
 
     it('should return early if no profile or season', async () => {
@@ -423,7 +423,7 @@ describe('Transactions Store', () => {
         ...mockOrder,
         profile: 'test-profile-id',
         season: 1,
-        cookies: { ABC: -5 }, // Will be inverted back
+        cookies: { ABC: -5 },
       };
 
       vi.stubGlobal(
@@ -451,7 +451,7 @@ describe('Transactions Store', () => {
       await newOrdersStore.insertNewTransaction(mockOrder);
 
       expect(newOrdersStore.allTransactions).toHaveLength(1);
-      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted back
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(-5);
       expect(toastSpy).toHaveBeenCalledWith('Transaction Created');
     });
 
@@ -588,7 +588,7 @@ describe('Transactions Store', () => {
 
       const mockUpsertedOrder = {
         ...mockOrder,
-        cookies: { ABC: -5 }, // Will be inverted back
+        cookies: { ABC: -5 },
       };
 
       vi.stubGlobal(
@@ -618,7 +618,7 @@ describe('Transactions Store', () => {
 
       await newOrdersStore.upsertTransaction(mockOrder);
 
-      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5);
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(-5);
       expect(toastSpy).toHaveBeenCalledWith('Transaction Updated');
     });
 
@@ -833,7 +833,7 @@ describe('Transactions Store', () => {
       await newOrdersStore.updateTransactionStatus(1, 'complete');
 
       expect(newOrdersStore.allTransactions[0].status).toBe('complete');
-      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(5); // Inverted back
+      expect(newOrdersStore.allTransactions[0].cookies.ABC).toBe(-5); // Inverted back
       expect(toastSpy).toHaveBeenCalledWith('Transaction Marked Complete');
     });
 

@@ -31,14 +31,6 @@
   </h5>
   <p class="text-muted-color">Current account status for each scout</p>
 
-  <!--
-        girl,
-      paymentsReceived,
-      balance,
-      status,
-      estimatedSales,
-      girlPaymentsList,
-      cookieSummary,-->
   <DataTable
     :value="accountsStore.girlGirlAccountSummarys"
     data-key="girl.id"

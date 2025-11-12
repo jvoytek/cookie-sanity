@@ -38,6 +38,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     { value: 'DIRECT_SHIP', label: 'Direct Ship' },
   ];
 
+  const transactionTypesToInvert = ['G2T', 'T2T', 'C2T'];
+
   /* Computed */
 
   const totalTransactionsByStatusAllCookies = computed(() => {
@@ -84,13 +86,17 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const sumTransactionsByCookie = computed(
     () =>
-      (cookieAbbreviation: string): number => {
+      (
+        cookieAbbreviation: string,
+        troopTransactions: boolean = false,
+      ): number => {
         const cookie = cookiesStore.getCookieByAbbreviation(cookieAbbreviation);
         // Virtual cookies should not count towards physical inventory
         if (cookie?.is_virtual) {
           return 0;
         }
         return allTransactions.value.reduce((sum, transaction) => {
+          if (troopTransactions && transaction.type == 'G2G') return sum;
           if (transaction.type === 'DIRECT_SHIP') return sum;
           if (
             transaction.cookies &&
@@ -98,7 +104,10 @@ export const useTransactionsStore = defineStore('transactions', () => {
               transaction.status === 'recorded')
           ) {
             const quantity = transaction.cookies[cookieAbbreviation] || 0;
-            return sum + (typeof quantity === 'number' ? quantity : 0);
+            if (transactionTypesToInvert.includes(transaction.type || '')) {
+              return sum + (typeof quantity === 'number' ? quantity : 0);
+            }
+            return sum - (typeof quantity === 'number' ? quantity : 0);
           }
           return sum;
         }, 0);
@@ -289,9 +298,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
   };
 
   const _transformDataForTransaction = (transaction: Order): Order => {
+    if (
+      transaction.type &&
+      transactionTypesToInvert.includes(transaction.type)
+    ) {
+      transaction = _invertCookieQuantitiesInTransaction(transaction);
+    }
     return {
       ...transaction,
-      cookies: invertCookieQuantities(transaction.cookies),
       order_date: _convertDateStringToMMDDYYYY(transaction.order_date),
       sortDate: transaction.order_date
         ? new Date(transaction.order_date)
@@ -388,7 +402,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     transaction.season =
       profileStore.currentProfile.season || seasonsStore.allSeasons[0].id;
     transaction.order_date = _returnDateStringOrNull(transaction.order_date);
-    transaction.cookies = invertCookieQuantities(transaction.cookies);
+    if (transactionTypesToInvert.includes(transaction.type || '')) {
+      transaction = _invertCookieQuantitiesInTransaction(transaction);
+    }
 
     if (transaction.auto_calculate_cookies !== undefined)
       delete transaction.auto_calculate_cookies;
@@ -431,10 +447,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
   };
 
   const upsertTransaction = async (transaction: Order) => {
-    const invertedCookies = invertCookieQuantities(transaction.cookies);
-    transaction.cookies = invertedCookies
-      ? invertedCookies
-      : transaction.cookies;
+    if (transactionTypesToInvert.includes(transaction.type || '')) {
+      transaction = _invertCookieQuantitiesInTransaction(transaction);
+    }
 
     if (transaction.auto_calculate_cookies !== undefined)
       delete transaction.auto_calculate_cookies;
