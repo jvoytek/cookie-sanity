@@ -74,9 +74,15 @@ export const useTransactionsStore = defineStore('transactions', () => {
             ) {
               return;
             }
-            total[cookie.abbreviation] =
-              (total[cookie.abbreviation] || 0) +
-              (transaction.cookies[cookie.abbreviation] || 0);
+            if (transactionTypesToInvert.includes(transaction.type || '')) {
+              total[cookie.abbreviation] =
+                (total[cookie.abbreviation] || 0) +
+                (transaction.cookies[cookie.abbreviation] || 0);
+            } else {
+              total[cookie.abbreviation] =
+                (total[cookie.abbreviation] || 0) -
+                (transaction.cookies[cookie.abbreviation] || 0);
+            }
           });
         }
       });
