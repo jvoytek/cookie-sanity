@@ -74,11 +74,17 @@ describe('useTransactionHelpers', () => {
       expect(transactionHelpers.transactionTypeBadgeSeverity('T2G')).toBe(
         'success',
       );
+      expect(transactionHelpers.transactionTypeBadgeSeverity('T2G(B)')).toBe(
+        'info',
+      );
+      expect(transactionHelpers.transactionTypeBadgeSeverity('T2G(VB)')).toBe(
+        'info',
+      );
       expect(transactionHelpers.transactionTypeBadgeSeverity('G2T')).toBe(
         'warn',
       );
       expect(transactionHelpers.transactionTypeBadgeSeverity('G2G')).toBe(
-        'info',
+        'secondary',
       );
       expect(transactionHelpers.transactionTypeBadgeSeverity('UNKNOWN')).toBe(
         null,
@@ -317,7 +323,7 @@ describe('useTransactionHelpers', () => {
     it('returns correct severity for DIRECT_SHIP type', () => {
       expect(
         transactionHelpers.transactionTypeBadgeSeverity('DIRECT_SHIP'),
-      ).toBe('info');
+      ).toBe('contrast');
     });
 
     it('includes DIRECT_SHIP help text in form schema', () => {

@@ -70,6 +70,18 @@ const useLayoutMock = vi.fn(() => ({
 }));
 vi.stubGlobal('useLayout', useLayoutMock);
 
+const useRouteMock = vi.fn(() => ({
+  query: {},
+  params: {},
+}));
+vi.stubGlobal('useRoute', useRouteMock);
+
+const useRouterMock = vi.fn(() => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+}));
+vi.stubGlobal('useRouter', useRouterMock);
+
 const usePaymentHelpersMock = vi.fn(() => ({
   form: { value: null },
   submitted: { value: false },
@@ -175,6 +187,12 @@ const useGirlsStoreMock = vi.fn(() => ({
     { id: 1, name: 'Test Girl' },
     { id: 2, name: 'Test Girl 2' },
   ],
+  getGirlIdByName: vi.fn((name: string) => {
+    // Mock implementation that returns an ID for known names
+    if (name === 'Jane Doe') return 1;
+    if (name === 'John Smith') return 2;
+    return null;
+  }),
 }));
 
 vi.stubGlobal('useGirlsStore', useGirlsStoreMock);
