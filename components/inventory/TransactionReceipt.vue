@@ -16,6 +16,8 @@ const getFromName = (transaction: Order | null) => {
   if (!transaction) return '';
   switch (transaction.type) {
     case 'T2G':
+    case 'T2G(B)':
+    case 'T2G(VB)':
       return seasonsStore.currentSeason?.troop_number
         ? `Troop #${seasonsStore.currentSeason.troop_number}`
         : 'Troop';
@@ -40,6 +42,8 @@ const getToName = (transaction: Order | null) => {
   if (!transaction) return '';
   switch (transaction.type) {
     case 'T2G':
+    case 'T2G(B)':
+    case 'T2G(VB)':
       return girlsStore.getGirlNameById(transaction.to);
     case 'G2T':
       return seasonsStore.currentSeason?.troop_number
@@ -60,12 +64,15 @@ const getToName = (transaction: Order | null) => {
   }
 };
 
+const noCostTypes = ['T2G(B)', 'T2G(VB)'];
+
 const calculateSubTotal = (transaction: Order | null) => {
   if (!transaction) return 0;
   let subTotal = 0;
   cookiesStore.allCookies.forEach((cookie) => {
+    const price = noCostTypes.includes(transaction.type) ? 0 : cookie.price;
     const count = transaction?.cookies[cookie.abbreviation] ?? 0;
-    subTotal += count * cookie.price;
+    subTotal += count * price;
   });
   return subTotal;
 };
@@ -75,15 +82,20 @@ const subTotal = computed(() => {
 });
 
 const girlAccount = computed(() => {
-  if (!props.transaction || !props.transaction.to) return null;
+  if (!props.transaction || (!props.transaction.to && !props.transaction.from))
+    return null;
+  console.log(props.transaction.type?.slice(1, 3));
   return accountsStore.getGirlAccountById(
-    props.transaction.to,
+    props.transaction.type?.slice(1, 3) === '2G'
+      ? props.transaction.to
+      : props.transaction.from,
     props.transaction.id,
     true,
   );
 });
 
 const cashCheckOtherPayments = computed(() => {
+  console.log(girlAccount.value);
   if (!girlAccount.value?.girlPaymentsList) return 0;
   return girlAccount.value.girlPaymentsList
     .filter(
@@ -135,7 +147,15 @@ const digitalCookiePayments = computed(() => {
     </div>
 
     <CookieReceiptTable :cookies="transaction.cookies" class="mb-4" />
-    <div v-if="transaction.type === 'G2T' || transaction.type === 'T2G'">
+    <div
+      v-if="
+        transaction.type === 'G2T' ||
+        transaction.type === 'T2G' ||
+        transaction.type === 'T2G(B)' ||
+        transaction.type === 'T2G(VB)'
+      "
+      class="mb-4"
+    >
       <h6>BALANCE</h6>
       <DataTable
         :value="[
@@ -145,9 +165,12 @@ const digitalCookiePayments = computed(() => {
           },
           {
             descripton: 'PREVIOUS BALANCE',
-            amount: girlAccount?.balance || 0,
+            amount: girlAccount?.cookieSummary.totalDue || 0,
           },
-
+          {
+            descripton: 'PAYMENTS RECEIVED',
+            amount: girlAccount?.paymentsReceived || 0,
+          },
           {
             descripton: 'AMOUNT STILL DUE',
             amount: girlAccount?.balance + subTotal || 0,
@@ -165,7 +188,7 @@ const digitalCookiePayments = computed(() => {
           </template>
         </Column>
       </DataTable>
-      <h6>PAYMENTS</h6>
+      <h6>PAYMENT SUMMARY</h6>
       <DataTable
         :value="[
           {
@@ -195,7 +218,7 @@ const digitalCookiePayments = computed(() => {
       </DataTable>
     </div>
 
-    <div v-if="transaction?.notes" class="flex justify-end mt-8">
+    <div class="flex justify-end mt-8">
       <div>NOTES:</div>
       <div class="flex-3 border-b border-gray-400 ml-4">
         {{ transaction?.notes }}

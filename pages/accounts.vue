@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const girlsStore = useGirlsStore();
 const paymentHelpers = usePaymentHelpers();
+const accountsStore = useAccountsStore();
 
 const route = useRoute();
 
@@ -17,6 +18,25 @@ if (rawAccount) {
 
 // Account selection - null means "Troop"
 const selectedAccount = ref<number | null>(accountIdParam);
+
+const girlAccount = computed(() => {
+  return (
+    (selectedAccount.value !== null
+      ? accountsStore.getGirlAccountById(selectedAccount.value)
+      : undefined) || {
+      girl: { first_name: '' },
+      girlPaymentsList: [],
+      balance: 0,
+      paymentsReceived: 0,
+      totalPhysicalCookiesDistributed: 0,
+      totalVirtualCookiesDistributed: 0,
+      totalDirectShipCookies: 0,
+      estimatedSales: 0,
+      cookieTotalsByVariety: {},
+      cookieSummary: {},
+    }
+  );
+});
 
 // Import dialog visibility
 const importDialogVisible = ref(false);
@@ -100,10 +120,24 @@ function setQueryParam() {
     <!-- Girl View -->
     <div v-if="isGirlView" class="card">
       <div class="grid grid-cols-12 gap-6">
-        <AccountDetailWidget :girl-id="selectedAccount!" />
+        <AccountDetailWidget
+          :girl-id="selectedAccount!"
+          :girl-account="girlAccount"
+        />
+
+        <div style="max-width: 1000px" class="col-span-12">
+          <AccountSummaryTable
+            :cookie-summary="girlAccount.cookieSummary"
+            :total-payments="girlAccount.paymentsReceived"
+            :still-due="girlAccount.balance"
+          />
+        </div>
 
         <div class="col-span-12">
-          <PaymentsDataTable :girl-id="selectedAccount!" />
+          <PaymentsDataTable
+            :girl-id="selectedAccount!"
+            :girl-account="girlAccount"
+          />
         </div>
       </div>
     </div>

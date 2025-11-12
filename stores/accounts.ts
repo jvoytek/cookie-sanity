@@ -2,9 +2,10 @@ import type { Database } from '@/types/supabase';
 import type {
   Order,
   Payment,
-  AccountBalance,
+  GirlAccountSummary,
   TroopAccountSummary,
   Girl,
+  CookieSummary,
 } from '@/types/types';
 
 /*
@@ -31,15 +32,15 @@ export const useAccountsStore = defineStore('accounts', () => {
 
   /* Computed */
 
-  const girlAccountBalances = computed((): AccountBalance[] => {
-    return girlsStore.allGirls.map((girl) => getGirlAccountBalance(girl));
+  const girlGirlAccountSummarys = computed((): GirlAccountSummary[] => {
+    return girlsStore.allGirls.map((girl) => getGirlAccountSummary(girl));
   });
 
   const troopAccountSummary = computed((): TroopAccountSummary => {
-    const balances = girlAccountBalances.value;
+    const balances = girlGirlAccountSummarys.value;
 
     const totalDistributedValue = balances.reduce(
-      (sum, balance) => sum + balance.distributedValue,
+      (sum, balance) => sum + balance.cookieSummary.totalDue,
       0,
     );
     const totalPaymentsReceived = balances.reduce(
@@ -49,75 +50,89 @@ export const useAccountsStore = defineStore('accounts', () => {
     const troopBalance = totalPaymentsReceived - totalDistributedValue;
 
     const totalAllCookiesDistributed = balances.reduce(
-      (sum, balance) => sum + (balance.totalAllCookiesDistributed || 0),
+      (sum, balance) => sum + (balance.cookieSummary.countAllPackages || 0),
       0,
     );
 
-    const totalPhysicalCookiesDistributed = balances.reduce(
-      (sum, balance) => sum + (balance.totalPhysicalCookiesDistributed || 0),
+    const totalGirlDelivery = balances.reduce(
+      (sum, balance) => sum + (balance.cookieSummary.countGirlDelivery || 0),
+      0,
+    );
+    console.log(balances);
+
+    const estimatedTotalSales = balances.reduce(
+      (sum, balance) => sum + balance.estimatedSales,
       0,
     );
 
-    const packagesDistributedByType: Record<string, number> = balances.reduce(
-      (acc, balance) => {
-        for (const [abbreviation, quantity] of Object.entries(
-          balance.cookieTotalsByVariety || {},
-        )) {
-          if (!acc[abbreviation]) {
-            acc[abbreviation] = 0;
-          }
-          acc[abbreviation] += quantity;
-        }
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-
-    const totalVirtualCookiesDistributed = Object.entries(
-      packagesDistributedByType,
-    ).reduce((sum, [abbreviation, quantity]) => {
-      const cookie = cookiesStore.getCookieByAbbreviation(abbreviation);
-      if (cookie?.is_virtual) {
-        return sum + quantity;
+    const cookieSummary: CookieSummary = {
+      directShipped: {},
+      directShippedTotals: {},
+      countDirectShipped: 0,
+      girlDelivery: {},
+      girlDeliveryTotals: {},
+      countGirlDelivery: 0,
+      boothSales: {},
+      boothSalesTotals: {},
+      countBoothSales: 0,
+      virtualBoothSales: {},
+      virtualBoothSalesTotals: {},
+      countVirtualBoothSales: 0,
+      countAllPackages: totalAllCookiesDistributed,
+      totalDue: 0,
+    };
+    // Aggregate cookie summary across all girls
+    balances.forEach((balance) => {
+      const cs = balance.cookieSummary;
+      // directShipped
+      for (const abbr in cs.directShipped) {
+        cookieSummary.directShipped[abbr] =
+          (cookieSummary.directShipped[abbr] || 0) + cs.directShipped[abbr];
       }
-      return sum;
-    }, 0);
-    // Calculate total direct ship cookies across all girls
-    const totalDirectShipCookies = balances.reduce((sum, balance) => {
-      const directShipTransactions = _getDirectShipTransactionsForGirl(
-        balance.girl.id,
-      );
-      const { totalAllCookiesDistributed: directShipCookies } =
-        _getTotalsFromTransactionList(directShipTransactions, balance.girl.id);
-      return sum + directShipCookies;
-    }, 0);
+      for (const abbr in cs.directShippedTotals) {
+        cookieSummary.directShippedTotals[abbr] =
+          (cookieSummary.directShippedTotals[abbr] || 0) +
+          cs.directShippedTotals[abbr];
+      }
+      cookieSummary.countDirectShipped += cs.countDirectShipped;
 
-    const estimatedTotalSales =
-      troopBalance >= 0
-        ? totalAllCookiesDistributed + totalDirectShipCookies
-        : Math.round(totalPaymentsReceived / cookiesStore.averageCookiePrice) +
-          totalDirectShipCookies;
+      // girlDelivery
+      for (const abbr in cs.girlDelivery) {
+        cookieSummary.girlDelivery[abbr] =
+          (cookieSummary.girlDelivery[abbr] || 0) + cs.girlDelivery[abbr];
+      }
+      for (const abbr in cs.girlDeliveryTotals) {
+        cookieSummary.girlDeliveryTotals[abbr] =
+          (cookieSummary.girlDeliveryTotals[abbr] || 0) +
+          cs.girlDeliveryTotals[abbr];
+      }
+      cookieSummary.countGirlDelivery += cs.countGirlDelivery;
 
-    // Count active accounts (accounts with any activity)
-    const activeAccounts = balances.filter(
-      (balance) => balance.distributedValue > 0 || balance.paymentsReceived > 0,
-    ).length;
+      // boothSales
+      for (const abbr in cs.boothSales) {
+        cookieSummary.boothSales[abbr] =
+          (cookieSummary.boothSales[abbr] || 0) + cs.boothSales[abbr];
+      }
+      for (const abbr in cs.boothSalesTotals) {
+        cookieSummary.boothSalesTotals[abbr] =
+          (cookieSummary.boothSalesTotals[abbr] || 0) +
+          cs.boothSalesTotals[abbr];
+      }
+      cookieSummary.countBoothSales += cs.countBoothSales;
+    });
 
     return {
       totalDistributedValue,
-      packagesDistributedByType,
       totalPaymentsReceived,
       troopBalance,
       estimatedTotalSales,
-      totalDirectShipCookies,
-      totalVirtualCookiesDistributed,
-      activeAccounts,
       totalAllCookiesDistributed: totalAllCookiesDistributed,
-      totalPhysicalCookiesDistributed: totalPhysicalCookiesDistributed,
+      totalGirlDelivery: totalGirlDelivery,
       totalCookiesRemaining: cookiesStore.allCookiesWithInventoryTotals.reduce(
         (sum, cookie) => sum + (cookie.onHand || 0),
         0,
       ),
+      cookieSummary,
     };
   });
 
@@ -131,6 +146,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     girlId: number,
     untilDate?: Date, // Return only payments before this date (not inclusive)
   ): Payment[] => {
+    console.log(untilDate);
     return allPayments.value.filter((p: Payment) => {
       if (p.seller_id !== girlId) return false;
       if (!p.payment_date) return false;
@@ -160,8 +176,8 @@ export const useAccountsStore = defineStore('accounts', () => {
         .filter(
           (order) =>
             (order.to === girlId || order.from === girlId) &&
-            statusTest(order) &&
-            order.type !== 'DIRECT_SHIP',
+            statusTest(order) /* &&
+            order.type !== 'DIRECT_SHIP',*/,
         )
         .sort((a, b) => {
           const ta = a.order_date
@@ -226,6 +242,107 @@ export const useAccountsStore = defineStore('accounts', () => {
         (order.status === 'complete' || order.status === 'recorded') &&
         order.type === 'DIRECT_SHIP',
     );
+  };
+
+  const _getCookieSummaryFromTransactionList = (
+    transactionList: Order[],
+    girlId: number,
+  ) => {
+    const totals: CookieSummary = {
+      directShipped: {},
+      directShippedTotals: {},
+      countDirectShipped: 0,
+      girlDelivery: {},
+      girlDeliveryTotals: {},
+      countGirlDelivery: 0,
+      boothSales: {},
+      boothSalesTotals: {},
+      countBoothSales: 0,
+      virtualBoothSales: {},
+      virtualBoothSalesTotals: {},
+      countVirtualBoothSales: 0,
+      countAllPackages: 0,
+      totalDue: 0,
+    };
+
+    type TransactionCategoryKeys =
+      | 'directShipped'
+      | 'girlDelivery'
+      | 'boothSales'
+      | 'virtualBoothSales';
+
+    const transactionTypeLookup: Record<string, TransactionCategoryKeys> = {
+      DIRECT_SHIP: 'directShipped',
+      G2G: 'girlDelivery',
+      T2G: 'girlDelivery',
+      G2T: 'girlDelivery',
+      'T2G(B)': 'boothSales',
+      'T2G(VB)': 'virtualBoothSales',
+    };
+
+    transactionList.forEach((transaction: Order) => {
+      const cookies = transaction.cookies;
+      if (!cookies) return;
+      // transaction.type may be null/undefined, coerce to a string before using as an index
+      const txTypeKey = (transaction.type ?? '') as string;
+      const mappedType = transactionTypeLookup[txTypeKey];
+      // No cost to girl for DIRECT_SHIP, T2G(B), T2G(VB) transactions
+      if (mappedType) {
+        cookiesStore.allCookies.forEach((cookie) => {
+          const abbreviation = cookie.abbreviation;
+          let quantity = (cookies as Record<string, number>)[abbreviation] || 0;
+
+          // Adjust quantity for G2G transfers where the girl is the sender
+          if (mappedType === 'girlDelivery') {
+            const type = transaction.type;
+            const from = transaction.from;
+            if (type === 'G2G' && from === girlId) {
+              quantity = -quantity;
+            }
+          }
+
+          if (!quantity) return;
+
+          // Update the appropriate category totals object
+          totals[mappedType][abbreviation] =
+            (totals[mappedType][abbreviation] || 0) - quantity;
+
+          // Global package count
+          totals.countAllPackages -= quantity;
+
+          // Update specific counters
+          if (mappedType === 'directShipped') {
+            totals.countDirectShipped -= quantity;
+          } else if (mappedType === 'boothSales') {
+            totals.countBoothSales -= quantity;
+          } else if (mappedType === 'virtualBoothSales') {
+            totals.countVirtualBoothSales -= quantity;
+          } else if (mappedType === 'girlDelivery') {
+            totals.countGirlDelivery -= quantity;
+          }
+
+          // Girl owes money for girlDelivery transactions
+          if (mappedType === 'girlDelivery') {
+            totals.totalDue += quantity * (cookie.price || 0);
+            totals.girlDeliveryTotals[abbreviation] =
+              (totals.girlDeliveryTotals[abbreviation] || 0) +
+              quantity * (cookie.price || 0);
+          }
+        });
+      }
+    });
+
+    //Enter $0.00 for directShip, boothSales, and virtualBoothSales totals
+    for (const abbreviation in totals.directShipped) {
+      totals.directShippedTotals[abbreviation] = 0;
+    }
+    for (const abbreviation in totals.boothSales) {
+      totals.boothSalesTotals[abbreviation] = 0;
+    }
+    for (const abbreviation in totals.virtualBoothSales) {
+      totals.virtualBoothSalesTotals[abbreviation] = 0;
+    }
+    return totals;
   };
 
   const _getTotalsFromTransactionList = (
@@ -433,18 +550,18 @@ export const useAccountsStore = defineStore('accounts', () => {
     includePending: boolean = false,
   ) => {
     if (!untilId) {
-      const girlAccount = girlAccountBalances.value.find(
+      const girlAccount = girlGirlAccountSummarys.value.find(
         (account) => account.girl.id === id,
       );
       return girlAccount;
     } else {
       const girl = girlsStore.getGirlById(id);
       if (!girl) return null;
-      return getGirlAccountBalance(girl, untilId, includePending);
+      return getGirlAccountSummary(girl, untilId, includePending);
     }
   };
 
-  const getGirlAccountBalance = (
+  const getGirlAccountSummary = (
     girl: Girl,
     untilId?: number,
     includePending: boolean = false,
@@ -454,23 +571,23 @@ export const useAccountsStore = defineStore('accounts', () => {
       untilId, // Including this transaction ID
       includePending,
     );
-    const {
-      distributedValue,
-      totalVirtualCookiesDistributed,
-      totalPhysicalCookiesDistributed,
-      totalAllCookiesDistributed,
-      cookieTotalsByVariety,
-    } = untilId
-      ? _getTotalsFromTransactionList(
+    console.log(untilId);
+
+    const cookieSummary = untilId
+      ? _getCookieSummaryFromTransactionList(
           completedTransactions.slice(0, -1),
           girl.id,
         )
-      : _getTotalsFromTransactionList(completedTransactions, girl.id);
+      : _getCookieSummaryFromTransactionList(completedTransactions, girl.id);
+
+    console.log('cookieSummary for girlId', girl.id, cookieSummary);
+
     // derive an explicit Date | undefined from the last completed transaction's order_date (if present)
     let untilDate: Date | undefined = undefined;
     if (untilId) {
       // Prefer the order from the completed list, fall back to all transactions if needed
       const untilOrder = completedTransactions.find((o) => o.id === untilId);
+      console.log('untilOrder from completedTransactions:', untilOrder);
 
       if (untilOrder && untilOrder.order_date) {
         const od = untilOrder.order_date;
@@ -482,42 +599,33 @@ export const useAccountsStore = defineStore('accounts', () => {
       }
     }
     const girlPaymentsList = _getPaymentsForGirl(girl.id, untilDate);
+    console.log(girlPaymentsList);
     const paymentsReceived = _getTotalofPayments(girlPaymentsList);
-    const balance = paymentsReceived - distributedValue;
+    const balance = cookieSummary.totalDue + paymentsReceived;
     const status = _getStatus(balance);
-
-    // Include DIRECT_SHIP orders in estimated sales
-    const directShipTransactions = _getDirectShipTransactionsForGirl(girl.id);
-    const { totalAllCookiesDistributed: totalDirectShipCookies } =
-      _getTotalsFromTransactionList(directShipTransactions, girl.id);
-
-    // Include virtual cookie totals in cookieTotalsByVariety
 
     const estimatedSales =
       balance >= 0
-        ? totalAllCookiesDistributed + totalDirectShipCookies
+        ? cookieSummary.countAllPackages
         : Math.round(paymentsReceived / cookiesStore.averageCookiePrice) +
-          totalDirectShipCookies;
+          cookieSummary.countDirectShipped +
+          cookieSummary.countBoothSales +
+          cookieSummary.countVirtualBoothSales;
 
     return {
       girl,
-      distributedValue,
       paymentsReceived,
       balance,
       status,
-      totalAllCookiesDistributed,
-      totalDirectShipCookies,
-      totalVirtualCookiesDistributed,
-      totalPhysicalCookiesDistributed,
-      cookieTotalsByVariety,
       estimatedSales,
       girlPaymentsList,
+      cookieSummary,
     };
   };
 
   return {
     allPayments,
-    girlAccountBalances,
+    girlGirlAccountSummarys,
     editPaymentDialogVisible,
     deletePaymentDialogVisible,
     activePayment,

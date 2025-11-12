@@ -1,20 +1,12 @@
 <script setup lang="ts">
 const props = defineProps<{
   girlId: number;
+  girlAccount: ReturnType<typeof accountsStore.getGirlAccountById>;
 }>();
 
 const accountsStore = useAccountsStore();
 const paymentHelpers = usePaymentHelpers();
 const formatHelpers = useFormatHelpers();
-
-const girlAccount = computed(() => {
-  return (
-    accountsStore.getGirlAccountById(props.girlId) || {
-      girl: { first_name: '' },
-      girlPaymentsList: [],
-    }
-  );
-});
 
 const formatPaymentType = (type: string) => {
   switch (type) {
@@ -34,10 +26,10 @@ const formatPaymentType = (type: string) => {
 
 <template>
   <h5 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
-    Payment History for {{ girlAccount.girl.first_name }}
+    Payment History for {{ props.girlAccount.girl.first_name }}
   </h5>
   <DataTable
-    :value="girlAccount.girlPaymentsList"
+    :value="props.girlAccount.girlPaymentsList"
     data-key="id"
     sort-field="payment_date"
     :sort-order="1"

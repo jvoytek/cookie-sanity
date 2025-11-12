@@ -62,7 +62,7 @@ describe('Accounts Store', () => {
     const store = useAccountsStore();
     await store.fetchPayments();
 
-    const balances = store.girlAccountBalances;
+    const balances = store.girlGirlAccountSummarys;
     expect(balances).toHaveLength(2);
     expect(balances[0]).toMatchObject({
       girl: { id: 1, name: 'Test Girl' },

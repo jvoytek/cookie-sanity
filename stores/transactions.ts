@@ -31,6 +31,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const girlTransactionTypeOptions = [
     { value: 'T2G', label: 'Troop to Girl' },
+    { value: 'T2G(B)', label: 'Troop to Girl (Booth)' },
+    { value: 'T2G(VB)', label: 'Troop to Girl (Virtual Booth)' },
     { value: 'G2G', label: 'Girl to Girl' },
     { value: 'G2T', label: 'Girl to Troop' },
     { value: 'DIRECT_SHIP', label: 'Direct Ship' },
@@ -355,6 +357,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const friendlyTransactionTypes = (type: string): string => {
     const transactionTypeMap: Record<string, string> = {
       T2G: 'Troop to Girl',
+      'T2G(B)': 'Booth',
+      'T2G(VB)': 'Virtual Booth',
       G2G: 'Girl to Girl',
       G2T: 'Girl to Troop',
       T2T: 'Troop to Troop',
@@ -362,8 +366,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
       COOKIE_SHARE: 'Cookie Share',
       DIRECT_SHIP: 'Direct Ship',
     };
-    // Remove any suffixes like (B), (VB), etc.
-    type = type.split('(')[0].trim();
     return transactionTypeMap[type] || type;
   };
 
@@ -583,7 +585,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
   };
 
   const transactionRequiresReceipt = (transaction: Order): boolean => {
-    const receiptRequiredTypes = ['T2G', 'G2G', 'G2T', 'T2T'];
+    const receiptRequiredTypes = [
+      'T2G',
+      'T2G(B)',
+      'T2G(VB)',
+      'G2G',
+      'G2T',
+      'T2T',
+    ];
     return (
       receiptRequiredTypes.includes(transaction.type || '') &&
       transaction.status !== 'requested' &&
@@ -600,7 +609,22 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const transactions = allTransactions.value.filter((transaction) =>
       idsAsNumbers.includes(transaction.id),
     );
-    return transactions;
+    // sort transactions by the order_date ascending
+    return transactions.sort((a, b) => {
+      const aTime =
+        a.sortDate instanceof Date
+          ? a.sortDate.getTime()
+          : a.order_date
+            ? Date.parse(String(a.order_date)) || 0
+            : 0;
+      const bTime =
+        b.sortDate instanceof Date
+          ? b.sortDate.getTime()
+          : b.order_date
+            ? Date.parse(String(b.order_date)) || 0
+            : 0;
+      return aTime - bTime;
+    });
   };
 
   const setActiveTransactionPredictedCookies = (expectedSales: number) => {
