@@ -51,6 +51,11 @@ describe('Transactions Store', () => {
           { id: 1, first_name: 'Jane', last_name: 'Doe' },
           { id: 2, first_name: 'John', last_name: 'Smith' },
         ],
+        getGirlIdByName: vi.fn((name: string) => {
+          if (name === 'Jane Doe') return 1;
+          if (name === 'John Smith') return 2;
+          return null;
+        }),
       })),
     );
 
@@ -85,7 +90,7 @@ describe('Transactions Store', () => {
       expect(transactionsStore.editTransactionDialogVisible).toBe(false);
       expect(transactionsStore.deleteTransactionDialogVisible).toBe(false);
       expect(transactionsStore.troopTransactionTypeOptions).toHaveLength(2);
-      expect(transactionsStore.girlTransactionTypeOptions).toHaveLength(4);
+      expect(transactionsStore.girlTransactionTypeOptions).toHaveLength(6);
     });
 
     it('should have correct trooptransaction type options', () => {
@@ -98,6 +103,8 @@ describe('Transactions Store', () => {
     it('should have correct girl transaction type options', () => {
       expect(transactionsStore.girlTransactionTypeOptions).toEqual([
         { value: 'T2G', label: 'Troop to Girl' },
+        { value: 'T2G(B)', label: 'Troop to Girl (Booth)' },
+        { value: 'T2G(VB)', label: 'Troop to Girl (Virtual Booth)' },
         { value: 'G2G', label: 'Girl to Girl' },
         { value: 'G2T', label: 'Girl to Troop' },
         { value: 'DIRECT_SHIP', label: 'Direct Ship' },
@@ -900,7 +907,7 @@ describe('Transactions Store', () => {
       expect(newOrder?.type).toBe('T2G');
     });
 
-    it('should convert COOKIE_SHARE(B) to T2G', () => {
+    it('should convert COOKIE_SHARE(B) to T2G(B)', () => {
       const scOrder = {
         DATE: '2024-01-01',
         'ORDER #': 12345,
@@ -925,10 +932,10 @@ describe('Transactions Store', () => {
       const newOrder =
         transactionsStore.convertSCOrderToNewTransaction(scOrder);
 
-      expect(newOrder?.type).toBe('T2G');
+      expect(newOrder?.type).toBe('T2G(B)');
     });
 
-    it('should convert COOKIE_SHARE(VB) to T2G', () => {
+    it('should convert COOKIE_SHARE(VB) to T2G(VB)', () => {
       const scOrder = {
         DATE: '2024-01-01',
         'ORDER #': 12345,
@@ -953,7 +960,7 @@ describe('Transactions Store', () => {
       const newOrder =
         transactionsStore.convertSCOrderToNewTransaction(scOrder);
 
-      expect(newOrder?.type).toBe('T2G');
+      expect(newOrder?.type).toBe('T2G(VB)');
     });
 
     it('should convert SC order to new transaction successfully', () => {

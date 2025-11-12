@@ -1,23 +1,23 @@
 <script setup>
-const loading = ref(true);
+  const loading = ref(true);
 
-loading.value = true;
-const user = useSupabaseUser();
+  loading.value = true;
+  const user = useSupabaseUser();
 
-const profileStore = useProfileStore();
+  const profileStore = useProfileStore();
 
-loading.value = false;
+  loading.value = false;
 
-async function updateProfile() {
-  try {
-    loading.value = true;
-    profileStore.updateProfile();
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    loading.value = false;
+  async function updateProfile() {
+    try {
+      loading.value = true;
+      profileStore.updateProfile();
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      loading.value = false;
+    }
   }
-}
 </script>
 
 <template>

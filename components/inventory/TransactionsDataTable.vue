@@ -1,191 +1,191 @@
 <script setup lang="ts">
-import type { Order } from '@/types/types';
+  import type { Order } from '@/types/types';
 
-const props = defineProps<{
-  orders: Order[];
-  transactionTypes: 'troop' | 'girl' | 'all';
-  paginated?: boolean;
-}>();
+  const props = defineProps<{
+    orders: Order[];
+    transactionTypes: 'troop' | 'girl' | 'all';
+    paginated?: boolean;
+  }>();
 
-const ordersStore = useTransactionsStore();
-const girlsStore = useGirlsStore();
-const transactionHelpers = useTransactionHelpers();
-const transactionsStore = useTransactionsStore();
+  const ordersStore = useTransactionsStore();
+  const girlsStore = useGirlsStore();
+  const transactionHelpers = useTransactionHelpers();
+  const transactionsStore = useTransactionsStore();
 
-// Selection state
-const selectedTransactions = ref<Order[]>([]);
+  // Selection state
+  const selectedTransactions = ref<Order[]>([]);
 
-const showReceipt = (transaction: Order) => {
-  // Open new tab with /pages/receipts?id=transaction.id
-  window.open(
-    `/receipts?id=${transaction.id}`,
-    '_blank',
-    'noopener,noreferrer',
-  );
-};
-const selectAll = ref(false);
-const deleteBulkTransactionsDialogVisible = ref(false);
-
-// Watch for select all changes
-watch(selectAll, (newValue) => {
-  if (newValue) {
-    // Select all transactions across all pages
-    selectedTransactions.value = [...props.orders];
-  } else {
-    // Only clear if we're unchecking (not if individual selections caused this)
-    if (selectedTransactions.value.length === props.orders.length) {
-      selectedTransactions.value = [];
-    }
-  }
-});
-
-// Watch for individual selections to update select all state
-watch(
-  selectedTransactions,
-  (newValue) => {
-    selectAll.value =
-      newValue.length === props.orders.length && props.orders.length > 0;
-  },
-  { deep: true },
-);
-
-// Reset selection when orders change
-watch(
-  () => props.orders,
-  () => {
-    selectedTransactions.value = [];
-    selectAll.value = false;
-  },
-);
-
-// Computed properties for button visibility and counts
-const hasSelection = computed(() => selectedTransactions.value.length > 0);
-
-const canMarkComplete = computed(() => {
-  if (props.transactionTypes === 'all') return false;
-  return props.orders.some((t) => t.status === 'pending');
-});
-
-const canUndoRecorded = computed(() => {
-  if (props.transactionTypes === 'all') return false;
-  return props.orders.some((t) => t.status === 'recorded');
-});
-
-const canMarkRecorded = computed(() => {
-  if (props.transactionTypes === 'all') return false;
-  return props.orders.some((t) => t.status === 'complete');
-});
-
-const canApprove = computed(() => {
-  if (props.transactionTypes === 'all') return false;
-  return props.orders.some((t) => t.status === 'requested');
-});
-
-const canMarkPending = computed(() => {
-  if (props.transactionTypes === 'all') return false;
-  return props.orders.some(
-    (t) => t.status === 'complete' || t.status === 'rejected',
-  );
-});
-
-const canDelete = computed(() => {
-  if (props.transactionTypes === 'all') return true;
-  if (props.transactionTypes === 'troop') return true;
-  if (props.transactionTypes === 'girl') {
-    return props.orders.some(
-      (t) =>
-        t.status === 'rejected' ||
-        t.status === 'complete' ||
-        t.status === 'recorded',
+  const showReceipt = (transaction: Order) => {
+    // Open new tab with /pages/receipts?id=transaction.id
+    window.open(
+      `/receipts?id=${transaction.id}`,
+      '_blank',
+      'noopener,noreferrer',
     );
-  }
-  return false;
-});
+  };
+  const selectAll = ref(false);
+  const deleteBulkTransactionsDialogVisible = ref(false);
 
-const canReject = computed(() => {
-  if (props.transactionTypes !== 'girl') return false;
-  return props.orders.some(
-    (t) => t.status === 'requested' || t.status === 'pending',
+  // Watch for select all changes
+  watch(selectAll, (newValue) => {
+    if (newValue) {
+      // Select all transactions across all pages
+      selectedTransactions.value = [...props.orders];
+    } else {
+      // Only clear if we're unchecking (not if individual selections caused this)
+      if (selectedTransactions.value.length === props.orders.length) {
+        selectedTransactions.value = [];
+      }
+    }
+  });
+
+  // Watch for individual selections to update select all state
+  watch(
+    selectedTransactions,
+    (newValue) => {
+      selectAll.value =
+        newValue.length === props.orders.length && props.orders.length > 0;
+    },
+    { deep: true },
   );
-});
 
-// Bulk action handlers
-const bulkMarkComplete = async () => {
-  const toUpdate = selectedTransactions.value.filter(
-    (t) => t.status === 'pending' || t.status === 'recorded',
+  // Reset selection when orders change
+  watch(
+    () => props.orders,
+    () => {
+      selectedTransactions.value = [];
+      selectAll.value = false;
+    },
   );
-  const transactionIds = toUpdate.map((t) => t.id);
-  await ordersStore.updateTransactionStatusBulk(transactionIds, 'complete');
-  selectedTransactions.value = [];
-};
 
-const bulkMarkRecorded = async () => {
-  const toUpdate = selectedTransactions.value.filter(
-    (t) => t.status === 'complete',
-  );
-  const transactionIds = toUpdate.map((t) => t.id);
-  await ordersStore.updateTransactionStatusBulk(transactionIds, 'recorded');
-  selectedTransactions.value = [];
-};
+  // Computed properties for button visibility and counts
+  const hasSelection = computed(() => selectedTransactions.value.length > 0);
 
-const bulkApprove = async () => {
-  const toUpdate = selectedTransactions.value.filter(
-    (t) => t.status === 'requested',
-  );
-  const transactionIds = toUpdate.map((t) => t.id);
-  await ordersStore.updateTransactionStatusBulk(transactionIds, 'pending');
-  selectedTransactions.value = [];
-};
+  const canMarkComplete = computed(() => {
+    if (props.transactionTypes === 'all') return false;
+    return props.orders.some((t) => t.status === 'pending');
+  });
 
-const bulkMarkPending = async () => {
-  const toUpdate = selectedTransactions.value.filter(
-    (t) => t.status === 'complete' || t.status === 'rejected',
-  );
-  const transactionIds = toUpdate.map((t) => t.id);
-  await ordersStore.updateTransactionStatusBulk(transactionIds, 'pending');
-  selectedTransactions.value = [];
-};
+  const canUndoRecorded = computed(() => {
+    if (props.transactionTypes === 'all') return false;
+    return props.orders.some((t) => t.status === 'recorded');
+  });
 
-const bulkDelete = async () => {
-  for (const transaction of selectedTransactions.value) {
-    await ordersStore.deleteTransaction(transaction.id);
-  }
-  selectedTransactions.value = [];
-  deleteBulkTransactionsDialogVisible.value = false;
-};
+  const canMarkRecorded = computed(() => {
+    if (props.transactionTypes === 'all') return false;
+    return props.orders.some((t) => t.status === 'complete');
+  });
 
-const bulkReject = async () => {
-  const toUpdate = selectedTransactions.value.filter(
-    (t) => t.status === 'requested' || t.status === 'pending',
-  );
-  const transactionIds = toUpdate.map((t) => t.id);
-  await ordersStore.updateTransactionStatusBulk(transactionIds, 'rejected');
-  selectedTransactions.value = [];
-};
+  const canApprove = computed(() => {
+    if (props.transactionTypes === 'all') return false;
+    return props.orders.some((t) => t.status === 'requested');
+  });
 
-const bulkShowReceipt = () => {
-  // Open new tab with /pages/receipts?id=transactionIds
-  const transactionIds = selectedTransactions.value
-    .map((t) => t.id)
-    .join('&id=');
-  window.open(
-    `/receipts?id=${transactionIds}`,
-    '_blank',
-    'noopener,noreferrer',
-  );
-};
+  const canMarkPending = computed(() => {
+    if (props.transactionTypes === 'all') return false;
+    return props.orders.some(
+      (t) => t.status === 'complete' || t.status === 'rejected',
+    );
+  });
 
-const canShowReceipt = computed(() => {
-  return selectedTransactions.value.every((transaction) =>
-    transactionsStore.transactionRequiresReceipt(transaction),
-  );
-});
+  const canDelete = computed(() => {
+    if (props.transactionTypes === 'all') return true;
+    if (props.transactionTypes === 'troop') return true;
+    if (props.transactionTypes === 'girl') {
+      return props.orders.some(
+        (t) =>
+          t.status === 'rejected' ||
+          t.status === 'complete' ||
+          t.status === 'recorded',
+      );
+    }
+    return false;
+  });
 
-const anyReceiptsAvailable = computed(() => {
-  return props.orders.some((transaction) =>
-    transactionsStore.transactionRequiresReceipt(transaction),
-  );
-});
+  const canReject = computed(() => {
+    if (props.transactionTypes !== 'girl') return false;
+    return props.orders.some(
+      (t) => t.status === 'requested' || t.status === 'pending',
+    );
+  });
+
+  // Bulk action handlers
+  const bulkMarkComplete = async () => {
+    const toUpdate = selectedTransactions.value.filter(
+      (t) => t.status === 'pending' || t.status === 'recorded',
+    );
+    const transactionIds = toUpdate.map((t) => t.id);
+    await ordersStore.updateTransactionStatusBulk(transactionIds, 'complete');
+    selectedTransactions.value = [];
+  };
+
+  const bulkMarkRecorded = async () => {
+    const toUpdate = selectedTransactions.value.filter(
+      (t) => t.status === 'complete',
+    );
+    const transactionIds = toUpdate.map((t) => t.id);
+    await ordersStore.updateTransactionStatusBulk(transactionIds, 'recorded');
+    selectedTransactions.value = [];
+  };
+
+  const bulkApprove = async () => {
+    const toUpdate = selectedTransactions.value.filter(
+      (t) => t.status === 'requested',
+    );
+    const transactionIds = toUpdate.map((t) => t.id);
+    await ordersStore.updateTransactionStatusBulk(transactionIds, 'pending');
+    selectedTransactions.value = [];
+  };
+
+  const bulkMarkPending = async () => {
+    const toUpdate = selectedTransactions.value.filter(
+      (t) => t.status === 'complete' || t.status === 'rejected',
+    );
+    const transactionIds = toUpdate.map((t) => t.id);
+    await ordersStore.updateTransactionStatusBulk(transactionIds, 'pending');
+    selectedTransactions.value = [];
+  };
+
+  const bulkDelete = async () => {
+    for (const transaction of selectedTransactions.value) {
+      await ordersStore.deleteTransaction(transaction.id);
+    }
+    selectedTransactions.value = [];
+    deleteBulkTransactionsDialogVisible.value = false;
+  };
+
+  const bulkReject = async () => {
+    const toUpdate = selectedTransactions.value.filter(
+      (t) => t.status === 'requested' || t.status === 'pending',
+    );
+    const transactionIds = toUpdate.map((t) => t.id);
+    await ordersStore.updateTransactionStatusBulk(transactionIds, 'rejected');
+    selectedTransactions.value = [];
+  };
+
+  const bulkShowReceipt = () => {
+    // Open new tab with /pages/receipts?id=transactionIds
+    const transactionIds = selectedTransactions.value
+      .map((t) => t.id)
+      .join('&id=');
+    window.open(
+      `/receipts?id=${transactionIds}`,
+      '_blank',
+      'noopener,noreferrer',
+    );
+  };
+
+  const canShowReceipt = computed(() => {
+    return selectedTransactions.value.every((transaction) =>
+      transactionsStore.transactionRequiresReceipt(transaction),
+    );
+  });
+
+  const anyReceiptsAvailable = computed(() => {
+    return props.orders.some((transaction) =>
+      transactionsStore.transactionRequiresReceipt(transaction),
+    );
+  });
 </script>
 
 <template>
@@ -291,12 +291,12 @@ const anyReceiptsAvailable = computed(() => {
         @click="deleteBulkTransactionsDialogVisible = true"
       />
       <Button
-        :disabled="!hasSelection || !canShowReceipt"
         v-if="anyReceiptsAvailable"
         v-tooltip.bottom="{
           value: 'View receipt for selected transaction(s)',
           showDelay: 500,
         }"
+        :disabled="!hasSelection || !canShowReceipt"
         label="View Receipt"
         icon="pi pi-file"
         class="ml-2"
@@ -392,9 +392,9 @@ const anyReceiptsAvailable = computed(() => {
         <CookieList :cookies="slotProps.data.cookies" />
       </template>
     </Column>
-    <Column field="order_date" header="Date" sortField="sortDate" sortable>
+    <Column field="order_date" header="Date" sort-field="sortDate" sortable>
       <template #body="slotProps">
-        <NuxtTime :datetime="slotProps.data.order_date" timeZone="UTC" />
+        <NuxtTime :datetime="slotProps.data.order_date" time-zone="UTC" />
       </template>
     </Column>
     <Column field="notes" header="Notes" />
@@ -542,6 +542,7 @@ const anyReceiptsAvailable = computed(() => {
           "
         />
         <Button
+          v-if="transactionsStore.transactionRequiresReceipt(slotProps.data)"
           v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
           aria-label="View Receipt"
           icon="pi pi-file"
@@ -549,7 +550,6 @@ const anyReceiptsAvailable = computed(() => {
           variant="outlined"
           severity="secondary"
           @click="showReceipt(slotProps.data)"
-          v-if="transactionsStore.transactionRequiresReceipt(slotProps.data)"
         />
       </template>
     </Column>

@@ -1,107 +1,120 @@
 <script setup lang="ts">
-import type { Order } from '@/types/types';
-import CookieReceiptTable from '../other/CookieReceiptTable.vue';
+  import type { Order } from '@/types/types';
+  import CookieReceiptTable from '../other/CookieReceiptTable.vue';
 
-const props = defineProps<{
-  transaction: Order | null;
-}>();
+  const props = defineProps<{
+    transaction: Order | null;
+  }>();
 
-const girlsStore = useGirlsStore();
-const seasonsStore = useSeasonsStore();
-const accountsStore = useAccountsStore();
-const cookiesStore = useCookiesStore();
-const formatHelpers = useFormatHelpers();
+  const girlsStore = useGirlsStore();
+  const seasonsStore = useSeasonsStore();
+  const accountsStore = useAccountsStore();
+  const cookiesStore = useCookiesStore();
+  const formatHelpers = useFormatHelpers();
 
-const getFromName = (transaction: Order | null) => {
-  if (!transaction) return '';
-  switch (transaction.type) {
-    case 'T2G':
-      return seasonsStore.currentSeason?.troop_number
-        ? `Troop #${seasonsStore.currentSeason.troop_number}`
-        : 'Troop';
-    case 'G2T':
-      return girlsStore.getGirlNameById(transaction.from);
-    case 'G2G':
-      return girlsStore.getGirlNameById(transaction.from);
-    case 'T2T':
-      return seasonsStore.currentSeason?.troop_number
-        ? `Troop #${seasonsStore.currentSeason.troop_number}`
-        : 'Troop';
-    case 'C2T':
-      return transaction.supplier || 'Council';
-    case 'DIRECT_SHIP':
-      return 'Cookie Baker';
-    default:
-      return '';
-  }
-};
+  const getFromName = (transaction: Order | null) => {
+    if (!transaction) return '';
+    switch (transaction.type) {
+      case 'T2G':
+      case 'T2G(B)':
+      case 'T2G(VB)':
+        return seasonsStore.currentSeason?.troop_number
+          ? `Troop #${seasonsStore.currentSeason.troop_number}`
+          : 'Troop';
+      case 'G2T':
+        return girlsStore.getGirlNameById(transaction.from);
+      case 'G2G':
+        return girlsStore.getGirlNameById(transaction.from);
+      case 'T2T':
+        return seasonsStore.currentSeason?.troop_number
+          ? `Troop #${seasonsStore.currentSeason.troop_number}`
+          : 'Troop';
+      case 'C2T':
+        return transaction.supplier || 'Council';
+      case 'DIRECT_SHIP':
+        return 'Cookie Baker';
+      default:
+        return '';
+    }
+  };
 
-const getToName = (transaction: Order | null) => {
-  if (!transaction) return '';
-  switch (transaction.type) {
-    case 'T2G':
-      return girlsStore.getGirlNameById(transaction.to);
-    case 'G2T':
-      return seasonsStore.currentSeason?.troop_number
-        ? `Troop #${seasonsStore.currentSeason.troop_number}`
-        : 'Troop';
-    case 'G2G':
-      return girlsStore.getGirlNameById(transaction.to);
-    case 'T2T':
-      return transaction.supplier || 'Troop';
-    case 'C2T':
-      return seasonsStore.currentSeason?.troop_number
-        ? `Troop #${seasonsStore.currentSeason.troop_number}`
-        : 'Troop';
-    case 'DIRECT_SHIP':
-      return 'Customer of ' + girlsStore.getGirlNameById(transaction.to);
-    default:
-      return '';
-  }
-};
+  const getToName = (transaction: Order | null) => {
+    if (!transaction) return '';
+    switch (transaction.type) {
+      case 'T2G':
+      case 'T2G(B)':
+      case 'T2G(VB)':
+        return girlsStore.getGirlNameById(transaction.to);
+      case 'G2T':
+        return seasonsStore.currentSeason?.troop_number
+          ? `Troop #${seasonsStore.currentSeason.troop_number}`
+          : 'Troop';
+      case 'G2G':
+        return girlsStore.getGirlNameById(transaction.to);
+      case 'T2T':
+        return transaction.supplier || 'Troop';
+      case 'C2T':
+        return seasonsStore.currentSeason?.troop_number
+          ? `Troop #${seasonsStore.currentSeason.troop_number}`
+          : 'Troop';
+      case 'DIRECT_SHIP':
+        return 'Customer of ' + girlsStore.getGirlNameById(transaction.to);
+      default:
+        return '';
+    }
+  };
 
-const calculateSubTotal = (transaction: Order | null) => {
-  if (!transaction) return 0;
-  let subTotal = 0;
-  cookiesStore.allCookies.forEach((cookie) => {
-    const count = transaction?.cookies[cookie.abbreviation] ?? 0;
-    subTotal += count * cookie.price;
+  const noCostTypes = ['T2G(B)', 'T2G(VB)'];
+
+  const calculateSubTotal = (transaction: Order | null) => {
+    if (!transaction) return 0;
+    let subTotal = 0;
+    cookiesStore.allCookies.forEach((cookie) => {
+      const price = noCostTypes.includes(transaction.type) ? 0 : cookie.price;
+      const count = transaction?.cookies[cookie.abbreviation] ?? 0;
+      subTotal += count * price;
+    });
+    return subTotal;
+  };
+
+  const subTotal = computed(() => {
+    return calculateSubTotal(props.transaction);
   });
-  return subTotal;
-};
 
-const subTotal = computed(() => {
-  return calculateSubTotal(props.transaction);
-});
-
-const girlAccount = computed(() => {
-  if (!props.transaction || !props.transaction.to) return null;
-  return accountsStore.getGirlAccountById(
-    props.transaction.to,
-    props.transaction.id,
-    true,
-  );
-});
-
-const cashCheckOtherPayments = computed(() => {
-  if (!girlAccount.value?.girlPaymentsList) return 0;
-  return girlAccount.value.girlPaymentsList
-    .filter(
-      (payment) =>
-        payment.type === 'cash' ||
-        payment.type === 'check' ||
-        payment.type === 'other' ||
-        payment.type === null,
+  const girlAccount = computed(() => {
+    if (
+      !props.transaction ||
+      (!props.transaction.to && !props.transaction.from)
     )
-    .reduce((sum, payment) => sum + payment.amount, 0);
-});
+      return null;
+    return accountsStore.getGirlAccountById(
+      props.transaction.type?.slice(1, 3) === '2G'
+        ? props.transaction.to
+        : props.transaction.from,
+      props.transaction.id,
+      true,
+    );
+  });
 
-const digitalCookiePayments = computed(() => {
-  if (!girlAccount.value?.girlPaymentsList) return 0;
-  return girlAccount.value.girlPaymentsList
-    .filter((payment) => payment.type === 'digital_cookie')
-    .reduce((sum, payment) => sum + payment.amount, 0);
-});
+  const cashCheckOtherPayments = computed(() => {
+    if (!girlAccount.value?.girlPaymentsList) return 0;
+    return girlAccount.value.girlPaymentsList
+      .filter(
+        (payment) =>
+          payment.type === 'cash' ||
+          payment.type === 'check' ||
+          payment.type === 'other' ||
+          payment.type === null,
+      )
+      .reduce((sum, payment) => sum + payment.amount, 0);
+  });
+
+  const digitalCookiePayments = computed(() => {
+    if (!girlAccount.value?.girlPaymentsList) return 0;
+    return girlAccount.value.girlPaymentsList
+      .filter((payment) => payment.type === 'digital_cookie')
+      .reduce((sum, payment) => sum + payment.amount, 0);
+  });
 </script>
 <template>
   <div class="receipt-content">
@@ -135,7 +148,15 @@ const digitalCookiePayments = computed(() => {
     </div>
 
     <CookieReceiptTable :cookies="transaction.cookies" class="mb-4" />
-    <div v-if="transaction.type === 'G2T' || transaction.type === 'T2G'">
+    <div
+      v-if="
+        transaction.type === 'G2T' ||
+        transaction.type === 'T2G' ||
+        transaction.type === 'T2G(B)' ||
+        transaction.type === 'T2G(VB)'
+      "
+      class="mb-4"
+    >
       <h6>BALANCE</h6>
       <DataTable
         :value="[
@@ -145,9 +166,12 @@ const digitalCookiePayments = computed(() => {
           },
           {
             descripton: 'PREVIOUS BALANCE',
-            amount: girlAccount?.balance || 0,
+            amount: girlAccount?.cookieSummary.totalDue || 0,
           },
-
+          {
+            descripton: 'PAYMENTS RECEIVED',
+            amount: girlAccount?.paymentsReceived || 0,
+          },
           {
             descripton: 'AMOUNT STILL DUE',
             amount: girlAccount?.balance + subTotal || 0,
@@ -157,15 +181,15 @@ const digitalCookiePayments = computed(() => {
         show-gridlines
         class="no-header-datatable mb-4"
       >
-        <template #header></template>
-        <Column field="descripton"></Column>
+        <template #header />
+        <Column field="descripton" />
         <Column field="amount">
           <template #body="slotProps">
             {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
           </template>
         </Column>
       </DataTable>
-      <h6>PAYMENTS</h6>
+      <h6>PAYMENT SUMMARY</h6>
       <DataTable
         :value="[
           {
@@ -185,8 +209,8 @@ const digitalCookiePayments = computed(() => {
         show-gridlines
         class="no-header-datatable mb-4"
       >
-        <template #header></template>
-        <Column field="descripton"></Column>
+        <template #header />
+        <Column field="descripton" />
         <Column field="amount">
           <template #body="slotProps">
             {{ formatHelpers.formatCurrency(slotProps.data.amount) }}
@@ -195,7 +219,7 @@ const digitalCookiePayments = computed(() => {
       </DataTable>
     </div>
 
-    <div class="flex justify-end mt-8" v-if="transaction?.notes">
+    <div class="flex justify-end mt-8">
       <div>NOTES:</div>
       <div class="flex-3 border-b border-gray-400 ml-4">
         {{ transaction?.notes }}
@@ -204,15 +228,15 @@ const digitalCookiePayments = computed(() => {
 
     <div class="flex justify-end mt-8">
       <div>RECEIVED BY:</div>
-      <div class="flex-3 border-b border-gray-400 ml-4"></div>
+      <div class="flex-3 border-b border-gray-400 ml-4" />
       <div>TROOP #:</div>
-      <div class="flex-1 border-b border-gray-400 ml-4"></div>
+      <div class="flex-1 border-b border-gray-400 ml-4" />
     </div>
     <div class="flex justify-end mt-8">
       <div>RECEIVED FROM:</div>
-      <div class="flex-3 border-b border-gray-400 ml-4"></div>
+      <div class="flex-3 border-b border-gray-400 ml-4" />
       <div>TROOP #:</div>
-      <div class="flex-1 border-b border-gray-400 ml-4"></div>
+      <div class="flex-1 border-b border-gray-400 ml-4" />
     </div>
   </div>
 </template>

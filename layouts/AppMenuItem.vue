@@ -1,84 +1,84 @@
 <script setup>
-import { useLayout } from '@/composables/useLayout';
-import { onBeforeMount, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+  import { useLayout } from '@/composables/useLayout';
+  import { onBeforeMount, ref, watch } from 'vue';
+  import { useRoute } from 'vue-router';
 
-const route = useRoute();
+  const route = useRoute();
 
-const { layoutState, setActiveMenuItem, toggleMenu } = useLayout();
+  const { layoutState, setActiveMenuItem, toggleMenu } = useLayout();
 
-const props = defineProps({
-  item: {
-    type: Object,
-    default: () => ({}),
-  },
-  index: {
-    type: Number,
-    default: 0,
-  },
-  root: {
-    type: Boolean,
-    default: true,
-  },
-  parentItemKey: {
-    type: String,
-    default: null,
-  },
-});
+  const props = defineProps({
+    item: {
+      type: Object,
+      default: () => ({}),
+    },
+    index: {
+      type: Number,
+      default: 0,
+    },
+    root: {
+      type: Boolean,
+      default: true,
+    },
+    parentItemKey: {
+      type: String,
+      default: null,
+    },
+  });
 
-const isActiveMenu = ref(false);
-const itemKey = ref(null);
+  const isActiveMenu = ref(false);
+  const itemKey = ref(null);
 
-onBeforeMount(() => {
-  itemKey.value = props.parentItemKey
-    ? props.parentItemKey + '-' + props.index
-    : String(props.index);
+  onBeforeMount(() => {
+    itemKey.value = props.parentItemKey
+      ? props.parentItemKey + '-' + props.index
+      : String(props.index);
 
-  const activeItem = layoutState.activeMenuItem;
+    const activeItem = layoutState.activeMenuItem;
 
-  isActiveMenu.value =
-    activeItem === itemKey.value || activeItem
-      ? activeItem.startsWith(itemKey.value + '-')
-      : false;
-});
-
-watch(
-  () => layoutState.activeMenuItem,
-  (newVal) => {
     isActiveMenu.value =
-      newVal === itemKey.value || newVal.startsWith(itemKey.value + '-');
-  },
-);
+      activeItem === itemKey.value || activeItem
+        ? activeItem.startsWith(itemKey.value + '-')
+        : false;
+  });
 
-function itemClick(event, item) {
-  if (item.disabled) {
-    event.preventDefault();
-    return;
+  watch(
+    () => layoutState.activeMenuItem,
+    (newVal) => {
+      isActiveMenu.value =
+        newVal === itemKey.value || newVal.startsWith(itemKey.value + '-');
+    },
+  );
+
+  function itemClick(event, item) {
+    if (item.disabled) {
+      event.preventDefault();
+      return;
+    }
+
+    if (
+      (item.to || item.url) &&
+      (layoutState.staticMenuMobileActive || layoutState.overlayMenuActive)
+    ) {
+      toggleMenu();
+    }
+
+    if (item.command) {
+      item.command({ originalEvent: event, item: item });
+    }
+
+    const foundItemKey = item.items
+      ? isActiveMenu.value
+        ? props.parentItemKey
+        : itemKey
+      : itemKey.value;
+
+    setActiveMenuItem(foundItemKey);
   }
 
-  if (
-    (item.to || item.url) &&
-    (layoutState.staticMenuMobileActive || layoutState.overlayMenuActive)
-  ) {
-    toggleMenu();
+  function checkActiveRoute(item) {
+    return route.path === item.to;
   }
-
-  if (item.command) {
-    item.command({ originalEvent: event, item: item });
-  }
-
-  const foundItemKey = item.items
-    ? isActiveMenu.value
-      ? props.parentItemKey
-      : itemKey
-    : itemKey.value;
-
-  setActiveMenuItem(foundItemKey);
-}
-
-function checkActiveRoute(item) {
-  return route.path === item.to;
-}
 </script>
 
 <template>

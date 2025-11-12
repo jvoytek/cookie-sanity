@@ -1,81 +1,81 @@
 <script setup>
-import { FilterMatchMode } from '@primevue/core/api';
-import { useToast } from 'primevue/usetoast';
+  import { FilterMatchMode } from '@primevue/core/api';
+  import { useToast } from 'primevue/usetoast';
 
-const loading = ref(true);
-loading.value = true;
+  const loading = ref(true);
+  loading.value = true;
 
-const cookiesStore = useCookiesStore();
-const seasonsStore = useSeasonsStore();
-const formatHelpers = useFormatHelpers();
+  const cookiesStore = useCookiesStore();
+  const seasonsStore = useSeasonsStore();
+  const formatHelpers = useFormatHelpers();
 
-loading.value = false;
+  loading.value = false;
 
-const toast = useToast();
-const dt = ref();
-const productDialog = ref(false);
-const deleteProductDialog = ref(false);
-const product = ref({});
-const selectedProducts = ref();
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
-const submitted = ref(false);
+  const toast = useToast();
+  const dt = ref();
+  const productDialog = ref(false);
+  const deleteProductDialog = ref(false);
+  const product = ref({});
+  const selectedProducts = ref();
+  const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  });
+  const submitted = ref(false);
 
-function openNew() {
-  product.value = {};
-  submitted.value = false;
-  productDialog.value = true;
-}
+  function openNew() {
+    product.value = {};
+    submitted.value = false;
+    productDialog.value = true;
+  }
 
-function hideDialog() {
-  productDialog.value = false;
-  submitted.value = false;
-}
-
-async function saveProduct() {
-  submitted.value = true;
-
-  if (product?.value.name?.trim()) {
-    if (product.value.id) {
-      cookiesStore.upsertCookie(product.value);
-    } else {
-      cookiesStore.insertCookie(product.value);
-    }
-
+  function hideDialog() {
     productDialog.value = false;
-    product.value = {};
+    submitted.value = false;
   }
-}
 
-function editProduct(prod) {
-  product.value = { ...prod };
-  productDialog.value = true;
-}
+  async function saveProduct() {
+    submitted.value = true;
 
-function confirmDeleteProduct(prod) {
-  product.value = prod;
-  deleteProductDialog.value = true;
-}
+    if (product?.value.name?.trim()) {
+      if (product.value.id) {
+        cookiesStore.upsertCookie(product.value);
+      } else {
+        cookiesStore.insertCookie(product.value);
+      }
 
-async function deleteProduct() {
-  try {
-    cookiesStore.deleteCookie(product.value);
-    deleteProductDialog.value = false;
-    product.value = {};
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: error.message,
-      life: 3000,
-    });
+      productDialog.value = false;
+      product.value = {};
+    }
   }
-}
 
-async function onRowReorder(event) {
-  cookiesStore.reorderCookies(event.value);
-}
+  function editProduct(prod) {
+    product.value = { ...prod };
+    productDialog.value = true;
+  }
+
+  function confirmDeleteProduct(prod) {
+    product.value = prod;
+    deleteProductDialog.value = true;
+  }
+
+  async function deleteProduct() {
+    try {
+      cookiesStore.deleteCookie(product.value);
+      deleteProductDialog.value = false;
+      product.value = {};
+    } catch (error) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: error.message,
+        life: 3000,
+      });
+    }
+  }
+
+  async function onRowReorder(event) {
+    cookiesStore.reorderCookies(event.value);
+  }
 </script>
 
 <template>

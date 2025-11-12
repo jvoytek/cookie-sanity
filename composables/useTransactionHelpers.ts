@@ -18,12 +18,16 @@ export const useTransactionHelpers = () => {
         return 'success';
       case 'T2G':
         return 'success';
+      case 'T2G(B)':
+        return 'info';
+      case 'T2G(VB)':
+        return 'info';
       case 'G2T':
         return 'warn';
       case 'G2G':
-        return 'info';
+        return 'secondary';
       case 'DIRECT_SHIP':
-        return 'info';
+        return 'contrast';
       default:
         return null;
     }
@@ -157,7 +161,7 @@ export const useTransactionHelpers = () => {
         $formkit: 'primeSelect',
         name: 'to',
         label: 'To',
-        if: "$get('transaction-type').value === 'G2G' || $get('transaction-type').value === 'T2G' || $get('transaction-type').value === 'DIRECT_SHIP'",
+        if: "$get('transaction-type').value === 'G2G' || $get('transaction-type').value === 'T2G' || $get('transaction-type').value === 'T2G(B)' || $get('transaction-type').value === 'T2G(VB)' || $get('transaction-type').value === 'DIRECT_SHIP'",
         key: 'to',
         placeholder: 'Choose a scout',
         options: girlsStore.girlOptions,
@@ -267,7 +271,7 @@ export const useTransactionHelpers = () => {
           },
         ],
 
-        if: "$get('transaction-type').value === 'T2G'",
+        if: "$get('transaction-type').value === 'T2G' || $get('transaction-type').value === 'T2G(B)' || $get('transaction-type').value === 'T2G(VB)'",
       },
       {
         $el: 'div',
@@ -366,14 +370,14 @@ export const useTransactionHelpers = () => {
         $formkit: 'group',
         name: 'cookies',
         children: cookiesStore.cookieFormFields,
-        if: "$get('transaction-type').value && $get('transaction-type').value === 'T2G'",
+        if: "$get('transaction-type').value && ($get('transaction-type').value === 'T2G' || $get('transaction-type').value === 'T2G(B)' || $get('transaction-type').value === 'T2G(VB)')",
         disabled: "$get('auto_calculate_cookies').value === true",
       },
       {
         $formkit: 'group',
         name: 'cookies',
         children: cookiesStore.cookieFormFieldsNotVirtual,
-        if: "$get('transaction-type').value && $get('transaction-type').value !== 'T2G'",
+        if: "$get('transaction-type').value && ($get('transaction-type').value !== 'T2G' && $get('transaction-type').value !== 'T2G(B)' && $get('transaction-type').value !== 'T2G(VB)')",
         disabled: "$get('auto_calculate_cookies').value === true",
       },
     ];

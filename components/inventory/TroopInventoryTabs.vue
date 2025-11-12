@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { NewOrder } from '@/types/types';
-const loading = ref(true);
+  import type { NewOrder } from '@/types/types';
+  const loading = ref(true);
 
-loading.value = true;
+  loading.value = true;
 
-const ordersStore = useTransactionsStore();
-const transactionHelpers = useTransactionHelpers();
+  const ordersStore = useTransactionsStore();
+  const transactionHelpers = useTransactionHelpers();
 
-loading.value = false;
+  loading.value = false;
 
-function openNew() {
-  transactionHelpers.editTransaction(
-    { status: 'pending' } as NewOrder,
-    'troop',
-  );
-}
+  function openNew() {
+    transactionHelpers.editTransaction(
+      { status: 'pending' } as NewOrder,
+      'troop',
+    );
+  }
 </script>
 
 <template>

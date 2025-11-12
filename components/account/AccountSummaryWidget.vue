@@ -1,13 +1,10 @@
 <script setup lang="ts">
-const accountsStore = useAccountsStore();
-const formatHelpers = useFormatHelpers();
-
-// State for toggling cookie list visibility
-const showPackagesCookieList = ref(false);
+  const accountsStore = useAccountsStore();
+  const formatHelpers = useFormatHelpers();
 </script>
 
 <template>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
+  <div class="col-span-12 lg:col-span-6 xl:col-span-4">
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
@@ -27,7 +24,7 @@ const showPackagesCookieList = ref(false);
       </p>
     </Fieldset>
   </div>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
+  <div class="col-span-12 lg:col-span-6 xl:col-span-4">
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
@@ -47,108 +44,7 @@ const showPackagesCookieList = ref(false);
       </p>
     </Fieldset>
   </div>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
-    <Fieldset>
-      <template #legend>
-        <p class="flex flex-wrap gap-2 items-center">
-          <i class="pi pi-arrow-right" />
-          <span>Physical</span>
-          <i
-            v-tooltip.bottom="{
-              value:
-                'Total physical packages transferred to girls (does not include direct shipped orders).',
-              showDelay: 500,
-            }"
-            class="pi pi-info-circle"
-          />
-        </p>
-      </template>
-      <p class="text-xl">
-        {{ accountsStore.troopAccountSummary.totalPhysicalCookiesDistributed
-        }}<br />
-        <span class="text-sm leading-none text-muted-color"
-          >{{ accountsStore.troopAccountSummary.totalCookiesRemaining }} remain
-          in troop inventory</span
-        >
-      </p>
-      <Button
-        v-if="
-          Object.keys(
-            accountsStore.troopAccountSummary.packagesDistributedByType,
-          ).length > 0
-        "
-        :icon="
-          showPackagesCookieList ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
-        "
-        :label="showPackagesCookieList ? 'Hide Details' : 'Show Details'"
-        text
-        size="small"
-        @click="showPackagesCookieList = !showPackagesCookieList"
-      />
-      <CookieList
-        v-if="
-          showPackagesCookieList &&
-          Object.keys(
-            accountsStore.troopAccountSummary.packagesDistributedByType,
-          ).length > 0
-        "
-        :cookies="accountsStore.troopAccountSummary.packagesDistributedByType"
-        :filterVirtual="true"
-        class="mt-2"
-      />
-    </Fieldset>
-  </div>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
-    <Fieldset>
-      <template #legend>
-        <p class="flex flex-wrap gap-2 items-center">
-          <i class="pi pi-box" />
-          <span>Virtual</span>
-          <i
-            v-tooltip.bottom="{
-              value: 'Total virtual packages transferred to girls.',
-              showDelay: 500,
-            }"
-            class="pi pi-info-circle"
-          />
-        </p>
-      </template>
-      <p class="text-xl">
-        {{
-          accountsStore.troopAccountSummary.totalVirtualCookiesDistributed || 0
-        }}<br />
-        <span class="text-sm leading-none text-muted-color"
-          >virtual packages distributed</span
-        >
-      </p>
-    </Fieldset>
-  </div>
-  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
-    <Fieldset>
-      <template #legend>
-        <p class="flex flex-wrap gap-2 items-center">
-          <i class="pi pi-truck" />
-          <span>Direct</span>
-          <i
-            v-tooltip.bottom="{
-              value:
-                'Total packages sent directly to customers (not from troop inventory).',
-              showDelay: 500,
-            }"
-            class="pi pi-info-circle"
-          />
-        </p>
-      </template>
-      <p class="text-xl">
-        {{ accountsStore.troopAccountSummary.totalDirectShipCookies }}<br />
-        <span class="text-sm leading-none text-muted-color"
-          >total direct shipped packages</span
-        >
-      </p>
-    </Fieldset>
-  </div>
-
-  <div class="col-span-12 lg:col-span-6 xl:col-span-2">
+  <div class="col-span-12 lg:col-span-6 xl:col-span-4">
     <Fieldset>
       <template #legend>
         <p class="flex flex-wrap gap-2 items-center">
@@ -157,7 +53,7 @@ const showPackagesCookieList = ref(false);
           <i
             v-tooltip.bottom="{
               value:
-                'Payments received/average cookie price + direct shipped orders. May not match actual sales.',
+                'Payments received/average cookie price + direct, booth, and virtual booth. May not match actual sales.',
               showDelay: 500,
             }"
             class="pi pi-info-circle"
@@ -167,7 +63,8 @@ const showPackagesCookieList = ref(false);
       <p class="text-xl">
         {{ accountsStore.troopAccountSummary.estimatedTotalSales }}<br />
         <span class="text-sm leading-none text-muted-color"
-          >payments received/average cookie price + direct</span
+          >payments received/average cookie price + direct, booth, and virtual
+          booth.</span
         >
       </p>
     </Fieldset>

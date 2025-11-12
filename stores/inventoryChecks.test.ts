@@ -294,7 +294,10 @@ describe('stores/inventoryChecks', () => {
         })),
       };
 
-      vi.stubGlobal('useSupabaseClient', vi.fn(() => mockSupabaseClient));
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => mockSupabaseClient),
+      );
 
       // Re-initialize the store to use the updated mock
       setActivePinia(createPinia());

@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import UploadOrders from './UploadOrders.vue';
+  import UploadOrders from './UploadOrders.vue';
 
-const loading = ref(true);
+  const loading = ref(true);
 
-loading.value = true;
+  loading.value = true;
 
-const ordersStore = useTransactionsStore();
-const transactionHelpers = useTransactionHelpers();
+  const ordersStore = useTransactionsStore();
+  const transactionHelpers = useTransactionHelpers();
 
-loading.value = false;
+  loading.value = false;
 
-function openNew() {
-  transactionHelpers.editTransaction({} as NewOrder, 'all');
-}
+  function openNew() {
+    transactionHelpers.editTransaction({} as NewOrder, 'all');
+  }
 </script>
 
 <template>

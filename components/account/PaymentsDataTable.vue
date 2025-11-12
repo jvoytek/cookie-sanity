@@ -1,38 +1,35 @@
 <script setup lang="ts">
-const props = defineProps<{
-  girlId: number;
-}>();
+  const props = defineProps<{
+    girlId: number;
+    girlAccount: ReturnType<typeof accountsStore.getGirlAccountById>;
+  }>();
 
-const accountsStore = useAccountsStore();
-const paymentHelpers = usePaymentHelpers();
-const formatHelpers = useFormatHelpers();
+  const accountsStore = useAccountsStore();
+  const paymentHelpers = usePaymentHelpers();
+  const formatHelpers = useFormatHelpers();
 
-const girlAccount = computed(() => {
-  return accountsStore.getGirlAccountById(props.girlId);
-});
-
-const formatPaymentType = (type: string) => {
-  switch (type) {
-    case 'cash':
-      return 'Cash';
-    case 'check':
-      return 'Check';
-    case 'digital_cookie':
-      return 'Digital Cookie';
-    case 'other':
-      return 'Other';
-    default:
-      return type;
-  }
-};
+  const formatPaymentType = (type: string) => {
+    switch (type) {
+      case 'cash':
+        return 'Cash';
+      case 'check':
+        return 'Check';
+      case 'digital_cookie':
+        return 'Digital Cookie';
+      case 'other':
+        return 'Other';
+      default:
+        return type;
+    }
+  };
 </script>
 
 <template>
   <h5 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
-    Payment History for {{ girlAccount!.girl.first_name }}
+    Payment History for {{ props.girlAccount.girl.first_name }}
   </h5>
   <DataTable
-    :value="girlAccount!.girlPaymentsList"
+    :value="props.girlAccount.girlPaymentsList"
     data-key="id"
     sort-field="payment_date"
     :sort-order="1"
@@ -40,7 +37,7 @@ const formatPaymentType = (type: string) => {
   >
     <Column field="payment_date" header="Date" sortable>
       <template #body="slotProps">
-        <NuxtTime :datetime="slotProps.data.payment_date" timeZone="UTC" />
+        <NuxtTime :datetime="slotProps.data.payment_date" time-zone="UTC" />
       </template>
     </Column>
     <Column field="amount" header="Amount" sortable>
@@ -91,7 +88,7 @@ const formatPaymentType = (type: string) => {
         <b
           ><NuxtTime
             :datetime="accountsStore.activePayment.payment_date"
-            timeZone="UTC" /></b
+            time-zone="UTC" /></b
         >?</span
       >
     </div>

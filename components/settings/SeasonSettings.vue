@@ -1,25 +1,18 @@
 <script setup>
-import { DataTable } from 'primevue';
+  import { DataTable } from 'primevue';
 
-const seasonsStore = useSeasonsStore();
-const cookiesStore = useCookiesStore();
-const seasonDialog = ref(false);
-const season = ref({});
-const seasonSubmitted = ref(false);
-const isDeleteConfirmed = ref(false);
-//const selectedSeason = ref();
+  const seasonsStore = useSeasonsStore();
+  const isDeleteConfirmed = ref(false);
 
-//const deleteProductDialog = ref(false);
+  function openNewSeason() {
+    seasonsStore.setActiveSeason(null);
+    seasonsStore.showDialog();
+  }
 
-function openNewSeason() {
-  seasonsStore.setActiveSeason(null);
-  seasonsStore.showDialog();
-}
-
-function deleteConfirmed() {
-  seasonsStore.deleteSeason();
-  isDeleteConfirmed.value = false;
-}
+  function deleteConfirmed() {
+    seasonsStore.deleteSeason();
+    isDeleteConfirmed.value = false;
+  }
 </script>
 
 <template>
@@ -43,10 +36,10 @@ function deleteConfirmed() {
           <DataTable
             ref="dt"
             :value="seasonsStore.allSeasons"
-            dataKey="id"
+            data-key="id"
             :paginator="false"
-            sortField="year"
-            :sortOrder="-1"
+            sort-field="year"
+            :sort-order="-1"
           >
             <Column
               field="troop_number"
@@ -118,8 +111,8 @@ function deleteConfirmed() {
       <Button
         label="Yes"
         icon="pi pi-check"
-        @click="deleteConfirmed"
         :disabled="!isDeleteConfirmed"
+        @click="deleteConfirmed"
       />
     </template>
   </Dialog>

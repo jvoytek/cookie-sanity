@@ -1,11 +1,11 @@
 <script setup lang="ts">
-const loading = ref(true);
+  const loading = ref(true);
 
-loading.value = true;
+  loading.value = true;
 
-const cookiesStore = useCookiesStore();
+  const cookiesStore = useCookiesStore();
 
-loading.value = false;
+  loading.value = false;
 </script>
 
 <template>

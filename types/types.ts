@@ -40,7 +40,7 @@ export type SCOrder2025 = {
 
 export type NewOrder = Partial<Order>;
 
-export interface AccountBalance {
+export interface GirlAccountSummary {
   girl: Girl;
   distributedValue: number;
   paymentsReceived: number;
@@ -53,27 +53,52 @@ export interface AccountBalance {
   cookieTotalsByVariety: Record<string, number>;
   estimatedSales: number;
   girlPaymentsList: Payment[];
+  cookieSummary: CookieSummary;
+}
+
+export interface CookieSummary {
+  directShipped: Record<string, number>;
+  directShippedTotals: Record<string, number>;
+  countDirectShipped: number;
+  girlDelivery: Record<string, number>;
+  girlDeliveryTotals: Record<string, number>;
+  countGirlDelivery: number;
+  boothSales: Record<string, number>;
+  boothSalesTotals: Record<string, number>;
+  countBoothSales: number;
+  virtualBoothSales: Record<string, number>;
+  virtualBoothSalesTotals: Record<string, number>;
+  countVirtualBoothSales: number;
+  countAllPackages: number;
+  totalDue: number;
 }
 
 export interface TroopAccountSummary {
   totalDistributedValue: number;
-  packagesDistributedByType: Record<string, number>;
   totalPaymentsReceived: number;
   troopBalance: number;
-  totalDirectShipCookies: number;
-  totalVirtualCookiesDistributed: number;
   estimatedTotalSales: number;
   totalAllCookiesDistributed: number;
-  totalPhysicalCookiesDistributed: number;
+  totalGirlDelivery: number;
   totalCookiesRemaining: number;
-  activeAccounts: number;
+  cookieSummary: CookieSummary;
 }
 
 export interface InventoryEvent {
   date: string;
-  type: 'T2G' | 'G2T' | 'C2T' | 'T2T' | 'G2G' | 'BOOTH';
+  type: 'T2G' | 'T2G(B)' | 'T2G(VB)' | 'G2T' | 'C2T' | 'T2T' | 'G2G' | 'BOOTH';
   transaction?: Order;
   boothSale?: BoothSale;
   cookies: Record<string, number>;
   description: string;
+}
+export interface SmartCookiesPayment {
+  District?: string;
+  'Service Unit'?: string;
+  Troop?: string;
+  Girl: string;
+  Date: string;
+  'Payment Method': string;
+  Amount: number | string;
+  'Ref #'?: string;
 }

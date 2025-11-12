@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import type { AccountBalance } from '@/types/types';
+  import type { GirlAccountSummary } from '@/types/types';
 
-const accountsStore = useAccountsStore();
-const paymentHelpers = usePaymentHelpers();
-const formatHelpers = useFormatHelpers();
+  const accountsStore = useAccountsStore();
+  const paymentHelpers = usePaymentHelpers();
+  const formatHelpers = useFormatHelpers();
 
-const getGirlDisplayName = (balance: AccountBalance): string => {
-  const girl = balance.girl;
-  return `${girl.first_name} ${girl.last_name.charAt(0)}.`;
-};
+  const getGirlDisplayName = (balance: GirlAccountSummary): string => {
+    const girl = balance.girl;
+    return `${girl.first_name} ${girl.last_name.charAt(0)}.`;
+  };
 
-const getStatusClass = (status: string): string => {
-  if (status === 'Balance Due') {
-    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-  } else if (status === 'Overpaid') {
-    return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-  } else {
-    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+  const getStatusClass = (status: string): string => {
+    if (status === 'Balance Due') {
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    } else if (status === 'Overpaid') {
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    } else {
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    }
+  };
+
+  function openNewForGirl(girlId: number) {
+    paymentHelpers.editPayment({ seller_id: girlId });
   }
-};
-
-function openNewForGirl(girlId: number) {
-  paymentHelpers.editPayment({ seller_id: girlId });
-}
 </script>
 
 <template>
@@ -31,8 +31,16 @@ function openNewForGirl(girlId: number) {
   </h5>
   <p class="text-muted-color">Current account status for each scout</p>
 
+  <!--
+        girl,
+      paymentsReceived,
+      balance,
+      status,
+      estimatedSales,
+      girlPaymentsList,
+      cookieSummary,-->
   <DataTable
-    :value="accountsStore.girlAccountBalances"
+    :value="accountsStore.girlGirlAccountSummarys"
     data-key="girl.id"
     sort-field="girl.first_name"
     :sort-order="1"
@@ -46,9 +54,11 @@ function openNewForGirl(girlId: number) {
       </template>
     </Column>
 
-    <Column field="distributedValue" header="Distributed Value" sortable>
+    <Column field="totalDue" header="Total Due" sortable>
       <template #body="slotProps">
-        {{ formatHelpers.formatCurrency(slotProps.data.distributedValue) }}
+        {{
+          formatHelpers.formatCurrency(slotProps.data.cookieSummary.totalDue)
+        }}
       </template>
     </Column>
 
@@ -74,14 +84,19 @@ function openNewForGirl(girlId: number) {
         </span>
       </template>
     </Column>
-
+    <Column field="cookieSummary.countDirectShipped" header="Direct" sortable />
+    <Column field="cookieSummary.countBoothSales" header="Booth" sortable />
     <Column
-      field="totalPhysicalCookiesDistributed"
-      header="Physical"
+      field="cookieSummary.countVirtualBoothSales"
+      header="(V) Booth"
       sortable
     />
-    <Column field="totalVirtualCookiesDistributed" header="Virtual" sortable />
-    <Column field="totalDirectShipCookies" header="Direct" sortable />
+    <Column
+      field="cookieSummary.countGirlDelivery"
+      header="Girl Delivery"
+      sortable
+    />
+
     <Column field="estimatedSales" sortable>
       <template #header>
         <span class="flex items-center gap-2">
@@ -89,7 +104,7 @@ function openNewForGirl(girlId: number) {
           <i
             v-tooltip.bottom="{
               value:
-                'Payments received/average price per cookie + direct shipped orders. May not match actual sales.',
+                'Payments received/average price per cookie + direct, booth and virtual booth. May not match actual sales.',
               showDelay: 500,
             }"
             class="pi pi-info-circle"

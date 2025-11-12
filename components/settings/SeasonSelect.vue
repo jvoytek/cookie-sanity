@@ -1,16 +1,16 @@
 <script setup lang="ts">
-const seasonsStore = useSeasonsStore();
-const profileStore = useProfileStore();
+  const seasonsStore = useSeasonsStore();
+  const profileStore = useProfileStore();
 
-function openNewSeason() {
-  seasonsStore.setActiveSeason(null);
-  seasonsStore.showDialog();
-}
+  function openNewSeason() {
+    seasonsStore.setActiveSeason(null);
+    seasonsStore.showDialog();
+  }
 
-const saveCurrentSeasonInProfile = async () => {
-  await profileStore.saveCurrentSeasonInProfile();
-  await profileStore.fetchProfile();
-};
+  const saveCurrentSeasonInProfile = async () => {
+    await profileStore.saveCurrentSeasonInProfile();
+    await profileStore.fetchProfile();
+  };
 </script>
 <template>
   <Select

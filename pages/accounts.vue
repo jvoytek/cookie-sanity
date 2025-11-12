@@ -1,22 +1,72 @@
 <script setup lang="ts">
-const girlsStore = useGirlsStore();
-const paymentHelpers = usePaymentHelpers();
+  const girlsStore = useGirlsStore();
+  const paymentHelpers = usePaymentHelpers();
+  const accountsStore = useAccountsStore();
 
-// Account selection - null means "Troop"
-const selectedAccount = ref<number | null>(null);
+  const route = useRoute();
 
-// Options for account selector: "Troop" + all girls
-const accountOptions = computed(() => {
-  return [{ label: 'Troop', value: null }, ...girlsStore.girlOptions];
-});
+  // Safely parse account query which can be string | string[] | null | undefined
+  const rawAccount = route.query?.account;
+  let accountIdParam: number | null = null;
+  if (rawAccount) {
+    const first = Array.isArray(rawAccount) ? rawAccount[0] : rawAccount;
+    if (typeof first === 'string') {
+      const parsed = parseInt(first, 10);
+      accountIdParam = Number.isNaN(parsed) ? null : parsed;
+    }
+  }
 
-// Computed flags for conditional rendering
-const isTroopView = computed(() => selectedAccount.value === null);
-const isGirlView = computed(() => selectedAccount.value !== null);
+  // Account selection - null means "Troop"
+  const selectedAccount = ref<number | null>(accountIdParam);
 
-function openNew() {
-  paymentHelpers.editPayment(null);
-}
+  const girlAccount = computed(() => {
+    return (
+      (selectedAccount.value !== null
+        ? accountsStore.getGirlAccountById(selectedAccount.value)
+        : undefined) || {
+        girl: { first_name: '' },
+        girlPaymentsList: [],
+        balance: 0,
+        paymentsReceived: 0,
+        totalPhysicalCookiesDistributed: 0,
+        totalVirtualCookiesDistributed: 0,
+        totalDirectShipCookies: 0,
+        estimatedSales: 0,
+        cookieTotalsByVariety: {},
+        cookieSummary: {},
+      }
+    );
+  });
+
+  // Import dialog visibility
+  const importDialogVisible = ref(false);
+
+  // Options for account selector: "Troop" + all girls
+  const accountOptions = computed(() => {
+    return [{ label: 'Troop', value: null }, ...girlsStore.girlOptions];
+  });
+
+  // Computed flags for conditional rendering
+  const isTroopView = computed(() => selectedAccount.value === null);
+  const isGirlView = computed(() => selectedAccount.value !== null);
+
+  function openNew() {
+    paymentHelpers.editPayment(null);
+  }
+
+  function openImport() {
+    importDialogVisible.value = true;
+  }
+
+  function setQueryParam() {
+    const query = { ...route.query };
+    if (selectedAccount.value !== null) {
+      query.account = selectedAccount.value.toString();
+    } else {
+      delete query.account;
+    }
+    useRouter().replace({ query });
+  }
 </script>
 
 <template>
@@ -37,6 +87,13 @@ function openNew() {
               class="mr-2"
               @click="openNew"
             />
+            <Button
+              label="Import"
+              icon="pi pi-upload"
+              severity="secondary"
+              class="mr-2"
+              @click="openImport"
+            />
             <Select
               v-model="selectedAccount"
               :options="accountOptions"
@@ -44,6 +101,7 @@ function openNew() {
               option-value="value"
               placeholder="Select account"
               class="w-64"
+              @change="setQueryParam"
             />
           </template>
         </Toolbar>
@@ -62,14 +120,29 @@ function openNew() {
     <!-- Girl View -->
     <div v-if="isGirlView" class="card">
       <div class="grid grid-cols-12 gap-6">
-        <AccountDetailWidget :girl-id="selectedAccount!" />
+        <AccountDetailWidget
+          :girl-id="selectedAccount!"
+          :girl-account="girlAccount"
+        />
+
+        <div style="max-width: 1000px" class="col-span-12">
+          <AccountSummaryTable
+            :cookie-summary="girlAccount.cookieSummary"
+            :total-payments="girlAccount.paymentsReceived"
+            :still-due="girlAccount.balance"
+          />
+        </div>
 
         <div class="col-span-12">
-          <PaymentsDataTable :girl-id="selectedAccount!" />
+          <PaymentsDataTable
+            :girl-id="selectedAccount!"
+            :girl-account="girlAccount"
+          />
         </div>
       </div>
     </div>
 
     <PaymentDialog />
+    <ImportPaymentsDialog v-model:visible="importDialogVisible" />
   </div>
 </template>

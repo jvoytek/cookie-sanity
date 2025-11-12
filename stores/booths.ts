@@ -1,5 +1,5 @@
 import type { Database } from '@/types/supabase';
-import type { BoothSale, Cookie } from '@/types/types';
+import type { BoothSale } from '@/types/types';
 
 /*
 ref()s become state properties

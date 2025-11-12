@@ -375,9 +375,9 @@ describe('stores/cookies', () => {
   });
 
   describe('FormKit overbooking validation', () => {
-    let useTransactionsStoreMock: any;
-    let useBoothsStoreMock: any;
-    let useSeasonsStoreMock: any;
+    let useTransactionsStoreMock: ReturnType<typeof vi.fn>;
+    let useBoothsStoreMock: ReturnType<typeof vi.fn>;
+    let useSeasonsStoreMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
       setActivePinia(createPinia());
@@ -406,7 +406,7 @@ describe('stores/cookies', () => {
           return inventory[abbreviation] || 0;
         }),
         totalTransactionsByStatusAllCookies: vi.fn(
-          (status: string, type: string) => {
+          (_status: string, _type: string) => {
             // Return maps with 0 for all cookies to keep calculations simple
             // afterPending = onHand + pendingGirl + pendingTroop + pendingBooth
             return {
@@ -787,6 +787,155 @@ describe('stores/cookies', () => {
       expect(tmField).toBeDefined();
       expect(tmField?.validation).toBe('integer|overBooking');
       expect(tmField?.validation).not.toContain('min:0');
+    });
+  });
+
+  describe('getPredictedCookiesFromExpectedSales', () => {
+    beforeEach(() => {
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+    });
+
+    it('returns 1 cookie for the cookie type with highest percentage when expected sales is 1', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 50 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 20 },
+      ];
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(1);
+      expect(predictions).toEqual({ TM: 1, SM: 0, TS: 0 });
+    });
+
+    it('returns 1 cookie for top two cookie types when expected sales is 2', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 50 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 20 },
+      ];
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(2);
+      expect(predictions).toEqual({ TM: 1, SM: 1, TS: 0 });
+    });
+
+    it('returns 1 cookie for the first 2 cookies in the list when percentages are equal and expected sales is 2', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'CA', percent_of_sale: 20 },
+        { id: 2, abbreviation: 'CB', percent_of_sale: 20 },
+        { id: 3, abbreviation: 'CC', percent_of_sale: 20 },
+        { id: 3, abbreviation: 'CD', percent_of_sale: 20 },
+        { id: 3, abbreviation: 'CE', percent_of_sale: 20 },
+      ];
+
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(2);
+      expect(predictions).toEqual({ CA: 1, CB: 1, CC: 0, CD: 0, CE: 0 });
+    });
+
+    it('returns 1 cookie for the first cookies in the list with the largest percentage when cookies are tied', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'CA', percent_of_sale: 20 },
+        { id: 2, abbreviation: 'CB', percent_of_sale: 40 },
+        { id: 3, abbreviation: 'CC', percent_of_sale: 40 },
+        { id: 3, abbreviation: 'CD', percent_of_sale: 10 },
+        { id: 3, abbreviation: 'CE', percent_of_sale: 10 },
+      ];
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(1);
+      expect(predictions).toEqual({ CA: 0, CB: 1, CC: 0, CD: 0, CE: 0 });
+    });
+
+    it('returns 1 cookie for all three types when expected sales is 3', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 50 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 20 },
+      ];
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(3);
+      expect(predictions).toEqual({ TM: 1, SM: 1, TS: 1 });
+    });
+
+    it('returns 2 cookies for TM, 1 for SM, and 1 for TS when expected sales is 4', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 50 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 20 },
+      ];
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(4);
+      expect(predictions).toEqual({ TM: 2, SM: 1, TS: 1 });
+    });
+
+    it('returns correct distribution for expected sales of 10', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 50 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 20 },
+      ];
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(10);
+      expect(predictions).toEqual({ TM: 5, SM: 3, TS: 2 });
+    });
+
+    it('returns 0 when expected sales is 0', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 50 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 20 },
+      ];
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(0);
+      expect(predictions).toEqual({ TM: 0, SM: 0, TS: 0 });
+    });
+
+    it('handles rounding correctly for expected sales of 7', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 50 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 20 },
+      ];
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(7);
+      expect(predictions).toEqual({ TM: 4, SM: 2, TS: 1 });
+    });
+
+    it('returns an even distribution when no cookies have percentage_of_sale', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM' }, // No percent_of_sale
+        { id: 2, abbreviation: 'SM' },
+        { id: 3, abbreviation: 'TS' },
+      ];
+
+      const predictions = cookiesStore.getPredictedCookiesFromExpectedSales(6);
+      expect(predictions).toEqual({ TM: 2, SM: 2, TS: 2 });
+    });
+
+    it("prefers cookies with percentage_of_sale when some have it and some don't", () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 70 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 }, // No percent_of_sale
+        { id: 3, abbreviation: 'TS' }, // No percent_of_sale
+      ];
+
+      const predictions =
+        cookiesStore.getPredictedCookiesFromExpectedSales(100);
+      expect(predictions).toEqual({ TM: 70, SM: 30, TS: 0 }); // TM gets majority due to percent_of_sale
+    });
+
+    it('returns the correct number of cookies when percent_of_sale sums to less than 100', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 20 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 10 }, // Sums to 60
+      ];
+
+      const predictions =
+        cookiesStore.getPredictedCookiesFromExpectedSales(100);
+      expect(predictions).toEqual({ TM: 33, SM: 50, TS: 17 }); // Total still equals expected sales
+    });
+
+    it('returns the correct number of cookies when percent_of_sale sums to more than 100', () => {
+      cookiesStore.allCookies = [
+        { id: 1, abbreviation: 'TM', percent_of_sale: 50 },
+        { id: 2, abbreviation: 'SM', percent_of_sale: 40 },
+        { id: 3, abbreviation: 'TS', percent_of_sale: 30 }, // Sums to 120
+      ];
+
+      const predictions =
+        cookiesStore.getPredictedCookiesFromExpectedSales(100);
+      expect(predictions).toEqual({ TM: 42, SM: 33, TS: 25 }); // Total still equals expected sales
     });
   });
 });

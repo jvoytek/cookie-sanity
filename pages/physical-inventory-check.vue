@@ -1,181 +1,181 @@
 <script setup lang="ts">
-import type { InventoryCheck } from '@/types/types';
+  import type { InventoryCheck } from '@/types/types';
 
-const loading = ref(true);
-loading.value = true;
+  const loading = ref(true);
+  loading.value = true;
 
-const inventoryChecksStore = useInventoryChecksStore();
-const cookiesStore = useCookiesStore();
-const profileStore = useProfileStore();
+  const inventoryChecksStore = useInventoryChecksStore();
+  const cookiesStore = useCookiesStore();
+  const profileStore = useProfileStore();
 
-// Fetch inventory checks when page loads
-await inventoryChecksStore.fetchInventoryChecks();
+  // Fetch inventory checks when page loads
+  await inventoryChecksStore.fetchInventoryChecks();
 
-loading.value = false;
+  loading.value = false;
 
-const checkDialogVisible = ref(false);
-const deleteDialogVisible = ref(false);
-const checkToDelete = ref<InventoryCheck | null>(null);
+  const checkDialogVisible = ref(false);
+  const deleteDialogVisible = ref(false);
+  const checkToDelete = ref<InventoryCheck | null>(null);
 
-// Form state for new check
-const physicalCounts = ref<Record<string, { cases: number; packages: number }>>(
-  {},
-);
-const conductedBy = ref('');
-const notes = ref('');
-const check_date = ref<string>(new Date().toLocaleString());
+  // Form state for new check
+  const physicalCounts = ref<
+    Record<string, { cases: number; packages: number }>
+  >({});
+  const conductedBy = ref('');
+  const notes = ref('');
+  const check_date = ref<string>(new Date().toLocaleString());
 
-// Initialize physical counts for all non-virtual cookies
-const initializePhysicalCounts = () => {
-  const counts: Record<string, { cases: number; packages: number }> = {};
-  cookiesStore.allCookies
-    .filter((cookie) => !cookie.is_virtual)
-    .forEach((cookie) => {
-      counts[cookie.abbreviation] = { cases: 0, packages: 0 };
-    });
-  return counts;
-};
-
-const startNewCheck = () => {
-  physicalCounts.value = initializePhysicalCounts();
-  conductedBy.value = profileStore.currentProfile?.display_name || '';
-  notes.value = '';
-  editingCheckId.value = null;
-  snapshotExpectedInventory.value = {};
-  checkDialogVisible.value = true;
-  check_date.value = new Date().toLocaleString();
-};
-
-// Track if we're editing an existing check
-const editingCheckId = ref<number | null>(null);
-const snapshotExpectedInventory = ref<Record<string, number>>({});
-
-const editCheck = (check: InventoryCheck) => {
-  // Load the check data into the form
-  const counts: Record<string, { cases: number; packages: number }> = {};
-
-  cookiesStore.allCookies
-    .filter((cookie) => !cookie.is_virtual)
-    .forEach((cookie) => {
-      const totalPackages =
-        (check.physical_inventory as Record<string, number>)[
-          cookie.abbreviation
-        ] || 0;
-      const cases = Math.floor(totalPackages / 12);
-      const packages = totalPackages % 12;
-      counts[cookie.abbreviation] = { cases, packages };
-    });
-
-  physicalCounts.value = counts;
-  conductedBy.value = check.conducted_by || '';
-  notes.value = check.notes || '';
-  editingCheckId.value = check.id;
-  check_date.value = new Date(check.check_date).toLocaleString();
-
-  // Load the snapshot of expected inventory from when the check was created
-  snapshotExpectedInventory.value =
-    (check.expected_inventory as Record<string, number>) || {};
-
-  checkDialogVisible.value = true;
-};
-
-// Calculate expected inventory for displaying in dialog
-// Use snapshot if editing, otherwise calculate current
-const expectedInventory = computed(() => {
-  if (editingCheckId.value !== null) {
-    return snapshotExpectedInventory.value;
-  }
-  return inventoryChecksStore.calculateExpectedInventory();
-});
-
-const cancelCheck = () => {
-  checkDialogVisible.value = false;
-  physicalCounts.value = {};
-  editingCheckId.value = null;
-  snapshotExpectedInventory.value = {};
-};
-
-const saveCheck = async () => {
-  // Use snapshot expected inventory when editing, otherwise calculate current
-  const expectedInventory =
-    editingCheckId.value !== null
-      ? snapshotExpectedInventory.value
-      : inventoryChecksStore.calculateExpectedInventory();
-
-  // Calculate discrepancies
-  const { discrepancies, totalDiscrepancies } =
-    inventoryChecksStore.calculateDiscrepancies(
-      physicalCounts.value,
-      expectedInventory,
-    );
-
-  // Convert physical counts to total packages for storage
-  const physicalInventoryPackages: Record<string, number> = {};
-  Object.keys(physicalCounts.value).forEach((cookieAbbr) => {
-    const { cases, packages } = physicalCounts.value[cookieAbbr];
-    physicalInventoryPackages[cookieAbbr] = cases * 12 + packages;
-  });
-
-  const checkData = {
-    physical_inventory: physicalInventoryPackages,
-    expected_inventory: expectedInventory,
-    discrepancies,
-    total_discrepancies: totalDiscrepancies,
-    conducted_by: conductedBy.value,
-    notes: notes.value,
-    status: 'completed',
+  // Initialize physical counts for all non-virtual cookies
+  const initializePhysicalCounts = () => {
+    const counts: Record<string, { cases: number; packages: number }> = {};
+    cookiesStore.allCookies
+      .filter((cookie) => !cookie.is_virtual)
+      .forEach((cookie) => {
+        counts[cookie.abbreviation] = { cases: 0, packages: 0 };
+      });
+    return counts;
   };
 
-  if (editingCheckId.value !== null) {
-    // Update existing check
-    await inventoryChecksStore.updateInventoryCheck(
-      editingCheckId.value,
-      checkData,
-    );
-  } else {
-    // Insert new check
-    await inventoryChecksStore.insertInventoryCheck(checkData);
-  }
+  const startNewCheck = () => {
+    physicalCounts.value = initializePhysicalCounts();
+    conductedBy.value = profileStore.currentProfile?.display_name || '';
+    notes.value = '';
+    editingCheckId.value = null;
+    snapshotExpectedInventory.value = {};
+    checkDialogVisible.value = true;
+    check_date.value = new Date().toLocaleString();
+  };
 
-  checkDialogVisible.value = false;
-  physicalCounts.value = {};
-  editingCheckId.value = null;
-  snapshotExpectedInventory.value = {};
-};
+  // Track if we're editing an existing check
+  const editingCheckId = ref<number | null>(null);
+  const snapshotExpectedInventory = ref<Record<string, number>>({});
 
-const confirmDelete = async (check: InventoryCheck) => {
-  deleteDialogVisible.value = true;
-  checkToDelete.value = check;
-};
+  const editCheck = (check: InventoryCheck) => {
+    // Load the check data into the form
+    const counts: Record<string, { cases: number; packages: number }> = {};
 
-const cancelDelete = () => {
-  deleteDialogVisible.value = false;
-  checkToDelete.value = null;
-};
+    cookiesStore.allCookies
+      .filter((cookie) => !cookie.is_virtual)
+      .forEach((cookie) => {
+        const totalPackages =
+          (check.physical_inventory as Record<string, number>)[
+            cookie.abbreviation
+          ] || 0;
+        const cases = Math.floor(totalPackages / 12);
+        const packages = totalPackages % 12;
+        counts[cookie.abbreviation] = { cases, packages };
+      });
 
-const deleteCheck = async () => {
-  if (checkToDelete.value) {
-    await inventoryChecksStore.deleteInventoryCheck(checkToDelete.value.id);
-  }
-  deleteDialogVisible.value = false;
-  checkToDelete.value = null;
-};
+    physicalCounts.value = counts;
+    conductedBy.value = check.conducted_by || '';
+    notes.value = check.notes || '';
+    editingCheckId.value = check.id;
+    check_date.value = new Date(check.check_date).toLocaleString();
 
-const getDiscrepancySeverity = (diff: number) => {
-  if (diff === 0) return 'success';
-  if (Math.abs(diff) <= 5) return 'warn';
-  return 'danger';
-};
+    // Load the snapshot of expected inventory from when the check was created
+    snapshotExpectedInventory.value =
+      (check.expected_inventory as Record<string, number>) || {};
 
-const aLongTimeAgo = (datetime: string) => {
-  const date = new Date(datetime);
-  const now = new Date();
-  const diffInMs = now.getTime() - date.getTime();
-  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    checkDialogVisible.value = true;
+  };
 
-  if (diffInDays < 1) return true;
-  else return false;
-};
+  // Calculate expected inventory for displaying in dialog
+  // Use snapshot if editing, otherwise calculate current
+  const expectedInventory = computed(() => {
+    if (editingCheckId.value !== null) {
+      return snapshotExpectedInventory.value;
+    }
+    return inventoryChecksStore.calculateExpectedInventory();
+  });
+
+  const cancelCheck = () => {
+    checkDialogVisible.value = false;
+    physicalCounts.value = {};
+    editingCheckId.value = null;
+    snapshotExpectedInventory.value = {};
+  };
+
+  const saveCheck = async () => {
+    // Use snapshot expected inventory when editing, otherwise calculate current
+    const expectedInventory =
+      editingCheckId.value !== null
+        ? snapshotExpectedInventory.value
+        : inventoryChecksStore.calculateExpectedInventory();
+
+    // Calculate discrepancies
+    const { discrepancies, totalDiscrepancies } =
+      inventoryChecksStore.calculateDiscrepancies(
+        physicalCounts.value,
+        expectedInventory,
+      );
+
+    // Convert physical counts to total packages for storage
+    const physicalInventoryPackages: Record<string, number> = {};
+    Object.keys(physicalCounts.value).forEach((cookieAbbr) => {
+      const { cases, packages } = physicalCounts.value[cookieAbbr];
+      physicalInventoryPackages[cookieAbbr] = cases * 12 + packages;
+    });
+
+    const checkData = {
+      physical_inventory: physicalInventoryPackages,
+      expected_inventory: expectedInventory,
+      discrepancies,
+      total_discrepancies: totalDiscrepancies,
+      conducted_by: conductedBy.value,
+      notes: notes.value,
+      status: 'completed',
+    };
+
+    if (editingCheckId.value !== null) {
+      // Update existing check
+      await inventoryChecksStore.updateInventoryCheck(
+        editingCheckId.value,
+        checkData,
+      );
+    } else {
+      // Insert new check
+      await inventoryChecksStore.insertInventoryCheck(checkData);
+    }
+
+    checkDialogVisible.value = false;
+    physicalCounts.value = {};
+    editingCheckId.value = null;
+    snapshotExpectedInventory.value = {};
+  };
+
+  const confirmDelete = async (check: InventoryCheck) => {
+    deleteDialogVisible.value = true;
+    checkToDelete.value = check;
+  };
+
+  const cancelDelete = () => {
+    deleteDialogVisible.value = false;
+    checkToDelete.value = null;
+  };
+
+  const deleteCheck = async () => {
+    if (checkToDelete.value) {
+      await inventoryChecksStore.deleteInventoryCheck(checkToDelete.value.id);
+    }
+    deleteDialogVisible.value = false;
+    checkToDelete.value = null;
+  };
+
+  const getDiscrepancySeverity = (diff: number) => {
+    if (diff === 0) return 'success';
+    if (Math.abs(diff) <= 5) return 'warn';
+    return 'danger';
+  };
+
+  const aLongTimeAgo = (datetime: string) => {
+    const date = new Date(datetime);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays < 1) return true;
+    else return false;
+  };
 </script>
 
 <template>

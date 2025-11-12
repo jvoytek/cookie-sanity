@@ -5,7 +5,7 @@ import { setActivePinia, createPinia } from 'pinia';
 
 describe('usePaymentHelpers', () => {
   let paymentHelpers: ReturnType<typeof usePaymentHelpers>;
-  let accountsStoreMock: any;
+  let accountsStoreMock: ReturnType<typeof vi.fn>;
   let toastSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
