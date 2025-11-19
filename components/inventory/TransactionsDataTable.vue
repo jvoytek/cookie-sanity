@@ -147,9 +147,8 @@
   };
 
   const bulkDelete = async () => {
-    for (const transaction of selectedTransactions.value) {
-      await ordersStore.deleteTransaction(transaction.id);
-    }
+    const transactionIds = selectedTransactions.value.map((t) => t.id);
+    await ordersStore.bulkDeleteTransactions(transactionIds);
     selectedTransactions.value = [];
     deleteBulkTransactionsDialogVisible.value = false;
   };
