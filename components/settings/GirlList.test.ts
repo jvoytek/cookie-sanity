@@ -14,7 +14,7 @@ vi.mock('primevue/usetoast', () => ({
 vi.stubGlobal('usePermissions', () => ({
   canCreateGirls: true,
   canEditSeller: () => true,
-  filterGirlsByPermission: (girls: any[]) => girls,
+  filterGirlsByPermission: (girls: unknown[]) => girls,
   getSellerPermission: () => 'edit',
 }));
 

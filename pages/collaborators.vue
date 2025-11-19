@@ -39,30 +39,29 @@
   const inviteCollaborator = async () => {
     if (!newCollaboratorEmail.value || !seasonsStore.currentSeason?.id) {
       notificationHelpers.addError(
-        new Error('Please provide an email address'),
+        new Error('Please provide a user identifier'),
       );
       return;
     }
 
     try {
-      // Find the profile by email
-      const { data: userData, error: userError } = await supabaseClient.auth.admin.listUsers();
+      // Search for the profile by ID (profiles are public for viewing)
+      // Users need to share their profile ID to be invited
+      const { data: profileData, error: profileError } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('id', newCollaboratorEmail.value)
+        .single();
 
-      if (userError) throw userError;
-
-      const targetUser = userData.users.find(
-        (u: { email?: string }) => u.email === newCollaboratorEmail.value,
-      );
-
-      if (!targetUser) {
+      if (profileError || !profileData) {
         notificationHelpers.addError(
-          new Error('User not found. They must have an account first.'),
+          new Error('User not found. Please ensure the user ID is correct.'),
         );
         return;
       }
 
       await collaboratorsStore.addCollaborator(
-        targetUser.id,
+        profileData.id,
         seasonsStore.currentSeason.id,
         newCollaboratorPermissions.value,
       );
@@ -208,13 +207,19 @@
     >
       <div class="flex flex-col gap-4">
         <div>
-          <label for="email" class="block mb-2 font-semibold">Email</label>
+          <label for="email" class="block mb-2 font-semibold"
+            >User Profile ID</label
+          >
           <InputText
             id="email"
             v-model="newCollaboratorEmail"
             class="w-full"
-            placeholder="collaborator@example.com"
+            placeholder="user-profile-id"
           />
+          <small class="text-surface-500 dark:text-surface-400 mt-1 block"
+            >The user must share their profile ID from their account settings.
+            Users can find this in Settings > Account.</small
+          >
         </div>
 
         <div>
