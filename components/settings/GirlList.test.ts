@@ -10,6 +10,14 @@ vi.mock('primevue/usetoast', () => ({
   }),
 }));
 
+// Mock usePermissions composable
+vi.stubGlobal('usePermissions', () => ({
+  canCreateGirls: true,
+  canEditSeller: () => true,
+  filterGirlsByPermission: (girls: any[]) => girls,
+  getSellerPermission: () => 'edit',
+}));
+
 describe('GirlList', () => {
   it('renders without crashing', () => {
     expect(() => {

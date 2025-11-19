@@ -10,6 +10,11 @@ vi.mock('primevue/usetoast', () => ({
   }),
 }));
 
+// Mock usePermissions composable
+vi.stubGlobal('usePermissions', () => ({
+  canCreateCookies: true,
+}));
+
 describe('CookieSettings', () => {
   it('renders without crashing', () => {
     expect(() => {
