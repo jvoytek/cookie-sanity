@@ -78,6 +78,15 @@ USING (
   OR public.is_season_collaborator(id, auth.uid())
 );
 
+CREATE POLICY "Allow users to view their own orders"
+ON public.orders
+FOR SELECT
+TO authenticated
+USING (
+  auth.uid() = profile
+  OR public.is_season_collaborator(season, auth.uid())
+);
+
 -- Grant permissions to authenticated users
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE 
 ON TABLE "public"."season_collaborators" TO "authenticated";
