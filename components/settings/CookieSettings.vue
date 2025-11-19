@@ -8,6 +8,7 @@
   const cookiesStore = useCookiesStore();
   const seasonsStore = useSeasonsStore();
   const formatHelpers = useFormatHelpers();
+  const permissions = usePermissions();
 
   loading.value = false;
 
@@ -87,10 +88,18 @@
       </h5>
 
       <div>
+        <div v-if="!permissions.canCreateCookies" class="mb-4">
+          <Message severity="info" :closable="false"
+            >You do not have permission to add or edit cookies. Only the season
+            owner can manage cookies.</Message
+          >
+        </div>
+
         <div class="card">
           <Toolbar class="mb-6">
             <template #start>
               <Button
+                v-if="permissions.canCreateCookies"
                 label="New"
                 icon="pi pi-plus"
                 severity="secondary"
@@ -107,7 +116,7 @@
             data-key="id"
             :filters="filters"
             sort-field="order"
-            @row-reorder="onRowReorder"
+            @row-reorder="permissions.canCreateCookies ? onRowReorder : null"
           >
             <template #header>
               <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -125,6 +134,7 @@
             </template>
 
             <Column
+              v-if="permissions.canCreateCookies"
               row-reorder
               header-style="width: 3rem"
               :reorderable-column="false"
@@ -205,6 +215,7 @@
             <Column :exportable="false" nowrap>
               <template #body="slotProps">
                 <Button
+                  v-if="permissions.canCreateCookies"
                   v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
                   aria-label="Edit"
                   icon="pi pi-pencil"
@@ -214,6 +225,7 @@
                   @click="editProduct(slotProps.data)"
                 />
                 <Button
+                  v-if="permissions.canCreateCookies"
                   v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
                   aria-label="Delete"
                   icon="pi pi-trash"
