@@ -246,7 +246,6 @@ export const useCookiesStore = defineStore('cookies', () => {
     return await supabaseClient
       .from('cookies')
       .select(`*`)
-      .eq('profile', profileStore.currentProfile.id)
       .eq('season', seasonsStore.currentSeason.id)
       .order('order');
   };

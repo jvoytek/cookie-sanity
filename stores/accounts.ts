@@ -385,7 +385,6 @@ export const useAccountsStore = defineStore('accounts', () => {
     return await supabaseClient
       .from('payments')
       .select(`*`)
-      .eq('profile', profileStore.currentProfile.id)
       .eq('season', seasonsStore.currentSeason.id)
       .order('payment_date', { ascending: false });
   };

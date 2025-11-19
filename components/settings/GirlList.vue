@@ -9,7 +9,6 @@
 
   const profileStore = useProfileStore();
   const girlsStore = useGirlsStore();
-  const permissions = usePermissions();
 
   loading.value = false;
 
@@ -23,11 +22,6 @@
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
   const submitted = ref(false);
-
-  // Filter girls based on permissions
-  const visibleGirls = computed(() => {
-    return permissions.filterGirlsByPermission(girlsStore.allGirls);
-  });
 
   function openNew() {
     girl.value = {
@@ -91,7 +85,6 @@
           <Toolbar class="mb-6">
             <template #start>
               <Button
-                v-if="permissions.canCreateGirls"
                 label="New"
                 icon="pi pi-plus"
                 severity="secondary"
@@ -104,7 +97,7 @@
           <DataTable
             ref="dt"
             v-model:selection="selectedGirls"
-            :value="visibleGirls"
+            :value="girlsStore.allGirls"
             data-key="id"
             :filters="filters"
             sort-field="first_name"
@@ -130,7 +123,6 @@
             <Column :exportable="false" nowrap>
               <template #body="slotProps">
                 <Button
-                  v-if="permissions.canEditSeller(slotProps.data.id)"
                   v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
                   aria-label="Edit"
                   icon="pi pi-pencil"
@@ -140,7 +132,6 @@
                   @click="editGirl(slotProps.data)"
                 />
                 <Button
-                  v-if="permissions.canEditSeller(slotProps.data.id)"
                   v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
                   aria-label="Delete"
                   icon="pi pi-trash"
@@ -148,11 +139,6 @@
                   variant="outlined"
                   severity="warn"
                   @click="confirmDeleteGirl(slotProps.data)"
-                />
-                <Tag
-                  v-else
-                  :value="permissions.getSellerPermission(slotProps.data.id)"
-                  severity="info"
                 />
               </template>
             </Column>

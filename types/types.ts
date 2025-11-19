@@ -21,8 +21,6 @@ export type InventoryCheck =
   Database['public']['Tables']['inventory_checks']['Row'];
 export type SeasonCollaborator =
   Database['public']['Tables']['season_collaborators']['Row'];
-export type SellerPermission =
-  Database['public']['Tables']['seller_permissions']['Row'];
 
 export type SCOrder2025 = {
   DATE: string;

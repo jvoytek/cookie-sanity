@@ -64,7 +64,6 @@ export const useGirlsStore = defineStore('girls', () => {
     return await supabaseClient
       .from('sellers')
       .select(`*`)
-      .eq('profile', profileStore.currentProfile.id)
       .eq('season', seasonsStore.currentSeason.id)
       .order('first_name');
   };

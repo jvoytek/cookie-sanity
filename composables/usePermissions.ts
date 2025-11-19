@@ -1,5 +1,3 @@
-import type { PermissionLevel, Girl } from '@/types/types';
-
 export const usePermissions = () => {
   const user = useSupabaseUser();
   const seasonsStore = useSeasonsStore();
@@ -52,53 +50,6 @@ export const usePermissions = () => {
     return currentCollaborator.value?.can_edit_inventory_checks ?? false;
   });
 
-  // Get permission level for a specific seller
-  const getSellerPermission = (sellerId: number): PermissionLevel => {
-    if (isSeasonOwner.value) return 'edit';
-    if (!currentCollaborator.value) return 'none';
-    return collaboratorsStore.getSellerPermission(
-      currentCollaborator.value.id,
-      sellerId,
-    );
-  };
-
-  // Check if user can view a specific seller
-  const canViewSeller = (sellerId: number): boolean => {
-    if (isSeasonOwner.value) return true;
-    const permission = getSellerPermission(sellerId);
-    return permission !== 'none';
-  };
-
-  // Check if user can edit a specific seller
-  const canEditSeller = (sellerId: number): boolean => {
-    if (isSeasonOwner.value) return true;
-    const permission = getSellerPermission(sellerId);
-    return permission === 'edit';
-  };
-
-  // Check if user can make transaction requests for a specific seller
-  const canRequestForSeller = (sellerId: number): boolean => {
-    if (isSeasonOwner.value) return true;
-    const permission = getSellerPermission(sellerId);
-    return permission === 'request' || permission === 'edit';
-  };
-
-  // Filter girls list based on permissions
-  const filterGirlsByPermission = (girls: Girl[]): Girl[] => {
-    if (isSeasonOwner.value) return girls;
-    return girls.filter((girl) => canViewSeller(girl.id));
-  };
-
-  // Check if user can create new girls
-  const canCreateGirls = computed(() => {
-    return isSeasonOwner.value;
-  });
-
-  // Check if user can create new cookies
-  const canCreateCookies = computed(() => {
-    return isSeasonOwner.value;
-  });
-
   // Check if user can delete the season
   const canDeleteSeason = computed(() => {
     return isSeasonOwner.value;
@@ -117,13 +68,6 @@ export const usePermissions = () => {
     canEditBooths,
     canViewInventoryChecks,
     canEditInventoryChecks,
-    getSellerPermission,
-    canViewSeller,
-    canEditSeller,
-    canRequestForSeller,
-    filterGirlsByPermission,
-    canCreateGirls,
-    canCreateCookies,
     canDeleteSeason,
     canManageCollaborators,
   };

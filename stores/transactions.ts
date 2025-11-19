@@ -327,7 +327,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     return await supabaseClient
       .from('orders')
       .select(`*`)
-      .eq('profile', profileStore.currentProfile.id)
       .eq('season', seasonsStore.currentSeason.id)
       .order('order_date', { ascending: false });
   };

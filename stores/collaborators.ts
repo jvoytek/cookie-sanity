@@ -1,9 +1,5 @@
 import type { Database } from '@/types/supabase';
-import type {
-  SeasonCollaborator,
-  SellerPermission,
-  PermissionLevel,
-} from '@/types/types';
+import type { SeasonCollaborator } from '@/types/types';
 
 export const useCollaboratorsStore = defineStore('collaborators', () => {
   const supabaseClient = useSupabaseClient<Database>();
@@ -13,7 +9,6 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
 
   /* State */
   const collaborators = ref<SeasonCollaborator[]>([]);
-  const sellerPermissions = ref<SellerPermission[]>([]);
   const activeCollaborator = ref<SeasonCollaborator | null>(null);
   const collaboratorDialogVisible = ref(false);
 
@@ -26,23 +21,6 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
       .order('created_at', { ascending: false });
   };
 
-  const _supabaseFetchSellerPermissions = async (collaboratorId: number) => {
-    return await supabaseClient
-      .from('seller_permissions')
-      .select('*')
-      .eq('collaborator_id', collaboratorId);
-  };
-
-  const _supabaseFetchAllSellerPermissions = async (seasonId: number) => {
-    return await supabaseClient
-      .from('seller_permissions')
-      .select(
-        `*, 
-        season_collaborators!inner(season_id, profile_id)`,
-      )
-      .eq('season_collaborators.season_id', seasonId);
-  };
-
   /* Actions */
   const fetchCollaborators = async (seasonId?: number) => {
     try {
@@ -52,20 +30,6 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
       const { data, error } = await _supabaseFetchCollaborators(targetSeasonId);
       if (error) throw error;
       collaborators.value = (data ?? []) as SeasonCollaborator[];
-    } catch (error) {
-      notificationHelpers.addError(error as Error);
-    }
-  };
-
-  const fetchSellerPermissions = async (seasonId?: number) => {
-    try {
-      const targetSeasonId = seasonId ?? seasonsStore.currentSeason?.id;
-      if (!targetSeasonId) return;
-
-      const { data, error } =
-        await _supabaseFetchAllSellerPermissions(targetSeasonId);
-      if (error) throw error;
-      sellerPermissions.value = (data ?? []) as SellerPermission[];
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -146,35 +110,6 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
     }
   };
 
-  const setSellerPermission = async (
-    collaboratorId: number,
-    sellerId: number,
-    permissionLevel: PermissionLevel,
-  ) => {
-    try {
-      const { error } = await supabaseClient.from('seller_permissions').upsert({
-        collaborator_id: collaboratorId,
-        seller_id: sellerId,
-        permission_level: permissionLevel,
-      });
-
-      if (error) throw error;
-      await fetchSellerPermissions();
-    } catch (error) {
-      notificationHelpers.addError(error as Error);
-    }
-  };
-
-  const getSellerPermission = (
-    collaboratorId: number,
-    sellerId: number,
-  ): PermissionLevel => {
-    const permission = sellerPermissions.value.find(
-      (p) => p.collaborator_id === collaboratorId && p.seller_id === sellerId,
-    );
-    return (permission?.permission_level as PermissionLevel) ?? 'none';
-  };
-
   const setActiveCollaborator = (collaborator: SeasonCollaborator | null) => {
     activeCollaborator.value = collaborator;
   };
@@ -190,16 +125,12 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
 
   return {
     collaborators,
-    sellerPermissions,
     activeCollaborator,
     collaboratorDialogVisible,
     fetchCollaborators,
-    fetchSellerPermissions,
     addCollaborator,
     updateCollaborator,
     deleteCollaborator,
-    setSellerPermission,
-    getSellerPermission,
     setActiveCollaborator,
     showDialog,
     hideDialog,

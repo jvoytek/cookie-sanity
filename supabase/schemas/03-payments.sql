@@ -18,12 +18,6 @@ CREATE TABLE IF NOT EXISTS "public"."payments" (
 -- Enable row level security
 alter table "public"."payments" enable row level security;
 
--- RLS policies for payments table
-create policy "Allow users to view their own payments" on "public"."payments" for select to "authenticated" using ((( select "auth"."uid"() as "uid") = "profile"));
-create policy "Allow users to insert their own payments" on "public"."payments" for insert to "authenticated" with check ((( select "auth"."uid"() as "uid") = "profile"));
-create policy "Allow users to update their own payments" on "public"."payments" for update to "authenticated" using ((( select "auth"."uid"() as "uid") = "profile")) with check ((( select "auth"."uid"() as "uid") = "profile"));
-create policy "Allow users to delete their own payments" on "public"."payments" for delete to "authenticated" using ((( select "auth"."uid"() as "uid") = "profile"));
-
 -- Create indexes for better performance
 create index "payments_profile_season_idx" on "public"."payments" using btree ("profile", "season");
 create index "payments_seller_id_idx" on "public"."payments" using btree ("seller_id");
