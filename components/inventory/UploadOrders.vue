@@ -1,7 +1,6 @@
 <script setup lang="ts">
   import ExcelJS from 'exceljs';
   import type { SCOrder2025, NewOrder } from '@/types/types';
-  import type { Json } from '@/types/supabase';
 
   const loading = ref(true);
 
