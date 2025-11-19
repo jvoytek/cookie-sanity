@@ -47,8 +47,13 @@
           label: 'Settings',
           icon: 'pi pi-fw pi-cog',
           items: [
-            { label: 'Girls', icon: 'pi pi-fw pi-users', to: '/girls' },
+            { label: 'Girls', icon: 'pi pi-fw pi-face-smile', to: '/girls' },
             { label: 'Cookies', icon: 'pi pi-fw pi-box', to: '/cookies' },
+            {
+              label: 'Collaborators',
+              icon: 'pi pi-fw pi-users',
+              to: '/collaborators',
+            },
           ],
         },
       ],

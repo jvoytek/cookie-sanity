@@ -35,21 +35,21 @@ export const useSeasonsStore = defineStore('seasons', () => {
       .select(`*`)
       .eq('profile', profileStore.currentProfile.id);
 
-    const collaboratedSeasonsPromise = supabaseClient
-      .from('seasons')
-      .select(
-        `*, 
+    console.log(profileStore.currentProfile.id);
+    const collaboratedSeasonsPromise = supabaseClient.from('seasons').select(
+      `*, 
         season_collaborators!inner(profile_id)`,
-      )
-      .eq('season_collaborators.profile_id', profileStore.currentProfile.id);
+    );
+    //.eq('season_collaborators.profile_id', profileStore.currentProfile.id);
 
     const [ownedResult, collaboratedResult] = await Promise.all([
       ownedSeasonsPromise,
       collaboratedSeasonsPromise,
     ]);
 
-    if (ownedResult.error)
-      return { data: [], error: ownedResult.error };
+    console.log(collaboratedResult);
+
+    if (ownedResult.error) return { data: [], error: ownedResult.error };
     if (collaboratedResult.error)
       return { data: ownedResult.data ?? [], error: null };
 
@@ -67,6 +67,8 @@ export const useSeasonsStore = defineStore('seasons', () => {
     const combinedSeasons = Array.from(allSeasonsMap.values()).sort(
       (a, b) => b.year - a.year,
     );
+
+    console.log(combinedSeasons);
 
     return { data: combinedSeasons, error: null };
   };
