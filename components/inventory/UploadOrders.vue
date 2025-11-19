@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import ExcelJS from 'exceljs';
   import type { SCOrder2025, NewOrder } from '@/types/types';
+  import type { Json } from '@/types/supabase';
 
   const loading = ref(true);
 
@@ -8,7 +9,21 @@
   const ordersStore = useTransactionsStore();
   const uploadsStore = useUploadsStore();
   const profileStore = useProfileStore();
+  const cookiesStore = useCookiesStore();
   const notificationHelpers = useNotificationHelpers();
+
+  const _hasPositiveCookieQuantities = (
+    cookies: Record<string, number> | undefined,
+  ): boolean => {
+    if (!cookies) return false;
+    // Check if any cookie has a quantity greater than 0
+    const hasPositive = cookiesStore.allCookies.some((cookie) => {
+      if (cookies[cookie.abbreviation] > 0) {
+        return true;
+      }
+    });
+    return hasPositive;
+  };
 
   // Handle file upload event
   const handleFileUpload = async (event: { files: File[] }): Promise<void> => {
@@ -48,8 +63,45 @@
       // Save all of the uploaded orders as JSON
       await uploadsStore.insertUpload(jsonData);
 
+      // remove duplicates by order_num for G2G transactions, keep the one with positive quantities if duplicates exist
+      // This is because Smart Cookies exports 2 rows per G2G order: one with negative quantities and one with positive quantities, the "TO" field is the same for both orders...yeah...
+      const uniqueOrdersMap = new Map<string, NewOrder>();
+      const uniqueOrders = [];
+      orders.forEach((order) => {
+        // If no order number, just add it
+        if (!order.order_num) {
+          uniqueOrders.push(order);
+          return;
+        }
+        if (order.type !== 'G2G') {
+          // For non-G2G orders, just add them
+          uniqueOrders.push(order);
+          return;
+        }
+        const existingOrder = uniqueOrdersMap.get(order.order_num);
+        if (!existingOrder) {
+          uniqueOrdersMap.set(order.order_num, order);
+        } else {
+          // If duplicate exists, prefer the one with positive quantities
+          const existingHasPositiveQuantities = _hasPositiveCookieQuantities(
+            existingOrder.cookies,
+          );
+          const newHasPositiveQuantities = _hasPositiveCookieQuantities(
+            order.cookies,
+          );
+          // If existing has positive quantities, do nothing
+          // If new has positive quantities and existing does not, replace
+          if (newHasPositiveQuantities && !existingHasPositiveQuantities) {
+            uniqueOrdersMap.set(order.order_num, order);
+          }
+        }
+      });
+
+      // add orders with order numbers to uniqueOrders
+      uniqueOrders.push(...Array.from(uniqueOrdersMap.values()));
+
       // Insert into orders table
-      await ordersStore.insertNewTransactionFromUploads(orders);
+      await ordersStore.insertNewTransactionFromUploads(uniqueOrders);
 
       // Clear the file input
       event.files = [];

@@ -480,6 +480,22 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
+  const bulkDeleteTransactions = async (transactionIds: number[]) => {
+    try {
+      const { error } = await supabaseClient
+        .from('orders')
+        .delete()
+        .in('id', transactionIds);
+
+      if (error) throw error;
+
+      transactionIds.forEach((id) => _removeTransaction(id));
+      notificationHelpers.addSuccess('Transactions Deleted');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   const deleteTransaction = async (transaction: Order | number | undefined) => {
     if (!transaction) {
       notificationHelpers.addError(
@@ -696,6 +712,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     insertNewTransaction,
     upsertTransaction,
     deleteTransaction,
+    bulkDeleteTransactions,
     convertSCOrderToNewTransaction,
     updateTransactionStatus,
     updateTransactionStatusBulk,
