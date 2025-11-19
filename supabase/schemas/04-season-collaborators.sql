@@ -56,7 +56,7 @@ FOR SELECT
 TO authenticated
 USING (profile_id = auth.uid());
 
-CREATE OR REPLACE FUNCTION public.is_season_collaborator(p_season_id uuid, p_profile_id uuid)
+CREATE OR REPLACE FUNCTION public.is_season_collaborator(p_season_id bigint, p_profile_id uuid)
 RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER
 AS $$
@@ -76,20 +76,6 @@ TO authenticated
 USING (
   auth.uid() = profile
   OR public.is_season_collaborator(id, auth.uid())
-);
-
-
-CREATE POLICY "Allow users to view their own seasons"
-ON "public"."seasons"
-FOR SELECT
-TO "authenticated" 
-USING (
-    (( SELECT "auth"."uid"() AS "uid") = "profile") 
-    OR EXISTS (
-        SELECT 1 FROM "season_collaborators"
-        WHERE "season_collaborators"."season_id" = "seasons"."id" 
-        AND "season_collaborators"."profile_id" = auth.uid()
-    )
 );
 
 -- Grant permissions to authenticated users
