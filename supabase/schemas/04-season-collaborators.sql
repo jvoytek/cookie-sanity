@@ -67,42 +67,53 @@ AS $$
   );
 $$;
 
+CREATE OR REPLACE FUNCTION public.is_season_owner(p_season_id bigint, p_profile_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM public.seasons
+        WHERE seasons.id = p_season_id
+          AND seasons.profile = p_profile_id
+    );
+$$;
+
 ALTER FUNCTION "public"."is_season_collaborator" OWNER TO "postgres";
 
-CREATE POLICY "Allow owners and collaborators to view their own seasons" ON public.seasons FOR SELECT TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(id, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to delete their own seasons" ON public.seasons FOR DELETE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(id, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to insert their own seasons" ON public.seasons FOR INSERT TO authenticated WITH CHECK ( auth.uid() = profile OR public.is_season_collaborator(id, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to update their own seasons" ON public.seasons FOR UPDATE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(id, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to view their own seasons" ON public.seasons FOR SELECT TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to delete their own seasons" ON public.seasons FOR DELETE TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to insert their own seasons" ON public.seasons FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to update their own seasons" ON public.seasons FOR UPDATE TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
 
-CREATE POLICY "Allow owners and collaborators to view their own cookies" ON public.cookies FOR SELECT TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to delete their own cookies" ON public.cookies FOR DELETE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to insert their own cookies" ON public.cookies FOR INSERT TO authenticated WITH CHECK ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to update their own cookies" ON public.cookies FOR UPDATE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to view their own cookies" ON public.cookies FOR SELECT TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to delete their own cookies" ON public.cookies FOR DELETE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to insert their own cookies" ON public.cookies FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to update their own cookies" ON public.cookies FOR UPDATE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 
-CREATE POLICY "Allow owners and collaborators to view their own sellers" ON public.sellers FOR SELECT TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to delete their own sellers" ON public.sellers FOR DELETE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to insert their own sellers" ON public.sellers FOR INSERT TO authenticated WITH CHECK ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to update their own sellers" ON public.sellers FOR UPDATE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to view their own sellers" ON public.sellers FOR SELECT TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to delete their own sellers" ON public.sellers FOR DELETE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to insert their own sellers" ON public.sellers FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to update their own sellers" ON public.sellers FOR UPDATE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 
-CREATE POLICY "Allow owners and collaborators to view their own payments" ON public.payments FOR SELECT TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to delete their own payments" ON public.payments FOR DELETE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to insert their own payments" ON public.payments FOR INSERT TO authenticated WITH CHECK ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to update their own payments" ON public.payments FOR UPDATE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to view their own payments" ON public.payments FOR SELECT TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to delete their own payments" ON public.payments FOR DELETE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to insert their own payments" ON public.payments FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to update their own payments" ON public.payments FOR UPDATE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 
-CREATE POLICY "Allow owners and collaborators to view their own boothsales" ON public.booth_sales FOR SELECT TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to delete their own boothsales" ON public.booth_sales FOR DELETE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to insert their own boothsales" ON public.booth_sales FOR INSERT TO authenticated WITH CHECK ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to update their own boothsales" ON public.booth_sales FOR UPDATE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to view their own boothsales" ON public.booth_sales FOR SELECT TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to delete their own boothsales" ON public.booth_sales FOR DELETE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to insert their own boothsales" ON public.booth_sales FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to update their own boothsales" ON public.booth_sales FOR UPDATE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 
-CREATE POLICY "Allow owners and collaborators to view their own inventory checks" ON public.inventory_checks FOR SELECT TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to delete their own inventory checks" ON public.inventory_checks FOR DELETE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to insert their own inventory checks" ON public.inventory_checks FOR INSERT TO authenticated WITH CHECK ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to update their own inventory checks" ON public.inventory_checks FOR UPDATE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to view their own inventory checks" ON public.inventory_checks FOR SELECT TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to delete their own inventory checks" ON public.inventory_checks FOR DELETE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to insert their own inventory checks" ON public.inventory_checks FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to update their own inventory checks" ON public.inventory_checks FOR UPDATE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 
-CREATE POLICY "Allow owners and collaborators to view their own orders" ON public.orders FOR SELECT TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to delete their own orders" ON public.orders FOR DELETE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to insert their own orders" ON public.orders FOR INSERT TO authenticated WITH CHECK ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
-CREATE POLICY "Allow owners and collaborators to update their own orders" ON public.orders FOR UPDATE TO authenticated USING ( auth.uid() = profile OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to view their own orders" ON public.orders FOR SELECT TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to delete their own orders" ON public.orders FOR DELETE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to insert their own orders" ON public.orders FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
+CREATE POLICY "Allow owners and collaborators to update their own orders" ON public.orders FOR UPDATE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 
 -- Grant permissions to authenticated users
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE 
