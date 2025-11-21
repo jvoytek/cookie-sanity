@@ -52,14 +52,13 @@ export const useProfileStore = defineStore('profile', () => {
 
       // Trigger state update for other stores depending on profile
       await seasonsStore.fetchSeasons();
-      
+
       // Fetch collaborators data for the current season if it exists
       if (seasonsStore.currentSeason?.id) {
         const collaboratorsStore = useCollaboratorsStore();
         await collaboratorsStore.fetchCollaborators();
-        await collaboratorsStore.fetchSellerPermissions();
       }
-      
+
       await cookiesStore.fetchCookies();
       await girlsStore.fetchGirls();
       await ordersStore.fetchTransactions();
