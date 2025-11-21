@@ -17,12 +17,10 @@
   const showInviteDialog = ref(false);
   const deleteDialogVisible = ref(false);
   const selectedCollaborator = ref<SeasonCollaborator | null>(null);
-  const permissionsDialogVisible = ref(false);
 
   // Fetch collaborators when component mounts
   onMounted(async () => {
     await collaboratorsStore.fetchCollaborators();
-    await collaboratorsStore.fetchSellerPermissions();
   });
 
   const openInviteDialog = () => {
@@ -83,21 +81,6 @@
     deleteDialogVisible.value = false;
     selectedCollaborator.value = null;
   };
-
-  const openPermissionsDialog = (collaborator: SeasonCollaborator) => {
-    selectedCollaborator.value = collaborator;
-    permissionsDialogVisible.value = true;
-  };
-
-  const getPermissionLabel = (level: string) => {
-    const labels: Record<string, string> = {
-      none: 'None',
-      view: 'View Only',
-      request: 'Request',
-      edit: 'Full Edit',
-    };
-    return labels[level] || level;
-  };
 </script>
 
 <template>
@@ -106,8 +89,7 @@
       <div class="card">
         <h5>Collaborators</h5>
         <p class="text-surface-500 dark:text-surface-400 mb-6">
-          Invite others to help manage this season. You can set permissions for
-          each girl individually.
+          Invite others to help manage this season.
         </p>
 
         <div v-if="!seasonsStore.isCurrentSeasonOwner()">
@@ -136,37 +118,10 @@
           >
             <Column field="profile_id" header="Email">
               <template #body="slotProps">
-                <span>{{ (slotProps.data as any).profiles?.display_name || slotProps.data.profile_id }}</span>
-              </template>
-            </Column>
-            <Column field="can_view_booths" header="Booths">
-              <template #body="slotProps">
-                <Tag
-                  v-if="slotProps.data.can_edit_booths"
-                  severity="success"
-                  value="Edit"
-                />
-                <Tag
-                  v-else-if="slotProps.data.can_view_booths"
-                  severity="info"
-                  value="View"
-                />
-                <Tag v-else severity="secondary" value="None" />
-              </template>
-            </Column>
-            <Column field="can_view_inventory_checks" header="Inventory Checks">
-              <template #body="slotProps">
-                <Tag
-                  v-if="slotProps.data.can_edit_inventory_checks"
-                  severity="success"
-                  value="Edit"
-                />
-                <Tag
-                  v-else-if="slotProps.data.can_view_inventory_checks"
-                  severity="info"
-                  value="View"
-                />
-                <Tag v-else severity="secondary" value="None" />
+                <span>{{
+                  (slotProps.data as any).profiles?.display_name ||
+                  slotProps.data.profile_id
+                }}</span>
               </template>
             </Column>
             <Column field="created_at" header="Invited">
@@ -176,14 +131,6 @@
             </Column>
             <Column header="Actions">
               <template #body="slotProps">
-                <Button
-                  v-tooltip.bottom="{ value: 'Manage Permissions', showDelay: 500 }"
-                  icon="pi pi-lock"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="secondary"
-                  @click="openPermissionsDialog(slotProps.data)"
-                />
                 <Button
                   v-tooltip.bottom="{ value: 'Remove', showDelay: 500 }"
                   icon="pi pi-trash"
@@ -221,51 +168,6 @@
             Users can find this in Settings > Account.</small
           >
         </div>
-
-        <div>
-          <h6 class="mb-2">Booth Sales Permissions</h6>
-          <div class="flex items-center gap-2 mb-2">
-            <Checkbox
-              v-model="newCollaboratorPermissions.can_view_booths"
-              binary
-              input-id="view-booths"
-            />
-            <label for="view-booths">Can view booth sales</label>
-          </div>
-          <div class="flex items-center gap-2">
-            <Checkbox
-              v-model="newCollaboratorPermissions.can_edit_booths"
-              binary
-              input-id="edit-booths"
-            />
-            <label for="edit-booths">Can edit booth sales</label>
-          </div>
-        </div>
-
-        <div>
-          <h6 class="mb-2">Inventory Check Permissions</h6>
-          <div class="flex items-center gap-2 mb-2">
-            <Checkbox
-              v-model="newCollaboratorPermissions.can_view_inventory_checks"
-              binary
-              input-id="view-inventory"
-            />
-            <label for="view-inventory">Can view inventory checks</label>
-          </div>
-          <div class="flex items-center gap-2">
-            <Checkbox
-              v-model="newCollaboratorPermissions.can_edit_inventory_checks"
-              binary
-              input-id="edit-inventory"
-            />
-            <label for="edit-inventory">Can edit inventory checks</label>
-          </div>
-        </div>
-
-        <Message severity="info" :closable="false"
-          >Girl-specific permissions can be set after inviting the
-          collaborator.</Message
-        >
       </div>
       <template #footer>
         <Button
@@ -300,61 +202,6 @@
           @click="deleteDialogVisible = false"
         />
         <Button label="Yes" icon="pi pi-check" @click="deleteCollaborator" />
-      </template>
-    </Dialog>
-
-    <!-- Permissions Management Dialog -->
-    <Dialog
-      v-model:visible="permissionsDialogVisible"
-      :style="{ width: '600px' }"
-      header="Manage Girl Permissions"
-      :modal="true"
-    >
-      <div v-if="selectedCollaborator" class="flex flex-col gap-4">
-        <p class="text-surface-500 dark:text-surface-400">
-          Set permissions for each girl. Collaborators can only see girls they
-          have permissions for.
-        </p>
-
-        <div class="flex flex-col gap-3">
-          <div
-            v-for="girl in girlsStore.allGirls"
-            :key="girl.id"
-            class="flex items-center justify-between p-3 border border-surface-200 dark:border-surface-700 rounded"
-          >
-            <span class="font-semibold"
-              >{{ girl.first_name }} {{ girl.last_name }}</span
-            >
-            <SelectButton
-              :model-value="
-                collaboratorsStore.getSellerPermission(
-                  selectedCollaborator.id,
-                  girl.id,
-                )
-              "
-              :options="['none', 'view', 'request', 'edit']"
-              @update:model-value="
-                (value) =>
-                  collaboratorsStore.setSellerPermission(
-                    selectedCollaborator.id,
-                    girl.id,
-                    value,
-                  )
-              "
-            >
-              <template #option="slotProps">
-                {{ getPermissionLabel(slotProps.option) }}
-              </template>
-            </SelectButton>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          label="Close"
-          icon="pi pi-times"
-          @click="permissionsDialogVisible = false"
-        />
       </template>
     </Dialog>
   </div>

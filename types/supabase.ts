@@ -459,45 +459,6 @@ export type Database = {
           },
         ];
       };
-      seller_permissions: {
-        Row: {
-          collaborator_id: number;
-          created_at: string;
-          id: number;
-          permission_level: string;
-          seller_id: number;
-        };
-        Insert: {
-          collaborator_id: number;
-          created_at?: string;
-          id?: number;
-          permission_level: string;
-          seller_id: number;
-        };
-        Update: {
-          collaborator_id?: number;
-          created_at?: string;
-          id?: number;
-          permission_level?: string;
-          seller_id?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'seller_permissions_collaborator_id_fkey';
-            columns: ['collaborator_id'];
-            isOneToOne: false;
-            referencedRelation: 'season_collaborators';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'seller_permissions_seller_id_fkey';
-            columns: ['seller_id'];
-            isOneToOne: false;
-            referencedRelation: 'sellers';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       sellers: {
         Row: {
           created_at: string;

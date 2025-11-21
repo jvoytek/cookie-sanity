@@ -44,7 +44,6 @@ describe('stores/collaborators', () => {
       const freshStore = useCollaboratorsStore();
 
       expect(freshStore.collaborators).toEqual([]);
-      expect(freshStore.sellerPermissions).toEqual([]);
       expect(freshStore.activeCollaborator).toBeNull();
       expect(freshStore.collaboratorDialogVisible).toBe(false);
     });
@@ -113,7 +112,10 @@ describe('stores/collaborators', () => {
         addSuccess: vi.fn(),
       };
 
-      vi.stubGlobal('useNotificationHelpers', vi.fn(() => mockNotificationHelpers));
+      vi.stubGlobal(
+        'useNotificationHelpers',
+        vi.fn(() => mockNotificationHelpers),
+      );
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -162,7 +164,10 @@ describe('stores/collaborators', () => {
         addSuccess: vi.fn(),
       };
 
-      vi.stubGlobal('useNotificationHelpers', vi.fn(() => mockNotificationHelpers));
+      vi.stubGlobal(
+        'useNotificationHelpers',
+        vi.fn(() => mockNotificationHelpers),
+      );
 
       // Create new store instance with the new mock
       setActivePinia(createPinia());
@@ -183,31 +188,6 @@ describe('stores/collaborators', () => {
       expect(mockNotificationHelpers.addSuccess).toHaveBeenCalledWith(
         'Collaborator added successfully',
       );
-    });
-  });
-
-  describe('getSellerPermission', () => {
-    it('returns the correct permission level for a seller', () => {
-      collaboratorsStore.sellerPermissions = [
-        {
-          id: 1,
-          collaborator_id: 1,
-          seller_id: 10,
-          permission_level: 'edit',
-          created_at: '2024-01-01T00:00:00Z',
-        },
-        {
-          id: 2,
-          collaborator_id: 1,
-          seller_id: 20,
-          permission_level: 'view',
-          created_at: '2024-01-01T00:00:00Z',
-        },
-      ];
-
-      expect(collaboratorsStore.getSellerPermission(1, 10)).toBe('edit');
-      expect(collaboratorsStore.getSellerPermission(1, 20)).toBe('view');
-      expect(collaboratorsStore.getSellerPermission(1, 30)).toBe('none');
     });
   });
 
