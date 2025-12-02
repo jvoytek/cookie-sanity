@@ -173,12 +173,17 @@ export const useSeasonsStore = defineStore('seasons', () => {
   };
 
   const createNewSeason = () => {
-    // Create a new season object without id (will be auto-generated)
-    const newSeason: Partial<Season> = {
+    // Create a new season object for form binding
+    // TypeScript cast is safe here because:
+    // 1. FormKit will update this object with user input (troop_number, year)
+    // 2. insertSeason will add the profile field
+    // 3. _supabaseInsertSeason will exclude id and created_at before database insert
+    const newSeason = {
       troop_number: '',
       year: new Date().getFullYear(),
-    };
-    setActiveSeason(newSeason as Season);
+    } as Season;
+    activeSeason.value = newSeason;
+    activeSeasonOriginal.value = null; // No original for new seasons
     showDialog();
   };
 
