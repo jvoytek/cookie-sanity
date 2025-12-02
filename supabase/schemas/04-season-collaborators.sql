@@ -60,6 +60,7 @@ USING (profile_id = auth.uid());
 CREATE OR REPLACE FUNCTION public.is_season_collaborator(p_season_id bigint, p_profile_id uuid)
 RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = ''
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.season_collaborators
@@ -71,6 +72,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.is_season_owner(p_season_id bigint, p_profile_id uuid)
 RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = ''
 AS $$
     SELECT EXISTS (
         SELECT 1 FROM public.seasons
