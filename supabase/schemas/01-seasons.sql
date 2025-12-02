@@ -33,5 +33,5 @@ CREATE POLICY "Allow owners to manage their own seasons"
 ON "public"."seasons"
 FOR ALL
 TO authenticated
-USING ( profile = auth.uid() )
-WITH CHECK ( profile = auth.uid() );
+USING ( profile = (SELECT auth.uid()) )
+WITH CHECK ( profile = (SELECT auth.uid()) );

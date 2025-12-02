@@ -2,6 +2,16 @@
 -- This migration wraps auth.uid() calls in SELECT subqueries to force single evaluation per query
 -- Reference: https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select
 
+-- Drop and recreate the base seasons policy
+DROP POLICY IF EXISTS "Allow owners to manage their own seasons" ON public.seasons;
+
+CREATE POLICY "Allow owners to manage their own seasons"
+ON public.seasons
+FOR ALL
+TO authenticated
+USING ( profile = (SELECT auth.uid()) )
+WITH CHECK ( profile = (SELECT auth.uid()) );
+
 -- Drop and recreate season_collaborators policies
 DROP POLICY IF EXISTS "Season owners can manage collaborators" ON public.season_collaborators;
 DROP POLICY IF EXISTS "Collaborators can view their own record" ON public.season_collaborators;
