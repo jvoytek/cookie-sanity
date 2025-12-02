@@ -430,22 +430,28 @@ export type Database = {
       seasons: {
         Row: {
           created_at: string;
+          girl_request_form_password: string | null;
           id: number;
           profile: string;
+          publish_girl_request_form: boolean;
           troop_number: string;
           year: number;
         };
         Insert: {
           created_at?: string;
+          girl_request_form_password?: string | null;
           id?: number;
           profile: string;
+          publish_girl_request_form?: boolean;
           troop_number?: string;
           year?: number;
         };
         Update: {
           created_at?: string;
+          girl_request_form_password?: string | null;
           id?: number;
           profile?: string;
+          publish_girl_request_form?: boolean;
           troop_number?: string;
           year?: number;
         };
