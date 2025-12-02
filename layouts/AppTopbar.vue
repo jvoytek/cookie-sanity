@@ -7,6 +7,7 @@
   const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
   const user = useSupabaseUser();
   const loading = ref(false);
+  const profileStore = useProfileStore();
   loading.value = false;
 
   const menu = ref(null);
@@ -37,6 +38,8 @@
       alert(error.message);
     } finally {
       loading.value = false;
+      // reload the page to reset state
+      window.location.reload();
     }
   }
 </script>
@@ -102,21 +105,14 @@
         </div>
         <div class="relative">
           <Menu ref="menu" :model="userMenuItems" :popup="true" />
-          <button
-            v-styleclass="{
-              selector: '@next',
-              enterFromClass: 'hidden',
-              enterActiveClass: 'animate-scalein',
-              leaveToClass: 'hidden',
-              leaveActiveClass: 'animate-fadeout',
-              hideOnOutsideClick: true,
-            }"
-            type="button"
-            class="layout-topbar-action"
+          <Button
             @click="toggleOverlayMenu"
-          >
-            <i class="pi pi-user" />
-          </button>
+            icon="pi pi-user"
+            :label="profileStore.display_name"
+            rounded
+            text
+            severity="contrast"
+          />
         </div>
       </div>
 

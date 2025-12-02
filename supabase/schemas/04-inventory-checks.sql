@@ -17,12 +17,6 @@ create table inventory_checks (
 -- Enable RLS
 alter table inventory_checks enable row level security;
 
--- RLS policies
-create policy "Users can only see their own inventory checks" on inventory_checks for select using (auth.uid() = profile);
-create policy "Users can insert their own inventory checks" on inventory_checks for insert with check (auth.uid() = profile);
-create policy "Users can update their own inventory checks" on inventory_checks for update using (auth.uid() = profile);
-create policy "Users can delete their own inventory checks" on inventory_checks for delete using (auth.uid() = profile);
-
 -- Indexes for performance
 create index inventory_checks_profile_idx on inventory_checks(profile);
 create index inventory_checks_season_idx on inventory_checks(season);

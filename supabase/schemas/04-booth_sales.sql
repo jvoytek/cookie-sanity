@@ -17,12 +17,6 @@ create table booth_sales (
 -- Enable RLS
 alter table booth_sales enable row level security;
 
--- RLS policies
-create policy "Users can only see their own booth sales" on booth_sales for select using (auth.uid() = profile);
-create policy "Users can insert their own booth sales" on booth_sales for insert with check (auth.uid() = profile);
-create policy "Users can update their own booth sales" on booth_sales for update using (auth.uid() = profile);
-create policy "Users can delete their own booth sales" on booth_sales for delete using (auth.uid() = profile);
-
 -- Indexes for performance
 create index booth_sales_profile_idx on booth_sales(profile);
 create index booth_sales_season_idx on booth_sales(season);

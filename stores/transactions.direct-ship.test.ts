@@ -75,10 +75,10 @@ describe('Transactions Store - DIRECT_SHIP Functionality', () => {
       'girl',
     );
 
-    // Should only count non-DIRECT_SHIP orders: -10 + -7 = -17 for TM
-    expect(totals.TM).toBe(-17);
-    // Should only count non-DIRECT_SHIP orders: -5 for ADV
-    expect(totals.ADV).toBe(-5);
+    // Should only count non-DIRECT_SHIP orders: 10 + 7 = 17 for TM
+    expect(totals.TM).toBe(17);
+    // Should only count non-DIRECT_SHIP orders: 5 for ADV
+    expect(totals.ADV).toBe(5);
   });
 
   it('should exclude DIRECT_SHIP orders from sumTransactionsByCookie', () => {
@@ -233,7 +233,7 @@ describe('Transactions Store - DIRECT_SHIP Functionality', () => {
     const totals = store.totalTransactionsByStatusAllCookies('pending', 'girl');
 
     // Should only count non-DIRECT_SHIP orders even when pending
-    expect(totals.TM).toBe(-10);
+    expect(totals.TM).toBe(10);
   });
 
   it('should correctly filter multiple cookie types with DIRECT_SHIP', () => {

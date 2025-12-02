@@ -369,6 +369,64 @@ export type Database = {
         };
         Relationships: [];
       };
+      season_collaborators: {
+        Row: {
+          can_edit_booths: boolean;
+          can_edit_inventory_checks: boolean;
+          can_view_booths: boolean;
+          can_view_inventory_checks: boolean;
+          created_at: string;
+          id: number;
+          invited_by: string;
+          profile_id: string;
+          season_id: number;
+        };
+        Insert: {
+          can_edit_booths?: boolean;
+          can_edit_inventory_checks?: boolean;
+          can_view_booths?: boolean;
+          can_view_inventory_checks?: boolean;
+          created_at?: string;
+          id?: number;
+          invited_by: string;
+          profile_id: string;
+          season_id: number;
+        };
+        Update: {
+          can_edit_booths?: boolean;
+          can_edit_inventory_checks?: boolean;
+          can_view_booths?: boolean;
+          can_view_inventory_checks?: boolean;
+          created_at?: string;
+          id?: number;
+          invited_by?: string;
+          profile_id?: string;
+          season_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'season_collaborators_invited_by_fkey';
+            columns: ['invited_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'season_collaborators_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'season_collaborators_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       seasons: {
         Row: {
           created_at: string;

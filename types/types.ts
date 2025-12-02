@@ -1,4 +1,7 @@
 import type { Database } from './supabase';
+
+export type PermissionLevel = 'none' | 'view' | 'request' | 'edit';
+
 export type Order = Database['public']['Tables']['orders']['Row'] & {
   auto_calculate_cookies?: boolean;
   total_cookies?: number;
@@ -16,6 +19,8 @@ export type BoothSale = Database['public']['Tables']['booth_sales']['Row'] & {
 };
 export type InventoryCheck =
   Database['public']['Tables']['inventory_checks']['Row'];
+export type SeasonCollaborator =
+  Database['public']['Tables']['season_collaborators']['Row'];
 
 export type SCOrder2025 = {
   DATE: string;

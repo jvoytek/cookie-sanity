@@ -29,11 +29,42 @@ export const useSeasonsStore = defineStore('seasons', () => {
       return { data: [] as Season[], error: { message: 'No profile found' } };
     }
 
-    return await supabaseClient
+    // Fetch both owned seasons and collaborated seasons
+    const ownedSeasonsPromise = supabaseClient
       .from('seasons')
       .select(`*`)
-      .eq('profile', profileStore.currentProfile.id)
-      .order('year', { ascending: false });
+      .eq('profile', profileStore.currentProfile.id);
+
+    const collaboratedSeasonsPromise = supabaseClient.from('seasons').select(
+      `*, 
+        season_collaborators!inner(profile_id)`,
+    );
+
+    const [ownedResult, collaboratedResult] = await Promise.all([
+      ownedSeasonsPromise,
+      collaboratedSeasonsPromise,
+    ]);
+
+    if (ownedResult.error) return { data: [], error: ownedResult.error };
+    if (collaboratedResult.error)
+      return { data: ownedResult.data ?? [], error: null };
+
+    // Combine and deduplicate seasons
+    const allSeasonsMap = new Map<number, Season>();
+    (ownedResult.data ?? []).forEach((season) => {
+      allSeasonsMap.set(season.id, season);
+    });
+    (collaboratedResult.data ?? []).forEach((season) => {
+      if (!allSeasonsMap.has(season.id)) {
+        allSeasonsMap.set(season.id, season);
+      }
+    });
+
+    const combinedSeasons = Array.from(allSeasonsMap.values()).sort(
+      (a, b) => b.year - a.year,
+    );
+
+    return { data: combinedSeasons, error: null };
   };
 
   const _supabaseInsertSeason = async (season: Season) => {
@@ -177,6 +208,15 @@ export const useSeasonsStore = defineStore('seasons', () => {
     }
   };
 
+  const isSeasonOwner = (season: Season | null | undefined): boolean => {
+    if (!season || !user.value?.id) return false;
+    return season.profile === user.value.id;
+  };
+
+  const isCurrentSeasonOwner = (): boolean => {
+    return isSeasonOwner(currentSeason.value);
+  };
+
   return {
     fetchSeasons,
     allSeasons,
@@ -197,5 +237,7 @@ export const useSeasonsStore = defineStore('seasons', () => {
     editSeason,
     confirmDeleteSeason,
     deleteSeason,
+    isSeasonOwner,
+    isCurrentSeasonOwner,
   };
 });

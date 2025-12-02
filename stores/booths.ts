@@ -88,7 +88,6 @@ export const useBoothsStore = defineStore('booths', () => {
     return await supabaseClient
       .from('booth_sales')
       .select(`*`)
-      .eq('profile', profileStore.currentProfile?.id ?? '')
       .eq('season', seasonsStore.currentSeason?.id ?? 0)
       .order('sale_date', { ascending: true });
   };

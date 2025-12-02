@@ -47,9 +47,20 @@
               :sortable="true"
             />
             <Column field="year" header="Year" :sortable="true" />
+            <Column header="Role">
+              <template #body="slotProps">
+                <Tag
+                  v-if="seasonsStore.isSeasonOwner(slotProps.data)"
+                  severity="success"
+                  value="Owner"
+                />
+                <Tag v-else severity="info" value="Collaborator" />
+              </template>
+            </Column>
             <Column header="Actions">
               <template #body="slotProps">
                 <Button
+                  v-if="seasonsStore.isSeasonOwner(slotProps.data)"
                   v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
                   aria-label="Edit"
                   icon="pi pi-pencil"
@@ -59,6 +70,7 @@
                   @click="seasonsStore.editSeason(slotProps.data)"
                 />
                 <Button
+                  v-if="seasonsStore.isSeasonOwner(slotProps.data)"
                   v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
                   aria-label="Delete"
                   icon="pi pi-trash"

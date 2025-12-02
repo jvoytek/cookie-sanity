@@ -29,8 +29,9 @@ ALTER TABLE ONLY "public"."seasons"
 ALTER TABLE "public"."seasons" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "Allow users to delete their own data" ON "public"."seasons" FOR DELETE TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "profile"));
-CREATE POLICY "Allow users to insert their own data" ON "public"."seasons" FOR INSERT TO "authenticated" WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "profile"));
-CREATE POLICY "Allow users to update their own data" ON "public"."seasons" FOR UPDATE TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "profile")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "profile"));
-CREATE POLICY "Allow users to view their own data" ON "public"."seasons" FOR SELECT TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "profile"));
-
+CREATE POLICY "Allow owners to manage their own seasons"
+ON "public"."seasons"
+FOR ALL
+TO authenticated
+USING ( profile = auth.uid() )
+WITH CHECK ( profile = auth.uid() );

@@ -42,7 +42,3 @@ ALTER TABLE ONLY "public"."cookies"
 ALTER TABLE "public"."cookies" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "Allow users to delete their own data" ON "public"."cookies" FOR DELETE TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "profile"));
-CREATE POLICY "Allow users to insert their own data" ON "public"."cookies" FOR INSERT TO "authenticated" WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "profile"));
-CREATE POLICY "Allow users to update their own data" ON "public"."cookies" FOR UPDATE TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "profile")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "profile"));
-CREATE POLICY "Allow users to view their own data" ON "public"."cookies" FOR SELECT TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "profile"));

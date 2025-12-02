@@ -176,7 +176,6 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
     return await supabaseClient
       .from('inventory_checks')
       .select('*')
-      .eq('profile', profileStore.currentProfile.id)
       .eq('season', seasonsStore.currentSeason.id)
       .order('check_date', { ascending: false });
   };

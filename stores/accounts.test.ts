@@ -96,11 +96,9 @@ describe('Accounts Store', () => {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              order: vi.fn(() => ({
-                data: mockData,
-                error: null,
-              })),
+            order: vi.fn(() => ({
+              data: mockData,
+              error: null,
             })),
           })),
         })),
