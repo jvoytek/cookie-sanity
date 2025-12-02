@@ -28,7 +28,7 @@ ALTER TABLE ONLY "public"."seasons"
 
 ALTER TABLE "public"."seasons" ENABLE ROW LEVEL SECURITY;
 
-
+-- INSERT policy only needs WITH CHECK clause; USING is not applicable for INSERT operations
 CREATE POLICY "Allow owners to insert their own seasons"
 ON "public"."seasons"
 FOR INSERT
