@@ -21,6 +21,7 @@ const useSupabaseClientMock = vi.fn(() => ({
         eq: vi.fn(() => ({
           order: vi.fn(() => Promise.resolve({ data: [], error: null })),
         })),
+        order: vi.fn(() => Promise.resolve({ data: [], error: null })),
       })),
       insert: vi.fn(() => ({
         select: vi.fn(() => ({
@@ -69,18 +70,6 @@ const useLayoutMock = vi.fn(() => ({
   layoutState: { staticMenuDesktopInactive: false },
 }));
 vi.stubGlobal('useLayout', useLayoutMock);
-
-const useRouteMock = vi.fn(() => ({
-  query: {},
-  params: {},
-}));
-vi.stubGlobal('useRoute', useRouteMock);
-
-const useRouterMock = vi.fn(() => ({
-  push: vi.fn(),
-  replace: vi.fn(),
-}));
-vi.stubGlobal('useRouter', useRouterMock);
 
 const usePaymentHelpersMock = vi.fn(() => ({
   form: { value: null },
@@ -187,12 +176,6 @@ const useGirlsStoreMock = vi.fn(() => ({
     { id: 1, name: 'Test Girl' },
     { id: 2, name: 'Test Girl 2' },
   ],
-  getGirlIdByName: vi.fn((name: string) => {
-    // Mock implementation that returns an ID for known names
-    if (name === 'Jane Doe') return 1;
-    if (name === 'John Smith') return 2;
-    return null;
-  }),
 }));
 
 vi.stubGlobal('useGirlsStore', useGirlsStoreMock);
@@ -222,7 +205,7 @@ const useCookiesStoreMock = vi.fn(() => ({
     }
     return null;
   }),
-  getPredictedCookiesFromExpectedSales: vi.fn(() => ({ ABC: 2, DEF: 8 })),
+  getPredictedCookiesFromExpectedSales: vi.fn(() => ({})),
 }));
 vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 
@@ -237,3 +220,8 @@ const useUploadsStoreMock = vi.fn(() => ({
   deleteUpload: vi.fn(),
 }));
 vi.stubGlobal('useUploadsStore', useUploadsStoreMock);
+
+const useRouteMock = vi.fn(() => ({
+  push: vi.fn(),
+}));
+vi.stubGlobal('useRoute', useRouteMock);

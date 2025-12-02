@@ -27,17 +27,6 @@ describe('stores/booths', () => {
     }));
     vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
 
-    /*const useCookiesStoreMock = vi.fn(() => ({
-      allCookies: [
-        { id: 1, abbreviation: 'TM', percent_of_sale: 40 },
-        { id: 2, abbreviation: 'SM', percent_of_sale: 30 },
-        { id: 3, abbreviation: 'TS', percent_of_sale: 30 },
-      ],
-      getPredictedCookiesFromExpectedSales:
-        useCookiesStore().getPredictedCookiesFromExpectedSales,
-    }));
-    vi.stubGlobal('useCookiesStore', useCookiesStoreMock);*/
-
     boothsStore = useBoothsStore();
   });
 
@@ -194,11 +183,9 @@ describe('stores/booths', () => {
         from: vi.fn(() => ({
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                order: vi.fn(() =>
-                  Promise.resolve({ data: mockBoothSalesReturn, error: null }),
-                ),
-              })),
+              order: vi.fn(() =>
+                Promise.resolve({ data: mockBoothSalesReturn, error: null }),
+              ),
             })),
           })),
         })),
@@ -256,14 +243,12 @@ describe('stores/booths', () => {
         from: vi.fn(() => ({
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                order: vi.fn(() =>
-                  Promise.resolve({
-                    data: null,
-                    error: { message: 'Fetch failed' },
-                  }),
-                ),
-              })),
+              order: vi.fn(() =>
+                Promise.resolve({
+                  data: null,
+                  error: { message: 'Fetch failed' },
+                }),
+              ),
             })),
           })),
         })),

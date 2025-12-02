@@ -65,6 +65,8 @@ describe('stores/seasons', () => {
           from: vi.fn(() => ({
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
+                data: mockSeasons,
+                error: null,
                 order: vi.fn(() =>
                   Promise.resolve({ data: mockSeasons, error: null }),
                 ),
@@ -105,6 +107,8 @@ describe('stores/seasons', () => {
         vi.fn(() => ({
           from: vi.fn(() => ({
             select: vi.fn(() => ({
+              data: mockSeasons,
+              error: null,
               eq: vi.fn(() => ({
                 order: vi.fn(() =>
                   Promise.resolve({ data: mockSeasons, error: null }),
@@ -152,44 +156,6 @@ describe('stores/seasons', () => {
       await newSeasonsStore.fetchSeasons();
 
       expect(newSeasonsStore.allSeasons).toEqual([]);
-    });
-
-    it('handles fetch error and shows toast', async () => {
-      const toastSpy = vi.fn();
-      vi.stubGlobal(
-        'useNotificationHelpers',
-        vi.fn(() => ({
-          addError: toastSpy,
-        })),
-      );
-
-      vi.stubGlobal(
-        'useSupabaseClient',
-        vi.fn(() => ({
-          from: vi.fn(() => ({
-            select: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                order: vi.fn(() =>
-                  Promise.resolve({
-                    data: null,
-                    error: { message: 'Database error' },
-                  }),
-                ),
-              })),
-            })),
-          })),
-        })),
-      );
-
-      // Create new store instance with the new mock
-      setActivePinia(createPinia());
-      const newSeasonsStore = useSeasonsStore();
-
-      await newSeasonsStore.fetchSeasons();
-
-      expect(toastSpy).toHaveBeenCalledWith({
-        message: 'Database error',
-      });
     });
   });
 

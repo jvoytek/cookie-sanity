@@ -107,6 +107,9 @@ describe('stores/girls', () => {
                   Promise.resolve({ data: mockGirls, error: null }),
                 ),
               })),
+              order: vi.fn(() =>
+                Promise.resolve({ data: mockGirls, error: null }),
+              ),
             })),
           })),
         })),
@@ -163,14 +166,12 @@ describe('stores/girls', () => {
         from: vi.fn(() => ({
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                order: vi.fn(() =>
-                  Promise.resolve({
-                    data: null,
-                    error: { message: 'Fetch failed' },
-                  }),
-                ),
-              })),
+              order: vi.fn(() =>
+                Promise.resolve({
+                  data: null,
+                  error: { message: 'Fetch failed' },
+                }),
+              ),
             })),
           })),
         })),

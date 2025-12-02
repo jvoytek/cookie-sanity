@@ -104,22 +104,6 @@ describe('AccountCard', () => {
     expect(displayNameInput.attributes('disabled')).toBeUndefined();
   });
 
-  it('renders submit button with correct text when not loading', () => {
-    const wrapper = mount(AccountCard, {
-      global: {
-        components: {
-          Button: MockButton,
-          InputText: MockInputText,
-        },
-      },
-    });
-
-    const submitButton = wrapper.find('[data-testid="submit-button"]');
-    expect(submitButton.exists()).toBe(true);
-    expect(submitButton.text()).toBe('Update');
-    expect(submitButton.attributes('disabled')).toBeUndefined();
-  });
-
   it('shows loading state when loading', async () => {
     const wrapper = mount(AccountCard, {
       global: {

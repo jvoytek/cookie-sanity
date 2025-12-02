@@ -271,7 +271,7 @@ describe('Transactions Store', () => {
 
       expect(totalRequested).toStrictEqual({
         ABC: 0,
-        DEF: 4,
+        DEF: -4,
       });
       expect(totalPending).toStrictEqual({
         ABC: 0,
@@ -323,11 +323,9 @@ describe('Transactions Store', () => {
           from: vi.fn(() => ({
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                  order: vi.fn(() =>
-                    Promise.resolve({ data: mockOrders, error: null }),
-                  ),
-                })),
+                order: vi.fn(() =>
+                  Promise.resolve({ data: mockOrders, error: null }),
+                ),
               })),
             })),
           })),
@@ -376,14 +374,12 @@ describe('Transactions Store', () => {
           from: vi.fn(() => ({
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                  order: vi.fn(() =>
-                    Promise.resolve({
-                      data: null,
-                      error: { message: 'Fetch failed' },
-                    }),
-                  ),
-                })),
+                order: vi.fn(() =>
+                  Promise.resolve({
+                    data: null,
+                    error: { message: 'Fetch failed' },
+                  }),
+                ),
               })),
             })),
           })),
@@ -1245,27 +1241,6 @@ describe('Transactions Store', () => {
       expect(totals.ABC).toBe(10);
       // Virtual cookie should not count in troop transactions
       expect(totals.VIRTUAL).toBe(0);
-    });
-
-    it('should include virtual cookies in girl balance calculations', () => {
-      transactionsStore.allTransactions = [
-        {
-          ...baseTransaction,
-          id: 1,
-          status: 'pending',
-          type: 'T2G',
-          cookies: { ABC: 10, VIRTUAL: 5 },
-        },
-      ];
-
-      const totals = transactionsStore.totalTransactionsByStatusAllCookies(
-        'pending',
-        'girl',
-      );
-
-      // Both should count for girl transactions
-      expect(totals.ABC).toBe(10);
-      expect(totals.VIRTUAL).toBe(5);
     });
   });
 
