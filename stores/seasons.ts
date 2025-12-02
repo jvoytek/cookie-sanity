@@ -68,9 +68,11 @@ export const useSeasonsStore = defineStore('seasons', () => {
   };
 
   const _supabaseInsertSeason = async (season: Season) => {
+    // Exclude id and created_at fields to let the database auto-generate them
+    const { id, created_at, ...seasonInsert } = season;
     return await supabaseClient
       .from('seasons')
-      .insert(season)
+      .insert(seasonInsert)
       .select()
       .single();
   };
@@ -170,6 +172,16 @@ export const useSeasonsStore = defineStore('seasons', () => {
     seasonDialogVisible.value = true;
   };
 
+  const createNewSeason = () => {
+    // Create a new season object without id (will be auto-generated)
+    const newSeason: Partial<Season> = {
+      troop_number: '',
+      year: new Date().getFullYear(),
+    };
+    setActiveSeason(newSeason as Season);
+    showDialog();
+  };
+
   const cancelEditSeason = () => {
     if (activeSeason.value?.id) {
       resetActiveSeason();
@@ -233,6 +245,7 @@ export const useSeasonsStore = defineStore('seasons', () => {
     resetActiveSeason,
     hideDialog,
     showDialog,
+    createNewSeason,
     cancelEditSeason,
     editSeason,
     confirmDeleteSeason,
