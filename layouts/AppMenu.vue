@@ -44,7 +44,7 @@
           to: '/accounts',
         },
         {
-          label: 'Settings',
+          label: 'Season Settings',
           icon: 'pi pi-fw pi-cog',
           items: [
             { label: 'Girls', icon: 'pi pi-fw pi-face-smile', to: '/girls' },
