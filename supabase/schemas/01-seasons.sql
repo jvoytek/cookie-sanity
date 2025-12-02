@@ -29,9 +29,8 @@ ALTER TABLE ONLY "public"."seasons"
 ALTER TABLE "public"."seasons" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "Allow owners to manage their own seasons"
+CREATE POLICY "Allow owners to insert their own seasons"
 ON "public"."seasons"
-FOR ALL
+FOR INSERT
 TO authenticated
-USING ( profile = auth.uid() )
 WITH CHECK ( profile = auth.uid() );

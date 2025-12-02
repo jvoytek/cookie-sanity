@@ -30,10 +30,23 @@ ALTER TABLE ONLY "public"."season_collaborators"
 ALTER TABLE "public"."season_collaborators" ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for season_collaborators
--- Allow season owners to manage collaborators
-CREATE POLICY "Season owners can manage collaborators"
+-- Allow season owners to insert collaborators
+CREATE POLICY "Season owners can insert collaborators"
 ON "public"."season_collaborators"
-FOR ALL
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM seasons 
+        WHERE seasons.id = season_collaborators.season_id 
+        AND seasons.profile = auth.uid()
+    )
+);
+
+-- Allow season owners to update collaborators
+CREATE POLICY "Season owners can update collaborators"
+ON "public"."season_collaborators"
+FOR UPDATE
 TO authenticated
 USING (
     EXISTS (
@@ -50,12 +63,32 @@ WITH CHECK (
     )
 );
 
--- Allow collaborators to view their own collaboration record
-CREATE POLICY "Collaborators can view their own record"
+-- Allow season owners to delete collaborators
+CREATE POLICY "Season owners can delete collaborators"
+ON "public"."season_collaborators"
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM seasons 
+        WHERE seasons.id = season_collaborators.season_id 
+        AND seasons.profile = auth.uid()
+    )
+);
+
+-- Allow season owners and collaborators to view collaborator records
+CREATE POLICY "Season owners/collaborators can view collaborators"
 ON "public"."season_collaborators"
 FOR SELECT
 TO authenticated
-USING (profile_id = auth.uid());
+USING (
+    profile_id = auth.uid() OR 
+    EXISTS (
+        SELECT 1 FROM seasons 
+        WHERE seasons.id = season_collaborators.season_id 
+        AND seasons.profile = auth.uid()
+    )
+);
 
 CREATE OR REPLACE FUNCTION public.is_season_collaborator(p_season_id bigint, p_profile_id uuid)
 RETURNS boolean
@@ -82,10 +115,6 @@ AS $$
 $$;
 
 ALTER FUNCTION "public"."is_season_collaborator" OWNER TO "postgres";
-
-CREATE POLICY "Allow owners/collaborators to view their own seasons" ON public.seasons FOR SELECT TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
-CREATE POLICY "Allow owners/collaborators to delete their own seasons" ON public.seasons FOR DELETE TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
-CREATE POLICY "Allow owners/collaborators to update their own seasons" ON public.seasons FOR UPDATE TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
 
 CREATE POLICY "Allow owners/collaborators to view their own cookies" ON public.cookies FOR SELECT TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 CREATE POLICY "Allow owners/collaborators to delete their own cookies" ON public.cookies FOR DELETE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
