@@ -396,6 +396,69 @@ describe('stores/profile', () => {
         message: 'Update failed',
       });
     });
+
+    it('includes display_name in update when it has a value', async () => {
+      const upsertSpy = vi.fn(() => Promise.resolve({ error: null }));
+
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            upsert: upsertSpy,
+          })),
+        })),
+      );
+
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
+
+      // Create new store instance with the mock
+      setActivePinia(createPinia());
+      const newProfileStore = useProfileStore();
+      newProfileStore.display_name = 'Test User';
+
+      await newProfileStore.updateProfile(true);
+
+      // display_name should be included when it has a value
+      expect(upsertSpy).toHaveBeenCalledWith({
+        id: 'test-user-id',
+        display_name: 'Test User',
+        season: -1,
+      });
+    });
+
+    it('excludes display_name from update when it is empty', async () => {
+      const upsertSpy = vi.fn(() => Promise.resolve({ error: null }));
+
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            upsert: upsertSpy,
+          })),
+        })),
+      );
+
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
+
+      // Create new store instance with the mock
+      setActivePinia(createPinia());
+      const newProfileStore = useProfileStore();
+      newProfileStore.display_name = ''; // Empty display name
+
+      await newProfileStore.updateProfile(true);
+
+      // display_name should NOT be included to avoid DB constraint violation
+      expect(upsertSpy).toHaveBeenCalledWith({
+        id: 'test-user-id',
+        season: -1,
+      });
+    });
   });
 
   describe('saveCurrentSeasonInProfile', () => {
@@ -430,9 +493,9 @@ describe('stores/profile', () => {
       await newProfileStore.saveCurrentSeasonInProfile();
 
       // Check that the upsert was called with the season id set
+      // display_name should not be included when empty to avoid DB constraint violation
       expect(upsertSpy).toHaveBeenCalledWith({
         id: 'test-user-id',
-        display_name: '',
         season: 2,
       });
     });
