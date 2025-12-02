@@ -310,7 +310,7 @@ describe('stores/seasons', () => {
       setActivePinia(createPinia());
       const newSeasonsStore = useSeasonsStore();
 
-      const newSeason = { troop_number: '12345', year: '2024-01-01' } as Season;
+      const newSeason = { troop_number: '12345', year: 2024 } as Season;
       await newSeasonsStore.insertSeason(newSeason);
 
       expect(newSeason.profile).toBe('test-user-id');
