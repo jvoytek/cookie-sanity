@@ -37,9 +37,9 @@ FOR INSERT
 TO authenticated
 WITH CHECK (
     EXISTS (
-        SELECT 1 FROM seasons 
-        WHERE seasons.id = season_collaborators.season_id 
-        AND seasons.profile = auth.uid()
+        SELECT 1 FROM public.seasons 
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = auth.uid()
     )
 );
 
@@ -50,16 +50,16 @@ FOR UPDATE
 TO authenticated
 USING (
     EXISTS (
-        SELECT 1 FROM seasons 
-        WHERE seasons.id = season_collaborators.season_id 
-        AND seasons.profile = auth.uid()
+        SELECT 1 FROM public.seasons 
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = auth.uid()
     )
 )
 WITH CHECK (
     EXISTS (
-        SELECT 1 FROM seasons 
-        WHERE seasons.id = season_collaborators.season_id 
-        AND seasons.profile = auth.uid()
+        SELECT 1 FROM public.seasons 
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = auth.uid()
     )
 );
 
@@ -70,9 +70,9 @@ FOR DELETE
 TO authenticated
 USING (
     EXISTS (
-        SELECT 1 FROM seasons 
-        WHERE seasons.id = season_collaborators.season_id 
-        AND seasons.profile = auth.uid()
+        SELECT 1 FROM public.seasons 
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = auth.uid()
     )
 );
 
@@ -84,9 +84,9 @@ TO authenticated
 USING (
     profile_id = auth.uid() OR 
     EXISTS (
-        SELECT 1 FROM seasons 
-        WHERE seasons.id = season_collaborators.season_id 
-        AND seasons.profile = auth.uid()
+        SELECT 1 FROM public.seasons 
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = auth.uid()
     )
 );
 
