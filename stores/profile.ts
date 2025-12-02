@@ -73,11 +73,19 @@ export const useProfileStore = defineStore('profile', () => {
   const updateProfile = async (silent: boolean = false) => {
     try {
       if (!user.value?.id) return;
-      const updates = {
+      const updates: {
+        id: string;
+        display_name?: string;
+        season: number;
+      } = {
         id: user.value.id,
-        display_name: display_name.value,
         season: currentSeasonId.value,
       };
+
+      // Only include display_name if it's not empty to avoid violating DB constraint
+      if (display_name.value) {
+        updates.display_name = display_name.value;
+      }
 
       const { error } = await supabaseClient.from('profiles').upsert(updates);
 
