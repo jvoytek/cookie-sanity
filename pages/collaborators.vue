@@ -93,9 +93,9 @@
         </p>
 
         <div v-if="!seasonsStore.isCurrentSeasonOwner()">
-          <Message severity="info"
-            >You are a collaborator on this season and cannot manage other
-            collaborators.</Message
+          <Message severity="secondary"
+            >You are a collaborator on this season and cannot add/remove other
+            collaborators. Contact the owner to manage collaborators.</Message
           >
         </div>
 

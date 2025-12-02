@@ -39,7 +39,6 @@ export const useSeasonsStore = defineStore('seasons', () => {
       `*, 
         season_collaborators!inner(profile_id)`,
     );
-    //.eq('season_collaborators.profile_id', profileStore.currentProfile.id);
 
     const [ownedResult, collaboratedResult] = await Promise.all([
       ownedSeasonsPromise,
