@@ -88,7 +88,7 @@
           <InputText
             id="request-password"
             v-model="girlRequestFormPassword"
-            type="text"
+            type="password"
             class="w-full"
             placeholder="Enter a password to protect the form"
           />

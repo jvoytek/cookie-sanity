@@ -117,13 +117,27 @@
   async function submitRequest() {
     if (!formNode.value) return;
 
+    if (!seasonId.value) {
+      notificationHelpers.addError({
+        message: 'Season ID is required',
+      } as Error);
+      return;
+    }
+
+    if (!season.value) {
+      notificationHelpers.addError({
+        message: 'Season data not loaded',
+      } as Error);
+      return;
+    }
+
     try {
       const requestData: NewOrder = {
         type: 'T2G',
         to: formData.value.to,
         status: 'requested',
         order_date: new Date().toISOString().split('T')[0],
-        season: seasonId.value!,
+        season: seasonId.value,
         profile: season.value.profile,
         cookies: formData.value.cookies,
         notes: formData.value.notes || 'Submitted via Girl Request Form',
