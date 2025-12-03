@@ -44,6 +44,11 @@
           to: '/accounts',
         },
         {
+          label: 'Bank Deposits',
+          icon: 'pi pi-fw pi-building-columns',
+          to: '/bank-deposits',
+        },
+        {
           label: 'Season Settings',
           icon: 'pi pi-fw pi-cog',
           items: [
