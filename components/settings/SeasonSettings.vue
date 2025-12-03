@@ -5,8 +5,7 @@
   const isDeleteConfirmed = ref(false);
 
   function openNewSeason() {
-    seasonsStore.setActiveSeason(null);
-    seasonsStore.showDialog();
+    seasonsStore.createNewSeason();
   }
 
   function deleteConfirmed() {
