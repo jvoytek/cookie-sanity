@@ -102,7 +102,7 @@
             </p>
           </template>
           <p class="text-xl">
-            {{ girlAccount.estimatedSales }}
+            {{ girlAccount.estimatedSales.toLocaleString() }}
           </p>
         </Fieldset>
       </div>
@@ -163,7 +163,7 @@
         icon="pi pi-times"
         severity="secondary"
         class="ml-2"
-        @click="$router.back()"
+        @click="window.close()"
       />
     </div>
   </div>
