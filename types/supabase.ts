@@ -159,6 +159,7 @@ export type Database = {
           amount: number;
           created_at: string;
           deposit_date: string;
+          deposited_by: string | null;
           id: number;
           notes: string | null;
           profile: string | null;
@@ -168,6 +169,7 @@ export type Database = {
           amount: number;
           created_at?: string;
           deposit_date: string;
+          deposited_by?: string | null;
           id?: number;
           notes?: string | null;
           profile?: string | null;
@@ -177,6 +179,7 @@ export type Database = {
           amount?: number;
           created_at?: string;
           deposit_date?: string;
+          deposited_by?: string | null;
           id?: number;
           notes?: string | null;
           profile?: string | null;

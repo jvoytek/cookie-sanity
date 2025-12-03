@@ -127,6 +127,17 @@
         locale: 'en-US',
       },
       {
+        $formkit: 'primeInputText',
+        name: 'deposited_by',
+        label: 'Deposited By',
+        key: 'deposited_by',
+        placeholder: 'Name of person who made the deposit',
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
+        class: 'w-full',
+      },
+      {
         $formkit: 'primeTextarea',
         name: 'notes',
         label: 'Notes (optional)',
@@ -283,6 +294,11 @@
           <Column field="amount" header="Amount" sortable>
             <template #body="slotProps">
               {{ formatCurrency(slotProps.data.amount) }}
+            </template>
+          </Column>
+          <Column field="deposited_by" header="Deposited By" sortable>
+            <template #body="slotProps">
+              {{ slotProps.data.deposited_by || '-' }}
             </template>
           </Column>
           <Column field="notes" header="Notes">

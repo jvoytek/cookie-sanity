@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS "public"."deposits" (
     "season" bigint DEFAULT '1'::bigint NOT NULL,
     "amount" decimal(10,2) not null,
     "deposit_date" date not null,
+    "deposited_by" text,
     "notes" text,
     constraint "deposits_pkey" primary key ("id"),
     constraint "deposits_profile_fkey" foreign key ("profile") references "public"."profiles"("id") on delete cascade,
