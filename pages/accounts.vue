@@ -67,6 +67,13 @@
     }
     useRouter().replace({ query });
   }
+
+  function openPrintReport() {
+    if (selectedAccount.value !== null) {
+      const printUrl = `/account-print?account=${selectedAccount.value}`;
+      window.open(printUrl, '_blank');
+    }
+  }
 </script>
 
 <template>
@@ -93,6 +100,14 @@
               severity="secondary"
               class="mr-2"
               @click="openImport"
+            />
+            <Button
+              v-if="isGirlView"
+              label="Print"
+              icon="pi pi-print"
+              severity="secondary"
+              class="mr-2"
+              @click="openPrintReport"
             />
             <Select
               v-model="selectedAccount"
