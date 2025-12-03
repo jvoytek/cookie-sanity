@@ -24,7 +24,7 @@ ALTER TABLE ONLY "public"."seasons"
 
 
 ALTER TABLE ONLY "public"."seasons"
-    ADD CONSTRAINT "seasons_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id");
+    ADD CONSTRAINT "seasons_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id") on delete cascade;
 
 ALTER TABLE "public"."seasons" ENABLE ROW LEVEL SECURITY;
 
@@ -33,7 +33,7 @@ CREATE POLICY "Allow owners to insert their own seasons"
 ON "public"."seasons"
 FOR INSERT
 TO authenticated
-WITH CHECK ( profile = auth.uid() );
-
+USING ( profile = (SELECT auth.uid()) )
+WITH CHECK ( profile = (SELECT auth.uid()) );
 -- Note: SELECT, UPDATE, and DELETE policies for seasons are defined in 04-season-collaborators.sql
 -- after the is_season_owner() and is_season_collaborator() functions are created
