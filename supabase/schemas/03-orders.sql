@@ -37,15 +37,16 @@ ALTER TABLE ONLY "public"."orders"
 
 
 ALTER TABLE ONLY "public"."orders"
-    ADD CONSTRAINT "orders_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id");
+    ADD CONSTRAINT "orders_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id") on delete cascade;
 
 
 ALTER TABLE ONLY "public"."orders"
-    ADD CONSTRAINT "orders_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id");
-
+    ADD CONSTRAINT "orders_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id") on delete cascade;
 
 ALTER TABLE ONLY "public"."orders"
-    ADD CONSTRAINT "orders_to_fkey" FOREIGN KEY ("to") REFERENCES "public"."sellers"("id");
+    ADD CONSTRAINT "orders_to_fkey" FOREIGN KEY ("to") REFERENCES "public"."sellers"("id") on delete cascade;
 
+ALTER TABLE ONLY "public"."orders"
+    ADD CONSTRAINT "orders_from_fkey" FOREIGN KEY ("from") REFERENCES "public"."sellers"("id") on delete cascade;
 
 ALTER TABLE "public"."orders" ENABLE ROW LEVEL SECURITY;

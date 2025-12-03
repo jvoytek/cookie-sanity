@@ -24,7 +24,7 @@ ALTER TABLE ONLY "public"."seasons"
 
 
 ALTER TABLE ONLY "public"."seasons"
-    ADD CONSTRAINT "seasons_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id");
+    ADD CONSTRAINT "seasons_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id") on delete cascade;
 
 ALTER TABLE "public"."seasons" ENABLE ROW LEVEL SECURITY;
 
@@ -33,5 +33,5 @@ CREATE POLICY "Allow owners to manage their own seasons"
 ON "public"."seasons"
 FOR ALL
 TO authenticated
-USING ( profile = auth.uid() )
-WITH CHECK ( profile = auth.uid() );
+USING ( profile = (SELECT auth.uid()) )
+WITH CHECK ( profile = (SELECT auth.uid()) );
