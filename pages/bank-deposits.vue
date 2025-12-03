@@ -1,68 +1,69 @@
 <script setup lang="ts">
   import type { Deposit } from '@/types/types';
-  
+
   const depositsStore = useDepositsStore();
   const accountsStore = useAccountsStore();
   const transactionsStore = useTransactionsStore();
   const cookiesStore = useCookiesStore();
   const notificationHelpers = useNotificationHelpers();
-  
+
   const dt = ref();
   const deleteDepositDialog = ref(false);
-  
+
   // Calculate total cash/checks collected (excluding Digital Cookie payments)
   const totalCashChecks = computed(() => {
     return accountsStore.allPayments
-      .filter(p => p.type !== 'digital_cookie')
+      .filter((p) => p.type !== 'digital_cookie')
       .reduce((sum, payment) => sum + payment.amount, 0);
   });
-  
+
   // Calculate difference between cash/checks and total deposits
   const depositDifference = computed(() => {
     return totalCashChecks.value - depositsStore.totalDeposits;
   });
-  
+
   // Calculate remaining unpaid inventory
   // Total value of C2T and T2T transactions minus non-Digital Cookie payments minus deposits
   const remainingUnpaidInventory = computed(() => {
     // Get all C2T and T2T transactions
     const restockTransactions = transactionsStore.allTransactions.filter(
-      t => (t.type === 'C2T' || t.type === 'T2T') && 
-           (t.status === 'complete' || t.status === 'recorded')
+      (t) =>
+        (t.type === 'C2T' || t.type === 'T2T') &&
+        (t.status === 'complete' || t.status === 'recorded'),
     );
-    
+
     // Calculate total value of these transactions
     let totalRestockValue = 0;
-    restockTransactions.forEach(transaction => {
+    restockTransactions.forEach((transaction) => {
       if (transaction.cookies) {
         const cookies = transaction.cookies as Record<string, number>;
-        cookiesStore.allCookies.forEach(cookie => {
+        cookiesStore.allCookies.forEach((cookie) => {
           const quantity = cookies[cookie.abbreviation] || 0;
           const price = parseFloat(cookie.price || '0');
           totalRestockValue += quantity * price;
         });
       }
     });
-    
+
     // Get payments not from Digital Cookie
     const nonDigitalPayments = accountsStore.allPayments
-      .filter(p => p.type !== 'digital_cookie')
+      .filter((p) => p.type !== 'digital_cookie')
       .reduce((sum, payment) => sum + payment.amount, 0);
-    
+
     // Return: total restock value - non-digital payments - deposits
     return totalRestockValue - nonDigitalPayments - depositsStore.totalDeposits;
   });
-  
+
   function openNew() {
     depositsStore.depositDialogFormSchema.value = getDepositDialogFormSchema();
     depositsStore.setActiveDeposit(null);
     depositsStore.depositDialogVisible = true;
   }
-  
+
   function hideDialog() {
     depositsStore.depositDialogVisible = false;
   }
-  
+
   async function saveDeposit() {
     if (depositsStore.activeDeposit?.id) {
       await depositsStore.upsertDeposit(depositsStore.activeDeposit);
@@ -72,18 +73,18 @@
     depositsStore.depositDialogVisible = false;
     depositsStore.setActiveDeposit(null);
   }
-  
+
   function editDeposit(deposit: Deposit) {
     depositsStore.depositDialogFormSchema.value = getDepositDialogFormSchema();
     depositsStore.setActiveDeposit(deposit);
     depositsStore.depositDialogVisible = true;
   }
-  
+
   function confirmDeleteDeposit(deposit: Deposit) {
     depositsStore.setActiveDeposit(deposit);
     deleteDepositDialog.value = true;
   }
-  
+
   async function deleteDeposit() {
     try {
       await depositsStore.deleteDeposit(depositsStore.activeDeposit);
@@ -93,7 +94,7 @@
       notificationHelpers.addError(error as Error);
     }
   }
-  
+
   const getDepositDialogFormSchema = () => {
     return [
       {
@@ -135,7 +136,7 @@
       },
     ];
   };
-  
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -149,7 +150,9 @@
     <div class="col-span-12">
       <div class="card">
         <h5>Bank Deposits</h5>
-        <p>Track bank deposits of cash and checks collected from cookie sales.</p>
+        <p>
+          Track bank deposits of cash and checks collected from cookie sales.
+        </p>
 
         <Toolbar class="mb-6">
           <template #start>
@@ -168,10 +171,17 @@
           <div class="card bg-blue-50 dark:bg-blue-900/20">
             <div class="flex justify-between items-start">
               <div>
-                <span class="block text-500 font-medium mb-2">Total Cash/Checks Collected</span>
-                <div class="text-900 font-medium text-xl">{{ formatCurrency(totalCashChecks) }}</div>
+                <span class="block text-500 font-medium mb-2"
+                  >Total Cash/Checks Collected</span
+                >
+                <div class="text-900 font-medium text-xl">
+                  {{ formatCurrency(totalCashChecks) }}
+                </div>
               </div>
-              <div class="flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 rounded" style="width: 2.5rem; height: 2.5rem">
+              <div
+                class="flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 rounded"
+                style="width: 2.5rem; height: 2.5rem"
+              >
                 <i class="pi pi-wallet text-blue-500 text-xl" />
               </div>
             </div>
@@ -180,26 +190,56 @@
           <div class="card bg-green-50 dark:bg-green-900/20">
             <div class="flex justify-between items-start">
               <div>
-                <span class="block text-500 font-medium mb-2">Total Deposits</span>
-                <div class="text-900 font-medium text-xl">{{ formatCurrency(depositsStore.totalDeposits) }}</div>
+                <span class="block text-500 font-medium mb-2"
+                  >Total Deposits</span
+                >
+                <div class="text-900 font-medium text-xl">
+                  {{ formatCurrency(depositsStore.totalDeposits) }}
+                </div>
               </div>
-              <div class="flex items-center justify-center bg-green-100 dark:bg-green-900/40 rounded" style="width: 2.5rem; height: 2.5rem">
+              <div
+                class="flex items-center justify-center bg-green-100 dark:bg-green-900/40 rounded"
+                style="width: 2.5rem; height: 2.5rem"
+              >
                 <i class="pi pi-check-circle text-green-500 text-xl" />
               </div>
             </div>
           </div>
 
-          <div class="card" :class="depositDifference >= 0 ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-red-50 dark:bg-red-900/20'">
+          <div
+            class="card"
+            :class="
+              depositDifference >= 0
+                ? 'bg-yellow-50 dark:bg-yellow-900/20'
+                : 'bg-red-50 dark:bg-red-900/20'
+            "
+          >
             <div class="flex justify-between items-start">
               <div>
-                <span class="block text-500 font-medium mb-2">Difference (Undeposited)</span>
-                <div class="text-900 font-medium text-xl">{{ formatCurrency(depositDifference) }}</div>
+                <span class="block text-500 font-medium mb-2"
+                  >Difference (Undeposited)</span
+                >
+                <div class="text-900 font-medium text-xl">
+                  {{ formatCurrency(depositDifference) }}
+                </div>
               </div>
-              <div class="flex items-center justify-center rounded" 
-                   :class="depositDifference >= 0 ? 'bg-yellow-100 dark:bg-yellow-900/40' : 'bg-red-100 dark:bg-red-900/40'"
-                   style="width: 2.5rem; height: 2.5rem">
-                <i class="pi text-xl" 
-                   :class="depositDifference >= 0 ? 'pi-exclamation-triangle text-yellow-500' : 'pi-times-circle text-red-500'" />
+              <div
+                class="flex items-center justify-center rounded"
+                :class="
+                  depositDifference >= 0
+                    ? 'bg-yellow-100 dark:bg-yellow-900/40'
+                    : 'bg-red-100 dark:bg-red-900/40'
+                "
+                style="width: 2.5rem; height: 2.5rem"
+              >
+                <i
+                  class="pi text-xl"
+                  :class="
+                    depositDifference >= 0
+                      ? 'pi-exclamation-triangle text-yellow-500'
+                      : 'pi-times-circle text-red-500'
+                  "
+                />
               </div>
             </div>
           </div>
@@ -207,10 +247,17 @@
           <div class="card bg-purple-50 dark:bg-purple-900/20">
             <div class="flex justify-between items-start">
               <div>
-                <span class="block text-500 font-medium mb-2">Remaining Unpaid Inventory</span>
-                <div class="text-900 font-medium text-xl">{{ formatCurrency(remainingUnpaidInventory) }}</div>
+                <span class="block text-500 font-medium mb-2"
+                  >Remaining Unpaid Inventory</span
+                >
+                <div class="text-900 font-medium text-xl">
+                  {{ formatCurrency(remainingUnpaidInventory) }}
+                </div>
               </div>
-              <div class="flex items-center justify-center bg-purple-100 dark:bg-purple-900/40 rounded" style="width: 2.5rem; height: 2.5rem">
+              <div
+                class="flex items-center justify-center bg-purple-100 dark:bg-purple-900/40 rounded"
+                style="width: 2.5rem; height: 2.5rem"
+              >
                 <i class="pi pi-box text-purple-500 text-xl" />
               </div>
             </div>
@@ -227,7 +274,10 @@
         >
           <Column field="deposit_date" header="Date" sortable>
             <template #body="slotProps">
-              <NuxtTime :datetime="slotProps.data.deposit_date" time-zone="UTC" />
+              <NuxtTime
+                :datetime="slotProps.data.deposit_date"
+                time-zone="UTC"
+              />
             </template>
           </Column>
           <Column field="amount" header="Amount" sortable>
@@ -281,7 +331,9 @@
               :actions="false"
               @submit="saveDeposit"
             >
-              <FormKitSchema :schema="depositsStore.depositDialogFormSchema.value" />
+              <FormKitSchema
+                :schema="depositsStore.depositDialogFormSchema.value"
+              />
             </FormKit>
           </div>
 
@@ -292,11 +344,7 @@
               outlined
               @click="hideDialog"
             />
-            <Button
-              label="Save"
-              icon="pi pi-check"
-              @click="saveDeposit"
-            />
+            <Button label="Save" icon="pi pi-check" @click="saveDeposit" />
           </template>
         </Dialog>
 
@@ -313,7 +361,10 @@
               Are you sure you want to delete the deposit of
               <b>{{ formatCurrency(depositsStore.activeDeposit.amount) }}</b>
               on
-              <b><NuxtTime :datetime="depositsStore.activeDeposit.deposit_date" /></b>?
+              <b
+                ><NuxtTime
+                  :datetime="depositsStore.activeDeposit.deposit_date" /></b
+              >?
             </span>
           </div>
           <template #footer>

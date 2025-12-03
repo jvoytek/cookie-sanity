@@ -23,7 +23,9 @@ export const useDepositsStore = defineStore('deposits', () => {
   /* Private Functions */
 
   const _updateDeposit = (deposit: Deposit) => {
-    const index = allDeposits.value.findIndex((d: Deposit) => d.id === deposit.id);
+    const index = allDeposits.value.findIndex(
+      (d: Deposit) => d.id === deposit.id,
+    );
     if (index !== -1) {
       allDeposits.value[index] = deposit;
     }
@@ -32,7 +34,7 @@ export const useDepositsStore = defineStore('deposits', () => {
   const _sortDeposits = () => {
     allDeposits.value.sort(
       (a: Deposit, b: Deposit) =>
-        new Date(b.deposit_date).getTime() - new Date(a.deposit_date).getTime()
+        new Date(b.deposit_date).getTime() - new Date(a.deposit_date).getTime(),
     );
   };
 
@@ -41,7 +43,9 @@ export const useDepositsStore = defineStore('deposits', () => {
   };
 
   const _removeDeposit = (deposit: Deposit) => {
-    const index = allDeposits.value.findIndex((d: Deposit) => d.id === deposit.id);
+    const index = allDeposits.value.findIndex(
+      (d: Deposit) => d.id === deposit.id,
+    );
     if (index !== -1) {
       allDeposits.value.splice(index, 1);
     }
@@ -72,10 +76,7 @@ export const useDepositsStore = defineStore('deposits', () => {
   };
 
   const _supabaseDeleteDeposit = async (deposit: Deposit) => {
-    return await supabaseClient
-      .from('deposits')
-      .delete()
-      .eq('id', deposit.id);
+    return await supabaseClient.from('deposits').delete().eq('id', deposit.id);
   };
 
   const _transformDataForDeposit = (deposit: Deposit) => {
