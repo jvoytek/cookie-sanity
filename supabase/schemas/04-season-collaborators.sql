@@ -116,6 +116,10 @@ $$;
 
 ALTER FUNCTION "public"."is_season_collaborator" OWNER TO "postgres";
 
+CREATE POLICY "Allow owners/collaborators to view their own seasons" ON public.seasons FOR SELECT TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
+CREATE POLICY "Allow owners/collaborators to delete their own seasons" ON public.seasons FOR DELETE TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
+CREATE POLICY "Allow owners/collaborators to update their own seasons" ON public.seasons FOR UPDATE TO authenticated USING ( public.is_season_owner(id, auth.uid()) OR public.is_season_collaborator(id, auth.uid()) );
+
 CREATE POLICY "Allow owners/collaborators to view their own cookies" ON public.cookies FOR SELECT TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 CREATE POLICY "Allow owners/collaborators to delete their own cookies" ON public.cookies FOR DELETE TO authenticated USING ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
 CREATE POLICY "Allow owners/collaborators to insert their own cookies" ON public.cookies FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, auth.uid()) OR public.is_season_collaborator(season, auth.uid()) );
