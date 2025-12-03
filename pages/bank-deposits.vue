@@ -39,7 +39,7 @@
         const cookies = transaction.cookies as Record<string, number>;
         cookiesStore.allCookies.forEach((cookie) => {
           const quantity = cookies[cookie.abbreviation] || 0;
-          const price = parseFloat(cookie.price || '0');
+          const price = cookie.price || 0;
           totalRestockValue += quantity * price;
         });
       }

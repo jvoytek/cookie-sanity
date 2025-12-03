@@ -104,7 +104,7 @@ export const useDepositsStore = defineStore('deposits', () => {
       const { data, error } = await _supabaseSelectDeposits();
       if (error) throw error;
 
-      //convert deposit_date string to mm/dd/yyyy format
+      // Convert deposit_date string to mm/dd/yyyy format
       allDeposits.value = data.map(_transformDataForDeposit);
     } catch (error) {
       notificationHelpers.addError(error as Error);
