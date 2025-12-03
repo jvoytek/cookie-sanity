@@ -51,7 +51,6 @@
           <tr>
             <td
               rowspan="2"
-              nowrap
               :style="{
                 'border-left': '2px solid #333',
               }"
