@@ -24,7 +24,7 @@ ALTER TABLE ONLY "public"."seasons"
 
 
 ALTER TABLE ONLY "public"."seasons"
-    ADD CONSTRAINT "seasons_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id");
+    ADD CONSTRAINT "seasons_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id") on delete cascade;
 
 ALTER TABLE "public"."seasons" ENABLE ROW LEVEL SECURITY;
 

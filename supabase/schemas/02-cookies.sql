@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS "public"."cookies" (
     "season" bigint DEFAULT '1'::bigint NOT NULL,
     "percent_of_sale" double precision,
     "is_virtual" boolean DEFAULT false,
-    "overbooking_allowed" boolean DEFAULT true
+    "overbooking_allowed" boolean DEFAULT true,
 );
 
 
@@ -32,11 +32,11 @@ ALTER TABLE ONLY "public"."cookies"
 
 
 ALTER TABLE ONLY "public"."cookies"
-    ADD CONSTRAINT "cookies_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id");
+    ADD CONSTRAINT "cookies_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id") on delete cascade;
 
 
 ALTER TABLE ONLY "public"."cookies"
-    ADD CONSTRAINT "cookies_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id");
+    ADD CONSTRAINT "cookies_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id") on delete cascade;
 
 
 ALTER TABLE "public"."cookies" ENABLE ROW LEVEL SECURITY;
