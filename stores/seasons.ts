@@ -70,11 +70,7 @@ export const useSeasonsStore = defineStore('seasons', () => {
   const _supabaseInsertSeason = async (season: Season) => {
     // Exclude id and created_at fields to let the database auto-generate them
     const { id, created_at, ...seasonInsert } = season;
-    return await supabaseClient
-      .from('seasons')
-      .insert(seasonInsert)
-      .select()
-      .single();
+    return await supabaseClient.from('seasons').insert(seasonInsert);
   };
 
   const _updateSeason = (season: Season) => {

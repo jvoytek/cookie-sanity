@@ -30,32 +30,65 @@ ALTER TABLE ONLY "public"."season_collaborators"
 ALTER TABLE "public"."season_collaborators" ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for season_collaborators
--- Allow season owners to manage collaborators
-CREATE POLICY "Season owners can manage collaborators"
+-- Allow season owners to insert collaborators
+CREATE POLICY "Season owners can insert collaborators"
 ON "public"."season_collaborators"
-FOR ALL
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.seasons 
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = auth.uid()
+    )
+);
+
+-- Allow season owners to update collaborators
+CREATE POLICY "Season owners can update collaborators"
+ON "public"."season_collaborators"
+FOR UPDATE
 TO authenticated
 USING (
     EXISTS (
         SELECT 1 FROM seasons 
-        WHERE seasons.id = season_collaborators.season_id 
-        AND seasons.profile = (SELECT auth.uid())
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = (SELECT auth.uid())
     )
 )
 WITH CHECK (
     EXISTS (
         SELECT 1 FROM seasons 
-        WHERE seasons.id = season_collaborators.season_id 
-        AND seasons.profile = (SELECT auth.uid())
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = (SELECT auth.uid())
     )
 );
 
--- Allow collaborators to view their own collaboration record
-CREATE POLICY "Collaborators can view their own record"
+-- Allow season owners to delete collaborators
+CREATE POLICY "Season owners can delete collaborators"
+ON "public"."season_collaborators"
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.seasons 
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = auth.uid()
+    )
+);
+
+-- Allow season owners and collaborators to view collaborator records
+CREATE POLICY "Season owners/collaborators can view collaborators"
 ON "public"."season_collaborators"
 FOR SELECT
 TO authenticated
-USING (profile_id = (SELECT auth.uid()));
+USING (
+    profile_id = (SELECT auth.uid()) OR 
+    EXISTS (
+        SELECT 1 FROM public.seasons 
+        WHERE public.seasons.id = season_collaborators.season_id 
+        AND public.seasons.profile = (SELECT auth.uid())
+    )
+);
 
 CREATE OR REPLACE FUNCTION public.is_season_collaborator(p_season_id bigint, p_profile_id uuid)
 RETURNS boolean

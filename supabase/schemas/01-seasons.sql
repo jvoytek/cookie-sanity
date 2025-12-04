@@ -28,10 +28,11 @@ ALTER TABLE ONLY "public"."seasons"
 
 ALTER TABLE "public"."seasons" ENABLE ROW LEVEL SECURITY;
 
-
-CREATE POLICY "Allow owners to manage their own seasons"
+-- INSERT policy only needs WITH CHECK clause; USING is not applicable for INSERT operations
+CREATE POLICY "Allow owners to insert their own seasons"
 ON "public"."seasons"
-FOR ALL
+FOR INSERT
 TO authenticated
-USING ( profile = (SELECT auth.uid()) )
-WITH CHECK ( profile = (SELECT auth.uid()) );
+WITH CHECK ( profile = auth.uid() );
+-- Note: SELECT, UPDATE, and DELETE policies for seasons are defined in 04-season-collaborators.sql
+-- after the is_season_owner() and is_season_collaborator() functions are created
