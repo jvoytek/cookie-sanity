@@ -27,11 +27,11 @@ ALTER TABLE ONLY "public"."sellers"
 
 
 ALTER TABLE ONLY "public"."sellers"
-    ADD CONSTRAINT "sellers_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id");
+    ADD CONSTRAINT "sellers_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id") on delete cascade;
 
 
 ALTER TABLE ONLY "public"."sellers"
-    ADD CONSTRAINT "sellers_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id");
+    ADD CONSTRAINT "sellers_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id") on delete cascade;
 
 
 ALTER TABLE "public"."sellers" ENABLE ROW LEVEL SECURITY;

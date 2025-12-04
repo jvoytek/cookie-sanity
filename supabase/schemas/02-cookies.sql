@@ -32,11 +32,11 @@ ALTER TABLE ONLY "public"."cookies"
 
 
 ALTER TABLE ONLY "public"."cookies"
-    ADD CONSTRAINT "cookies_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id");
+    ADD CONSTRAINT "cookies_profile_fkey" FOREIGN KEY ("profile") REFERENCES "public"."profiles"("id") on delete cascade;
 
 
 ALTER TABLE ONLY "public"."cookies"
-    ADD CONSTRAINT "cookies_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id");
+    ADD CONSTRAINT "cookies_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id") on delete cascade;
 
 
 ALTER TABLE "public"."cookies" ENABLE ROW LEVEL SECURITY;

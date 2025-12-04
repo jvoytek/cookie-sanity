@@ -68,11 +68,9 @@ export const useSeasonsStore = defineStore('seasons', () => {
   };
 
   const _supabaseInsertSeason = async (season: Season) => {
-    return await supabaseClient
-      .from('seasons')
-      .insert(season)
-      .select()
-      .single();
+    // Exclude id and created_at fields to let the database auto-generate them
+    const { id, created_at, ...seasonInsert } = season;
+    return await supabaseClient.from('seasons').insert(seasonInsert);
   };
 
   const _updateSeason = (season: Season) => {
@@ -170,6 +168,21 @@ export const useSeasonsStore = defineStore('seasons', () => {
     seasonDialogVisible.value = true;
   };
 
+  const createNewSeason = () => {
+    // Create a new season object for form binding
+    // TypeScript cast is safe here because:
+    // 1. FormKit will update this object with user input (troop_number, year)
+    // 2. insertSeason will add the profile field
+    // 3. _supabaseInsertSeason will exclude id and created_at before database insert
+    const newSeason = {
+      troop_number: '',
+      year: new Date().getFullYear(),
+    } as Season;
+    activeSeason.value = newSeason;
+    activeSeasonOriginal.value = null; // No original for new seasons
+    showDialog();
+  };
+
   const cancelEditSeason = () => {
     if (activeSeason.value?.id) {
       resetActiveSeason();
@@ -233,6 +246,7 @@ export const useSeasonsStore = defineStore('seasons', () => {
     resetActiveSeason,
     hideDialog,
     showDialog,
+    createNewSeason,
     cancelEditSeason,
     editSeason,
     confirmDeleteSeason,

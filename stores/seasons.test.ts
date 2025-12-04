@@ -310,11 +310,63 @@ describe('stores/seasons', () => {
       setActivePinia(createPinia());
       const newSeasonsStore = useSeasonsStore();
 
-      const newSeason = { troop_number: '12345', year: '2024-01-01' } as Season;
+      const newSeason = { troop_number: '12345', year: 2024 } as Season;
       await newSeasonsStore.insertSeason(newSeason);
 
       expect(newSeason.profile).toBe('test-user-id');
       expect(toastSpy).toHaveBeenCalledWith('Season Created');
+    });
+
+    it('excludes id and created_at fields when inserting season', async () => {
+      const insertSpy = vi.fn(() => ({
+        select: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve({ data: {}, error: null })),
+        })),
+      }));
+
+      vi.stubGlobal(
+        'useSupabaseClient',
+        vi.fn(() => ({
+          from: vi.fn(() => ({
+            insert: insertSpy,
+          })),
+        })),
+      );
+
+      vi.stubGlobal(
+        'useSupabaseUser',
+        vi.fn(() => ({ value: { id: 'test-user-id' } })),
+      );
+
+      vi.stubGlobal(
+        'useNotificationHelpers',
+        vi.fn(() => ({
+          addSuccess: vi.fn(),
+          addError: vi.fn(),
+        })),
+      );
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newSeasonsStore = useSeasonsStore();
+
+      const newSeason = {
+        id: 999,
+        created_at: '2024-01-01T00:00:00Z',
+        troop_number: '12345',
+        year: 2024,
+      } as Season;
+
+      await newSeasonsStore.insertSeason(newSeason);
+
+      // Verify that insert was called with an object that does NOT include id or created_at
+      expect(insertSpy).toHaveBeenCalled();
+      const insertedData = insertSpy.mock.calls[0][0];
+      expect(insertedData).not.toHaveProperty('id');
+      expect(insertedData).not.toHaveProperty('created_at');
+      expect(insertedData).toHaveProperty('troop_number', '12345');
+      expect(insertedData).toHaveProperty('year', 2024);
+      expect(insertedData).toHaveProperty('profile', 'test-user-id');
     });
 
     it('handles insert error and shows error toast', async () => {
@@ -348,7 +400,7 @@ describe('stores/seasons', () => {
       setActivePinia(createPinia());
       const newSeasonsStore = useSeasonsStore();
 
-      const newSeason = { troop_number: '12345', year: '2024-01-01' } as Season;
+      const newSeason = { troop_number: '12345', year: 2024 } as Season;
       await newSeasonsStore.insertSeason(newSeason);
 
       expect(toastSpy).toHaveBeenCalledWith({
@@ -427,6 +479,21 @@ describe('stores/seasons', () => {
       expect(toastSpy).toHaveBeenCalledWith({
         message: 'Upsert failed',
       });
+    });
+  });
+
+  describe('createNewSeason', () => {
+    it('initializes activeSeason with default values and opens dialog', () => {
+      setActivePinia(createPinia());
+      const newSeasonsStore = useSeasonsStore();
+
+      newSeasonsStore.createNewSeason();
+
+      expect(newSeasonsStore.activeSeason).toBeDefined();
+      expect(newSeasonsStore.activeSeason).not.toHaveProperty('id');
+      expect(newSeasonsStore.activeSeason?.troop_number).toBe('');
+      expect(newSeasonsStore.activeSeason?.year).toBe(new Date().getFullYear());
+      expect(newSeasonsStore.seasonDialogVisible).toBe(true);
     });
   });
 });
