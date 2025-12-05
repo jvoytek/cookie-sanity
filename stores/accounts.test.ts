@@ -197,4 +197,68 @@ describe('Accounts Store', () => {
     await store.deletePayment(paymentToDelete);
     expect(store.allPayments).not.toContainEqual(paymentToDelete);
   });
+
+  it('should insert multiple payments in batch', async () => {
+    const newPayments = [
+      { amount: 50, seller_id: 1 },
+      { amount: 100, seller_id: 2 },
+      { amount: 75, seller_id: 3 },
+    ];
+
+    const mockReturnedData = [
+      { ...newPayments[0], id: 1 },
+      { ...newPayments[1], id: 2 },
+      { ...newPayments[2], id: 3 },
+    ];
+
+    const useSupabaseClientMock = vi.fn(() => ({
+      from: vi.fn(() => ({
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            data: mockReturnedData,
+            error: null,
+          })),
+        })),
+      })),
+    }));
+    vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+    const store = useAccountsStore();
+    await store.insertBatchPayments(newPayments);
+    expect(store.allPayments.length).toBe(3);
+    expect(store.allPayments).toContainEqual(
+      expect.objectContaining({ id: 1, amount: 50 }),
+    );
+    expect(store.allPayments).toContainEqual(
+      expect.objectContaining({ id: 2, amount: 100 }),
+    );
+    expect(store.allPayments).toContainEqual(
+      expect.objectContaining({ id: 3, amount: 75 }),
+    );
+  });
+
+  it('should handle errors when batch inserting payments', async () => {
+    const newPayments = [
+      { amount: 50, seller_id: 1 },
+      { amount: 100, seller_id: 2 },
+    ];
+
+    const useSupabaseClientMock = vi.fn(() => ({
+      from: vi.fn(() => ({
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            data: null,
+            error: new Error('Batch insert error'),
+          })),
+        })),
+      })),
+    }));
+    vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+    const store = useAccountsStore();
+    await expect(store.insertBatchPayments(newPayments)).rejects.toThrow(
+      'Batch insert error',
+    );
+    expect(store.allPayments.length).toBe(0);
+  });
 });

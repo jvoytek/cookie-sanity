@@ -61,11 +61,8 @@
       // Refresh payments list
       await accountsStore.fetchPayments();
 
-      // Close dialog and show success message
+      // Close dialog (success message is shown by insertBatchPayments)
       importDialogVisible.value = false;
-      notificationHelpers.addSuccess(
-        `Successfully imported ${payments.length} payment(s)!`,
-      );
     } catch (error) {
       if (error instanceof Error) {
         notificationHelpers.addError(error);
@@ -233,29 +230,8 @@
       throw new Error('No valid payments found in the file.');
     }
 
-    // Insert payments one by one to handle any individual errors
-    let errorCount = 0;
-    const errors: string[] = [];
-
-    for (const payment of payments) {
-      try {
-        await accountsStore.insertNewPayment(payment);
-      } catch (error) {
-        errorCount++;
-        const errorMsg =
-          error instanceof Error ? error.message : 'Unknown error';
-        errors.push(
-          `Payment for seller ${payment.seller_id} on ${payment.payment_date}: ${errorMsg}`,
-        );
-        console.error('Error inserting payment:', error);
-      }
-    }
-
-    if (errorCount > 0) {
-      const errorSummary = `${errorCount} payment(s) failed to import:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? `\n... and ${errors.length - 5} more` : ''}`;
-      console.warn(errorSummary);
-      throw new Error(errorSummary);
-    }
+    // Use batch insert instead of inserting one by one
+    await accountsStore.insertBatchPayments(payments);
   };
 </script>
 
