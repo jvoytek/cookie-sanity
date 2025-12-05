@@ -51,7 +51,15 @@
     }
 
     try {
-      sellerId.value = parseInt(id as string);
+      const parsedId = parseInt(id as string, 10);
+
+      // Validate that the parsed ID is a valid number
+      if (isNaN(parsedId) || parsedId <= 0) {
+        await navigateTo('/login');
+        return;
+      }
+
+      sellerId.value = parsedId;
 
       // Fetch seller info from seller_requests view
       const { data: sellerData, error: sellerError } = await supabaseClient
