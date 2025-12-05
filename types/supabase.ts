@@ -154,6 +154,54 @@ export type Database = {
           },
         ];
       };
+      deposits: {
+        Row: {
+          amount: number;
+          created_at: string;
+          deposit_date: string;
+          deposited_by: string | null;
+          id: number;
+          notes: string | null;
+          profile: string | null;
+          season: number;
+        };
+        Insert: {
+          amount: number;
+          created_at?: string;
+          deposit_date: string;
+          deposited_by?: string | null;
+          id?: number;
+          notes?: string | null;
+          profile?: string | null;
+          season?: number;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string;
+          deposit_date?: string;
+          deposited_by?: string | null;
+          id?: number;
+          notes?: string | null;
+          profile?: string | null;
+          season?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'deposits_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'deposits_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       inventory_checks: {
         Row: {
           check_date: string;

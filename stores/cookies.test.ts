@@ -135,7 +135,7 @@ describe('stores/cookies', () => {
 
   describe('allCookiesWithInventoryTotals computed property', () => {
     it('calculates inventory totals correctly for each cookie', () => {
-      const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals;
+      const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals();
 
       expect(inventoryTotals).toHaveLength(6);
 
@@ -168,7 +168,7 @@ describe('stores/cookies', () => {
     });
 
     it('assigns correct status severity based on afterPending quantity', () => {
-      const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals;
+      const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals(false);
 
       // ADV: afterPending=96 (>50) should be "success"/"Good"
       const advCookie = inventoryTotals.find((c) => c.abbreviation === 'ADV');
@@ -206,7 +206,7 @@ describe('stores/cookies', () => {
     });
 
     it('preserves original cookie properties in inventory totals', () => {
-      const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals;
+      const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals(false);
 
       inventoryTotals.forEach((cookie) => {
         const originalCookie = cookiesStore.allCookies.find(
@@ -245,7 +245,8 @@ describe('stores/cookies', () => {
         },
       ] as Cookie[];
 
-      const inventoryTotals = newCookiesStore.allCookiesWithInventoryTotals;
+      const inventoryTotals =
+        newCookiesStore.allCookiesWithInventoryTotals(false);
       expect(inventoryTotals).toEqual([]);
     });
   });
@@ -496,10 +497,9 @@ describe('stores/cookies', () => {
         };
 
         // Verify allCookiesWithInventoryTotals is computed correctly
-        const cookieWithTotals =
-          cookiesStore.allCookiesWithInventoryTotals.find(
-            (c) => c.abbreviation === 'LEM',
-          );
+        const cookieWithTotals = cookiesStore
+          .allCookiesWithInventoryTotals(false)
+          .find((c) => c.abbreviation === 'LEM');
         expect(cookieWithTotals).toBeDefined();
         expect(cookieWithTotals?.afterPending).toBe(10); // onHand=10, pending=0
 

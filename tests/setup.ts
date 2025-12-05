@@ -186,7 +186,7 @@ const useCookiesStoreMock = vi.fn(() => ({
     { abbreviation: 'DEF', price: 5, percent_of_sale: 80 },
   ],
   averageCookiePrice: 5,
-  allCookiesWithInventoryTotals: [{ onHand: 10 }],
+  allCookiesWithInventoryTotals: vi.fn(() => [{ onHand: 10 }]),
   getCookieByAbbreviation: vi.fn((abbreviation) => {
     if (abbreviation === 'ABC') {
       return {
@@ -225,3 +225,8 @@ const useRouteMock = vi.fn(() => ({
   push: vi.fn(),
 }));
 vi.stubGlobal('useRoute', useRouteMock);
+
+const useDepositsStoreMock = vi.fn(() => ({
+  insertNewDeposit: vi.fn(),
+}));
+vi.stubGlobal('useDepositsStore', useDepositsStoreMock);

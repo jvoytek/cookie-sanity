@@ -13,6 +13,7 @@ export type User = Database['public']['Tables']['profiles']['Row'];
 export type Upload = Database['public']['Tables']['uploads']['Row'];
 export type Season = Database['public']['Tables']['seasons']['Row'];
 export type Payment = Database['public']['Tables']['payments']['Row'];
+export type Deposit = Database['public']['Tables']['deposits']['Row'];
 export type BoothSale = Database['public']['Tables']['booth_sales']['Row'] & {
   auto_calculate_predicted_cookies?: boolean;
   sale_date_date?: Date;
