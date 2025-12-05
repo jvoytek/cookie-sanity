@@ -109,7 +109,7 @@
     try {
       // Ensure we have required data
       if (!sellerId.value || !sellerInfo.value?.season) {
-        throw new Error('Missing required information');
+        throw new Error('Invalid seller ID or season information');
       }
 
       // Create the order with status 'requested'
