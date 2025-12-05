@@ -473,12 +473,25 @@ export const useAccountsStore = defineStore('accounts', () => {
     if (!profileStore.currentProfile) return;
     if (payments.length === 0) return;
 
+    // Get the season ID with proper fallback
+    const seasonId =
+      profileStore.currentProfile.season ||
+      (seasonsStore.allSeasons.length > 0
+        ? seasonsStore.allSeasons[0].id
+        : null);
+
+    if (!seasonId) {
+      notificationHelpers.addError(
+        new Error('No season available. Please create a season first.'),
+      );
+      throw new Error('No season available');
+    }
+
     // Ensure all payments have profile and season set
     const paymentsWithMetadata = payments.map((payment) => ({
       ...payment,
       profile: profileStore.currentProfile!.id,
-      season:
-        profileStore.currentProfile!.season || seasonsStore.allSeasons[0].id,
+      season: seasonId,
     }));
 
     try {

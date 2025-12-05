@@ -261,4 +261,23 @@ describe('Accounts Store', () => {
     );
     expect(store.allPayments.length).toBe(0);
   });
+
+  it('should handle missing season when batch inserting payments', async () => {
+    const newPayments = [
+      { amount: 50, seller_id: 1 },
+      { amount: 100, seller_id: 2 },
+    ];
+
+    // Mock empty seasons array
+    const useSeasonsStoreMock = vi.fn(() => ({
+      allSeasons: [],
+    }));
+    vi.stubGlobal('useSeasonsStore', useSeasonsStoreMock);
+
+    const store = useAccountsStore();
+    await expect(store.insertBatchPayments(newPayments)).rejects.toThrow(
+      'No season available',
+    );
+    expect(store.allPayments.length).toBe(0);
+  });
 });
