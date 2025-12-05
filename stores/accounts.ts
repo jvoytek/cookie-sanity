@@ -127,10 +127,9 @@ export const useAccountsStore = defineStore('accounts', () => {
       estimatedTotalSales,
       totalAllCookiesDistributed: totalAllCookiesDistributed,
       totalGirlDelivery: totalGirlDelivery,
-      totalCookiesRemaining: cookiesStore.allCookiesWithInventoryTotals.reduce(
-        (sum, cookie) => sum + (cookie.onHand || 0),
-        0,
-      ),
+      totalCookiesRemaining: cookiesStore
+        .allCookiesWithInventoryTotals(false)
+        .reduce((sum, cookie) => sum + (cookie.onHand || 0), 0),
       cookieSummary,
     };
   });

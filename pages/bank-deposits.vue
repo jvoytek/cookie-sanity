@@ -19,39 +19,24 @@
 
   // Calculate difference between cash/checks and total deposits
   const depositDifference = computed(() => {
-    return totalCashChecks.value - depositsStore.totalDeposits;
+    return depositsStore.totalDeposits - totalCashChecks.value;
   });
 
   // Calculate remaining unpaid inventory
   // Total value of C2T and T2T transactions minus non-Digital Cookie payments minus deposits
   const remainingUnpaidInventory = computed(() => {
-    // Get all C2T and T2T transactions
-    const restockTransactions = transactionsStore.allTransactions.filter(
-      (t) =>
-        (t.type === 'C2T' || t.type === 'T2T') &&
-        (t.status === 'complete' || t.status === 'recorded'),
-    );
-
     // Calculate total value of these transactions
     let totalRestockValue = 0;
-    restockTransactions.forEach((transaction) => {
-      if (transaction.cookies) {
-        const cookies = transaction.cookies as Record<string, number>;
-        cookiesStore.allCookies.forEach((cookie) => {
-          const quantity = cookies[cookie.abbreviation] || 0;
-          const price = cookie.price || 0;
-          totalRestockValue += quantity * price;
-        });
-      }
+    cookiesStore.allCookiesWithInventoryTotals(true).forEach((cookie) => {
+      totalRestockValue += cookie.totalReceivedByTroop * cookie.price;
     });
-
     // Get payments not from Digital Cookie
-    const nonDigitalPayments = accountsStore.allPayments
-      .filter((p) => p.type !== 'digital_cookie')
+    const digitalPayments = accountsStore.allPayments
+      .filter((p) => p.type === 'digital_cookie')
       .reduce((sum, payment) => sum + payment.amount, 0);
 
     // Return: total restock value - non-digital payments - deposits
-    return totalRestockValue - nonDigitalPayments - depositsStore.totalDeposits;
+    return totalRestockValue - digitalPayments - depositsStore.totalDeposits;
   });
 
   function openNew() {
@@ -178,100 +163,84 @@
         </Toolbar>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div class="card bg-blue-50 dark:bg-blue-900/20">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="block text-500 font-medium mb-2"
-                  >Total Cash/Checks Collected</span
+        <div class="grid grid-cols-12 gap-6 mb-6">
+          <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+            <Fieldset>
+              <template #legend>
+                <p class="flex flex-wrap gap-2 items-center">
+                  <i class="pi pi-wallet" />
+                  <span>To deposit</span>
+                </p>
+              </template>
+              <p class="text-xl">
+                {{ formatCurrency(totalCashChecks) }}<br />
+                <span class="text-sm leading-none text-muted-color"
+                  >total cash/checks collected</span
                 >
-                <div class="text-900 font-medium text-xl">
-                  {{ formatCurrency(totalCashChecks) }}
-                </div>
-              </div>
-              <div
-                class="flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 rounded"
-                style="width: 2.5rem; height: 2.5rem"
-              >
-                <i class="pi pi-wallet text-blue-500 text-xl" />
-              </div>
-            </div>
+              </p>
+            </Fieldset>
           </div>
 
-          <div class="card bg-green-50 dark:bg-green-900/20">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="block text-500 font-medium mb-2"
-                  >Total Deposits</span
+          <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+            <Fieldset>
+              <template #legend>
+                <p class="flex flex-wrap gap-2 items-center">
+                  <i class="pi pi-check-circle" />
+                  <span>Deposits</span>
+                </p>
+              </template>
+              <p class="text-xl">
+                {{ formatCurrency(depositsStore.totalDeposits) }}<br />
+                <span class="text-sm leading-none text-muted-color"
+                  >total deposits made</span
                 >
-                <div class="text-900 font-medium text-xl">
-                  {{ formatCurrency(depositsStore.totalDeposits) }}
-                </div>
-              </div>
-              <div
-                class="flex items-center justify-center bg-green-100 dark:bg-green-900/40 rounded"
-                style="width: 2.5rem; height: 2.5rem"
-              >
-                <i class="pi pi-check-circle text-green-500 text-xl" />
-              </div>
-            </div>
+              </p>
+            </Fieldset>
           </div>
 
-          <div
-            class="card"
-            :class="
-              depositDifference >= 0
-                ? 'bg-yellow-50 dark:bg-yellow-900/20'
-                : 'bg-red-50 dark:bg-red-900/20'
-            "
-          >
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="block text-500 font-medium mb-2"
-                  >Difference (Undeposited)</span
-                >
-                <div class="text-900 font-medium text-xl">
-                  {{ formatCurrency(depositDifference) }}
-                </div>
-              </div>
-              <div
-                class="flex items-center justify-center rounded"
-                :class="
-                  depositDifference >= 0
-                    ? 'bg-yellow-100 dark:bg-yellow-900/40'
-                    : 'bg-red-100 dark:bg-red-900/40'
-                "
-                style="width: 2.5rem; height: 2.5rem"
+          <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+            <Fieldset>
+              <template #legend>
+                <p class="flex flex-wrap gap-2 items-center">
+                  <i
+                    class="pi"
+                    :class="
+                      depositDifference >= 0
+                        ? 'pi-exclamation-triangle'
+                        : 'pi-times-circle'
+                    "
+                  />
+                  <span>Difference</span>
+                </p>
+              </template>
+              <Message
+                :severity="depositDifference >= 0 ? 'success' : 'warn'"
+                variant="simple"
+                size="large"
               >
-                <i
-                  class="pi text-xl"
-                  :class="
-                    depositDifference >= 0
-                      ? 'pi-exclamation-triangle text-yellow-500'
-                      : 'pi-times-circle text-red-500'
-                  "
-                />
-              </div>
-            </div>
+                {{ formatCurrency(depositDifference) }}<br />
+                <span class="text-sm leading-none text-muted-color"
+                  >undeposited amount</span
+                >
+              </Message>
+            </Fieldset>
           </div>
 
-          <div class="card bg-purple-50 dark:bg-purple-900/20">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="block text-500 font-medium mb-2"
-                  >Remaining Unpaid Inventory</span
+          <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+            <Fieldset>
+              <template #legend>
+                <p class="flex flex-wrap gap-2 items-center">
+                  <i class="pi pi-box" />
+                  <span>Remaining</span>
+                </p>
+              </template>
+              <p class="text-xl">
+                {{ formatCurrency(remainingUnpaidInventory) }}<br />
+                <span class="text-sm leading-none text-muted-color"
+                  >remaining unpaid inventory</span
                 >
-                <div class="text-900 font-medium text-xl">
-                  {{ formatCurrency(remainingUnpaidInventory) }}
-                </div>
-              </div>
-              <div
-                class="flex items-center justify-center bg-purple-100 dark:bg-purple-900/40 rounded"
-                style="width: 2.5rem; height: 2.5rem"
-              >
-                <i class="pi pi-box text-purple-500 text-xl" />
-              </div>
-            </div>
+              </p>
+            </Fieldset>
           </div>
         </div>
 

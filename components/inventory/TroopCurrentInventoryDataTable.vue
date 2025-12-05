@@ -6,16 +6,16 @@
   const cookiesStore = useCookiesStore();
 
   loading.value = false;
+
+  const inventoryTotals = computed(() => {
+    return cookiesStore.allCookiesWithInventoryTotals(true);
+  });
 </script>
 
 <template>
   <div class="card">
     <DataTable
-      :value="
-        cookiesStore.allCookiesWithInventoryTotals.filter(
-          (cookie) => !cookie.is_virtual,
-        )
-      "
+      :value="inventoryTotals"
       data-key="id"
       sort-field="order"
       size="small"

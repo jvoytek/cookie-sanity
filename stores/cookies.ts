@@ -143,56 +143,72 @@ export const useCookiesStore = defineStore('cookies', () => {
   });
 
   const allCookiesWithInventoryTotals = computed(() => {
-    if (!seasonsStore.currentSeason) return [];
-    const requestedGirlMap = ordersStore.totalTransactionsByStatusAllCookies(
-      'requested',
-      'girl',
-    );
-    const pendingGirlMap = ordersStore.totalTransactionsByStatusAllCookies(
-      'pending',
-      'girl',
-    );
-    const pendingTroopMap = ordersStore.totalTransactionsByStatusAllCookies(
-      'pending',
-      'troop',
-    );
-    const completedTroopMap = ordersStore.totalTransactionsByStatusAllCookies(
-      'complete',
-      'troop',
-    );
-
-    return allCookies.value.map((cookie) => {
-      const totalReceivedByTroop = completedTroopMap[cookie.abbreviation] || 0;
-      const onHand = ordersStore.sumTransactionsByCookie(
-        cookie.abbreviation,
-        true,
+    return (includeVirtualCookies: boolean = false) => {
+      if (!seasonsStore.currentSeason) return [];
+      const requestedGirlMap = ordersStore.totalTransactionsByStatusAllCookies(
+        'requested',
+        'girl',
+        includeVirtualCookies,
       );
-      const requestedGirl = requestedGirlMap[cookie.abbreviation];
-      const pendingGirl = pendingGirlMap[cookie.abbreviation];
-      const pendingTroop = pendingTroopMap[cookie.abbreviation];
-      const pendingBooth = boothsStore.getPredictedBoothSaleQuantityByCookie(
-        cookie.abbreviation,
+      const pendingGirlMap = ordersStore.totalTransactionsByStatusAllCookies(
+        'pending',
+        'girl',
+        includeVirtualCookies,
       );
-      const afterPending = onHand + pendingGirl + pendingTroop + pendingBooth;
-      const afterPendingIncludingRequests = afterPending + requestedGirl;
-      const [afterPendingStatusSeverity, afterPendingStatus] =
-        _afterPendingStatusSeverity(afterPending);
+      const pendingTroopMap = ordersStore.totalTransactionsByStatusAllCookies(
+        'pending',
+        'troop',
+        includeVirtualCookies,
+      );
+      const completedTroopMap = ordersStore.totalTransactionsByStatusAllCookies(
+        'complete',
+        'troop',
+        includeVirtualCookies,
+      );
 
-      return {
-        ...cookie,
-        totalReceivedByTroop,
-        onHand,
-        requestedGirl,
-        pendingGirl,
-        pendingTroop,
-        pendingBooth,
-        afterPending,
-        afterPendingIncludingRequests,
-        afterPendingStatusSeverity,
-        afterPendingStatus,
-        is_virtual: !!cookie.is_virtual,
-      };
-    });
+      return allCookies.value.map((cookie) => {
+        let onHand = ordersStore.sumTransactionsByCookie(
+          cookie.abbreviation,
+          true,
+          includeVirtualCookies,
+        );
+
+        const totalReceivedByTroop = cookie.is_virtual
+          ? onHand * -1
+          : completedTroopMap[cookie.abbreviation] || 0;
+
+        if (cookie.is_virtual) {
+          onHand = 0; // Virtual cookies do not have inventory on hand
+        }
+        const requestedGirl = requestedGirlMap[cookie.abbreviation];
+        const pendingGirl = pendingGirlMap[cookie.abbreviation];
+        const pendingTroop = pendingTroopMap[cookie.abbreviation];
+        const pendingBooth = boothsStore.getPredictedBoothSaleQuantityByCookie(
+          cookie.abbreviation,
+        );
+        const afterPending = cookie.is_virtual
+          ? 0
+          : onHand + pendingGirl + pendingTroop + pendingBooth;
+        const afterPendingIncludingRequests = afterPending + requestedGirl;
+        const [afterPendingStatusSeverity, afterPendingStatus] =
+          _afterPendingStatusSeverity(afterPending);
+
+        return {
+          ...cookie,
+          totalReceivedByTroop,
+          onHand,
+          requestedGirl,
+          pendingGirl,
+          pendingTroop,
+          pendingBooth,
+          afterPending,
+          afterPendingIncludingRequests,
+          afterPendingStatusSeverity,
+          afterPendingStatus,
+          is_virtual: !!cookie.is_virtual,
+        };
+      });
+    };
   });
 
   /* Private Functions */
@@ -423,9 +439,9 @@ export const useCookiesStore = defineStore('cookies', () => {
   ): (Cookie & { afterPending?: number }) | undefined => {
     if (withTotals) {
       // allCookiesWithInventoryTotals includes afterPending and other computed fields
-      return allCookiesWithInventoryTotals.value.find(
-        (cookie) => cookie.abbreviation === abbreviation,
-      );
+      return allCookiesWithInventoryTotals
+        .value(false)
+        .find((cookie) => cookie.abbreviation === abbreviation);
     }
     return allCookies.value.find(
       (cookie) => cookie.abbreviation === abbreviation,

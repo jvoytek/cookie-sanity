@@ -382,16 +382,12 @@ describe('stores/seasons', () => {
         'useSupabaseClient',
         vi.fn(() => ({
           from: vi.fn(() => ({
-            insert: vi.fn(() => ({
-              select: vi.fn(() => ({
-                single: vi.fn(() =>
-                  Promise.resolve({
-                    data: null,
-                    error: { message: 'Insert failed' },
-                  }),
-                ),
-              })),
-            })),
+            insert: vi.fn(() =>
+              Promise.resolve({
+                data: null,
+                error: { message: 'Insert failed' },
+              }),
+            ),
           })),
         })),
       );

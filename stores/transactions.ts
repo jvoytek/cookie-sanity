@@ -43,7 +43,11 @@ export const useTransactionsStore = defineStore('transactions', () => {
   /* Computed */
 
   const totalTransactionsByStatusAllCookies = computed(() => {
-    return (status: string, transactionType: string) => {
+    return (
+      status: string,
+      transactionType: string,
+      includeVirtualCookies: boolean = false,
+    ) => {
       const total: Record<string, number> = cookiesStore.allCookies
         .map((cookie) => cookie.abbreviation)
         .reduce(
@@ -70,6 +74,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
             // Virtual cookies should not count towards physical inventory
             if (
               cookie.is_virtual &&
+              includeVirtualCookies === false &&
               (transactionType === 'troop' || transactionType === 'all')
             ) {
               return;
@@ -95,10 +100,11 @@ export const useTransactionsStore = defineStore('transactions', () => {
       (
         cookieAbbreviation: string,
         troopTransactions: boolean = false,
+        includeVirtualCookies: boolean = false,
       ): number => {
         const cookie = cookiesStore.getCookieByAbbreviation(cookieAbbreviation);
         // Virtual cookies should not count towards physical inventory
-        if (cookie?.is_virtual) {
+        if (cookie?.is_virtual && !includeVirtualCookies) {
           return 0;
         }
         return allTransactions.value.reduce((sum, transaction) => {
