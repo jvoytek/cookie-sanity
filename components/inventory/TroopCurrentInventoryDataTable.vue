@@ -10,6 +10,62 @@
   const inventoryTotals = computed(() => {
     return cookiesStore.allCookiesWithInventoryTotals(true);
   });
+
+  const totalReceivedByTroop = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.totalReceivedByTroop || 0),
+      0,
+    );
+  });
+
+  const totalOnHand = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.onHand || 0),
+      0,
+    );
+  });
+
+  const totalPendingTroop = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.pendingTroop || 0),
+      0,
+    );
+  });
+
+  const totalPendingGirl = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.pendingGirl || 0),
+      0,
+    );
+  });
+
+  const totalRequestedGirl = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.requestedGirl || 0),
+      0,
+    );
+  });
+
+  const totalPendingBooth = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.pendingBooth || 0),
+      0,
+    );
+  });
+
+  const totalAfterPending = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.afterPending || 0),
+      0,
+    );
+  });
+
+  const totalAfterPendingIncludingRequests = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.afterPendingIncludingRequests || 0),
+      0,
+    );
+  });
 </script>
 
 <template>
@@ -67,6 +123,37 @@
           </Badge>
         </template>
       </Column>
+      <ColumnGroup type="footer">
+        <Row>
+          <Column footer="Total" class="font-bold" />
+          <Column :footer="totalReceivedByTroop" class="font-bold" />
+          <Column :footer="totalOnHand" class="font-bold" />
+          <Column :footer="totalPendingTroop" class="font-bold" />
+          <Column class="font-bold">
+            <template #footer>
+              {{ totalPendingGirl }}
+              <span v-if="totalRequestedGirl !== 0">
+                ({{ totalRequestedGirl }})
+              </span>
+            </template>
+          </Column>
+          <Column :footer="totalPendingBooth" class="font-bold" />
+          <Column class="font-bold">
+            <template #footer>
+              {{ totalAfterPending }}
+              <span
+                v-if="
+                  totalAfterPendingIncludingRequests !== 0 &&
+                  totalAfterPendingIncludingRequests !== totalAfterPending
+                "
+              >
+                ({{ totalAfterPendingIncludingRequests }})
+              </span>
+            </template>
+          </Column>
+          <Column footer="" />
+        </Row>
+      </ColumnGroup>
     </DataTable>
   </div>
 </template>
