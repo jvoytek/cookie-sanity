@@ -276,7 +276,7 @@ describe('Accounts Store', () => {
 
     const store = useAccountsStore();
     await expect(store.insertBatchPayments(newPayments)).rejects.toThrow(
-      'No season available',
+      'No season available. Please create a season first.',
     );
     expect(store.allPayments.length).toBe(0);
   });

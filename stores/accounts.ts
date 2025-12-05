@@ -481,10 +481,11 @@ export const useAccountsStore = defineStore('accounts', () => {
         : null);
 
     if (!seasonId) {
-      notificationHelpers.addError(
-        new Error('No season available. Please create a season first.'),
+      const error = new Error(
+        'No season available. Please create a season first.',
       );
-      throw new Error('No season available');
+      notificationHelpers.addError(error);
+      throw error;
     }
 
     // Ensure all payments have profile and season set
