@@ -72,7 +72,7 @@
       const { data: cookiesData, error: cookiesError } = await supabaseClient
         .from('cookies')
         .select('*')
-        .eq('season', sellerData.season)
+        .eq('season', sellerInfo.value.season)
         .order('order');
 
       if (cookiesError) {
@@ -81,9 +81,9 @@
 
       cookies.value = cookiesData || [];
 
-      // Set the "to" field for the request
-      activeRequest.value.to = sellerId.value;
-      activeRequest.value.season = sellerData.season;
+      // Set the "to" and "season" fields for the request
+      activeRequest.value.to = sellerId.value ?? undefined;
+      activeRequest.value.season = sellerInfo.value.season;
 
       loading.value = false;
     } catch (error) {
@@ -99,12 +99,17 @@
 
   async function submitRequest() {
     try {
+      // Ensure we have required data
+      if (!sellerId.value || !sellerInfo.value?.season) {
+        throw new Error('Missing required information');
+      }
+
       // Create the order with status 'requested'
       const orderData = {
         type: 'T2G',
         status: 'requested',
         to: sellerId.value,
-        season: activeRequest.value.season,
+        season: sellerInfo.value.season,
         order_date: activeRequest.value.order_date,
         cookies: activeRequest.value.cookies,
         notes: activeRequest.value.notes,
@@ -124,7 +129,7 @@
         status: 'requested',
         auto_calculate_cookies: false,
         to: sellerId.value ?? undefined,
-        season: sellerInfo.value?.season,
+        season: sellerInfo.value.season,
       };
     } catch (error) {
       console.error('Error submitting request:', error);

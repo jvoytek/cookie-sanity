@@ -60,11 +60,4 @@ WITH CHECK (
     status = 'requested'
     AND type = 'T2G'
     AND "to" IN (SELECT id FROM public.seller_requests)
-    AND EXISTS (
-        SELECT 1 FROM public.sellers
-        WHERE public.sellers.id = orders."to"
-        AND public.sellers.season IN (
-            SELECT season FROM public.seller_requests WHERE id = orders."to"
-        )
-    )
 );

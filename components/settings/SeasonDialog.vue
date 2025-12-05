@@ -42,7 +42,6 @@
       $formkit: 'primeToggleSwitch',
       name: 'publish_girl_request_form',
       label: 'Publish Girl Request Form',
-      value: false,
     },
   ];
 </script>
