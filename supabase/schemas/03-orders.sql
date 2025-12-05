@@ -50,3 +50,21 @@ ALTER TABLE ONLY "public"."orders"
     ADD CONSTRAINT "orders_from_fkey" FOREIGN KEY ("from") REFERENCES "public"."sellers"("id") on delete cascade;
 
 ALTER TABLE "public"."orders" ENABLE ROW LEVEL SECURITY;
+
+-- Allow public to insert cookie requests for published seasons
+CREATE POLICY "Allow public to insert cookie requests"
+ON "public"."orders"
+FOR INSERT
+TO anon
+WITH CHECK (
+    status = 'requested'
+    AND type = 'T2G'
+    AND "to" IN (SELECT id FROM public.seller_requests)
+    AND EXISTS (
+        SELECT 1 FROM public.sellers
+        WHERE public.sellers.id = orders."to"
+        AND public.sellers.season IN (
+            SELECT season FROM public.seller_requests WHERE id = orders."to"
+        )
+    )
+);

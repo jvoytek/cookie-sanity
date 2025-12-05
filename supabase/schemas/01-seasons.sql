@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS "public"."seasons" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "troop_number" character varying DEFAULT '0000'::character varying NOT NULL,
     "profile" "uuid" NOT NULL,
-    "year" int NOT NULL
+    "year" int NOT NULL,
+    "publish_girl_request_form" boolean DEFAULT false
 );
 
 
