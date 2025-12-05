@@ -1,0 +1,67 @@
+-- TODO: Email Functionality Implementation
+--
+-- This migration file outlines the email functionality that needs to be implemented:
+--
+-- 1. Email on Cookie Request Submission (Requirement #13):
+--    - When a cookie request is submitted with status='requested'
+--    - Send email to the email address on file for the girl (if it exists)
+--    - Send email to the email address on file for the season owner
+--
+-- 2. Email on Order Status Change (Requirement #14):
+--    - When any order's status changes
+--    - Send status update email to the girl's email address (if it exists)
+--
+-- Implementation Options:
+--
+-- Option A: Supabase Edge Functions
+--   1. Create an Edge Function that sends emails using a service like SendGrid or Resend
+--   2. Call this function from the application after order creation/updates
+--
+-- Option B: Database Triggers + pg_notify
+--   1. Create triggers on the orders table for INSERT and UPDATE
+--   2. Use pg_notify to notify the application
+--   3. Application listens for notifications and sends emails
+--
+-- Option C: Supabase Database Webhooks
+--   1. Configure webhooks in Supabase dashboard
+--   2. Webhook calls an external service to send emails
+--
+-- Example Edge Function Structure:
+--   - Fetch order details
+--   - Fetch seller email from sellers table
+--   - Fetch season owner email from profiles table (via seasons table)
+--   - Build email templates
+--   - Send emails via email service API
+--
+-- Database Helper Function (Example):
+--
+-- CREATE OR REPLACE FUNCTION notify_cookie_request()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--   IF (TG_OP = 'INSERT' AND NEW.status = 'requested' AND NEW.type = 'T2G') THEN
+--     -- Trigger notification for new request
+--     PERFORM pg_notify('cookie_request', json_build_object(
+--       'order_id', NEW.id,
+--       'seller_id', NEW.to,
+--       'season_id', NEW.season
+--     )::text);
+--   END IF;
+--   
+--   IF (TG_OP = 'UPDATE' AND NEW.status != OLD.status) THEN
+--     -- Trigger notification for status change
+--     PERFORM pg_notify('order_status_change', json_build_object(
+--       'order_id', NEW.id,
+--       'old_status', OLD.status,
+--       'new_status', NEW.status,
+--       'seller_id', NEW.to
+--     )::text);
+--   END IF;
+--   
+--   RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
+--
+-- CREATE TRIGGER cookie_request_notification
+--   AFTER INSERT OR UPDATE ON orders
+--   FOR EACH ROW
+--   EXECUTE FUNCTION notify_cookie_request();
