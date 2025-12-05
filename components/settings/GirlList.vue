@@ -197,15 +197,8 @@
               />
             </div>
             <div>
-              <label for="email" class="block font-bold mb-3"
-                >Email</label
-              >
-              <InputText
-                id="email"
-                v-model.trim="girl.email"
-                autofocus
-                fluid
-              />
+              <label for="email" class="block font-bold mb-3">Email</label>
+              <InputText id="email" v-model.trim="girl.email" autofocus fluid />
             </div>
           </div>
 

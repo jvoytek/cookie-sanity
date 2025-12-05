@@ -1,22 +1,38 @@
 <script setup lang="ts">
   import { useFormKitNodeById } from '@formkit/vue';
-  
+  import type { Database } from '@/types/supabase';
+
   definePageMeta({
     layout: 'login',
   });
 
+  type SellerRequest = {
+    id: number;
+    first_name: string;
+    season: number;
+  };
+
+  type Cookie = Database['public']['Tables']['cookies']['Row'];
+
   const route = useRoute();
-  const router = useRouter();
-  const supabaseClient = useSupabaseClient();
+  const supabaseClient = useSupabaseClient<Database>();
   const notificationHelpers = useNotificationHelpers();
 
   const sellerId = ref<number | null>(null);
-  const sellerInfo = ref<any>(null);
-  const seasonInfo = ref<any>(null);
-  const cookies = ref<any[]>([]);
+  const sellerInfo = ref<SellerRequest | null>(null);
+  const cookies = ref<Cookie[]>([]);
   const loading = ref(true);
   const requestSubmitted = ref(false);
-  const activeRequest = ref<any>({
+  const activeRequest = ref<{
+    type: string;
+    status: string;
+    auto_calculate_cookies: boolean;
+    to?: number;
+    season?: number;
+    order_date?: Date | string;
+    cookies?: Record<string, number>;
+    notes?: string;
+  }>({
     type: 'T2G',
     status: 'requested',
     auto_calculate_cookies: false,
@@ -27,7 +43,7 @@
   // Validate and fetch seller info on mount
   onMounted(async () => {
     const id = route.query.id;
-    
+
     // Redirect to login if no id provided
     if (!id) {
       await navigateTo('/login');
@@ -36,7 +52,7 @@
 
     try {
       sellerId.value = parseInt(id as string);
-      
+
       // Fetch seller info from seller_requests view
       const { data: sellerData, error: sellerError } = await supabaseClient
         .from('seller_requests')
@@ -51,7 +67,7 @@
       }
 
       sellerInfo.value = sellerData;
-      
+
       // Fetch cookies for this season
       const { data: cookiesData, error: cookiesError } = await supabaseClient
         .from('cookies')
@@ -68,7 +84,7 @@
       // Set the "to" field for the request
       activeRequest.value.to = sellerId.value;
       activeRequest.value.season = sellerData.season;
-      
+
       loading.value = false;
     } catch (error) {
       console.error('Error loading request form:', error);
@@ -95,22 +111,20 @@
         profile: null, // Public request, no profile
       };
 
-      const { error } = await supabaseClient
-        .from('orders')
-        .insert(orderData);
+      const { error } = await supabaseClient.from('orders').insert(orderData);
 
       if (error) throw error;
 
       requestSubmitted.value = true;
       notificationHelpers.addSuccess('Cookie request submitted successfully!');
-      
+
       // Reset form
       activeRequest.value = {
         type: 'T2G',
         status: 'requested',
         auto_calculate_cookies: false,
-        to: sellerId.value,
-        season: seasonInfo.value?.id,
+        to: sellerId.value ?? undefined,
+        season: sellerInfo.value?.season,
       };
     } catch (error) {
       console.error('Error submitting request:', error);
@@ -191,7 +205,10 @@
             >
               Cookie Request Form
             </div>
-            <span v-if="!loading && sellerInfo" class="text-muted-color font-medium">
+            <span
+              v-if="!loading && sellerInfo"
+              class="text-muted-color font-medium"
+            >
               Request form for {{ sellerInfo.first_name }}
             </span>
             <span v-if="loading" class="text-muted-color font-medium">
@@ -200,7 +217,7 @@
           </div>
 
           <div v-if="requestSubmitted" class="text-center">
-            <i class="pi pi-check-circle text-4xl text-green-500 mb-4"></i>
+            <i class="pi pi-check-circle text-4xl text-green-500 mb-4" />
             <p class="text-xl font-bold mb-2">Request Submitted!</p>
             <p class="text-muted-color mb-4">
               Your cookie request has been submitted successfully.
