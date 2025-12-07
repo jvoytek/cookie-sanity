@@ -1,22 +1,22 @@
 <script setup lang="ts">
   const cookiesStore = useCookiesStore();
   const accountsStore = useAccountsStore();
-
   // Calculate On Hand - total packages in troop inventory
   const onHandTotal = computed(() => {
-    return cookiesStore.allCookiesWithTotals.reduce(
-      (sum, cookie) => sum + (cookie.onHand || 0),
-      0,
-    );
+    return cookiesStore
+      .allCookiesWithInventoryTotals(true)
+      .reduce((sum, cookie) => sum + (cookie.onHand || 0), 0);
   });
 
   // Calculate Requested/Pending - packages requested or pending distribution
   const requestedPendingTotal = computed(() => {
-    return cookiesStore.allCookiesWithTotals.reduce(
-      (sum, cookie) =>
-        sum + (cookie.requestedGirl || 0) + (cookie.pendingGirl || 0),
-      0,
-    );
+    return cookiesStore
+      .allCookiesWithInventoryTotals(true)
+      .reduce(
+        (sum, cookie) =>
+          sum + (cookie.requestedGirl || 0) + (cookie.pendingGirl || 0),
+        0,
+      );
   });
 
   // Calculate Total Distributed - all T2G transactions to girls
@@ -31,7 +31,7 @@
 </script>
 
 <template>
-  <div class="grid grid-cols-12 gap-8 mb-8">
+  <div class="card grid grid-cols-12 gap-8 mb-8">
     <div class="col-span-12 lg:col-span-6 xl:col-span-3">
       <Fieldset>
         <template #legend>
