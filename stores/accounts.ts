@@ -469,6 +469,55 @@ export const useAccountsStore = defineStore('accounts', () => {
     }
   };
 
+  const insertBatchPayments = async (payments: Partial<Payment>[]) => {
+    if (!profileStore.currentProfile) return;
+    if (payments.length === 0) return;
+
+    // Get the season ID with proper fallback
+    const seasonId =
+      profileStore.currentProfile.season ||
+      (seasonsStore.allSeasons.length > 0
+        ? seasonsStore.allSeasons[0].id
+        : null);
+
+    if (!seasonId) {
+      const error = new Error(
+        'No season available. Please create a season first.',
+      );
+      notificationHelpers.addError(error);
+      throw error;
+    }
+
+    // Ensure all payments have profile and season set
+    const paymentsWithMetadata = payments.map((payment) => ({
+      ...payment,
+      profile: profileStore.currentProfile!.id,
+      season: seasonId,
+    }));
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('payments')
+        .insert(paymentsWithMetadata as Payment[])
+        .select();
+
+      if (error) throw error;
+
+      // Add all payments to the store
+      if (data) {
+        data.forEach((payment) => {
+          _addPayment(_transformDataForPayment(payment));
+        });
+      }
+      notificationHelpers.addSuccess(
+        `Successfully imported ${payments.length} payment(s)!`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+      throw error;
+    }
+  };
+
   const upsertPayment = async (payment: Payment) => {
     try {
       const { data, error } = await _supabaseUpsertPayment(payment);
@@ -580,6 +629,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     troopAccountSummary,
     fetchPayments,
     insertNewPayment,
+    insertBatchPayments,
     upsertPayment,
     deletePayment,
     getGirlAccountById,
