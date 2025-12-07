@@ -41,4 +41,16 @@ ALTER TABLE ONLY "public"."cookies"
 
 ALTER TABLE "public"."cookies" ENABLE ROW LEVEL SECURITY;
 
+-- Allow public to view cookies for request forms when season has published request form
+CREATE POLICY "Allow public to view cookies for request forms"
+ON "public"."cookies"
+FOR SELECT
+TO anon
+USING (
+    EXISTS (
+        SELECT 1 FROM public.seasons
+        WHERE public.seasons.id = cookies.season
+        AND public.seasons.publish_girl_request_form = true
+    )
+);
 
