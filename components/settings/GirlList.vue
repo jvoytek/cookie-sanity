@@ -120,6 +120,7 @@
             <Column field="first_name" header="First Name" sortable />
             <Column field="last_name" header="Last Name" sortable />
             <Column field="preferred_name" header="Preferred Name" sortable />
+            <Column field="email" header="Email" sortable />
             <Column :exportable="false" nowrap>
               <template #body="slotProps">
                 <Button
