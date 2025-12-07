@@ -1,15 +1,14 @@
-<script setup lang="ts">
-  import InventoryProjectionChart from '@/components/inventory/InventoryProjectionChart.vue';
-  import TroopInventoryChart from '@/components/inventory/TroopInventoryChart.vue';
-</script>
-
 <template>
-  <div class="grid grid-cols-12 gap-8">
-    <div class="col-span-12">
-      <TroopInventoryChart />
+  <div>
+    <DashboardQuickNumbers />
+    <div class="grid grid-cols-12 gap-8">
+      <div class="col-span-12 mb-8">
+        <InventoryProjectionChart />
+      </div>
     </div>
-    <div class="col-span-12">
-      <InventoryProjectionChart />
+    <div class="grid grid-cols-12 gap-8">
+      <TroopInventoryChart class="col-span-12 md:col-span-4" />
+      <NextBoothSaleWidget class="col-span-12 md:col-span-4" />
     </div>
   </div>
 </template>

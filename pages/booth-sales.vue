@@ -71,35 +71,6 @@
     }
   }
 
-  /*boothsStore.$subscribe((mutation, _state) => {
-  const oldSale = mutation.events?.oldValue || {};
-  const newSale = mutation.events?.newValue || {};
-
-  const oldExpectedSales = Number(oldSale.expected_sales || 0);
-  const newExpectedSales = Number(newSale.expected_sales || 0);
-
-  const newPredictedCookies = newSale.predicted_cookies || {};
-
-  const sumNewPredictedCookies = Object.values(newPredictedCookies).reduce(
-    (sum, val) => sum + Number(val || 0),
-    0,
-  );
-
-  // If nothing relevant changed, skip
-  if (
-    oldExpectedSales === newExpectedSales &&
-    sumNewPredictedCookies === newExpectedSales
-  )
-    return;
-
-  if (sumNewPredictedCookies !== newExpectedSales) {
-    boothsStore.setActiveBoothSaleTotalExpectedSales();
-  }
-  if (oldExpectedSales !== newExpectedSales) {
-    boothsStore.setActiveBoothSalePredictedCookies(newExpectedSales);
-  }
-});*/
-
   watchDebounced(
     () => boothsStore.activeBoothSale?.expected_sales,
     (newTotalCookies, oldTotalCookies) => {
