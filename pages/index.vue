@@ -1,7 +1,4 @@
-<script setup lang="ts">
-  import DashboardQuickNumbers from '@/components/inventory/DashboardQuickNumbers.vue';
-  import InventoryProjectionChart from '@/components/inventory/InventoryProjectionChart.vue';
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div>
