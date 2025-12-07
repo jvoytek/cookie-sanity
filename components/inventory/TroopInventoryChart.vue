@@ -49,6 +49,10 @@
     const afterPendingData = cookies.map((cookie) => cookie.afterPending || 0);
     const colors = cookies.map((cookie) => cookie.color || '#888');
 
+    // Calculate dynamic step size based on max inventory value
+    const maxValue = Math.max(...onHandData, ...afterPendingData);
+    const stepSize = maxValue > 100 ? 20 : maxValue > 50 ? 10 : 5;
+
     chartData.value = {
       labels,
       datasets: [
@@ -77,59 +81,62 @@
       ],
     };
 
-    const documentStyle = getComputedStyle(document.documentElement);
-    const textColor = documentStyle.getPropertyValue('--p-text-color');
-    const surfaceBorder = documentStyle.getPropertyValue(
-      '--p-content-border-color',
-    );
+    // Only access DOM on client side
+    if (typeof document !== 'undefined') {
+      const documentStyle = getComputedStyle(document.documentElement);
+      const textColor = documentStyle.getPropertyValue('--p-text-color');
+      const surfaceBorder = documentStyle.getPropertyValue(
+        '--p-content-border-color',
+      );
 
-    chartOptions.value = {
-      responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 2,
-      plugins: {
-        legend: {
-          labels: {
-            color: textColor,
+      chartOptions.value = {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
+        plugins: {
+          legend: {
+            labels: {
+              color: textColor,
+            },
+            position: 'top',
           },
-          position: 'top',
-        },
-        tooltip: {
-          callbacks: {
-            label: (context) => {
-              const label = context.dataset.label || '';
-              const value = context.parsed.y;
-              return `${label}: ${value} packages`;
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const value = context.parsed.y;
+                return `${label}: ${value} packages`;
+              },
             },
           },
         },
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: textColor,
+        scales: {
+          x: {
+            ticks: {
+              color: textColor,
+            },
+            grid: {
+              color: surfaceBorder,
+            },
           },
-          grid: {
-            color: surfaceBorder,
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Number of Packages',
+              color: textColor,
+            },
+            ticks: {
+              color: textColor,
+              stepSize,
+            },
+            grid: {
+              color: surfaceBorder,
+            },
           },
         },
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Number of Packages',
-            color: textColor,
-          },
-          ticks: {
-            color: textColor,
-            stepSize: 10,
-          },
-          grid: {
-            color: surfaceBorder,
-          },
-        },
-      },
-    };
+      };
+    }
   };
 
   onMounted(() => {
