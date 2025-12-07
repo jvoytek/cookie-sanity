@@ -17,6 +17,7 @@ describe('TroopCurrentInventoryDataTable', () => {
             Toolbar: true,
             ColumnGroup: true,
             Row: true,
+            Badge: true,
           },
         },
       });
@@ -35,6 +36,7 @@ describe('TroopCurrentInventoryDataTable', () => {
           Toolbar: true,
           ColumnGroup: true,
           Row: true,
+          Badge: true,
         },
       },
     });
