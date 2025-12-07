@@ -37,3 +37,10 @@ TO authenticated
 WITH CHECK ( profile = auth.uid() );
 -- Note: SELECT, UPDATE, and DELETE policies for seasons are defined in 04-season-collaborators.sql
 -- after the is_season_owner() and is_season_collaborator() functions are created
+
+-- Allow anonymous users to read seasons
+CREATE POLICY "Allow anonymous users to read seasons"
+ON "public"."seasons"
+FOR SELECT
+TO anon
+USING (true);

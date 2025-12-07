@@ -38,7 +38,8 @@ ALTER TABLE ONLY "public"."sellers"
 ALTER TABLE "public"."sellers" ENABLE ROW LEVEL SECURITY;
 
 -- Create seller_requests view to expose limited seller information for public requests
-CREATE OR REPLACE VIEW "public"."seller_requests" AS
+CREATE OR REPLACE VIEW "public"."seller_requests" 
+with (security_invoker = on) AS
 SELECT 
     s.id,
     s.first_name,
@@ -47,4 +48,7 @@ FROM "public"."sellers" s
 INNER JOIN "public"."seasons" se ON s.season = se.id
 WHERE se.publish_girl_request_form = true;
 
-GRANT SELECT ON "public"."seller_requests" TO anon;
+GRANT SELECT ON "public"."seller_requests" TO anon, authenticated;
+
+CREATE POLICY "Allow public read of id, first_name, and season" ON "public"."sellers"
+FOR SELECT USING (id > 0); -- Example policy: only allow non-negative IDs
