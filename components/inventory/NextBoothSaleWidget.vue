@@ -1,5 +1,6 @@
 <script setup lang="ts">
   const boothsStore = useBoothsStore();
+  const girlsStore = useGirlsStore();
   const router = useRouter();
 
   const nextBoothSale = computed(() => {
@@ -21,30 +22,32 @@
     @click="navigateToBoothSales"
   >
     <div class="flex items-center gap-4">
-      <div class="flex-shrink-0">
-        <i class="pi pi-calendar text-4xl text-primary" />
-      </div>
       <div class="flex-grow">
-        <h5 class="mb-2">Next Booth Sale</h5>
+        <h5 class="mb-2"><i class="pi pi-calendar" /> Next Booth Sale</h5>
         <div v-if="nextBoothSale" class="text-gray-700">
-          <p class="text-lg font-semibold mb-1">
-            {{ nextBoothSale.location }}
-          </p>
-          <p class="text-sm">
-            <i class="pi pi-calendar mr-2" />
-            <NuxtTime :datetime="nextBoothSale.sale_date" time-zone="UTC" />
-          </p>
-          <p class="text-sm">
-            <i class="pi pi-clock mr-2" />
-            {{ nextBoothSale.sale_time }}
+          <p>
+            <strong>{{ nextBoothSale.location }}</strong>
+            <br />
+            <NuxtTime
+              :datetime="nextBoothSale.sale_date"
+              weekday="short"
+              year="numeric"
+              month="short"
+              day="numeric"
+              time-zone="UTC"
+            />
+            - {{ nextBoothSale.sale_time }}
+            <br />
+            <strong>Scouts Attending:</strong>
+            <br />
+            <span v-for="scout in nextBoothSale.scouts_attending" :key="scout">
+              {{ girlsStore.getGirlNameById(scout) }}<br />
+            </span>
           </p>
         </div>
         <div v-else class="text-gray-500">
           <p>No booth sales scheduled</p>
         </div>
-      </div>
-      <div class="flex-shrink-0">
-        <i class="pi pi-chevron-right text-2xl text-gray-400" />
       </div>
     </div>
   </div>
