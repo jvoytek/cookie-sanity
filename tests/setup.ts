@@ -211,6 +211,8 @@ vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 
 const useBoothsStoreMock = vi.fn(() => ({
   getPredictedBoothSaleQuantityByCookie: vi.fn(() => -9),
+  upcomingBoothSales: [],
+  allBoothSales: [],
 }));
 vi.stubGlobal('useBoothsStore', useBoothsStoreMock);
 
@@ -225,6 +227,11 @@ const useRouteMock = vi.fn(() => ({
   push: vi.fn(),
 }));
 vi.stubGlobal('useRoute', useRouteMock);
+
+const useRouterMock = vi.fn(() => ({
+  push: vi.fn(),
+}));
+vi.stubGlobal('useRouter', useRouterMock);
 
 const useDepositsStoreMock = vi.fn(() => ({
   insertNewDeposit: vi.fn(),
