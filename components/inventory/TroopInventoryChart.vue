@@ -82,7 +82,7 @@
     };
 
     // Only access DOM on client side
-    if (typeof document !== 'undefined') {
+    if (import.meta.client) {
       const documentStyle = getComputedStyle(document.documentElement);
       const textColor = documentStyle.getPropertyValue('--p-text-color');
       const surfaceBorder = documentStyle.getPropertyValue(
