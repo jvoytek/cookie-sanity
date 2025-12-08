@@ -55,13 +55,24 @@
     }
 
     // Prepare data for the chart - use abbreviations for labels
-    const labels = cookies.map((cookie) => cookie.abbreviation);
-    const onHandData = cookies.map((cookie) => cookie.onHand || 0);
-    const afterPendingData = cookies.map((cookie) => cookie.afterPending || 0);
-    const colors = cookies.map((cookie) => cookie.color || '#888');
+    const labels = cookies
+      .filter((cookie) => cookie.abbreviation)
+      .map((cookie) => cookie.abbreviation);
+    const onHandData = cookies
+      .filter((cookie) => cookie.abbreviation)
+      .map((cookie) => cookie.onHand || 0);
+    const colors = cookies
+      .filter((cookie) => cookie.abbreviation)
+      .map((cookie) => cookie.color || '#888');
+
+    // Filter cookies with abbreviations for use in annotations
+    const validCookies = cookies.filter((cookie) => cookie.abbreviation);
 
     // Calculate dynamic step size based on max inventory value
-    const maxValue = Math.max(...onHandData, ...afterPendingData);
+    const maxValue = Math.max(
+      ...onHandData,
+      ...validCookies.map((cookie) => cookie.afterPending || 0),
+    );
     const stepSize = maxValue > 100 ? 20 : maxValue > 50 ? 10 : 5;
 
     chartData.value = {
@@ -88,8 +99,7 @@
 
       // Create horizontal line annotations for "After Pending" values
       const annotations: Record<string, LineAnnotation> = {};
-      cookies.forEach((cookie, index) => {
-        if (!cookie.abbreviation) return; // Skip cookies without abbreviations
+      validCookies.forEach((cookie, index) => {
         const afterPending = cookie.afterPending || 0;
         annotations[`afterPending_${cookie.abbreviation}`] = {
           type: 'line',
@@ -122,7 +132,7 @@
               label: (context) => {
                 const label = context.dataset.label || '';
                 const value = context.parsed.y;
-                const cookieData = cookies[context.dataIndex];
+                const cookieData = validCookies[context.dataIndex];
                 const afterPending = cookieData?.afterPending || 0;
                 return [
                   `${label}: ${value} packages`,
