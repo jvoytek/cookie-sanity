@@ -188,8 +188,9 @@ export const useCookiesStore = defineStore('cookies', () => {
         );
         const afterPending = cookie.is_virtual
           ? 0
-          : onHand + pendingGirl + pendingTroop + pendingBooth;
+          : onHand + pendingGirl + pendingTroop;
         const afterPendingIncludingRequests = afterPending + requestedGirl;
+        const afterPendingIncludingBooths = afterPending + pendingBooth;
         const [afterPendingStatusSeverity, afterPendingStatus] =
           _afterPendingStatusSeverity(afterPending);
 
@@ -203,6 +204,7 @@ export const useCookiesStore = defineStore('cookies', () => {
           pendingBooth,
           afterPending,
           afterPendingIncludingRequests,
+          afterPendingIncludingBooths,
           afterPendingStatusSeverity,
           afterPendingStatus,
           is_virtual: !!cookie.is_virtual,

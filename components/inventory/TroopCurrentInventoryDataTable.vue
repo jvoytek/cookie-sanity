@@ -66,6 +66,13 @@
       0,
     );
   });
+
+  const totalAfterPendingIncludingBooths = computed(() => {
+    return inventoryTotals.value.reduce(
+      (sum, item) => sum + (item.afterPendingIncludingBooths || 0),
+      0,
+    );
+  });
 </script>
 
 <template>
@@ -82,18 +89,30 @@
           <Column header="" class="font-bold" />
           <Column header="Troop" :colspan="3" />
           <Column header="Girl" :colspan="2" />
-          <Column header="After Pending" :colspan="3" />
+          <Column header="Projection" :colspan="4" />
           <Column header="" :colspan="3" />
         </Row>
         <Row>
           <Column header="Cookie Type" />
           <Column header="On Hand" />
           <Column header="Pending" />
-          <Column header="Booth" />
+          <Column>
+            <template #header>
+              <strong>Booth</strong>
+              <i
+                v-tooltip.bottom="{
+                  value: 'Estimated sales for upcoming booth sales.',
+                  showDelay: 500,
+                }"
+                class="pi pi-question-circle"
+              />
+            </template>
+          </Column>
           <Column header="Requested" />
           <Column header="Pending" />
-          <Column header="" />
-          <Column header="w/Requests" />
+          <Column header="After Pending" />
+          <Column header="Inc. Requests" />
+          <Column header="Inc. Booths" />
           <Column header="Status" />
           <Column header="Total Received" />
         </Row>
@@ -136,6 +155,18 @@
           >
         </template>
       </Column>
+      <Column field="afterPendingIncludingBooths" header="Inc. Booths" sortable>
+        <template #body="slotProps">
+          <span
+            :class="
+              slotProps.data.afterPendingIncludingBooths < 0
+                ? 'text-red-600'
+                : ''
+            "
+            >{{ slotProps.data.afterPendingIncludingBooths }}</span
+          >
+        </template>
+      </Column>
       <Column field="afterPendingStatus" header="Status" sortable>
         <template #body="slotProps">
           <Badge :severity="slotProps.data.afterPendingStatusSeverity">
@@ -156,6 +187,10 @@
           <Column :footer="totalAfterPending" class="font-bold" />
           <Column
             :footer="totalAfterPendingIncludingRequests"
+            class="font-bold"
+          />
+          <Column
+            :footer="totalAfterPendingIncludingBooths"
             class="font-bold"
           />
           <Column footer="" />

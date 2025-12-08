@@ -629,14 +629,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   };
 
   const transactionRequiresReceipt = (transaction: Order): boolean => {
-    const receiptRequiredTypes = [
-      'T2G',
-      'T2G(B)',
-      'T2G(VB)',
-      'G2G',
-      'G2T',
-      'T2T',
-    ];
+    const receiptRequiredTypes = ['T2G', 'T2G(B)', 'T2G(VB)', 'G2G', 'G2T'];
     return (
       receiptRequiredTypes.includes(transaction.type || '') &&
       transaction.status !== 'requested' &&

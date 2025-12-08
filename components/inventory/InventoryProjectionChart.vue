@@ -512,10 +512,10 @@
 <template>
   <div class="card">
     <h5>Inventory Projection</h5>
-    <p class="text-sm text-gray-600 mb-4">
+    <p>
       Projected inventory over time based on pending and completed transactions.
-      Lines show inventory levels, with events marked along the timeline. Use
-      mouse wheel to zoom and click-drag to pan the chart.
+      Lines show inventory levels, with events marked along the timeline.
+      Click-drag to pan the chart.
     </p>
 
     <!-- Filters -->

@@ -27,9 +27,8 @@
 
 <template>
   <h5 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
-    Scout Account Balances
+    Girl Account Balances
   </h5>
-  <p class="text-muted-color">Current account status for each scout</p>
 
   <DataTable
     :value="accountsStore.girlGirlAccountSummarys"
