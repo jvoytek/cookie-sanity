@@ -170,7 +170,7 @@ describe('TroopInventoryChart Component', () => {
 
     expect(wrapper.text()).toContain('Current Inventory');
     expect(wrapper.text()).toContain(
-      'Bars show current "On Hand" inventory with a dashed line showing the projected "After Pending" amount',
+      'Bars show current "On Hand" inventory with a dashed horizontal line on each bar showing the projected "After Pending" amount',
     );
   });
 
