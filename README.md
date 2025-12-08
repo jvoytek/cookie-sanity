@@ -18,7 +18,8 @@ Other things to include:
 ## Prerequisites
 
 - [git](https://git-scm.com/)
-- [NodeJs](https://nodejs.org/en)
+- [Node.js](https://nodejs.org/en) v20.19.5 or higher (tested with v20.19.6)
+- npm 10.8.2 or higher
 - A container runtime compatible with Docker APIs [Take a look at the Supabase Local Development Guide for some options](https://supabase.com/docs/guides/local-development)
 
 ## Installation
@@ -30,7 +31,7 @@ Other things to include:
    $ cd cookie-sanity
    ```
 
-2. **Install depenencies**
+2. **Install dependencies**
 
    This includes Supabase and Nuxt and other required node packages.
 
@@ -44,7 +45,7 @@ Other things to include:
    npx supabase start
    ```
 
-   This will start Supabase services on `http://localhost:54321` Supabase Studio on `http://localhost:54323`, and MailPit on `http://localhost:54324/`
+   This will start Supabase services on `http://localhost:54321`, Supabase Studio on `http://localhost:54323`, and MailPit on `http://localhost:54324`
 
 4. **Configure environment variables**
 
@@ -106,6 +107,12 @@ Other things to include:
 npm run lint
 ```
 
+**Format your code**
+
+```bash
+npm run format
+```
+
 **Reset Supabase DB to latest migration**
 
 This will also load seed data if you have a supabase/seed.sql file.
@@ -130,7 +137,7 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 ## How to test the software
 
-Cookie Sanity includes unit tests using Vitest, a fast and modern testing framework with excellent Vue.js support.
+Cookie Sanity includes comprehensive unit tests using Vitest, a fast and modern testing framework with excellent Vue.js support.
 
 ### Running Tests
 
@@ -154,11 +161,12 @@ npm run test:coverage
 
 ### Test Structure
 
-The test suite includes:
+The test suite includes comprehensive unit tests for:
 
-- **Unit Tests** (`tests/unit/`): Test individual functions, utilities, and Vue components
-  - `helpers.test.ts`: Tests for utility functions like currency formatting, calculations, and email validation
-  - `component.test.ts`: Example Vue component tests demonstrating the testing capabilities
+- **Store Tests** (`stores/*.test.ts`): Tests for Pinia stores including accounts, cookies, girls, orders, transactions, uploads, booths, seasons, deposits, profile, collaborators, and inventory checks
+- **Component Tests** (`components/**/*.test.ts`): Tests for Vue components including authentication, settings, inventory charts, data tables, and more
+- **Composable Tests** (`composables/*.test.ts`): Tests for composable utilities including format helpers, payment helpers, transaction helpers, and layout utilities
+- **Page Tests** (`pages/*.test.ts`): Tests for page components
 
 ### Test Dependencies
 
@@ -168,24 +176,33 @@ The testing setup includes:
 - **@vue/test-utils**: Vue component testing utilities
 - **@vitejs/plugin-vue**: Vue support for Vite/Vitest
 - **happy-dom**: Lightweight DOM implementation for testing
+- **@pinia/testing**: Testing utilities for Pinia stores
+- **@nuxt/test-utils**: Testing utilities for Nuxt applications
 
 ### Writing Tests
 
 When adding new features, include appropriate tests:
 
-1. **Unit tests** for utility functions, business logic, and data transformations
+1. **Store tests** for Pinia stores and state management
 2. **Component tests** for Vue components and their behavior
-3. **Integration tests** for connected functionality
+3. **Composable tests** for shared utility functions
+4. **Integration tests** for connected functionality
 
-Example unit test:
+Example store test:
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { calculateTotal } from '../../utils/helpers';
+import { setActivePinia, createPinia } from 'pinia';
+import { useCookiesStore } from '~/stores/cookies';
 
-describe('calculateTotal', () => {
-  it('calculates correct total', () => {
-    expect(calculateTotal(5, 4.0)).toBe(20.0);
+describe('CookiesStore', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('calculates total packages correctly', () => {
+    const store = useCookiesStore();
+    // Test implementation
   });
 });
 ```
@@ -214,14 +231,8 @@ Tests run in a fast, isolated environment that:
 - Includes TypeScript support
 - Provides comprehensive assertion capabilities
 - Supports async/await patterns
-
-### Future Enhancements
-
-The testing framework is set up to support:
-
-- End-to-end testing with Playwright (planned)
-- Visual regression testing (planned)
-- Component integration testing with Nuxt runtime (planned)
+- Includes Pinia store testing support
+- Uses global test setup from `tests/setup.ts`
 
 ## TODO: Known issues
 
