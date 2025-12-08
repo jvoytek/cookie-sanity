@@ -7,7 +7,10 @@
       </div>
     </div>
     <div class="grid grid-cols-12 gap-8">
-      <PackagesDistributedChart class="col-span-12 md:col-span-4" />
+      <PackagesDistributedChart class="col-span-12 md:col-span-6" />
+      <TroopInventoryChart class="col-span-12 md:col-span-6" />
+    </div>
+    <div class="grid grid-cols-12 gap-8">
       <NextBoothSaleWidget class="col-span-12 md:col-span-4" />
     </div>
   </div>
