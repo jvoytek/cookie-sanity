@@ -75,7 +75,29 @@
       data-key="id"
       sort-field="order"
       size="small"
+      showGridlines
     >
+      <ColumnGroup type="header">
+        <Row>
+          <Column header="" class="font-bold" />
+          <Column header="Troop" :colspan="3" />
+          <Column header="Girl" :colspan="2" />
+          <Column header="After Pending" :colspan="3" />
+          <Column header="" :colspan="3" />
+        </Row>
+        <Row>
+          <Column header="Cookie Type" />
+          <Column header="On Hand" />
+          <Column header="Pending" />
+          <Column header="Booth" />
+          <Column header="Requested" />
+          <Column header="Pending" />
+          <Column header="" />
+          <Column header="w/Requests" />
+          <Column header="Status" />
+          <Column header="Total Received" />
+        </Row>
+      </ColumnGroup>
       <Column field="name" header="Cookie Type" sortable>
         <template #body="slotProps">
           <div class="flex items-center gap-2">
@@ -89,31 +111,29 @@
           </div>
         </template>
       </Column>
-      <Column field="totalReceivedByTroop" header="Total Received" sortable />
       <Column field="onHand" header="On Hand" sortable />
-      <Column field="pendingTroop" header="Pending Troop" sortable />
-      <Column field="pendingGirl" header="Pending (Req.)" sortable>
-        <template #body="slotProps">
-          {{ slotProps.data.pendingGirl }}
-          <span v-if="slotProps.data.requestedGirl !== 0">
-            ({{ slotProps.data.requestedGirl || 0 }})
-          </span>
-        </template>
-      </Column>
-      <Column field="pendingBooth" header="Pending Booth" sortable />
-
+      <Column field="pendingTroop" header="Pend Troop" sortable />
+      <Column field="pendingBooth" header="Booth(s) Est" sortable />
+      <Column field="requestedGirl" header="Req Girl" sortable />
+      <Column field="pendingGirl" header="Pend Girl" sortable />
       <Column field="afterPending" header="After Pending" sortable>
         <template #body="slotProps">
-          {{ slotProps.data.afterPending }}
           <span
-            v-if="
-              slotProps.data.afterPendingIncludingRequests !== 0 &&
-              slotProps.data.afterPendingIncludingRequests !==
-                slotProps.data.afterPending
-            "
+            :class="slotProps.data.afterPending < 0 ? 'text-red-600' : ''"
+            >{{ slotProps.data.afterPending }}</span
           >
-            ({{ slotProps.data.afterPendingIncludingRequests }})
-          </span>
+        </template>
+      </Column>
+      <Column field="afterPendingIncludingRequests" header="w/Req." sortable>
+        <template #body="slotProps">
+          <span
+            :class="
+              slotProps.data.afterPendingIncludingRequests < 0
+                ? 'text-red-600'
+                : ''
+            "
+            >{{ slotProps.data.afterPendingIncludingRequests }}</span
+          >
         </template>
       </Column>
       <Column field="afterPendingStatus" header="Status" sortable>
@@ -123,35 +143,23 @@
           </Badge>
         </template>
       </Column>
+      <Column field="totalReceivedByTroop" header="Total Received" sortable />
+
       <ColumnGroup type="footer">
         <Row>
           <Column footer="Total" class="font-bold" />
-          <Column :footer="totalReceivedByTroop" class="font-bold" />
           <Column :footer="totalOnHand" class="font-bold" />
           <Column :footer="totalPendingTroop" class="font-bold" />
-          <Column class="font-bold">
-            <template #footer>
-              {{ totalPendingGirl }}
-              <span v-if="totalRequestedGirl !== 0">
-                ({{ totalRequestedGirl }})
-              </span>
-            </template>
-          </Column>
           <Column :footer="totalPendingBooth" class="font-bold" />
-          <Column class="font-bold">
-            <template #footer>
-              {{ totalAfterPending }}
-              <span
-                v-if="
-                  totalAfterPendingIncludingRequests !== 0 &&
-                  totalAfterPendingIncludingRequests !== totalAfterPending
-                "
-              >
-                ({{ totalAfterPendingIncludingRequests }})
-              </span>
-            </template>
-          </Column>
+          <Column :footer="totalRequestedGirl" class="font-bold" />
+          <Column :footer="totalPendingGirl" class="font-bold" />
+          <Column :footer="totalAfterPending" class="font-bold" />
+          <Column
+            :footer="totalAfterPendingIncludingRequests"
+            class="font-bold"
+          />
           <Column footer="" />
+          <Column :footer="totalReceivedByTroop" class="font-bold" />
         </Row>
       </ColumnGroup>
     </DataTable>
