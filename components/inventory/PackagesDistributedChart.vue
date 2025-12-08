@@ -14,13 +14,13 @@
   // Register Chart.js components
   ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-  const girlsStore = useGirlsStore();
+  const cookiesStore = useCookiesStore();
   const transactionsStore = useTransactionsStore();
 
   const chartData = ref();
   const chartOptions = ref();
 
-  // Calculate packages distributed to each girl
+  // Calculate packages distributed by cookie type
   const calculatePackagesDistributed = () => {
     // Get all T2G transactions (complete and recorded status)
     const distributedTransactions = transactionsStore.allTransactions.filter(
@@ -36,62 +36,69 @@
       },
     );
 
-    // Calculate total packages per girl
-    const girlPackages: Record<number, number> = {};
+    // Calculate total packages per cookie type
+    const cookiePackages: Record<string, number> = {};
 
     distributedTransactions.forEach((transaction: Order) => {
-      if (transaction.to && transaction.cookies) {
-        const girlId = transaction.to;
-        // Sum all cookie packages for this transaction
-        const totalPackages = Object.values(transaction.cookies).reduce(
-          (sum: number, count: number) => {
-            return sum + (typeof count === 'number' ? count : 0);
-          },
-          0,
-        );
-
-        girlPackages[girlId] = (girlPackages[girlId] || 0) + totalPackages;
+      if (transaction.cookies) {
+        // Sum packages for each cookie type
+        Object.entries(transaction.cookies).forEach(([abbreviation, count]) => {
+          if (typeof count === 'number' && count > 0) {
+            cookiePackages[abbreviation] =
+              (cookiePackages[abbreviation] || 0) + count;
+          }
+        });
       }
     });
 
-    // Convert to array and sort by packages (descending)
-    const girlData = Object.entries(girlPackages)
-      .map(([girlId, packages]) => ({
-        girlId: Number(girlId),
-        name: girlsStore.getGirlNameById(Number(girlId)),
-        packages,
-      }))
+    // Convert to array with cookie details and sort by packages (descending)
+    const cookieData = Object.entries(cookiePackages)
+      .map(([abbreviation, packages]) => {
+        const cookie = cookiesStore.allCookies.find(
+          (c) => c.abbreviation === abbreviation,
+        );
+        return {
+          abbreviation,
+          name: cookie?.name || abbreviation,
+          packages,
+          color: cookie?.color || '#888',
+        };
+      })
       .sort((a, b) => b.packages - a.packages);
 
-    return girlData;
+    return cookieData;
   };
 
   const updateChart = () => {
-    const girlData = calculatePackagesDistributed();
+    const cookieData = calculatePackagesDistributed();
 
-    if (girlData.length === 0) {
+    if (cookieData.length === 0) {
       chartData.value = null;
       return;
     }
 
-    const totalPackages = girlData.reduce(
-      (sum, girl) => sum + girl.packages,
+    const totalPackages = cookieData.reduce(
+      (sum, cookie) => sum + cookie.packages,
       0,
     );
 
-    // Generate colors for each girl
-    const colors = girlData.map((_, index) => {
-      const hue = (index * 137.5) % 360; // Golden angle for better color distribution
-      return `hsl(${hue}, 65%, 55%)`;
-    });
+    // Use cookie colors
+    const colors = cookieData.map((cookie) => cookie.color);
 
     chartData.value = {
-      labels: girlData.map((girl) => girl.name),
+      labels: cookieData.map((cookie) => cookie.name),
       datasets: [
         {
-          data: girlData.map((girl) => girl.packages),
+          data: cookieData.map((cookie) => cookie.packages),
           backgroundColor: colors,
-          borderColor: colors.map((color) => color.replace('55%', '45%')),
+          borderColor: colors.map((color) =>
+            // Darken the border slightly
+            color.replace(
+              /hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/,
+              (_, h, s, l) =>
+                `hsl(${h}, ${s}%, ${Math.max(0, parseInt(l) - 10)}%)`,
+            ),
+          ),
           borderWidth: 1,
         },
       ],
@@ -161,7 +168,7 @@
   // Watch for changes in stores and update chart
   const shouldUpdate = computed(
     () =>
-      (girlsStore.allGirls?.length || 0) +
+      (cookiesStore.allCookies?.length || 0) +
       (transactionsStore.allTransactions?.length || 0),
   );
 
@@ -172,10 +179,10 @@
 
 <template>
   <div class="card">
-    <h5>Packages Distributed to Girls</h5>
+    <h5>Packages Distributed by Cookie Type</h5>
     <p class="text-sm text-gray-600 mb-4">
-      Total packages distributed to each girl through completed T2G (Troop to
-      Girl) transactions. Percentages show each girl's share of the total
+      Distribution of cookie packages by type through completed T2G (Troop to
+      Girl) transactions. Percentages show each cookie type's share of the total
       distributed packages.
     </p>
 
