@@ -12,6 +12,19 @@
   import annotationPlugin from 'chartjs-plugin-annotation';
   import type { ChartData, ChartOptions } from 'chart.js';
 
+  // Type for horizontal line annotations
+  interface LineAnnotation {
+    type: string;
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+    borderColor: string;
+    borderWidth: number;
+    borderDash: number[];
+    label: { display: boolean };
+  }
+
   // Register Chart.js components and plugins
   ChartJS.register(
     CategoryScale,
@@ -74,21 +87,9 @@
       );
 
       // Create horizontal line annotations for "After Pending" values
-      const annotations: Record<
-        string,
-        {
-          type: string;
-          xMin: number;
-          xMax: number;
-          yMin: number;
-          yMax: number;
-          borderColor: string;
-          borderWidth: number;
-          borderDash: number[];
-          label: { display: boolean };
-        }
-      > = {};
+      const annotations: Record<string, LineAnnotation> = {};
       cookies.forEach((cookie, index) => {
+        if (!cookie.abbreviation) return; // Skip cookies without abbreviations
         const afterPending = cookie.afterPending || 0;
         annotations[`afterPending_${cookie.abbreviation}`] = {
           type: 'line',
