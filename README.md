@@ -234,10 +234,6 @@ Tests run in a fast, isolated environment that:
 - Includes Pinia store testing support
 - Uses global test setup from `tests/setup.ts`
 
-## TODO: Known issues
-
-Document any known significant shortcomings with the software.
-
 ## Getting help
 
 If you have questions, concerns, bug reports, etc, please file an issue in this repository's Issue Tracker.
