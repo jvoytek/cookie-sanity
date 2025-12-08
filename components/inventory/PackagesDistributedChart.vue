@@ -52,11 +52,13 @@
     });
 
     // Convert to array with cookie details and sort by packages (descending)
+    const cookieLookup = new Map(
+      cookiesStore.allCookies.map((c) => [c.abbreviation, c]),
+    );
+
     const cookieData = Object.entries(cookiePackages)
       .map(([abbreviation, packages]) => {
-        const cookie = cookiesStore.allCookies.find(
-          (c) => c.abbreviation === abbreviation,
-        );
+        const cookie = cookieLookup.get(abbreviation);
         return {
           abbreviation,
           name: cookie?.name || abbreviation,
