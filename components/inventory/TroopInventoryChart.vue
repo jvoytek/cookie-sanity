@@ -54,24 +54,24 @@
       return;
     }
 
-    // Prepare data for the chart - use abbreviations for labels
-    const labels = cookies
-      .filter((cookie) => cookie.abbreviation)
-      .map((cookie) => cookie.abbreviation);
-    const onHandData = cookies
-      .filter((cookie) => cookie.abbreviation)
-      .map((cookie) => cookie.onHand || 0);
-    const colors = cookies
-      .filter((cookie) => cookie.abbreviation)
-      .map((cookie) => cookie.color || '#888');
-
-    // Filter cookies with abbreviations for use in annotations
+    // Filter cookies with abbreviations for consistent data processing
     const validCookies = cookies.filter((cookie) => cookie.abbreviation);
+
+    if (validCookies.length === 0) {
+      chartData.value = null;
+      return;
+    }
+
+    // Prepare data for the chart - use abbreviations for labels
+    const labels = validCookies.map((cookie) => cookie.abbreviation);
+    const onHandData = validCookies.map((cookie) => cookie.onHand || 0);
+    const colors = validCookies.map((cookie) => cookie.color || '#888');
 
     // Calculate dynamic step size based on max inventory value
     const maxValue = Math.max(
       ...onHandData,
       ...validCookies.map((cookie) => cookie.afterPending || 0),
+      0, // Fallback to prevent Math.max() error on empty arrays
     );
     const stepSize = maxValue > 100 ? 20 : maxValue > 50 ? 10 : 5;
 
