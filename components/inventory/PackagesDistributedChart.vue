@@ -42,11 +42,10 @@
     distributedTransactions.forEach((transaction: Order) => {
       if (transaction.cookies) {
         // Sum packages for each cookie type
-        Object.entries(transaction.cookies).forEach(([abbreviation, count]) => {
-          if (typeof count === 'number' && count > 0) {
-            cookiePackages[abbreviation] =
-              (cookiePackages[abbreviation] || 0) + count;
-          }
+        cookiesStore.allCookies.forEach((cookie) => {
+          cookiePackages[cookie.abbreviation] =
+            (cookiePackages[cookie.abbreviation] || 0) +
+            (transaction.cookies[cookie.abbreviation] || 0);
         });
       }
     });
@@ -184,19 +183,18 @@
 
 <template>
   <div class="card">
-    <h5>Packages Distributed by Cookie Type</h5>
-    <p class="text-sm text-gray-600 mb-4">
-      Distribution of cookie packages by type through completed T2G (Troop to
-      Girl) transactions. Percentages show each cookie type's share of the total
-      distributed packages.
+    <h5>Packages Distributed</h5>
+    <p>
+      Packages distributed to girls(Troop to Girl transactions). Percentages
+      show each cookie type's share of the total.
     </p>
 
-    <div v-if="chartData" class="flex justify-center">
+    <div v-if="chartData">
       <Chart type="pie" :data="chartData" :options="chartOptions" />
     </div>
     <div v-else class="text-center p-4 text-gray-500">
-      No packages distributed yet. Complete T2G transactions to see the
-      distribution.
+      No packages distributed yet. Complete Troop to Girl transactions to see
+      the distribution.
     </div>
   </div>
 </template>
