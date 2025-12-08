@@ -82,9 +82,7 @@
     <div class="col-span-12 lg:col-span-12 xl:col-span-12">
       <div class="card">
         <h5>Account Management</h5>
-        <p class="text-muted-color mt-1">
-          View and manage scout account balances and payments
-        </p>
+        <p>View and manage scout account balances and payments</p>
         <Toolbar class="mb-6">
           <template #start>
             <Button
@@ -128,7 +126,9 @@
       <div class="grid grid-cols-12 gap-6">
         <AccountSummaryWidget />
       </div>
+    </div>
 
+    <div v-if="isTroopView" class="card">
       <AccountBalancesTable />
     </div>
 

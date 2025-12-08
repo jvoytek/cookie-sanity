@@ -104,8 +104,13 @@
     <div class="card">
       <h5>Girl Inventory</h5>
       <p>
-        Use this section to track scout restock requests and returns. You can
-        also distribute or return cookies without a request.
+        Use this section to track scout restock requests and returns. All
+        transactions start as Requests. You can then move them to Pending when
+        you start processing them, and finally to Completed when the items have
+        been given to the scout. Recorded transactions are those that have been
+        completed and then recorded in either eBudde or Smart Cookies (depending
+        on your council). Rejected transactions are those that were denied for
+        any reason.
       </p>
       <Toolbar class="mb-6">
         <template #start>

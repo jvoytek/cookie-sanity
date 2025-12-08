@@ -188,9 +188,7 @@
               <i class="pi pi-clipboard-check text-2xl" />
               <h2 class="text-2xl font-semibold">Physical Inventory Check</h2>
             </div>
-            <p class="text-surface-500 dark:text-surface-400">
-              Count physical inventory and compare with digital records
-            </p>
+            <p>Count physical inventory and compare with digital records</p>
             <div
               v-if="inventoryChecksStore.latestInventoryCheck"
               class="mt-2 text-sm text-surface-600 dark:text-surface-300"
@@ -219,11 +217,14 @@
           <template #empty>
             <div class="text-center py-8">
               <i
-                class="pi pi-clipboard-check text-6xl text-surface-300 dark:text-surface-600 mb-4"
+                class="pi pi-clipboard text-xl text-surface-300 dark:text-surface-600 mb-4"
+                style="font-size: 4rem"
               />
-              <h3 class="text-xl font-semibold mb-2">
+              <p
+                class="text-4xl mb-2 text-surface-300 dark:text-surface-60 font-bold"
+              >
                 Ready to Start Physical Count
-              </h3>
+              </p>
               <p class="text-surface-500 dark:text-surface-400">
                 Click "Start Physical Check" to begin counting your physical
                 inventory. You can save the check results for record-keeping or

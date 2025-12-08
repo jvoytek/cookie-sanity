@@ -28,11 +28,7 @@
           icon: 'pi pi-fw pi-clipboard',
           to: '/physical-inventory-check',
         },
-        {
-          label: 'All Transactions',
-          icon: 'pi pi-fw pi-table',
-          to: '/all-transactions',
-        },
+
         {
           label: 'Booth Sales',
           icon: 'pi pi-fw pi-calendar',
