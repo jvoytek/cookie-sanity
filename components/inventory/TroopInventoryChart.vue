@@ -122,10 +122,7 @@
         aspectRatio: 2,
         plugins: {
           legend: {
-            labels: {
-              color: textColor,
-            },
-            position: 'top',
+            display: false,
           },
           tooltip: {
             callbacks: {
@@ -191,7 +188,7 @@
 <template>
   <div class="card">
     <h5>Current Inventory</h5>
-    <p class="text-sm text-gray-600 mb-4">
+    <p>
       Current troop inventory by cookie type. Bars show current "On Hand"
       inventory with a dashed horizontal line on each bar showing the projected
       "After Pending" amount.
