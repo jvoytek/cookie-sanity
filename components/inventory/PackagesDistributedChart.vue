@@ -91,14 +91,17 @@
         {
           data: cookieData.map((cookie) => cookie.packages),
           backgroundColor: colors,
-          borderColor: colors.map((color) =>
+          borderColor: colors.map((color) => {
             // Darken the border slightly
-            color.replace(
-              /hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/,
-              (_, h, s, l) =>
-                `hsl(${h}, ${s}%, ${Math.max(0, parseInt(l) - 10)}%)`,
-            ),
-          ),
+            // Handle both HSL and hex color formats
+            const hslMatch = color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+            if (hslMatch) {
+              const [, h, s, l] = hslMatch;
+              return `hsl(${h}, ${s}%, ${Math.max(0, parseInt(l) - 10)}%)`;
+            }
+            // For hex colors, return as-is (or slightly darker if needed)
+            return color;
+          }),
           borderWidth: 1,
         },
       ],
