@@ -34,6 +34,47 @@ export type Database = {
   };
   public: {
     Tables: {
+      audit_sessions: {
+        Row: {
+          id: string;
+          profile: string;
+          file_name: string;
+          file_size: number;
+          created_at: string;
+          status: string;
+          original_file_data: Json;
+          parsed_rows: Json;
+        };
+        Insert: {
+          id?: string;
+          profile: string;
+          file_name: string;
+          file_size: number;
+          created_at?: string;
+          status?: string;
+          original_file_data: Json;
+          parsed_rows?: Json;
+        };
+        Update: {
+          id?: string;
+          profile?: string;
+          file_name?: string;
+          file_size?: number;
+          created_at?: string;
+          status?: string;
+          original_file_data?: Json;
+          parsed_rows?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'audit_sessions_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       booth_sales: {
         Row: {
           created_at: string;

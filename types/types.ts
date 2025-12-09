@@ -2,6 +2,8 @@ import type { Database } from './supabase';
 
 export type PermissionLevel = 'none' | 'view' | 'request' | 'edit';
 
+export type AuditSession =
+  Database['public']['Tables']['audit_sessions']['Row'];
 export type Order = Database['public']['Tables']['orders']['Row'] & {
   auto_calculate_cookies?: boolean;
   total_cookies?: number;
