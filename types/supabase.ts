@@ -37,7 +37,7 @@ export type Database = {
       audit_sessions: {
         Row: {
           id: string;
-          user_id: string;
+          profile: string;
           file_name: string;
           file_size: number;
           created_at: string;
@@ -47,7 +47,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          profile: string;
           file_name: string;
           file_size: number;
           created_at?: string;
@@ -57,7 +57,7 @@ export type Database = {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          profile?: string;
           file_name?: string;
           file_size?: number;
           created_at?: string;
@@ -67,8 +67,8 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'audit_sessions_user_id_fkey';
-            columns: ['user_id'];
+            foreignKeyName: 'audit_sessions_profile_fkey';
+            columns: ['profile'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];

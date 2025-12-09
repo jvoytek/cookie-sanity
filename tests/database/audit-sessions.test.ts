@@ -42,7 +42,7 @@ describe('audit_sessions table', () => {
   describe('table structure validation', () => {
     it('should accept valid audit session with all required fields', async () => {
       const validAuditSession: Partial<AuditSession> = {
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'smart-cookies-export.csv',
         file_size: 1024,
         status: 'pending',
@@ -70,7 +70,7 @@ describe('audit_sessions table', () => {
       expect(result.error).toBeNull();
       expect(result.data).toBeDefined();
       expect(result.data.id).toBeDefined();
-      expect(result.data.user_id).toBe('test-user-id');
+      expect(result.data.profile).toBe('test-user-id');
       expect(result.data.file_name).toBe('smart-cookies-export.csv');
       expect(result.data.file_size).toBe(1024);
       expect(result.data.status).toBe('pending');
@@ -79,7 +79,7 @@ describe('audit_sessions table', () => {
     it('should have id field as uuid', async () => {
       const auditSession = {
         id: 'valid-uuid-string',
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'test.csv',
         file_size: 500,
         created_at: new Date().toISOString(),
@@ -94,7 +94,7 @@ describe('audit_sessions table', () => {
     it('should have created_at field with timestamp', async () => {
       const auditSession = {
         id: 'test-uuid',
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'test.csv',
         file_size: 500,
         created_at: new Date().toISOString(),
@@ -111,7 +111,7 @@ describe('audit_sessions table', () => {
   describe('insertion operations', () => {
     it('should successfully insert audit session with minimal required fields', async () => {
       const newAuditSession = {
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'upload.csv',
         file_size: 2048,
         original_file_data: { data: 'test' },
@@ -155,7 +155,7 @@ describe('audit_sessions table', () => {
       };
 
       const newAuditSession = {
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'smart-cookies.csv',
         file_size: 4096,
         original_file_data: fileData,
@@ -202,7 +202,7 @@ describe('audit_sessions table', () => {
       ];
 
       const newAuditSession = {
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'parsed-data.csv',
         file_size: 8192,
         original_file_data: {},
@@ -238,7 +238,7 @@ describe('audit_sessions table', () => {
       const mockAuditSessions = [
         {
           id: 'session-1',
-          user_id: 'test-user-id',
+          profile: 'test-user-id',
           file_name: 'file1.csv',
           file_size: 1024,
           created_at: '2025-12-09T10:00:00Z',
@@ -248,7 +248,7 @@ describe('audit_sessions table', () => {
         },
         {
           id: 'session-2',
-          user_id: 'test-user-id',
+          profile: 'test-user-id',
           file_name: 'file2.csv',
           file_size: 2048,
           created_at: '2025-12-09T11:00:00Z',
@@ -269,13 +269,13 @@ describe('audit_sessions table', () => {
       const result = await mockSupabaseClient
         .from('audit_sessions')
         .select('*')
-        .eq('user_id', 'test-user-id')
+        .eq('profile', 'test-user-id')
         .order('created_at', { ascending: false });
 
       expect(result.error).toBeNull();
       expect(result.data).toHaveLength(2);
-      expect(result.data[0].user_id).toBe('test-user-id');
-      expect(result.data[1].user_id).toBe('test-user-id');
+      expect(result.data[0].profile).toBe('test-user-id');
+      expect(result.data[1].profile).toBe('test-user-id');
     });
 
     it('should retrieve parsed_rows for a specific audit session', async () => {
@@ -286,7 +286,7 @@ describe('audit_sessions table', () => {
 
       const mockAuditSession = {
         id: 'session-with-parsed',
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'data.csv',
         file_size: 4096,
         created_at: '2025-12-09T12:00:00Z',
@@ -318,7 +318,7 @@ describe('audit_sessions table', () => {
       const mockCompleteSessions = [
         {
           id: 'complete-1',
-          user_id: 'test-user-id',
+          profile: 'test-user-id',
           file_name: 'completed1.csv',
           file_size: 1024,
           created_at: '2025-12-09T10:00:00Z',
@@ -328,7 +328,7 @@ describe('audit_sessions table', () => {
         },
         {
           id: 'complete-2',
-          user_id: 'test-user-id',
+          profile: 'test-user-id',
           file_name: 'completed2.csv',
           file_size: 2048,
           created_at: '2025-12-09T11:00:00Z',
@@ -355,7 +355,7 @@ describe('audit_sessions table', () => {
       const result = await mockSupabaseClient
         .from('audit_sessions')
         .select('*')
-        .eq('user_id', 'test-user-id')
+        .eq('profile', 'test-user-id')
         .eq('status', 'complete')
         .order('created_at', { ascending: false });
 
@@ -370,7 +370,7 @@ describe('audit_sessions table', () => {
     it('should update status from pending to complete', async () => {
       const updatedSession = {
         id: 'session-to-update',
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'test.csv',
         file_size: 1024,
         created_at: '2025-12-09T10:00:00Z',
@@ -402,7 +402,7 @@ describe('audit_sessions table', () => {
     it('should update status to archived', async () => {
       const archivedSession = {
         id: 'session-to-archive',
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'old-data.csv',
         file_size: 2048,
         created_at: '2025-12-01T10:00:00Z',
@@ -447,9 +447,9 @@ describe('audit_sessions table', () => {
   });
 
   describe('foreign key relationship', () => {
-    it('should link audit session to user via user_id', async () => {
+    it('should link audit session to user via profile', async () => {
       const auditSession = {
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'test.csv',
         file_size: 1024,
         original_file_data: {},
@@ -475,14 +475,14 @@ describe('audit_sessions table', () => {
         .single();
 
       expect(result.error).toBeNull();
-      expect(result.data.user_id).toBe('test-user-id');
+      expect(result.data.profile).toBe('test-user-id');
     });
   });
 
   describe('default values', () => {
     it('should set default status to pending when not provided', async () => {
       const auditSessionWithoutStatus = {
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'test.csv',
         file_size: 512,
         original_file_data: {},
@@ -513,7 +513,7 @@ describe('audit_sessions table', () => {
 
     it('should set default parsed_rows to empty array when not provided', async () => {
       const auditSessionWithoutParsedRows = {
-        user_id: 'test-user-id',
+        profile: 'test-user-id',
         file_name: 'test.csv',
         file_size: 256,
         original_file_data: {},
