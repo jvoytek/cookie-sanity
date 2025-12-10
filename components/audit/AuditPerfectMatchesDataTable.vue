@@ -1,4 +1,6 @@
 <script setup lang="ts">
+  import TransactionsDataTable from '../inventory/TransactionsDataTable.vue';
+
   const auditSessionsStore = useAuditSessionsStore();
   const cookiesStore = useCookiesStore();
 
@@ -7,16 +9,10 @@
     return auditSessionsStore.perfectMatches.map((match, index: number) => {
       const auditRow = match.auditRow || {};
       const order = match.order || {};
-      const seller = match.seller || {};
 
       return {
-        rowNumber: index + 1,
-        date: auditRow.DATE,
-        type: auditRow.TYPE,
-        toFrom: `${seller.first_name || ''} ${seller.last_name || ''}`,
-        orderNum: order.order_num,
-        orderId: order.id,
-        ...auditRow, // Include all audit row fields
+        auditRow: auditRow,
+        ...order,
       };
     });
   });
@@ -44,8 +40,6 @@
 
 <template>
   <div class="card">
-    <h2 class="text-xl font-semibold mb-4">Perfect Matches</h2>
-
     <div
       v-if="!auditSessionsStore.mostRecentAuditSession"
       class="text-center py-8"
@@ -105,9 +99,13 @@
           </div>
         </div>
       </div>
-
+      <TransactionsDataTable
+        :orders="formattedMatches"
+        transaction-types="all"
+        :paginated="true"
+      />
       <!-- DataTable -->
-      <DataTable
+      <!---<DataTable
         :value="formattedMatches"
         paginator
         :rows="10"
@@ -150,8 +148,6 @@
           :sortable="true"
           style="min-width: 100px"
         />
-
-        <!-- Cookie columns -->
         <Column
           v-for="abbr in cookieColumns"
           :key="abbr"
@@ -160,8 +156,6 @@
           :sortable="true"
           style="min-width: 80px"
         />
-
-        <!-- Additional standard columns if they exist -->
         <Column
           v-for="col in standardColumns.filter(
             (c) => !['DATE', 'TYPE', 'TO', 'FROM', 'ORDER #'].includes(c),
@@ -172,7 +166,7 @@
           :sortable="true"
           style="min-width: 100px"
         />
-      </DataTable>
+      </DataTable>-->
     </div>
   </div>
 </template>

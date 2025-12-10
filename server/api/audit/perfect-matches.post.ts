@@ -90,6 +90,26 @@ export default defineEventHandler(async (event) => {
   };
   const headers = originalFileData?.headers || [];
 
+  // If headers don't match expected format, return empty matches
+  const expectedHeaders = [
+    'DATE',
+    'TYPE',
+    'FROM',
+    'TO',
+    // Cookie abbreviations will vary; assume any other headers are cookie types
+  ];
+  const hasValidHeaders = expectedHeaders.every((h) => headers.includes(h));
+  if (!hasValidHeaders) {
+    return {
+      matches: [] as PerfectMatch[],
+      unmatchedOrders: unmatchedOrders,
+      totalAuditRows: parsedRows.length,
+      totalOrders: totalOrders,
+      matchCount: 0,
+      error: 'Invalid audit file headers',
+    };
+  }
+
   // Helper function to convert parsed row to object
   const rowToObject = (row: unknown): Record<string, unknown> | null => {
     if (
@@ -222,6 +242,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     matches: perfectMatches,
+    unmatchedOrders: unmatchedOrders,
     totalAuditRows: parsedRows.length,
     totalOrders: totalOrders,
     matchCount: perfectMatches.length,

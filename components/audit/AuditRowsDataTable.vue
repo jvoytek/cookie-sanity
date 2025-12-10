@@ -108,6 +108,16 @@
       </p>
     </div>
 
+    <div
+      v-else-if="auditSessionsStore.auditSessionError"
+      class="text-center py-8"
+    >
+      <Message severity="error"
+        >There is a problem with the most recent audit upload:
+        {{ auditSessionsStore.auditSessionError }}</Message
+      >
+    </div>
+
     <div v-else>
       <!-- File Metadata -->
       <div class="mb-4 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg">
