@@ -78,6 +78,13 @@
       <p class="mt-2 text-muted-color">Loading audit data...</p>
     </div>
 
+    <div v-else-if="loadError" class="text-center py-8">
+      <i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-4" />
+      <p class="text-muted-color">
+        Failed to load audit data. Please try refreshing the page.
+      </p>
+    </div>
+
     <div
       v-else-if="!auditSessionsStore.mostRecentAuditSession"
       class="text-center py-8"

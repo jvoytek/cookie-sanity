@@ -5,6 +5,7 @@ import AuditRowsDataTable from '@/components/audit/AuditRowsDataTable.vue';
 
 describe('AuditRowsDataTable', () => {
   let mockAuditSessionsStore: ReturnType<typeof vi.fn>;
+  let mockNotificationHelpers: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -14,7 +15,13 @@ describe('AuditRowsDataTable', () => {
       fetchMostRecentAuditSession: vi.fn().mockResolvedValue(undefined),
     };
 
+    mockNotificationHelpers = {
+      addError: vi.fn(),
+      addSuccess: vi.fn(),
+    };
+
     vi.stubGlobal('useAuditSessionsStore', () => mockAuditSessionsStore);
+    vi.stubGlobal('useNotificationHelpers', () => mockNotificationHelpers);
   });
 
   it('renders without crashing', () => {
