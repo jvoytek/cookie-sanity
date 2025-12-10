@@ -9,6 +9,7 @@
 
   const profileStore = useProfileStore();
   const girlsStore = useGirlsStore();
+  const seasonsStore = useSeasonsStore();
 
   loading.value = false;
 
@@ -16,6 +17,7 @@
   const dt = ref();
   const girlDialog = ref(false);
   const deleteGirlDialog = ref(false);
+  const copyGirlsDialogVisible = ref(false);
   const girl = ref({});
   const selectedGirls = ref();
   const filters = ref({
@@ -23,12 +25,21 @@
   });
   const submitted = ref(false);
 
+  // Check if there are other seasons to copy from
+  const hasOtherSeasons = computed(() => {
+    return seasonsStore.allSeasons.length > 1;
+  });
+
   function openNew() {
     girl.value = {
       season: profileStore.currentProfile.season,
     };
     submitted.value = false;
     girlDialog.value = true;
+  }
+
+  function openCopyFromSeason() {
+    copyGirlsDialogVisible.value = true;
   }
 
   function hideDialog() {
@@ -90,6 +101,14 @@
                 severity="secondary"
                 class="mr-2"
                 @click="openNew"
+              />
+              <Button
+                v-if="hasOtherSeasons"
+                label="Add from other season"
+                icon="pi pi-copy"
+                severity="secondary"
+                variant="outlined"
+                @click="openCopyFromSeason"
               />
             </template>
           </Toolbar>
@@ -237,6 +256,8 @@
             <Button label="Yes" icon="pi pi-check" @click="deleteGirl" />
           </template>
         </Dialog>
+
+        <CopyGirlsDialog v-model:visible="copyGirlsDialogVisible" />
       </div>
     </div>
   </div>
