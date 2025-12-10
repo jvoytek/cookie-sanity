@@ -16,7 +16,10 @@ describe('auditSessions store', () => {
       single: vi.fn(() => mockSupabaseClient),
     };
 
-    vi.stubGlobal('useSupabaseClient', vi.fn(() => mockSupabaseClient));
+    vi.stubGlobal(
+      'useSupabaseClient',
+      vi.fn(() => mockSupabaseClient),
+    );
     vi.stubGlobal('useSupabaseUser', () => ({
       value: { id: 'test-user-id' },
     }));

@@ -104,9 +104,7 @@ describe('useAuditFileUpload', () => {
 
     it('should reject CSV with more than 2000 rows', async () => {
       const headers = 'Col1,Col2,Col3\n';
-      const rows = Array(2001)
-        .fill('val1,val2,val3')
-        .join('\n');
+      const rows = Array(2001).fill('val1,val2,val3').join('\n');
       const csvContent = headers + rows;
       const file = new File([csvContent], 'large.csv', { type: 'text/csv' });
 
