@@ -4,6 +4,7 @@ import { useAuditSessionsStore } from './auditSessions';
 
 describe('auditSessions store', () => {
   let mockSupabaseClient: ReturnType<typeof vi.fn>;
+  let mockSeasonsStore: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -14,6 +15,13 @@ describe('auditSessions store', () => {
       insert: vi.fn(() => mockSupabaseClient),
       select: vi.fn(() => mockSupabaseClient),
       single: vi.fn(() => mockSupabaseClient),
+      eq: vi.fn(() => mockSupabaseClient),
+      order: vi.fn(() => mockSupabaseClient),
+    };
+
+    // Mock seasons store
+    mockSeasonsStore = {
+      currentSeason: { id: 1, name: 'Test Season' },
     };
 
     vi.stubGlobal(
@@ -23,6 +31,7 @@ describe('auditSessions store', () => {
     vi.stubGlobal('useSupabaseUser', () => ({
       value: { id: 'test-user-id' },
     }));
+    vi.stubGlobal('useSeasonsStore', () => mockSeasonsStore);
   });
 
   describe('insertAuditSession', () => {
@@ -60,6 +69,7 @@ describe('auditSessions store', () => {
         file_size: 1024,
         original_file_data: { headers: ['col1', 'col2'], rows: [] },
         parsed_rows: [],
+        season: 1,
       });
     });
 
@@ -73,6 +83,16 @@ describe('auditSessions store', () => {
       await expect(
         store.insertAuditSession('test.csv', 1024, {}, []),
       ).rejects.toThrow('User not authenticated');
+    });
+
+    it('should throw error if no current season is selected', async () => {
+      mockSeasonsStore.currentSeason = null;
+
+      const store = useAuditSessionsStore();
+
+      await expect(
+        store.insertAuditSession('test.csv', 1024, {}, []),
+      ).rejects.toThrow('No current season selected');
     });
 
     it('should throw error if database operation fails', async () => {
@@ -132,12 +152,6 @@ describe('auditSessions store', () => {
   });
 
   describe('fetchMostRecentAuditSession', () => {
-    beforeEach(() => {
-      mockSupabaseClient.eq = vi.fn(() => mockSupabaseClient);
-      mockSupabaseClient.order = vi.fn(() => mockSupabaseClient);
-      mockSupabaseClient.limit = vi.fn(() => mockSupabaseClient);
-    });
-
     it('should fetch the most recent audit session', async () => {
       const mockAuditSession = {
         id: 'test-id',
@@ -150,8 +164,8 @@ describe('auditSessions store', () => {
         parsed_rows: [{ rowNumber: 1, data: ['value1'] }],
       };
 
-      mockSupabaseClient.single.mockResolvedValue({
-        data: mockAuditSession,
+      mockSupabaseClient.order.mockResolvedValue({
+        data: [mockAuditSession],
         error: null,
       });
 
@@ -164,16 +178,16 @@ describe('auditSessions store', () => {
         'profile',
         'test-user-id',
       );
+      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('season', 1);
       expect(mockSupabaseClient.order).toHaveBeenCalledWith('created_at', {
         ascending: false,
       });
-      expect(mockSupabaseClient.limit).toHaveBeenCalledWith(1);
     });
 
     it('should set mostRecentAuditSession to null when no sessions exist', async () => {
-      mockSupabaseClient.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116', message: 'No rows returned' },
+      mockSupabaseClient.order.mockResolvedValue({
+        data: [],
+        error: null,
       });
 
       const store = useAuditSessionsStore();
@@ -194,8 +208,18 @@ describe('auditSessions store', () => {
       );
     });
 
+    it('should throw error if no current season is selected', async () => {
+      mockSeasonsStore.currentSeason = null;
+
+      const store = useAuditSessionsStore();
+
+      await expect(store.fetchMostRecentAuditSession()).rejects.toThrow(
+        'No current season selected',
+      );
+    });
+
     it('should throw error for database errors other than no rows', async () => {
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabaseClient.order.mockResolvedValue({
         data: null,
         error: { code: 'SOME_ERROR', message: 'Database error' },
       });

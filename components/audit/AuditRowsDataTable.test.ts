@@ -32,29 +32,13 @@ describe('AuditRowsDataTable', () => {
           stubs: {
             DataTable: true,
             Column: true,
-            ProgressSpinner: true,
           },
         },
       });
     }).not.toThrow();
   });
 
-  it('displays loading state initially', () => {
-    const wrapper = mount(AuditRowsDataTable, {
-      global: {
-        plugins: [createTestingPinia()],
-        stubs: {
-          DataTable: true,
-          Column: true,
-          ProgressSpinner: true,
-        },
-      },
-    });
-
-    expect(wrapper.text()).toContain('Loading audit data...');
-  });
-
-  it('displays empty state when no audit session exists', async () => {
+  it('does not render when no audit session exists', () => {
     mockAuditSessionsStore.mostRecentAuditSession = null;
 
     const wrapper = mount(AuditRowsDataTable, {
@@ -63,16 +47,12 @@ describe('AuditRowsDataTable', () => {
         stubs: {
           DataTable: true,
           Column: true,
-          ProgressSpinner: true,
         },
       },
     });
 
-    // Wait for mounted hook to complete
-    await wrapper.vm.$nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(wrapper.text()).toContain('No audit data uploaded yet');
+    // Component should not render anything when there's no session
+    expect(wrapper.find('.card').exists()).toBe(false);
   });
 
   it('displays file metadata when audit session exists', async () => {
@@ -98,34 +78,14 @@ describe('AuditRowsDataTable', () => {
         stubs: {
           DataTable: true,
           Column: true,
-          ProgressSpinner: true,
         },
       },
     });
 
-    // Wait for mounted hook to complete
     await wrapper.vm.$nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(wrapper.text()).toContain('test-file.csv');
     expect(wrapper.text()).toContain('2.00 KB');
-  });
-
-  it('calls fetchMostRecentAuditSession on mount', () => {
-    mount(AuditRowsDataTable, {
-      global: {
-        plugins: [createTestingPinia()],
-        stubs: {
-          DataTable: true,
-          Column: true,
-          ProgressSpinner: true,
-        },
-      },
-    });
-
-    expect(
-      mockAuditSessionsStore.fetchMostRecentAuditSession,
-    ).toHaveBeenCalled();
   });
 
   it('formats rows correctly for DataTable display', async () => {
@@ -153,14 +113,11 @@ describe('AuditRowsDataTable', () => {
         stubs: {
           DataTable: true,
           Column: true,
-          ProgressSpinner: true,
         },
       },
     });
 
-    // Wait for mounted hook to complete
     await wrapper.vm.$nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Component should be rendered with DataTable
     expect(wrapper.findComponent({ name: 'DataTable' }).exists()).toBe(true);
@@ -192,14 +149,11 @@ describe('AuditRowsDataTable', () => {
         stubs: {
           DataTable: true,
           Column: true,
-          ProgressSpinner: true,
         },
       },
     });
 
-    // Wait for mounted hook to complete
     await wrapper.vm.$nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(wrapper.text()).toContain('3');
   });
