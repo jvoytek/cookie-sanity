@@ -163,6 +163,8 @@ export default defineEventHandler(async (event) => {
       if (auditType !== order.type) continue;
 
       // Check if TO/FROM matches seller name
+      // In Smart Cookies exports, TO typically contains the recipient (girl) name for T2G orders
+      // while FROM contains the sender name for G2T orders
       const seller = order.to ? sellerMap.get(order.to) : null;
       if (!seller) continue;
 

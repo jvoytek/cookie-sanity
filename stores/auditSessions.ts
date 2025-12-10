@@ -1,5 +1,5 @@
 import type { Database } from '@/types/supabase';
-import type { AuditSession } from '@/types/types';
+import type { AuditSession, PerfectMatch } from '@/types/types';
 
 /*
 ref()s become state properties
@@ -14,7 +14,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
   /* State */
   const mostRecentAuditSession = ref<AuditSession | null>(null);
-  const perfectMatches = ref<unknown[]>([]);
+  const perfectMatches = ref<PerfectMatch[]>([]);
   const perfectMatchesLoading = ref(false);
 
   /* Computed */
@@ -96,7 +96,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
         },
       });
 
-      perfectMatches.value = (response as { matches: unknown[] }).matches || [];
+      perfectMatches.value = (response as { matches: PerfectMatch[] }).matches || [];
     } catch (error) {
       console.error('Failed to fetch perfect matches:', error);
       perfectMatches.value = [];

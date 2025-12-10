@@ -15,11 +15,10 @@
 
   // Computed property to format matches for the DataTable
   const formattedMatches = computed(() => {
-    return auditSessionsStore.perfectMatches.map((match: unknown, index: number) => {
-      const matchObj = match as { auditRow?: Record<string, unknown>; order?: Record<string, unknown>; seller?: Record<string, unknown> };
-      const auditRow = matchObj.auditRow || {};
-      const order = matchObj.order || {};
-      const seller = matchObj.seller || {};
+    return auditSessionsStore.perfectMatches.map((match, index: number) => {
+      const auditRow = match.auditRow || {};
+      const order = match.order || {};
+      const seller = match.seller || {};
 
       return {
         rowNumber: index + 1,

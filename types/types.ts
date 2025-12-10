@@ -25,6 +25,12 @@ export type InventoryCheck =
 export type SeasonCollaborator =
   Database['public']['Tables']['season_collaborators']['Row'];
 
+export type PerfectMatch = {
+  auditRow: Record<string, unknown>;
+  order: Order;
+  seller: Girl;
+};
+
 export type SCOrder2025 = {
   DATE: string;
   'ORDER #': number;
