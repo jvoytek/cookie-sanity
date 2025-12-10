@@ -144,7 +144,6 @@ export const useBoothsStore = defineStore('booths', () => {
 
       const { data, error } = await _supabaseSelectBoothSales();
       if (error) throw error;
-      console.log('fetching booth sales');
       //convert sale_date string to mm/dd/yyyy format
       allBoothSales.value = data.map(_transformDataForBoothSale);
     } catch (error) {

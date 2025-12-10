@@ -2,24 +2,6 @@
   const auditSessionsStore = useAuditSessionsStore();
   const notificationHelpers = useNotificationHelpers();
 
-  const loading = ref(true);
-  const loadError = ref(false);
-
-  // Fetch the most recent audit session on mount
-  onMounted(async () => {
-    try {
-      await auditSessionsStore.fetchMostRecentAuditSession();
-    } catch (error) {
-      console.error('Error fetching audit session:', error);
-      loadError.value = true;
-      notificationHelpers.addError(
-        error instanceof Error ? error : new Error('Failed to load audit data'),
-      );
-    } finally {
-      loading.value = false;
-    }
-  });
-
   // Helper function to validate data structure
   const isValidFileData = (data: unknown): data is { headers?: string[] } => {
     return (
@@ -114,27 +96,11 @@
 </script>
 
 <template>
-  <div class="card">
-    <h2 class="text-xl font-semibold mb-4">Recently Uploaded Audit Data</h2>
-
-    <div v-if="loading" class="text-center py-8">
-      <ProgressSpinner
-        style="width: 50px; height: 50px"
-        stroke-width="4"
-        animation-duration=".5s"
-      />
-      <p class="mt-2 text-muted-color">Loading audit data...</p>
-    </div>
-
-    <div v-else-if="loadError" class="text-center py-8">
-      <i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-4" />
-      <p class="text-muted-color">
-        Failed to load audit data. Please try refreshing the page.
-      </p>
-    </div>
+  <div class="card" v-if="auditSessionsStore.mostRecentAuditSession">
+    <h2 class="text-xl font-semibold mb-4">Most Recent Audit Data</h2>
 
     <div
-      v-else-if="!auditSessionsStore.mostRecentAuditSession"
+      v-if="!auditSessionsStore.mostRecentAuditSession"
       class="text-center py-8"
     >
       <p class="text-muted-color">
