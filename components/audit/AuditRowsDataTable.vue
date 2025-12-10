@@ -1,6 +1,5 @@
 <script setup lang="ts">
   const auditSessionsStore = useAuditSessionsStore();
-  const notificationHelpers = useNotificationHelpers();
 
   // Helper function to validate data structure
   const isValidFileData = (data: unknown): data is { headers?: string[] } => {
@@ -96,7 +95,7 @@
 </script>
 
 <template>
-  <div class="card" v-if="auditSessionsStore.mostRecentAuditSession">
+  <div v-if="auditSessionsStore.mostRecentAuditSession" class="card">
     <h2 class="text-xl font-semibold mb-4">Most Recent Audit Data</h2>
 
     <div

@@ -1,6 +1,5 @@
 import type { Database } from '@/types/supabase';
 import type { AuditSession } from '@/types/types';
-import SeasonDialog from '~/components/settings/SeasonDialog.vue';
 
 /*
 ref()s become state properties
@@ -15,6 +14,8 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
   /* State */
   const mostRecentAuditSession = ref<AuditSession | null>(null);
+  const perfectMatches = ref<unknown[]>([]);
+  const perfectMatchesLoading = ref(false);
 
   /* Computed */
 
@@ -75,9 +76,42 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     mostRecentAuditSession.value = data[0] || null;
   };
 
+  const fetchPerfectMatches = async (): Promise<void> => {
+    if (!mostRecentAuditSession.value?.id) {
+      perfectMatches.value = [];
+      return;
+    }
+
+    if (!seasonsStore.currentSeason?.id)
+      throw new Error('No current season selected');
+
+    perfectMatchesLoading.value = true;
+
+    try {
+      const response = await $fetch('/api/audit/perfect-matches', {
+        method: 'POST',
+        body: {
+          auditSessionId: mostRecentAuditSession.value.id,
+          seasonId: seasonsStore.currentSeason.id,
+        },
+      });
+
+      perfectMatches.value = (response as { matches: unknown[] }).matches || [];
+    } catch (error) {
+      console.error('Failed to fetch perfect matches:', error);
+      perfectMatches.value = [];
+      throw error;
+    } finally {
+      perfectMatchesLoading.value = false;
+    }
+  };
+
   return {
     mostRecentAuditSession,
+    perfectMatches,
+    perfectMatchesLoading,
     insertAuditSession,
     fetchMostRecentAuditSession,
+    fetchPerfectMatches,
   };
 });
