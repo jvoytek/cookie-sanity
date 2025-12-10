@@ -104,7 +104,7 @@
               />
               <Button
                 v-if="hasOtherSeasons"
-                label="Add from other season"
+                label="Copy from previous season"
                 icon="pi pi-copy"
                 severity="secondary"
                 variant="outlined"

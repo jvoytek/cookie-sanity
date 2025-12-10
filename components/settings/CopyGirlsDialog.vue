@@ -87,107 +87,55 @@
     :modal="true"
     @update:visible="handleClose"
   >
-    <Stepper v-model:value="activeStep" linear>
-      <StepList>
-        <Step value="0">Select Season</Step>
-        <Step value="1">Select Girls</Step>
-      </StepList>
-      <StepPanels>
-        <StepPanel value="0">
-          <div class="flex flex-col gap-4 py-6">
-            <div class="text-center mb-4">
-              <p class="text-surface-600 dark:text-surface-400">
-                Choose the season from which you want to copy girls
-              </p>
-            </div>
-            <div>
-              <label for="season-select" class="block font-bold mb-3"
-                >Select Season</label
-              >
-              <Select
-                id="season-select"
-                v-model="selectedSeason"
-                :options="availableSeasons"
-                :option-label="seasonsStore.getSeasonName"
-                placeholder="Choose a season"
-                fluid
-              />
-            </div>
-          </div>
-          <div class="flex justify-end gap-2 pt-6">
-            <Button
-              label="Cancel"
-              severity="secondary"
-              variant="outlined"
-              @click="handleClose"
-            />
-            <Button
-              label="Next"
-              icon="pi pi-arrow-right"
-              icon-pos="right"
-              :disabled="!canProceedToStep2"
-              @click="handleSeasonChange"
-            />
-          </div>
-        </StepPanel>
-        <StepPanel value="1">
-          <div class="flex flex-col gap-4 py-6">
-            <div class="text-center mb-4">
-              <p class="text-surface-600 dark:text-surface-400">
-                Select the girls you want to copy to the current season
-              </p>
-            </div>
-            <div v-if="loading" class="text-center py-8">
-              <ProgressSpinner />
-            </div>
-            <div
-              v-else-if="availableGirls.length === 0"
-              class="text-center py-8"
-            >
-              <p class="text-surface-500">
-                No girls found in the selected season
-              </p>
-            </div>
-            <DataTable
-              v-else
-              v-model:selection="selectedGirls"
-              :value="availableGirls"
-              data-key="id"
-              scrollable
-              scroll-height="300px"
-            >
-              <Column selection-mode="multiple" header-style="width: 3rem" />
-              <Column field="first_name" header="First Name" sortable />
-              <Column field="last_name" header="Last Name" sortable />
-              <Column field="email" header="Email" sortable />
-            </DataTable>
-          </div>
-          <div class="flex justify-between gap-2 pt-6">
-            <Button
-              label="Back"
-              severity="secondary"
-              icon="pi pi-arrow-left"
-              variant="outlined"
-              @click="handleBack"
-            />
-            <div class="flex gap-2">
-              <Button
-                label="Cancel"
-                severity="secondary"
-                variant="outlined"
-                @click="handleClose"
-              />
-              <Button
-                label="Copy Girls"
-                icon="pi pi-check"
-                :disabled="!canSave"
-                :loading="loading"
-                @click="handleSave"
-              />
-            </div>
-          </div>
-        </StepPanel>
-      </StepPanels>
-    </Stepper>
+    <div class="flex flex-col gap-4 py-6">
+      <div>
+        <label for="season-select" class="block font-bold mb-3"
+          >Select Season</label
+        >
+        <Select
+          id="season-select"
+          v-model="selectedSeason"
+          :options="availableSeasons"
+          :option-label="seasonsStore.getSeasonName"
+          placeholder="Choose a season"
+          :onChange="handleSeasonChange"
+          fluid
+        />
+      </div>
+    </div>
+    <div class="flex flex-col gap-4 py-6" v-if="selectedSeason">
+      <div class="text-center mb-4">
+        <p class="text-surface-600 dark:text-surface-400">
+          Select the girls you want to copy to the current season
+        </p>
+      </div>
+      <div v-if="loading" class="text-center py-8">
+        <ProgressSpinner />
+      </div>
+      <div v-else-if="availableGirls.length === 0" class="text-center py-8">
+        <p class="text-surface-500">No girls found in the selected season</p>
+      </div>
+      <DataTable
+        v-else
+        v-model:selection="selectedGirls"
+        :value="availableGirls"
+        data-key="id"
+        scrollable
+        scroll-height="300px"
+      >
+        <Column selection-mode="multiple" header-style="width: 3rem" />
+        <Column field="first_name" header="First Name" sortable />
+        <Column field="last_name" header="Last Name" sortable />
+      </DataTable>
+    </div>
+    <template #footer>
+      <Button label="Cancel" icon="pi pi-times" text @click="handleClose" />
+      <Button
+        label="Copy Girls"
+        icon="pi pi-check"
+        :disabled="!canSave"
+        @click="handleSave"
+      />
+    </template>
   </Dialog>
 </template>
