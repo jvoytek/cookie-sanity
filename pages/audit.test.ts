@@ -19,9 +19,28 @@ vi.mock('@/components/audit/AuditRowsDataTable.vue', () => ({
   },
 }));
 
+// Mock the AuditPerfectMatchesDataTable component
+vi.mock('@/components/audit/AuditPerfectMatchesDataTable.vue', () => ({
+  default: {
+    name: 'AuditPerfectMatchesDataTable',
+    template: '<div class="audit-perfect-matches-datatable-mock"></div>',
+  },
+}));
+
 describe('AuditPage', () => {
+  let mockAuditSessionsStore: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+
+    mockAuditSessionsStore = {
+      mostRecentAuditSession: null,
+      perfectMatches: [],
+      perfectMatchesLoading: false,
+      fetchPerfectMatches: vi.fn().mockResolvedValue(undefined),
+    };
+
+    vi.stubGlobal('useAuditSessionsStore', () => mockAuditSessionsStore);
   });
 
   it('renders without crashing', () => {
@@ -32,6 +51,9 @@ describe('AuditPage', () => {
           stubs: {
             AuditFileUpload: true,
             AuditRowsDataTable: true,
+            AuditPerfectMatchesDataTable: true,
+            TabView: true,
+            TabPanel: true,
           },
         },
       });
@@ -45,6 +67,9 @@ describe('AuditPage', () => {
         stubs: {
           AuditFileUpload: true,
           AuditRowsDataTable: true,
+          AuditPerfectMatchesDataTable: true,
+          TabView: true,
+          TabPanel: true,
         },
       },
     });
@@ -59,6 +84,9 @@ describe('AuditPage', () => {
         stubs: {
           AuditFileUpload: true,
           AuditRowsDataTable: true,
+          AuditPerfectMatchesDataTable: true,
+          TabView: true,
+          TabPanel: true,
         },
       },
     });
@@ -74,6 +102,9 @@ describe('AuditPage', () => {
         stubs: {
           AuditFileUpload: true,
           AuditRowsDataTable: true,
+          AuditPerfectMatchesDataTable: true,
+          TabView: true,
+          TabPanel: true,
         },
       },
     });
@@ -90,6 +121,9 @@ describe('AuditPage', () => {
         stubs: {
           AuditFileUpload: true,
           AuditRowsDataTable: true,
+          AuditPerfectMatchesDataTable: true,
+          TabView: true,
+          TabPanel: true,
         },
       },
     });
@@ -106,6 +140,9 @@ describe('AuditPage', () => {
         stubs: {
           AuditFileUpload: true,
           AuditRowsDataTable: true,
+          AuditPerfectMatchesDataTable: true,
+          TabView: true,
+          TabPanel: true,
         },
       },
     });
