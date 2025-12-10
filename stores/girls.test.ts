@@ -655,4 +655,197 @@ describe('stores/girls', () => {
       expect(newGirlsStore.allGirls[1].first_name).toBe('Bob');
     });
   });
+
+  describe('fetchGirlsBySeason', () => {
+    it('successfully fetches girls for a specific season', async () => {
+      const mockGirls = [
+        {
+          id: 1,
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
+          season: 2,
+        },
+        {
+          id: 2,
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-profile-id',
+          season: 2,
+        },
+      ] as Girl[];
+
+      const useSupabaseClientMock = vi.fn(() => ({
+        from: vi.fn(() => ({
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              order: vi.fn(() =>
+                Promise.resolve({ data: mockGirls, error: null }),
+              ),
+            })),
+          })),
+        })),
+      }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+      setActivePinia(createPinia());
+      const newGirlsStore = useGirlsStore();
+
+      const result = await newGirlsStore.fetchGirlsBySeason(2);
+
+      expect(result).toEqual(mockGirls);
+    });
+
+    it('handles error when fetching girls by season', async () => {
+      const toastSpy = vi.fn();
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addError: toastSpy,
+      }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
+
+      const useSupabaseClientMock = vi.fn(() => ({
+        from: vi.fn(() => ({
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              order: vi.fn(() =>
+                Promise.resolve({
+                  data: null,
+                  error: { message: 'Fetch failed' },
+                }),
+              ),
+            })),
+          })),
+        })),
+      }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+      setActivePinia(createPinia());
+      const newGirlsStore = useGirlsStore();
+
+      const result = await newGirlsStore.fetchGirlsBySeason(2);
+
+      expect(result).toEqual([]);
+      expect(toastSpy).toHaveBeenCalledWith({
+        message: 'Fetch failed',
+      });
+    });
+  });
+
+  describe('copyGirlsFromSeason', () => {
+    it('successfully copies girls to new season', async () => {
+      const toastSpy = vi.fn();
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addSuccess: toastSpy,
+      }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
+
+      const girlsToCopy = [
+        {
+          id: 1,
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'old-profile-id',
+          season: 1,
+          created_at: '2023-01-01',
+        },
+        {
+          id: 2,
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'old-profile-id',
+          season: 1,
+          created_at: '2023-01-01',
+        },
+      ] as Girl[];
+
+      const copiedGirls = [
+        {
+          id: 3,
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-user-id',
+          season: 2,
+        },
+        {
+          id: 4,
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          profile: 'test-user-id',
+          season: 2,
+        },
+      ] as Girl[];
+
+      const useSupabaseClientMock = vi.fn(() => ({
+        from: vi.fn(() => ({
+          insert: vi.fn(() => ({
+            select: vi.fn(() =>
+              Promise.resolve({ data: copiedGirls, error: null }),
+            ),
+          })),
+        })),
+      }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+      const useSupabaseUserMock = vi.fn(() => ({
+        value: { id: 'test-user-id' },
+      }));
+      vi.stubGlobal('useSupabaseUser', useSupabaseUserMock);
+
+      setActivePinia(createPinia());
+      const newGirlsStore = useGirlsStore();
+
+      await newGirlsStore.copyGirlsFromSeason(girlsToCopy, 2);
+
+      expect(newGirlsStore.allGirls).toHaveLength(2);
+      expect(newGirlsStore.allGirls[0].season).toBe(2);
+      expect(newGirlsStore.allGirls[0].profile).toBe('test-user-id');
+      expect(toastSpy).toHaveBeenCalledWith('2 girls copied successfully');
+    });
+
+    it('handles error when copying girls', async () => {
+      const toastSpy = vi.fn();
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addError: toastSpy,
+      }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
+
+      const useSupabaseClientMock = vi.fn(() => ({
+        from: vi.fn(() => ({
+          insert: vi.fn(() => ({
+            select: vi.fn(() =>
+              Promise.resolve({
+                data: null,
+                error: { message: 'Copy failed' },
+              }),
+            ),
+          })),
+        })),
+      }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+      const useSupabaseUserMock = vi.fn(() => ({
+        value: { id: 'test-user-id' },
+      }));
+      vi.stubGlobal('useSupabaseUser', useSupabaseUserMock);
+
+      setActivePinia(createPinia());
+      const newGirlsStore = useGirlsStore();
+
+      const girlsToCopy = [
+        {
+          id: 1,
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'old-profile-id',
+          season: 1,
+        },
+      ] as Girl[];
+
+      await newGirlsStore.copyGirlsFromSeason(girlsToCopy, 2);
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        message: 'Copy failed',
+      });
+    });
+  });
 });
