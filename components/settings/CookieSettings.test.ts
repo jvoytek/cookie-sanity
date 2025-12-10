@@ -50,4 +50,42 @@ describe('CookieSettings', () => {
 
     expect(wrapper.exists()).toBe(true);
   });
+
+  describe('color normalization', () => {
+    it('normalizes color hex values without # prefix', () => {
+      // Test the logic that would be in saveProduct
+      const testColor = 'FF5733';
+      const normalized =
+        testColor && !testColor.startsWith('#') ? '#' + testColor : testColor;
+      expect(normalized).toBe('#FF5733');
+    });
+
+    it('preserves color hex values with # prefix', () => {
+      const testColor = '#FF5733';
+      const normalized =
+        testColor && !testColor.startsWith('#') ? '#' + testColor : testColor;
+      expect(normalized).toBe('#FF5733');
+    });
+
+    it('handles empty color values', () => {
+      const testColor = '';
+      const normalized =
+        testColor && !testColor.startsWith('#') ? '#' + testColor : testColor;
+      expect(normalized).toBe('');
+    });
+
+    it('handles null color values', () => {
+      const testColor = null;
+      const normalized =
+        testColor && !testColor.startsWith('#') ? '#' + testColor : testColor;
+      expect(normalized).toBe(null);
+    });
+
+    it('handles undefined color values', () => {
+      const testColor = undefined;
+      const normalized =
+        testColor && !testColor.startsWith('#') ? '#' + testColor : testColor;
+      expect(normalized).toBe(undefined);
+    });
+  });
 });

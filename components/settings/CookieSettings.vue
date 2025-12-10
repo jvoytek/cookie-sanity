@@ -37,6 +37,11 @@
     submitted.value = true;
 
     if (product?.value.name?.trim()) {
+      // Ensure color has # prefix
+      if (product.value.color && !product.value.color.startsWith('#')) {
+        product.value.color = '#' + product.value.color;
+      }
+
       if (product.value.id) {
         cookiesStore.upsertCookie(product.value);
       } else {
