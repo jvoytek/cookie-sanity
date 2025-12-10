@@ -89,7 +89,7 @@
           <Column header="" class="font-bold" />
           <Column header="Troop" :colspan="3" />
           <Column header="Girl" :colspan="2" />
-          <Column header="Projection" :colspan="4" />
+          <Column header="Projection" :colspan="3" />
           <Column header="" :colspan="3" />
         </Row>
         <Row>
@@ -113,7 +113,6 @@
           <Column header="After Pending" />
           <Column header="Inc. Requests" />
           <Column header="Inc. Booths" />
-          <Column header="Status" />
           <Column header="Total Received" />
         </Row>
       </ColumnGroup>
@@ -141,6 +140,33 @@
             :class="slotProps.data.afterPending < 0 ? 'text-red-600' : ''"
             >{{ slotProps.data.afterPending }}</span
           >
+          <Badge
+            v-if="slotProps.data.percent_of_sale"
+            :set="
+              percentDiff = Math.round(
+                (slotProps.data.afterPending / totalAfterPending) * 100 -
+                  slotProps.data.percent_of_sale,
+              )
+            "
+            :value="
+              percentDiff > 0 ? '+' + percentDiff + '%' : percentDiff + '%'
+            "
+            :severity="
+              -2 > percentDiff || percentDiff > 2 ? 'danger' : 'success'
+            "
+            class="ml-2"
+            v-tooltip.bottom="{
+              value:
+                percentDiff > 0
+                  ? 'The percent of total packages in your on-hand inventory for this variety will be ' +
+                    percentDiff +
+                    '% more than recommended after pending orders are fulfilled.'
+                  : 'The percent of total packages in your on-hand inventory for this variety will be ' +
+                    percentDiff +
+                    '% less than recommended after pending orders are fulfilled.',
+              showDelay: 500,
+            }"
+          ></Badge>
         </template>
       </Column>
       <Column field="afterPendingIncludingRequests" header="w/Req." sortable>
@@ -153,6 +179,39 @@
             "
             >{{ slotProps.data.afterPendingIncludingRequests }}</span
           >
+          <Badge
+            v-if="slotProps.data.percent_of_sale"
+            :set="
+              percentDiff = Math.round(
+                (slotProps.data.afterPendingIncludingRequests /
+                  totalAfterPendingIncludingRequests) *
+                  100 -
+                  slotProps.data.percent_of_sale,
+              )
+            "
+            :value="
+              percentDiff > 0 ? '+' + percentDiff + '%' : percentDiff + '%'
+            "
+            :severity="
+              -4 > percentDiff || percentDiff > 4
+                ? 'danger'
+                : -2 > percentDiff || percentDiff > 2
+                  ? 'warn'
+                  : 'success'
+            "
+            class="ml-2"
+            v-tooltip.bottom="{
+              value:
+                percentDiff > 0
+                  ? 'The percent of total packages in your on-hand inventory for this variety will be ' +
+                    percentDiff +
+                    '% more than recommended after pending orders and requests are fulfilled.'
+                  : 'The percent of total packages in your on-hand inventory for this variety will be ' +
+                    percentDiff +
+                    '% less than recommended after pending orders and requests are fulfilled.',
+              showDelay: 500,
+            }"
+          ></Badge>
         </template>
       </Column>
       <Column field="afterPendingIncludingBooths" header="Inc. Booths" sortable>
@@ -165,13 +224,39 @@
             "
             >{{ slotProps.data.afterPendingIncludingBooths }}</span
           >
-        </template>
-      </Column>
-      <Column field="afterPendingStatus" header="Status" sortable>
-        <template #body="slotProps">
-          <Badge :severity="slotProps.data.afterPendingStatusSeverity">
-            {{ slotProps.data.afterPendingStatus }}
-          </Badge>
+          <Badge
+            v-if="slotProps.data.percent_of_sale"
+            :set="
+              percentDiff = Math.round(
+                (slotProps.data.afterPendingIncludingBooths /
+                  totalAfterPendingIncludingBooths) *
+                  100 -
+                  slotProps.data.percent_of_sale,
+              )
+            "
+            :value="
+              percentDiff > 0 ? '+' + percentDiff + '%' : percentDiff + '%'
+            "
+            :severity="
+              -4 > percentDiff || percentDiff > 4
+                ? 'danger'
+                : -2 > percentDiff || percentDiff > 2
+                  ? 'warn'
+                  : 'success'
+            "
+            class="ml-2"
+            v-tooltip.bottom="{
+              value:
+                percentDiff > 0
+                  ? 'The percent of total packages in your on-hand inventory for this variety will be ' +
+                    percentDiff +
+                    '% more than recommended after pending orders, and estimated booths are fulfilled.'
+                  : 'The percent of total packages in your on-hand inventory for this variety will be ' +
+                    percentDiff +
+                    '% less than recommended after pending orders, and estimated booths are fulfilled.',
+              showDelay: 500,
+            }"
+          ></Badge>
         </template>
       </Column>
       <Column field="totalReceivedByTroop" header="Total Received" sortable />
@@ -193,7 +278,6 @@
             :footer="totalAfterPendingIncludingBooths"
             class="font-bold"
           />
-          <Column footer="" />
           <Column :footer="totalReceivedByTroop" class="font-bold" />
         </Row>
       </ColumnGroup>

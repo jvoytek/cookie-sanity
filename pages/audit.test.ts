@@ -11,6 +11,14 @@ vi.mock('@/components/audit/AuditFileUpload.vue', () => ({
   },
 }));
 
+// Mock the AuditRowsDataTable component
+vi.mock('@/components/audit/AuditRowsDataTable.vue', () => ({
+  default: {
+    name: 'AuditRowsDataTable',
+    template: '<div class="audit-rows-datatable-mock"></div>',
+  },
+}));
+
 describe('AuditPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -23,6 +31,7 @@ describe('AuditPage', () => {
           plugins: [createTestingPinia()],
           stubs: {
             AuditFileUpload: true,
+            AuditRowsDataTable: true,
           },
         },
       });
@@ -35,6 +44,7 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditRowsDataTable: true,
         },
       },
     });
@@ -48,6 +58,7 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditRowsDataTable: true,
         },
       },
     });
@@ -62,11 +73,28 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditRowsDataTable: true,
         },
       },
     });
 
     expect(wrapper.findComponent({ name: 'AuditFileUpload' }).exists()).toBe(
+      true,
+    );
+  });
+
+  it('includes AuditRowsDataTable component', () => {
+    const wrapper = mount(AuditPage, {
+      global: {
+        plugins: [createTestingPinia()],
+        stubs: {
+          AuditFileUpload: true,
+          AuditRowsDataTable: true,
+        },
+      },
+    });
+
+    expect(wrapper.findComponent({ name: 'AuditRowsDataTable' }).exists()).toBe(
       true,
     );
   });
@@ -77,6 +105,7 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditRowsDataTable: true,
         },
       },
     });

@@ -89,12 +89,12 @@
       <FileUpload
         name="file"
         accept=".csv,.xlsx"
-        :custom-upload="true"
         :auto="true"
         :max-file-size="MAX_FILE_SIZE"
         choose-label="Choose File"
         :disabled="loading"
         @select="handleFileUpload"
+        mode="basic"
       />
     </div>
 

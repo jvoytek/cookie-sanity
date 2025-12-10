@@ -1,5 +1,6 @@
 import type { Database } from '@/types/supabase';
 import type { AuditSession } from '@/types/types';
+import SeasonDialog from '~/components/settings/SeasonDialog.vue';
 
 /*
 ref()s become state properties
@@ -10,8 +11,10 @@ function()s become actions
 export const useAuditSessionsStore = defineStore('auditSessions', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
+  const seasonsStore = useSeasonsStore();
 
   /* State */
+  const mostRecentAuditSession = ref<AuditSession | null>(null);
 
   /* Computed */
 
@@ -26,6 +29,8 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     parsedRows: object[],
   ): Promise<AuditSession> => {
     if (!user.value?.id) throw new Error('User not authenticated');
+    if (!seasonsStore.currentSeason?.id)
+      throw new Error('No current season selected');
 
     const auditSession = {
       profile: user.value.id,
@@ -33,6 +38,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
       file_size: fileSize,
       original_file_data: originalFileData,
       parsed_rows: parsedRows,
+      season: seasonsStore.currentSeason?.id,
     };
 
     const { data, error } = await supabaseClient
@@ -42,8 +48,36 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
       .single();
 
     if (error) throw new Error(error.message);
+
+    // Update the most recent session after insert
+    mostRecentAuditSession.value = data;
+
     return data;
   };
 
-  return { insertAuditSession };
+  const fetchMostRecentAuditSession = async (): Promise<void> => {
+    if (!user.value?.id) throw new Error('User not authenticated');
+    if (!seasonsStore.currentSeason?.id)
+      throw new Error('No current season selected');
+
+    const { data, error } = await supabaseClient
+      .from('audit_sessions')
+      .select()
+      .eq('profile', user.value.id)
+      .eq('season', seasonsStore.currentSeason?.id)
+      .order('created_at', { ascending: false });
+
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 is "no rows returned", which is not an error in this case
+      throw new Error(error.message);
+    }
+
+    mostRecentAuditSession.value = data[0] || null;
+  };
+
+  return {
+    mostRecentAuditSession,
+    insertAuditSession,
+    fetchMostRecentAuditSession,
+  };
 });

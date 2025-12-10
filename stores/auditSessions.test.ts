@@ -4,6 +4,7 @@ import { useAuditSessionsStore } from './auditSessions';
 
 describe('auditSessions store', () => {
   let mockSupabaseClient: ReturnType<typeof vi.fn>;
+  let mockSeasonsStore: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -14,6 +15,13 @@ describe('auditSessions store', () => {
       insert: vi.fn(() => mockSupabaseClient),
       select: vi.fn(() => mockSupabaseClient),
       single: vi.fn(() => mockSupabaseClient),
+      eq: vi.fn(() => mockSupabaseClient),
+      order: vi.fn(() => mockSupabaseClient),
+    };
+
+    // Mock seasons store
+    mockSeasonsStore = {
+      currentSeason: { id: 1, name: 'Test Season' },
     };
 
     vi.stubGlobal(
@@ -23,6 +31,7 @@ describe('auditSessions store', () => {
     vi.stubGlobal('useSupabaseUser', () => ({
       value: { id: 'test-user-id' },
     }));
+    vi.stubGlobal('useSeasonsStore', () => mockSeasonsStore);
   });
 
   describe('insertAuditSession', () => {
@@ -52,6 +61,7 @@ describe('auditSessions store', () => {
       );
 
       expect(result).toEqual(mockAuditSession);
+      expect(store.mostRecentAuditSession).toEqual(mockAuditSession);
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('audit_sessions');
       expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
         profile: 'test-user-id',
@@ -59,6 +69,7 @@ describe('auditSessions store', () => {
         file_size: 1024,
         original_file_data: { headers: ['col1', 'col2'], rows: [] },
         parsed_rows: [],
+        season: 1,
       });
     });
 
@@ -72,6 +83,16 @@ describe('auditSessions store', () => {
       await expect(
         store.insertAuditSession('test.csv', 1024, {}, []),
       ).rejects.toThrow('User not authenticated');
+    });
+
+    it('should throw error if no current season is selected', async () => {
+      mockSeasonsStore.currentSeason = null;
+
+      const store = useAuditSessionsStore();
+
+      await expect(
+        store.insertAuditSession('test.csv', 1024, {}, []),
+      ).rejects.toThrow('No current season selected');
     });
 
     it('should throw error if database operation fails', async () => {
@@ -127,6 +148,87 @@ describe('auditSessions store', () => {
 
       expect(result.original_file_data).toEqual(originalFileData);
       expect(result.parsed_rows).toEqual(parsedRows);
+    });
+  });
+
+  describe('fetchMostRecentAuditSession', () => {
+    it('should fetch the most recent audit session', async () => {
+      const mockAuditSession = {
+        id: 'test-id',
+        profile: 'test-user-id',
+        file_name: 'recent-file.csv',
+        file_size: 2048,
+        created_at: new Date().toISOString(),
+        status: 'pending',
+        original_file_data: { headers: ['col1'], rows: [] },
+        parsed_rows: [{ rowNumber: 1, data: ['value1'] }],
+      };
+
+      mockSupabaseClient.order.mockResolvedValue({
+        data: [mockAuditSession],
+        error: null,
+      });
+
+      const store = useAuditSessionsStore();
+      await store.fetchMostRecentAuditSession();
+
+      expect(store.mostRecentAuditSession).toEqual(mockAuditSession);
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('audit_sessions');
+      expect(mockSupabaseClient.eq).toHaveBeenCalledWith(
+        'profile',
+        'test-user-id',
+      );
+      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('season', 1);
+      expect(mockSupabaseClient.order).toHaveBeenCalledWith('created_at', {
+        ascending: false,
+      });
+    });
+
+    it('should set mostRecentAuditSession to null when no sessions exist', async () => {
+      mockSupabaseClient.order.mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      const store = useAuditSessionsStore();
+      await store.fetchMostRecentAuditSession();
+
+      expect(store.mostRecentAuditSession).toBeNull();
+    });
+
+    it('should throw error if user is not authenticated', async () => {
+      vi.stubGlobal('useSupabaseUser', () => ({
+        value: null,
+      }));
+
+      const store = useAuditSessionsStore();
+
+      await expect(store.fetchMostRecentAuditSession()).rejects.toThrow(
+        'User not authenticated',
+      );
+    });
+
+    it('should throw error if no current season is selected', async () => {
+      mockSeasonsStore.currentSeason = null;
+
+      const store = useAuditSessionsStore();
+
+      await expect(store.fetchMostRecentAuditSession()).rejects.toThrow(
+        'No current season selected',
+      );
+    });
+
+    it('should throw error for database errors other than no rows', async () => {
+      mockSupabaseClient.order.mockResolvedValue({
+        data: null,
+        error: { code: 'SOME_ERROR', message: 'Database error' },
+      });
+
+      const store = useAuditSessionsStore();
+
+      await expect(store.fetchMostRecentAuditSession()).rejects.toThrow(
+        'Database error',
+      );
     });
   });
 });

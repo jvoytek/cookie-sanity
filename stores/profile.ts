@@ -17,6 +17,7 @@ export const useProfileStore = defineStore('profile', () => {
   const accountsStore = useAccountsStore();
   const boothsStore = useBoothsStore();
   const depositsStore = useDepositsStore();
+  const auditSessionsStore = useAuditSessionsStore();
   const inventoryChecksStore = useInventoryChecksStore();
   const notificationHelpers = useNotificationHelpers();
 
@@ -67,6 +68,7 @@ export const useProfileStore = defineStore('profile', () => {
       await boothsStore.fetchBoothSales();
       await depositsStore.fetchDeposits();
       await inventoryChecksStore.fetchInventoryChecks();
+      await auditSessionsStore.fetchMostRecentAuditSession();
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }

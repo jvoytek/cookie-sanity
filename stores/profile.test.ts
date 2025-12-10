@@ -63,6 +63,20 @@ describe('stores/profile', () => {
       })),
     );
 
+    vi.stubGlobal(
+      'useDepositsStore',
+      vi.fn(() => ({
+        fetchDeposits: vi.fn(),
+      })),
+    );
+
+    vi.stubGlobal(
+      'useAuditSessionsStore',
+      vi.fn(() => ({
+        fetchMostRecentAuditSession: vi.fn(),
+      })),
+    );
+
     profileStore = useProfileStore();
   });
 
