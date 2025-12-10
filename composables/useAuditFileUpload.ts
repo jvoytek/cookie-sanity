@@ -90,11 +90,7 @@ export const useAuditFileUpload = () => {
     };
 
     const headers = parseCSVLine(lines[0]);
-    const rows: unknown[][] = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      rows.push(parseCSVLine(lines[i]));
-    }
+    const rows = lines.slice(1).map((line) => parseCSVLine(line));
 
     return {
       headers,
@@ -168,8 +164,10 @@ export const useAuditFileUpload = () => {
                 rowData[colNumber - 1] = cell.value;
               });
               // Ensure row has same length as headers
-              while (rowData.length < headers.length) {
-                rowData.push('');
+              if (rowData.length < headers.length) {
+                rowData.push(
+                  ...Array(headers.length - rowData.length).fill(''),
+                );
               }
               rows.push(rowData);
             }
