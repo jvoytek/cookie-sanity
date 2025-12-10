@@ -25,10 +25,6 @@
     );
   });
 
-  const canProceedToStep2 = computed(() => {
-    return selectedSeason.value !== null;
-  });
-
   const canSave = computed(() => {
     return selectedGirls.value.length > 0;
   });
@@ -70,20 +66,13 @@
       selectedGirls.value = [];
     }, DIALOG_ANIMATION_DURATION);
   };
-
-  const handleBack = () => {
-    if (activeStep.value > 0) {
-      activeStep.value = 0;
-      selectedGirls.value = [];
-    }
-  };
 </script>
 
 <template>
   <Dialog
     :visible="visible"
     :style="{ width: '600px' }"
-    header="Copy Girls from Another Season"
+    header="Copy Girls from Previous Season"
     :modal="true"
     @update:visible="handleClose"
   >
