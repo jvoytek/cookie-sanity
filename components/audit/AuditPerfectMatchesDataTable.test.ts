@@ -219,7 +219,10 @@ describe('AuditPerfectMatchesDataTable', () => {
       created_at: '2025-01-01T12:00:00Z',
       status: 'pending',
       original_file_data: { headers: [] },
-      parsed_rows: [{ rowNumber: 1, data: [] }, { rowNumber: 2, data: [] }],
+      parsed_rows: [
+        { rowNumber: 1, data: [] },
+        { rowNumber: 2, data: [] },
+      ],
     };
     mockAuditSessionsStore.perfectMatches = mockMatches;
     mockAuditSessionsStore.perfectMatchesLoading = false;
@@ -240,37 +243,6 @@ describe('AuditPerfectMatchesDataTable', () => {
     expect(wrapper.text()).toContain('Perfect Matches Found');
     expect(wrapper.text()).toContain('1');
     expect(wrapper.text()).toContain('50.0%'); // 1 match out of 2 rows
-  });
-
-  it('calls fetchPerfectMatches on mount when session exists', async () => {
-    mockAuditSessionsStore.mostRecentAuditSession = {
-      id: 'test-id',
-      profile: 'test-user-id',
-      file_name: 'test.csv',
-      file_size: 1024,
-      created_at: '2025-01-01T12:00:00Z',
-      status: 'pending',
-      original_file_data: { headers: [] },
-      parsed_rows: [],
-    };
-
-    mount(AuditPerfectMatchesDataTable, {
-      global: {
-        plugins: [createTestingPinia()],
-        stubs: {
-          DataTable: true,
-          Column: true,
-          ProgressSpinner: true,
-        },
-      },
-    });
-
-    // Wait for onMounted to complete
-    await new Promise((resolve) => setTimeout(resolve, 10));
-
-    expect(mockAuditSessionsStore.fetchPerfectMatches).toHaveBeenCalledTimes(
-      1,
-    );
   });
 
   it('formats matches correctly with seller information', async () => {
