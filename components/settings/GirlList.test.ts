@@ -25,6 +25,10 @@ describe('GirlList', () => {
             Toolbar: true,
             Dialog: true,
             Checkbox: true,
+            CopyGirlsDialog: true,
+            Column: true,
+            IconField: true,
+            InputIcon: true,
           },
         },
       });
@@ -44,6 +48,10 @@ describe('GirlList', () => {
           Toolbar: true,
           Dialog: true,
           Checkbox: true,
+          CopyGirlsDialog: true,
+          Column: true,
+          IconField: true,
+          InputIcon: true,
         },
       },
     });

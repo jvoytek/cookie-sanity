@@ -68,8 +68,23 @@ export const useGirlsStore = defineStore('girls', () => {
       .order('first_name');
   };
 
+  const _supabaseFetchGirlsBySeason = async (seasonId: number) => {
+    if (!profileStore.currentProfile?.id)
+      return { data: [], error: { message: 'Profile not found' } };
+
+    return await supabaseClient
+      .from('sellers')
+      .select(`*`)
+      .eq('season', seasonId)
+      .order('first_name');
+  };
+
   const _supabaseInsertGirl = async (girl: Girl) => {
     return await supabaseClient.from('sellers').insert(girl).select().single();
+  };
+
+  const _supabaseInsertMultipleGirls = async (girls: Girl[]) => {
+    return await supabaseClient.from('sellers').insert(girls).select();
   };
 
   const _supabaseDeleteGirl = async (girl: Girl) => {
@@ -182,6 +197,57 @@ export const useGirlsStore = defineStore('girls', () => {
     }
   };
 
+  const fetchGirlsBySeason = async (seasonId: number) => {
+    try {
+      if (!profileStore.currentProfile?.id) return [];
+
+      const { data, error } = await _supabaseFetchGirlsBySeason(seasonId);
+      if (error) throw error;
+      return data ?? [];
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+      return [];
+    }
+  };
+
+  const copyGirlsFromSeason = async (girls: Girl[], targetSeasonId: number) => {
+    if (!user.value?.id || !profileStore.currentProfile?.id) {
+      notificationHelpers.addError(new Error('No user or profile found'));
+      return;
+    }
+
+    try {
+      // Create new girls with updated season and profile, removing id and created_at
+      // TypeScript will infer the correct type by omitting id and created_at
+      const girlsToCopy: Omit<Girl, 'id' | 'created_at'>[] = girls.map(
+        (girl) => {
+          const { id, created_at, ...girlData } = girl;
+          return {
+            ...girlData,
+            season: targetSeasonId,
+            profile: user.value!.id,
+          };
+        },
+      );
+
+      const { data, error } = await _supabaseInsertMultipleGirls(girlsToCopy);
+
+      if (error) throw error;
+
+      // Add the new girls to the store
+      if (data) {
+        data.forEach((girl) => _addGirl(girl as Girl));
+        _sortGirls();
+      }
+
+      notificationHelpers.addSuccess(
+        `${girls.length} girl${girls.length > 1 ? 's' : ''} copied successfully`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     fetchGirls,
     allGirls,
@@ -193,5 +259,7 @@ export const useGirlsStore = defineStore('girls', () => {
     getGirlNamesByIdList,
     getGirlById,
     getGirlIdByName,
+    fetchGirlsBySeason,
+    copyGirlsFromSeason,
   };
 });
