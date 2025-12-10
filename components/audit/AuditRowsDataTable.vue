@@ -1,7 +1,9 @@
 <script setup lang="ts">
   const auditSessionsStore = useAuditSessionsStore();
+  const notificationHelpers = useNotificationHelpers();
 
   const loading = ref(true);
+  const loadError = ref(false);
 
   // Fetch the most recent audit session on mount
   onMounted(async () => {
@@ -9,32 +11,69 @@
       await auditSessionsStore.fetchMostRecentAuditSession();
     } catch (error) {
       console.error('Error fetching audit session:', error);
+      loadError.value = true;
+      notificationHelpers.addError(
+        error instanceof Error ? error : new Error('Failed to load audit data'),
+      );
     } finally {
       loading.value = false;
     }
   });
+
+  // Helper function to validate data structure
+  const isValidFileData = (data: unknown): data is { headers?: string[] } => {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      (!('headers' in data) ||
+        (Array.isArray((data as { headers?: unknown }).headers) &&
+          (data as { headers?: unknown[] }).headers?.every(
+            (h) => typeof h === 'string',
+          )))
+    );
+  };
 
   // Computed property to extract headers from original_file_data
   const headers = computed(() => {
     const session = auditSessionsStore.mostRecentAuditSession;
     if (!session?.original_file_data) return [];
 
-    const fileData = session.original_file_data as { headers?: string[] };
-    return fileData.headers || [];
+    if (!isValidFileData(session.original_file_data)) {
+      console.warn('Invalid original_file_data structure');
+      return [];
+    }
+
+    return session.original_file_data.headers || [];
   });
+
+  // Helper function to validate parsed row structure
+  const isValidParsedRow = (
+    row: unknown,
+  ): row is { rowNumber: number; data: unknown[] } => {
+    return (
+      typeof row === 'object' &&
+      row !== null &&
+      'rowNumber' in row &&
+      typeof (row as { rowNumber: unknown }).rowNumber === 'number' &&
+      'data' in row &&
+      Array.isArray((row as { data: unknown }).data)
+    );
+  };
 
   // Computed property to format parsed_rows for the DataTable
   const formattedRows = computed(() => {
     const session = auditSessionsStore.mostRecentAuditSession;
     if (!session?.parsed_rows) return [];
 
-    const rows = session.parsed_rows as Array<{
-      rowNumber: number;
-      data: unknown[];
-    }>;
+    const rows = session.parsed_rows;
+    if (!Array.isArray(rows)) {
+      console.warn('parsed_rows is not an array');
+      return [];
+    }
+
     const headersList = headers.value;
 
-    return rows.map((row) => {
+    return rows.filter(isValidParsedRow).map((row) => {
       const formattedRow: Record<string, unknown> = {
         rowNumber: row.rowNumber,
       };
@@ -51,6 +90,15 @@
     });
   });
 
+  // Helper function to format file size
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    if (bytes < 1024 * 1024 * 1024)
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  };
+
   // Computed property for file metadata
   const fileMetadata = computed(() => {
     const session = auditSessionsStore.mostRecentAuditSession;
@@ -58,7 +106,7 @@
 
     return {
       fileName: session.file_name,
-      fileSize: (session.file_size / 1024).toFixed(2) + ' KB',
+      fileSize: formatFileSize(session.file_size),
       uploadedAt: new Date(session.created_at).toLocaleString(),
       rowCount: formattedRows.value.length,
     };
