@@ -231,4 +231,139 @@ describe('auditSessions store', () => {
       );
     });
   });
+
+  describe('fetchPerfectMatches', () => {
+    beforeEach(() => {
+      // Mock $fetch
+      global.$fetch = vi.fn();
+    });
+
+    it('should set empty array when no audit session exists', async () => {
+      const store = useAuditSessionsStore();
+      store.mostRecentAuditSession = null;
+
+      await store.fetchPerfectMatches();
+
+      expect(store.perfectMatches).toEqual([]);
+      expect(global.$fetch).not.toHaveBeenCalled();
+    });
+
+    it('should fetch perfect matches successfully', async () => {
+      const mockMatches = [
+        {
+          auditRow: { DATE: '2025-01-01', TYPE: 'T2G' },
+          order: { id: 1, order_num: '12345' },
+          seller: { id: 1, first_name: 'Alice', last_name: 'Smith' },
+        },
+      ];
+
+      const mockResponse = {
+        matches: mockMatches,
+        totalAuditRows: 10,
+        totalOrders: 5,
+        matchCount: 1,
+      };
+
+      (global.$fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+        mockResponse,
+      );
+
+      const store = useAuditSessionsStore();
+      store.mostRecentAuditSession = {
+        id: 'test-id',
+        profile: 'test-user-id',
+        file_name: 'test.csv',
+        file_size: 1024,
+        created_at: new Date().toISOString(),
+        status: 'pending',
+        original_file_data: {},
+        parsed_rows: [],
+      };
+
+      await store.fetchPerfectMatches();
+
+      expect(store.perfectMatches).toEqual(mockMatches);
+      expect(global.$fetch).toHaveBeenCalledWith('/api/audit/perfect-matches', {
+        method: 'POST',
+        body: {
+          auditSessionId: 'test-id',
+          seasonId: 1,
+        },
+      });
+    });
+
+    it('should set loading state during fetch', async () => {
+      (global.$fetch as ReturnType<typeof vi.fn>).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => resolve({ matches: [] }), 100);
+          }),
+      );
+
+      const store = useAuditSessionsStore();
+      store.mostRecentAuditSession = {
+        id: 'test-id',
+        profile: 'test-user-id',
+        file_name: 'test.csv',
+        file_size: 1024,
+        created_at: new Date().toISOString(),
+        status: 'pending',
+        original_file_data: {},
+        parsed_rows: [],
+      };
+
+      const fetchPromise = store.fetchPerfectMatches();
+
+      expect(store.perfectMatchesLoading).toBe(true);
+
+      await fetchPromise;
+
+      expect(store.perfectMatchesLoading).toBe(false);
+    });
+
+    it('should handle fetch errors', async () => {
+      (global.$fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      const store = useAuditSessionsStore();
+      store.mostRecentAuditSession = {
+        id: 'test-id',
+        profile: 'test-user-id',
+        file_name: 'test.csv',
+        file_size: 1024,
+        created_at: new Date().toISOString(),
+        status: 'pending',
+        original_file_data: {},
+        parsed_rows: [],
+      };
+
+      await expect(store.fetchPerfectMatches()).rejects.toThrow(
+        'Network error',
+      );
+
+      expect(store.perfectMatches).toEqual([]);
+      expect(store.perfectMatchesLoading).toBe(false);
+    });
+
+    it('should throw error if no current season is selected', async () => {
+      mockSeasonsStore.currentSeason = null;
+
+      const store = useAuditSessionsStore();
+      store.mostRecentAuditSession = {
+        id: 'test-id',
+        profile: 'test-user-id',
+        file_name: 'test.csv',
+        file_size: 1024,
+        created_at: new Date().toISOString(),
+        status: 'pending',
+        original_file_data: {},
+        parsed_rows: [],
+      };
+
+      await expect(store.fetchPerfectMatches()).rejects.toThrow(
+        'No current season selected',
+      );
+    });
+  });
 });
