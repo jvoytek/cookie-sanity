@@ -12,5 +12,8 @@
     <div class="col-span-12">
       <AuditFileUpload />
     </div>
+    <div class="col-span-12">
+      <AuditRowsDataTable />
+    </div>
   </div>
 </template>

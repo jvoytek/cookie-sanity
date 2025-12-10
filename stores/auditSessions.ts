@@ -12,6 +12,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   const user = useSupabaseUser();
 
   /* State */
+  const mostRecentAuditSession = ref<AuditSession | null>(null);
 
   /* Computed */
 
@@ -42,8 +43,35 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
       .single();
 
     if (error) throw new Error(error.message);
+
+    // Update the most recent session after insert
+    mostRecentAuditSession.value = data;
+
     return data;
   };
 
-  return { insertAuditSession };
+  const fetchMostRecentAuditSession = async (): Promise<void> => {
+    if (!user.value?.id) throw new Error('User not authenticated');
+
+    const { data, error } = await supabaseClient
+      .from('audit_sessions')
+      .select()
+      .eq('profile', user.value.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 is "no rows returned", which is not an error in this case
+      throw new Error(error.message);
+    }
+
+    mostRecentAuditSession.value = data || null;
+  };
+
+  return {
+    mostRecentAuditSession,
+    insertAuditSession,
+    fetchMostRecentAuditSession,
+  };
 });
