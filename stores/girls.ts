@@ -211,21 +211,24 @@ export const useGirlsStore = defineStore('girls', () => {
   };
 
   const copyGirlsFromSeason = async (girls: Girl[], targetSeasonId: number) => {
-    if (!user.value?.id) {
-      notificationHelpers.addError(new Error('No user found'));
+    if (!user.value?.id || !profileStore.currentProfile?.id) {
+      notificationHelpers.addError(new Error('No user or profile found'));
       return;
     }
 
     try {
       // Create new girls with updated season and profile, removing id and created_at
-      const girlsToCopy = girls.map((girl) => {
-        const { id, created_at, ...girlData } = girl;
-        return {
-          ...girlData,
-          season: targetSeasonId,
-          profile: user.value!.id,
-        };
-      });
+      // TypeScript will infer the correct type by omitting id and created_at
+      const girlsToCopy: Omit<Girl, 'id' | 'created_at'>[] = girls.map(
+        (girl) => {
+          const { id, created_at, ...girlData } = girl;
+          return {
+            ...girlData,
+            season: targetSeasonId,
+            profile: user.value!.id,
+          };
+        },
+      );
 
       const { data, error } = await _supabaseInsertMultipleGirls(girlsToCopy);
 

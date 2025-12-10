@@ -57,15 +57,18 @@
     handleClose();
   };
 
+  // Dialog animation duration in milliseconds
+  const DIALOG_ANIMATION_DURATION = 300;
+
   const handleClose = () => {
     emit('update:visible', false);
-    // Reset state after dialog closes
+    // Reset state after dialog animation completes
     setTimeout(() => {
       activeStep.value = 0;
       selectedSeason.value = null;
       availableGirls.value = [];
       selectedGirls.value = [];
-    }, 300);
+    }, DIALOG_ANIMATION_DURATION);
   };
 
   const handleBack = () => {
