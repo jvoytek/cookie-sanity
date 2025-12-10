@@ -28,7 +28,8 @@ export type SeasonCollaborator =
 export type PerfectMatch = {
   auditRow: Record<string, unknown>;
   order: Order;
-  seller: Girl;
+  orderToGirl: Girl;
+  orderFromGirl: Girl | null;
 };
 
 export type SCOrder2025 = {

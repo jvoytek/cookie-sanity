@@ -2,17 +2,6 @@
   const auditSessionsStore = useAuditSessionsStore();
   const cookiesStore = useCookiesStore();
 
-  // Fetch perfect matches when component is mounted
-  onMounted(async () => {
-    if (auditSessionsStore.mostRecentAuditSession) {
-      try {
-        await auditSessionsStore.fetchPerfectMatches();
-      } catch (error) {
-        console.error('Failed to load perfect matches:', error);
-      }
-    }
-  });
-
   // Computed property to format matches for the DataTable
   const formattedMatches = computed(() => {
     return auditSessionsStore.perfectMatches.map((match, index: number) => {
@@ -39,7 +28,16 @@
 
   // Get all non-cookie columns (standard columns)
   const standardColumns = computed(() => {
-    const standard = ['DATE', 'TYPE', 'TO', 'FROM', 'ORDER #', 'STATUS', 'TOTAL', 'TOTAL $'];
+    const standard = [
+      'DATE',
+      'TYPE',
+      'TO',
+      'FROM',
+      'ORDER #',
+      'STATUS',
+      'TOTAL',
+      'TOTAL $',
+    ];
     return standard;
   });
 </script>
@@ -48,21 +46,27 @@
   <div class="card">
     <h2 class="text-xl font-semibold mb-4">Perfect Matches</h2>
 
-    <div v-if="!auditSessionsStore.mostRecentAuditSession" class="text-center py-8">
+    <div
+      v-if="!auditSessionsStore.mostRecentAuditSession"
+      class="text-center py-8"
+    >
       <p class="text-muted-color">
         No audit data uploaded yet. Upload a file to see perfect matches.
       </p>
     </div>
 
-    <div v-else-if="auditSessionsStore.perfectMatchesLoading" class="text-center py-8">
+    <div
+      v-else-if="auditSessionsStore.perfectMatchesLoading"
+      class="text-center py-8"
+    >
       <ProgressSpinner />
       <p class="text-muted-color mt-4">Finding perfect matches...</p>
     </div>
 
     <div v-else-if="formattedMatches.length === 0" class="text-center py-8">
       <p class="text-muted-color">
-        No perfect matches found. This means none of the uploaded audit rows exactly match
-        database orders.
+        No perfect matches found. This means none of the uploaded audit rows
+        exactly match database orders.
       </p>
     </div>
 
@@ -90,7 +94,8 @@
                         (Array.isArray(
                           auditSessionsStore.mostRecentAuditSession.parsed_rows,
                         )
-                          ? auditSessionsStore.mostRecentAuditSession.parsed_rows.length
+                          ? auditSessionsStore.mostRecentAuditSession
+                              .parsed_rows.length
                           : 0)) *
                       100
                     ).toFixed(1)
@@ -145,7 +150,7 @@
           :sortable="true"
           style="min-width: 100px"
         />
-        
+
         <!-- Cookie columns -->
         <Column
           v-for="abbr in cookieColumns"
@@ -155,10 +160,12 @@
           :sortable="true"
           style="min-width: 80px"
         />
-        
+
         <!-- Additional standard columns if they exist -->
         <Column
-          v-for="col in standardColumns.filter(c => !['DATE', 'TYPE', 'TO', 'FROM', 'ORDER #'].includes(c))"
+          v-for="col in standardColumns.filter(
+            (c) => !['DATE', 'TYPE', 'TO', 'FROM', 'ORDER #'].includes(c),
+          )"
           :key="col"
           :field="col"
           :header="col"

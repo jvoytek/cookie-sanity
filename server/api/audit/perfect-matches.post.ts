@@ -1,11 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/supabase';
-
-interface PerfectMatch {
-  auditRow: Record<string, unknown>;
-  order: Database['public']['Tables']['orders']['Row'];
-  seller: Database['public']['Tables']['sellers']['Row'];
-}
+import type { PerfectMatch } from '~/types/types';
 
 export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseClient<Database>(event);
@@ -49,12 +44,16 @@ export default defineEventHandler(async (event) => {
     .select('*')
     .eq('season', seasonId);
 
+  const totalOrders = orders?.length || 0;
+
   if (ordersError) {
     throw createError({
       statusCode: 500,
       statusMessage: 'Failed to fetch orders',
     });
   }
+
+  const unmatchedOrders = orders || [];
 
   // Fetch all sellers for this season
   const { data: sellers, error: sellersError } = await supabase
@@ -128,7 +127,10 @@ export default defineEventHandler(async (event) => {
   };
 
   // Create seller lookup map
-  const sellerMap = new Map<number, Database['public']['Tables']['sellers']['Row']>();
+  const sellerMap = new Map<
+    number,
+    Database['public']['Tables']['sellers']['Row']
+  >();
   sellers?.forEach((seller) => {
     sellerMap.set(seller.id, seller);
   });
@@ -147,13 +149,21 @@ export default defineEventHandler(async (event) => {
 
     // Extract fields from audit row
     const auditDate = normalizeDate(auditRowObj.DATE as string);
-    const auditType = auditRowObj.TYPE as string;
-    const auditToFrom = (auditRowObj.TO || auditRowObj.FROM) as string;
+    let auditType = (auditRowObj.TYPE as string).trim();
+    if (auditType === 'COOKIE_SHARE') auditType = 'T2G';
+    if (auditType === 'COOKIE_SHARE(B)') auditType = 'T2G(B)';
+    if (auditType === 'COOKIE_SHARE(VB)') auditType = 'T2G(VB)';
+    const auditFrom =
+      auditType.slice(0, 3) === 'T2G' || auditType == 'DIRECT_SHIP'
+        ? null
+        : (auditRowObj.FROM as string);
+    const auditTo =
+      auditType.slice(0, 3) === 'G2T' ? null : (auditRowObj.TO as string);
 
-    if (!auditDate || !auditType || !auditToFrom) continue;
+    if (!auditDate || !auditType || (!auditFrom && !auditTo)) continue;
 
     // Try to match with orders
-    for (const order of orders || []) {
+    for (const order of unmatchedOrders || []) {
       const orderDate = normalizeDate(order.order_date);
 
       // Check if DATE matches
@@ -162,14 +172,22 @@ export default defineEventHandler(async (event) => {
       // Check if TYPE matches
       if (auditType !== order.type) continue;
 
-      // Check if TO/FROM matches seller name
-      // In Smart Cookies exports, TO typically contains the recipient (girl) name for T2G orders
-      // while FROM contains the sender name for G2T orders
-      const seller = order.to ? sellerMap.get(order.to) : null;
-      if (!seller) continue;
+      // Check if TO/FROM matches a seller
+      // TO and FROM can be null in G2T and T2G orders respectively
+      const orderToGirl = order.to ? sellerMap.get(order.to) : null;
 
-      const sellerFullName = `${seller.first_name} ${seller.last_name}`;
-      if (auditToFrom !== sellerFullName) continue;
+      const orderFromGirl = order.from ? sellerMap.get(order.from) : null;
+
+      const orderToGirlFullName = orderToGirl
+        ? `${orderToGirl.first_name} ${orderToGirl.last_name}`
+        : null;
+      const orderFromGirlFullName = orderFromGirl
+        ? `${orderFromGirl.first_name} ${orderFromGirl.last_name}`
+        : null;
+
+      if (auditTo !== orderToGirlFullName) continue;
+
+      if (auditFrom !== orderFromGirlFullName) continue;
 
       // Check if cookies match
       let cookiesMatch = true;
@@ -189,8 +207,15 @@ export default defineEventHandler(async (event) => {
         perfectMatches.push({
           auditRow: auditRowObj,
           order,
-          seller,
+          orderToGirl,
+          orderFromGirl,
         });
+        // Remove matched order from unmatchedOrders
+        const index = unmatchedOrders.indexOf(order);
+        if (index > -1) {
+          unmatchedOrders.splice(index, 1);
+        }
+        break;
       }
     }
   }
@@ -198,7 +223,7 @@ export default defineEventHandler(async (event) => {
   return {
     matches: perfectMatches,
     totalAuditRows: parsedRows.length,
-    totalOrders: orders?.length || 0,
+    totalOrders: totalOrders,
     matchCount: perfectMatches.length,
   };
 });
