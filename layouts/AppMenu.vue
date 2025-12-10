@@ -45,6 +45,11 @@
           to: '/bank-deposits',
         },
         {
+          label: 'Audit',
+          icon: 'pi pi-fw pi-file-check',
+          to: '/audit',
+        },
+        {
           label: 'Season Settings',
           icon: 'pi pi-fw pi-cog',
           items: [
