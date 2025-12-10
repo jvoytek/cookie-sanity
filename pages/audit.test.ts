@@ -3,6 +3,14 @@ import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import AuditPage from '@/pages/audit.vue';
 
+// Mock the AuditFileUpload component
+vi.mock('@/components/audit/AuditFileUpload.vue', () => ({
+  default: {
+    name: 'AuditFileUpload',
+    template: '<div class="audit-file-upload-mock"></div>',
+  },
+}));
+
 describe('AuditPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -13,6 +21,9 @@ describe('AuditPage', () => {
       mount(AuditPage, {
         global: {
           plugins: [createTestingPinia()],
+          stubs: {
+            AuditFileUpload: true,
+          },
         },
       });
     }).not.toThrow();
@@ -22,21 +33,41 @@ describe('AuditPage', () => {
     const wrapper = mount(AuditPage, {
       global: {
         plugins: [createTestingPinia()],
+        stubs: {
+          AuditFileUpload: true,
+        },
       },
     });
 
     expect(wrapper.text()).toContain('Audit Page');
   });
 
-  it('displays message about authenticated user access', () => {
+  it('displays description about audit functionality', () => {
     const wrapper = mount(AuditPage, {
       global: {
         plugins: [createTestingPinia()],
+        stubs: {
+          AuditFileUpload: true,
+        },
       },
     });
 
-    expect(wrapper.text()).toContain(
-      'This page is accessible to authenticated users only',
+    expect(wrapper.text()).toContain('Smart Cookies');
+    expect(wrapper.text()).toContain('Cookie Sanity');
+  });
+
+  it('includes AuditFileUpload component', () => {
+    const wrapper = mount(AuditPage, {
+      global: {
+        plugins: [createTestingPinia()],
+        stubs: {
+          AuditFileUpload: true,
+        },
+      },
+    });
+
+    expect(wrapper.findComponent({ name: 'AuditFileUpload' }).exists()).toBe(
+      true,
     );
   });
 
@@ -44,6 +75,9 @@ describe('AuditPage', () => {
     const wrapper = mount(AuditPage, {
       global: {
         plugins: [createTestingPinia()],
+        stubs: {
+          AuditFileUpload: true,
+        },
       },
     });
 
