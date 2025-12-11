@@ -2,6 +2,7 @@ import type { Database } from '@/types/supabase';
 import type {
   AuditSession,
   PerfectMatch,
+  PartialMatch,
   Order,
   NewOrder,
   SCOrder2025,
@@ -23,6 +24,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   /* State */
   const mostRecentAuditSession = ref<AuditSession | null>(null);
   const perfectMatches = ref<PerfectMatch[]>([]);
+  const partialMatches = ref<PartialMatch[]>([]);
   const unmatchedOrders = ref<Order[]>([]);
   const auditExtraRows = ref<Record<string, unknown>[]>([]);
   const auditSessionError = ref<string | null>(null);
@@ -90,6 +92,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   const fetchMatches = async (): Promise<void> => {
     if (!mostRecentAuditSession.value?.id) {
       perfectMatches.value = [];
+      partialMatches.value = [];
       return;
     }
 
@@ -109,6 +112,8 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
       perfectMatches.value =
         (response as { matches: PerfectMatch[] }).matches || [];
+      partialMatches.value =
+        (response as { partialMatches: PartialMatch[] }).partialMatches || [];
       unmatchedOrders.value =
         (response as { unmatchedOrders: Order[] }).unmatchedOrders || [];
 
@@ -135,6 +140,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
         new Error('Failed to fetch perfect matches', error as Error),
       );
       perfectMatches.value = [];
+      partialMatches.value = [];
       unmatchedOrders.value = [];
       throw error;
     } finally {
@@ -145,6 +151,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   return {
     mostRecentAuditSession,
     perfectMatches,
+    partialMatches,
     unmatchedOrders,
     auditExtraRows,
     perfectMatchesLoading,

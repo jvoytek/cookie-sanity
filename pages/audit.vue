@@ -21,8 +21,9 @@
         <TabList>
           <Tab value="0">Raw Data</Tab>
           <Tab value="1">Matching Transactions</Tab>
-          <Tab value="2">Transactions Missing from Upload</Tab>
-          <Tab value="3">Extra Rows in Upload</Tab>
+          <Tab value="2">Partial Matches</Tab>
+          <Tab value="3">Transactions Missing from Upload</Tab>
+          <Tab value="4">Extra Rows in Upload</Tab>
         </TabList>
         <TabPanels>
           <TabPanel value="0">
@@ -32,6 +33,9 @@
             <AuditPerfectMatchesDataTable />
           </TabPanel>
           <TabPanel value="2">
+            <AuditPartialMatchesDataTable />
+          </TabPanel>
+          <TabPanel value="3">
             <TransactionsDataTable
               v-if="auditSessionsStore.unmatchedOrders.length > 0"
               :orders="auditSessionsStore.unmatchedOrders"
@@ -42,7 +46,7 @@
               <p class="text-muted-color">No unmatched orders found.</p>
             </div>
           </TabPanel>
-          <TabPanel value="3">
+          <TabPanel value="4">
             <TransactionsDataTable
               v-if="auditSessionsStore.auditExtraRows.length > 0"
               :orders="auditSessionsStore.auditExtraRows"

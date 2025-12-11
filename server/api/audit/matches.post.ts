@@ -1,6 +1,7 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/supabase';
-import type { PerfectMatch } from '~/types/types';
+import type { PerfectMatch, PartialMatch } from '~/types/types';
+import { fuzzyMatch } from '~/utils/stringMatching';
 
 export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseClient<Database>(event);
@@ -241,16 +242,172 @@ export default defineEventHandler(async (event) => {
         auditExtraRows.push(auditRowObj);
       }
     }
+  }
 
-    // TODO: Compare auditExtraRows with remaining unmatchedOrders to find any partial matches from un-matched orders
+  // Find partial matches with remaining unmatched orders
+  const partialMatches: PartialMatch[] = [];
+  const auditRowsWithoutPerfectMatch = new Set<Record<string, unknown>>();
+
+  for (const row of parsedRows) {
+    const auditRowObj = rowToObject(row);
+    if (!auditRowObj) continue;
+
+    // Skip if this row was already perfectly matched
+    const alreadyMatched = perfectMatches.some(
+      (pm) => pm.auditRow === auditRowObj,
+    );
+    if (alreadyMatched) continue;
+
+    auditRowsWithoutPerfectMatch.add(auditRowObj);
+  }
+
+  // Helper function to normalize ORDER # field
+  const normalizeOrderNum = (
+    orderNum: string | number | null | undefined,
+  ): string => {
+    if (!orderNum) return '';
+    return String(orderNum).trim().replace(/\s+/g, '').toLowerCase();
+  };
+
+  // Helper function to check if dates match within ±2 days tolerance
+  const dateMatchesWithTolerance = (
+    date1: string | null,
+    date2: string | null,
+  ): boolean => {
+    if (!date1 || !date2) return false;
+
+    try {
+      const d1 = new Date(date1);
+      const d2 = new Date(date2);
+
+      if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return false;
+
+      const diffMs = Math.abs(d1.getTime() - d2.getTime());
+      const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+      return diffDays <= 2;
+    } catch {
+      return false;
+    }
+  };
+
+  // For each audit row without a perfect match, find partial matches
+  for (const auditRowObj of auditRowsWithoutPerfectMatch) {
+    const auditDate = normalizeDate(auditRowObj.DATE as string);
+    let auditType = (auditRowObj.TYPE as string)?.trim() || '';
+    if (auditType === 'COOKIE_SHARE') auditType = 'T2G';
+    if (auditType === 'COOKIE_SHARE(B)') auditType = 'T2G(B)';
+    if (auditType === 'COOKIE_SHARE(VB)') auditType = 'T2G(VB)';
+    const auditFrom =
+      auditType.slice(0, 3) === 'T2G' || auditType === 'DIRECT_SHIP'
+        ? null
+        : (auditRowObj.FROM as string);
+    const auditTo =
+      auditType.slice(0, 3) === 'G2T' ? null : (auditRowObj.TO as string);
+    const auditOrderNum = normalizeOrderNum(auditRowObj['ORDER #']);
+
+    const matchedOrders: PartialMatch['matchedOrders'] = [];
+
+    // Try to match with remaining unmatched orders
+    for (const order of unmatchedOrders) {
+      const orderDate = normalizeDate(order.order_date);
+
+      // Check matching criteria
+      const dateMatch = dateMatchesWithTolerance(auditDate, orderDate);
+      const typeMatch = auditType === order.type;
+
+      // Check TO/FROM with fuzzy matching
+      const orderToGirl = order.to ? sellerMap.get(order.to) : null;
+      const orderFromGirl = order.from ? sellerMap.get(order.from) : null;
+
+      const orderToGirlFullName = orderToGirl
+        ? `${orderToGirl.first_name} ${orderToGirl.last_name}`
+        : null;
+      const orderFromGirlFullName = orderFromGirl
+        ? `${orderFromGirl.first_name} ${orderFromGirl.last_name}`
+        : null;
+
+      const toMatch = fuzzyMatch(auditTo, orderToGirlFullName, 2);
+      const fromMatch = fuzzyMatch(auditFrom, orderFromGirlFullName, 2);
+
+      // Check ORDER # match (normalized)
+      const orderNumMatch =
+        auditOrderNum && order.order_num
+          ? normalizeOrderNum(auditOrderNum) ===
+            normalizeOrderNum(order.order_num)
+          : false;
+
+      // Count non-cookie fields that match
+      let nonCookieFieldsMatched = 0;
+      if (dateMatch) nonCookieFieldsMatched++;
+      if (typeMatch) nonCookieFieldsMatched++;
+      if (toMatch) nonCookieFieldsMatched++;
+      if (fromMatch) nonCookieFieldsMatched++;
+      if (orderNumMatch) nonCookieFieldsMatched++;
+
+      // Calculate cookie match percentage
+      const orderCookies = (order.cookies as Record<string, number>) || {};
+      let cookiesMatched = 0;
+      let totalCookies = 0;
+
+      for (const abbr of cookieAbbreviations) {
+        const auditQty = Number(auditRowObj[abbr]) || 0;
+        const orderQty = Number(orderCookies[abbr]) || 0;
+
+        totalCookies++;
+
+        // Cookie quantity ±1 counts toward % match
+        if (Math.abs(auditQty - orderQty) <= 1) {
+          cookiesMatched++;
+        }
+      }
+
+      const cookieMatchPercent =
+        totalCookies > 0 ? (cookiesMatched / totalCookies) * 100 : 0;
+
+      // Apply matching thresholds:
+      // >50% cookie match if ≥1 non-cookie field matches
+      // >20% cookie match if ≥2 non-cookie fields match
+      const meetsThreshold =
+        (nonCookieFieldsMatched >= 1 && cookieMatchPercent > 50) ||
+        (nonCookieFieldsMatched >= 2 && cookieMatchPercent > 20);
+
+      // Must have TYPE exact match as per requirements
+      if (typeMatch && meetsThreshold) {
+        matchedOrders.push({
+          order,
+          orderToGirl,
+          orderFromGirl,
+          matchScore: cookieMatchPercent,
+          matchDetails: {
+            dateMatch,
+            typeMatch,
+            toMatch,
+            fromMatch,
+            cookieMatchPercent,
+            nonCookieFieldsMatched,
+          },
+        });
+      }
+    }
+
+    // Only add to partial matches if we found at least one matching order
+    if (matchedOrders.length > 0) {
+      partialMatches.push({
+        auditRow: auditRowObj,
+        matchedOrders,
+      });
+    }
   }
 
   return {
     matches: perfectMatches,
+    partialMatches: partialMatches,
     unmatchedOrders: unmatchedOrders,
     auditExtraRows: auditExtraRows,
     totalAuditRows: parsedRows.length,
     totalOrders: totalOrders,
     matchCount: perfectMatches.length,
+    partialMatchCount: partialMatches.length,
   };
 });
