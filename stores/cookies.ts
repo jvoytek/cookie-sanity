@@ -284,6 +284,24 @@ export const useCookiesStore = defineStore('cookies', () => {
     return await supabaseClient.from('cookies').upsert(allCookies.value);
   };
 
+  const _supabaseFetchCookiesBySeason = async (seasonId: number) => {
+    if (!profileStore.currentProfile?.id) {
+      return { data: [], error: { message: 'No profile found' } };
+    }
+
+    return await supabaseClient
+      .from('cookies')
+      .select(`*`)
+      .eq('season', seasonId)
+      .order('order');
+  };
+
+  const _supabaseInsertMultipleCookies = async (
+    cookies: Omit<Cookie, 'id' | 'created_at'>[],
+  ) => {
+    return await supabaseClient.from('cookies').insert(cookies).select();
+  };
+
   const _getCookiePercentages = (
     cookieRatioTotal?: number,
   ): Record<string, number> => {
@@ -484,6 +502,60 @@ export const useCookiesStore = defineStore('cookies', () => {
     return predictions;
   };
 
+  const fetchCookiesBySeason = async (seasonId: number) => {
+    try {
+      if (!profileStore.currentProfile?.id) return [];
+
+      const { data, error } = await _supabaseFetchCookiesBySeason(seasonId);
+      if (error) throw error;
+      return data ?? [];
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+      return [];
+    }
+  };
+
+  const copyCookiesFromSeason = async (
+    cookies: Cookie[],
+    targetSeasonId: number,
+  ) => {
+    if (!user.value?.id || !profileStore.currentProfile?.id) {
+      notificationHelpers.addError(new Error('No user or profile found'));
+      return;
+    }
+
+    try {
+      // Create new cookies with updated season and profile, removing id and created_at
+      const cookiesToCopy: Omit<Cookie, 'id' | 'created_at'>[] = cookies.map(
+        (cookie) => {
+          const { id, created_at, ...cookieData } = cookie;
+          return {
+            ...cookieData,
+            season: targetSeasonId,
+            profile: user.value!.id,
+          };
+        },
+      );
+
+      const { data, error } =
+        await _supabaseInsertMultipleCookies(cookiesToCopy);
+
+      if (error) throw error;
+
+      // Add the new cookies to the store
+      if (data) {
+        data.forEach((cookie) => _addCookie(cookie as Cookie));
+        _sortCookies();
+      }
+
+      notificationHelpers.addSuccess(
+        `${cookies.length} cookie${cookies.length > 1 ? 's' : ''} copied successfully`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     allCookies,
     allCookiesNotVirtual,
@@ -494,11 +566,13 @@ export const useCookiesStore = defineStore('cookies', () => {
     averageCookiePrice,
     customCookieValidationRules,
     fetchCookies,
+    fetchCookiesBySeason,
     getCookieByAbbreviation,
     insertCookie,
     upsertCookie,
     deleteCookie,
     reorderCookies,
     getPredictedCookiesFromExpectedSales,
+    copyCookiesFromSeason,
   };
 });

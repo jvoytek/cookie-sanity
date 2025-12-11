@@ -25,6 +25,7 @@ describe('CookieSettings', () => {
             ColorPicker: true,
             Toolbar: true,
             Dialog: true,
+            CopyCookiesDialog: true,
           },
         },
       });
@@ -44,6 +45,7 @@ describe('CookieSettings', () => {
           ColorPicker: true,
           Toolbar: true,
           Dialog: true,
+          CopyCookiesDialog: true,
         },
       },
     });

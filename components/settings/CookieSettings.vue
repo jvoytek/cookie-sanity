@@ -15,12 +15,20 @@
   const dt = ref();
   const productDialog = ref(false);
   const deleteProductDialog = ref(false);
+  const copyCookiesDialogVisible = ref(false);
   const product = ref({});
   const selectedProducts = ref();
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
   const submitted = ref(false);
+
+  // Check if there are other seasons with cookies
+  const hasOtherSeasonsWithCookies = computed(() => {
+    return seasonsStore.allSeasons.some(
+      (season) => season.id !== seasonsStore.currentSeason?.id,
+    );
+  });
 
   function openNew() {
     product.value = {};
@@ -101,6 +109,13 @@
                 severity="secondary"
                 class="mr-2"
                 @click="openNew"
+              />
+              <Button
+                v-if="hasOtherSeasonsWithCookies"
+                label="Add from other season"
+                icon="pi pi-copy"
+                severity="secondary"
+                @click="copyCookiesDialogVisible = true"
               />
             </template>
           </Toolbar>
@@ -392,5 +407,7 @@
         <Button label="Yes" icon="pi pi-check" @click="deleteProduct" />
       </template>
     </Dialog>
+
+    <CopyCookiesDialog v-model:visible="copyCookiesDialogVisible" />
   </div>
 </template>
