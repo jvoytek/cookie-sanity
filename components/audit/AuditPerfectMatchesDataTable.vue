@@ -101,7 +101,7 @@
       </div>
       <TransactionsDataTable
         :orders="formattedMatches"
-        transaction-types="all"
+        transaction-types="audit"
         :paginated="true"
       />
       <!-- DataTable -->

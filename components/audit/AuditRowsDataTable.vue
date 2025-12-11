@@ -96,8 +96,6 @@
 
 <template>
   <div v-if="auditSessionsStore.mostRecentAuditSession" class="card">
-    <h2 class="text-xl font-semibold mb-4">Most Recent Audit Data</h2>
-
     <div
       v-if="!auditSessionsStore.mostRecentAuditSession"
       class="text-center py-8"

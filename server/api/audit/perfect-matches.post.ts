@@ -54,6 +54,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const unmatchedOrders = orders || [];
+  const auditExtraRows: Record<string, unknown>[] = [];
 
   // Fetch all sellers for this season
   const { data: sellers, error: sellersError } = await supabase
@@ -236,6 +237,8 @@ export default defineEventHandler(async (event) => {
           unmatchedOrders.splice(index, 1);
         }
         break;
+      } else {
+        auditExtraRows.push(auditRowObj);
       }
     }
   }
@@ -243,6 +246,7 @@ export default defineEventHandler(async (event) => {
   return {
     matches: perfectMatches,
     unmatchedOrders: unmatchedOrders,
+    auditExtraRows: auditExtraRows,
     totalAuditRows: parsedRows.length,
     totalOrders: totalOrders,
     matchCount: perfectMatches.length,

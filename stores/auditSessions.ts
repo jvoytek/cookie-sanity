@@ -1,5 +1,11 @@
 import type { Database } from '@/types/supabase';
-import type { AuditSession, PerfectMatch, Order } from '@/types/types';
+import type {
+  AuditSession,
+  PerfectMatch,
+  Order,
+  NewOrder,
+  SCOrder2025,
+} from '@/types/types';
 
 /*
 ref()s become state properties
@@ -11,12 +17,14 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
   const seasonsStore = useSeasonsStore();
+  const transactionsStore = useTransactionsStore();
   const notificationHelpers = useNotificationHelpers();
 
   /* State */
   const mostRecentAuditSession = ref<AuditSession | null>(null);
   const perfectMatches = ref<PerfectMatch[]>([]);
   const unmatchedOrders = ref<Order[]>([]);
+  const auditExtraRows = ref<Record<string, unknown>[]>([]);
   const auditSessionError = ref<string | null>(null);
   const perfectMatchesLoading = ref(false);
 
@@ -103,6 +111,24 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
         (response as { matches: PerfectMatch[] }).matches || [];
       unmatchedOrders.value =
         (response as { unmatchedOrders: Order[] }).unmatchedOrders || [];
+
+      // Convert auditExtraRows to NewOrder format
+      auditExtraRows.value = (
+        (response as { auditExtraRows: Record<string, unknown>[] })
+          .auditExtraRows || []
+      )
+        .map((obj: Record<string, unknown>) =>
+          transactionsStore.convertSCOrderToNewTransaction(obj as SCOrder2025),
+        )
+        .filter(
+          (order) =>
+            order !== undefined &&
+            typeof order.profile === 'string' &&
+            typeof order.order_num === 'string' &&
+            typeof order.type === 'string' &&
+            typeof order.status === 'string',
+        ) as NewOrder[];
+
       auditSessionError.value = (response as { error?: string }).error || null;
     } catch (error) {
       notificationHelpers.addError(
@@ -120,6 +146,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     mostRecentAuditSession,
     perfectMatches,
     unmatchedOrders,
+    auditExtraRows,
     perfectMatchesLoading,
     auditSessionError,
     insertAuditSession,

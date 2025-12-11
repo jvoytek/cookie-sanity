@@ -3,7 +3,7 @@
 
   const props = defineProps<{
     orders: Order[];
-    transactionTypes: 'troop' | 'girl' | 'all';
+    transactionTypes: 'troop' | 'girl' | 'all' | 'audit';
     paginated?: boolean;
   }>();
 
@@ -188,7 +188,12 @@
 </script>
 
 <template>
-  <Toolbar v-if="props.transactionTypes !== 'all'" class="mb-4">
+  <Toolbar
+    v-if="
+      props.transactionTypes !== 'all' && props.transactionTypes !== 'audit'
+    "
+    class="mb-4"
+  >
     <template #start>
       <span class="mr-4 text-sm text-muted-color">
         {{ selectedTransactions.length }} selected
@@ -318,13 +323,17 @@
     size="small"
   >
     <Column
-      v-if="props.transactionTypes !== 'all'"
+      v-if="
+        props.transactionTypes !== 'all' && props.transactionTypes !== 'audit'
+      "
       selection-mode="multiple"
       header-style="width: 3rem"
     />
     <Column
       v-if="
-        props.transactionTypes === 'troop' || props.transactionTypes === 'all'
+        props.transactionTypes === 'troop' ||
+        props.transactionTypes === 'all' ||
+        props.transactionTypes === 'audit'
       "
       field="supplier"
       header="Supplier"
@@ -333,7 +342,9 @@
     <Column field="order_num" header="TXN #" sortable />
     <Column
       v-if="
-        props.transactionTypes === 'girl' || props.transactionTypes === 'all'
+        props.transactionTypes === 'girl' ||
+        props.transactionTypes === 'all' ||
+        props.transactionTypes === 'audit'
       "
       field="from"
       header="From"
@@ -349,7 +360,9 @@
     </Column>
     <Column
       v-if="
-        props.transactionTypes === 'girl' || props.transactionTypes === 'all'
+        props.transactionTypes === 'girl' ||
+        props.transactionTypes === 'all' ||
+        props.transactionTypes === 'audit'
       "
       field="to"
       header="To"
@@ -397,7 +410,12 @@
       </template>
     </Column>
     <Column field="notes" header="Notes" />
-    <Column field="actions" header="Actions" style="min-width: 224px">
+    <Column
+      field="actions"
+      header="Actions"
+      style="min-width: 224px"
+      v-if="props.transactionTypes !== 'audit'"
+    >
       <template #body="slotProps">
         <Button
           v-if="

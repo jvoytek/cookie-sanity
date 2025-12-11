@@ -19,9 +19,10 @@
     <div v-if="auditSessionsStore.mostRecentAuditSession" class="col-span-12">
       <Tabs value="0">
         <TabList>
-          <Tab value="0">All Rows</Tab>
-          <Tab value="1">Perfect Matches</Tab>
+          <Tab value="0">Raw Data</Tab>
+          <Tab value="1">Matching Transactions</Tab>
           <Tab value="2">Transactions Missing from Upload</Tab>
+          <Tab value="3">Extra Rows in Upload</Tab>
         </TabList>
         <TabPanels>
           <TabPanel value="0">
@@ -34,11 +35,22 @@
             <TransactionsDataTable
               v-if="auditSessionsStore.unmatchedOrders.length > 0"
               :orders="auditSessionsStore.unmatchedOrders"
-              transaction-types="all"
+              transaction-types="audit"
               :paginated="true"
             />
             <div v-else class="text-center py-8">
               <p class="text-muted-color">No unmatched orders found.</p>
+            </div>
+          </TabPanel>
+          <TabPanel value="3">
+            <TransactionsDataTable
+              v-if="auditSessionsStore.auditExtraRows.length > 0"
+              :orders="auditSessionsStore.auditExtraRows"
+              transaction-types="audit"
+              :paginated="true"
+            />
+            <div v-else class="text-center py-8">
+              <p class="text-muted-color">No extra rows found in audit.</p>
             </div>
           </TabPanel>
         </TabPanels>

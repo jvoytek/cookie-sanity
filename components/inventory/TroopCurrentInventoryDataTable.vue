@@ -141,7 +141,9 @@
             >{{ slotProps.data.afterPending }}</span
           >
           <Badge
-            v-if="slotProps.data.percent_of_sale"
+            v-if="
+              slotProps.data.afterPending != 0 && slotProps.data.percent_of_sale
+            "
             :set="
               percentDiff = Math.round(
                 (slotProps.data.afterPending / totalAfterPending) * 100 -
@@ -180,7 +182,10 @@
             >{{ slotProps.data.afterPendingIncludingRequests }}</span
           >
           <Badge
-            v-if="slotProps.data.percent_of_sale"
+            v-if="
+              slotProps.data.afterPendingIncludingRequests != 0 &&
+              slotProps.data.percent_of_sale
+            "
             :set="
               percentDiff = Math.round(
                 (slotProps.data.afterPendingIncludingRequests /
@@ -225,7 +230,10 @@
             >{{ slotProps.data.afterPendingIncludingBooths }}</span
           >
           <Badge
-            v-if="slotProps.data.percent_of_sale"
+            v-if="
+              slotProps.data.afterPendingIncludingBooths != 0 &&
+              slotProps.data.percent_of_sale
+            "
             :set="
               percentDiff = Math.round(
                 (slotProps.data.afterPendingIncludingBooths /
