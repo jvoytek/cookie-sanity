@@ -238,10 +238,11 @@ export default defineEventHandler(async (event) => {
         }
         break;
       } else {
-        // TODO: Add Partial Matching Criteria Here
         auditExtraRows.push(auditRowObj);
       }
     }
+
+    // TODO: Compare auditExtraRows with remaining unmatchedOrders to find any partial matches from un-matched orders
   }
 
   return {
