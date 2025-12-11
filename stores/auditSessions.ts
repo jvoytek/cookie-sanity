@@ -87,7 +87,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     mostRecentAuditSession.value = data[0] || null;
   };
 
-  const fetchPerfectMatches = async (): Promise<void> => {
+  const fetchMatches = async (): Promise<void> => {
     if (!mostRecentAuditSession.value?.id) {
       perfectMatches.value = [];
       return;
@@ -99,7 +99,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     perfectMatchesLoading.value = true;
 
     try {
-      const response = await $fetch('/api/audit/perfect-matches', {
+      const response = await $fetch('/api/audit/matches', {
         method: 'POST',
         body: {
           auditSessionId: mostRecentAuditSession.value.id,
@@ -151,6 +151,6 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     auditSessionError,
     insertAuditSession,
     fetchMostRecentAuditSession,
-    fetchPerfectMatches,
+    fetchMatches,
   };
 });

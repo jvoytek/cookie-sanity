@@ -14,7 +14,7 @@ describe('AuditPerfectMatchesDataTable', () => {
       mostRecentAuditSession: null,
       perfectMatches: [],
       perfectMatchesLoading: false,
-      fetchPerfectMatches: vi.fn().mockResolvedValue(undefined),
+      fetchMatches: vi.fn().mockResolvedValue(undefined),
     };
 
     mockCookiesStore = {

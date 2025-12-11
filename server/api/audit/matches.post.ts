@@ -161,7 +161,7 @@ export default defineEventHandler(async (event) => {
     cookies?.map((cookie) => cookie.abbreviation) || [],
   );
 
-  // Find perfect matches
+  // Find  matches
   const perfectMatches: PerfectMatch[] = [];
 
   for (const row of parsedRows) {

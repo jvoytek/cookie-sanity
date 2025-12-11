@@ -232,7 +232,7 @@ describe('auditSessions store', () => {
     });
   });
 
-  describe('fetchPerfectMatches', () => {
+  describe('fetchMatches', () => {
     beforeEach(() => {
       // Mock $fetch
       global.$fetch = vi.fn();
@@ -242,7 +242,7 @@ describe('auditSessions store', () => {
       const store = useAuditSessionsStore();
       store.mostRecentAuditSession = null;
 
-      await store.fetchPerfectMatches();
+      await store.fetchMatches();
 
       expect(store.perfectMatches).toEqual([]);
       expect(global.$fetch).not.toHaveBeenCalled();
@@ -280,7 +280,7 @@ describe('auditSessions store', () => {
         parsed_rows: [],
       };
 
-      await store.fetchPerfectMatches();
+      await store.fetchMatches();
 
       expect(store.perfectMatches).toEqual(mockMatches);
       expect(global.$fetch).toHaveBeenCalledWith('/api/audit/perfect-matches', {
@@ -312,7 +312,7 @@ describe('auditSessions store', () => {
         parsed_rows: [],
       };
 
-      const fetchPromise = store.fetchPerfectMatches();
+      const fetchPromise = store.fetchMatches();
 
       expect(store.perfectMatchesLoading).toBe(true);
 
@@ -338,9 +338,7 @@ describe('auditSessions store', () => {
         parsed_rows: [],
       };
 
-      await expect(store.fetchPerfectMatches()).rejects.toThrow(
-        'Network error',
-      );
+      await expect(store.fetchMatches()).rejects.toThrow('Network error');
 
       expect(store.perfectMatches).toEqual([]);
       expect(store.perfectMatchesLoading).toBe(false);
@@ -361,7 +359,7 @@ describe('auditSessions store', () => {
         parsed_rows: [],
       };
 
-      await expect(store.fetchPerfectMatches()).rejects.toThrow(
+      await expect(store.fetchMatches()).rejects.toThrow(
         'No current season selected',
       );
     });
