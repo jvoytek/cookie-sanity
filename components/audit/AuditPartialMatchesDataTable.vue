@@ -1,54 +1,58 @@
 <script setup lang="ts">
+  import type { SCOrder2025, NewOrder } from '~/types/types';
+
   const auditSessionsStore = useAuditSessionsStore();
   const cookiesStore = useCookiesStore();
+  const transactionsStore = useTransactionsStore();
+  const girlsStore = useGirlsStore();
+
+  type PartialMatchRow = NewOrder & {
+    id?: number;
+    isAuditRow: boolean;
+    auditRow?: PartialMatchRow;
+    matchScore?: number;
+    matchDetails?: {
+      dateMatch: boolean;
+      typeMatch: boolean;
+      toMatch: boolean;
+      fromMatch: boolean;
+      cookieMatchPercent: number;
+      nonCookieFieldsMatched: number;
+    };
+  };
 
   // Format partial matches for display with rowgroup structure
   const formattedPartialMatches = computed(() => {
-    const result: Array<{
-      groupIndex: number;
-      auditRowData: Record<string, unknown>;
-      isAuditRow: boolean;
-      matchScore: number;
-      matchDetails: {
-        dateMatch: boolean;
-        typeMatch: boolean;
-        toMatch: boolean;
-        fromMatch: boolean;
-        cookieMatchPercent: number;
-        nonCookieFieldsMatched: number;
-      };
-      orderToGirlName: string | null;
-      orderFromGirlName: string | null;
-      [key: string]: unknown;
-    }> = [];
+    // extend Order type with additional fields
+    const result: PartialMatchRow[] = [];
 
     auditSessionsStore.partialMatches.forEach((partialMatch, index) => {
       // Add the audit row as a group header
-      const auditRow = partialMatch.auditRow || {};
-
-      // Add each matched order as a child row
+      const auditRow = transactionsStore.convertSCOrderToNewTransaction(
+        partialMatch.auditRow as SCOrder2025,
+      );
+      // convert auditRow to a partial of the expected Order shape before asserting to PartialMatchRow
+      result.push({
+        ...auditRow,
+        isAuditRow: true,
+        matchScore: undefined,
+        matchDetails: undefined,
+      } as PartialMatchRow);
+      //Sort the matched orders by match score descending
+      partialMatch.matchedOrders.sort((a, b) => b.matchScore - a.matchScore);
+      // Add each matched order
       partialMatch.matchedOrders.forEach((matchedOrder, matchIndex) => {
         const order = matchedOrder.order || {};
-        const orderToGirl = matchedOrder.orderToGirl;
-        const orderFromGirl = matchedOrder.orderFromGirl;
 
         result.push({
-          groupIndex: index,
-          auditRowData: auditRow,
-          isAuditRow: matchIndex === 0, // First match shows the audit row data
+          ...order,
+          isAuditRow: false,
+          auditRow: auditRow,
           matchScore: matchedOrder.matchScore,
           matchDetails: matchedOrder.matchDetails,
-          ...order,
-          orderToGirlName: orderToGirl
-            ? `${orderToGirl.first_name} ${orderToGirl.last_name}`
-            : null,
-          orderFromGirlName: orderFromGirl
-            ? `${orderFromGirl.first_name} ${orderFromGirl.last_name}`
-            : null,
         });
       });
     });
-
     return result;
   });
 
@@ -112,42 +116,24 @@
         </div>
       </div>
 
-      <!-- DataTable with RowGroups -->
+      <!-- DataTable -->
       <DataTable
         :value="formattedPartialMatches"
-        row-group-mode="subheader"
-        group-rows-by="groupIndex"
-        sortable
         paginator
         :rows="10"
         :rows-per-page-options="[10, 25, 50]"
-        scrollable
-        scroll-height="500px"
-        :pt="{
-          wrapper: { class: 'overflow-auto' },
-        }"
+        :rowStyle="
+          ({ isAuditRow }) =>
+            isAuditRow != true ? 'background: #EFEFEF;' : null
+        "
+        showGridlines
       >
-        <template #groupheader="slotProps">
-          <div class="p-3 bg-primary-50 dark:bg-primary-900">
-            <div class="flex justify-between items-center">
-              <div>
-                <span class="font-semibold">Upload Row:</span>
-                <span class="ml-2">{{ slotProps.data.auditRowData.DATE }}</span>
-                <span class="ml-2">{{ slotProps.data.auditRowData.TYPE }}</span>
-                <span class="ml-2"
-                  >To: {{ slotProps.data.auditRowData.TO || 'N/A' }}</span
-                >
-                <span class="ml-2"
-                  >From: {{ slotProps.data.auditRowData.FROM || 'N/A' }}</span
-                >
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <Column field="matchScore" header="Match %" style="min-width: 100px">
+        <Column field="matchScore" header="Match Score">
           <template #body="slotProps">
+            <span v-if="slotProps.data.isAuditRow">Audit Row</span>
+
             <span
+              v-else
               :class="{
                 'text-green-600': slotProps.data.matchScore > 80,
                 'text-yellow-600':
@@ -157,58 +143,127 @@
               }"
               class="font-semibold"
             >
-              {{ slotProps.data.matchScore.toFixed(1) }}%
+              {{ slotProps.data.matchScore?.toFixed(1) }}%
             </span>
           </template>
         </Column>
+        <Column field="order_num" header="TXN #">
+          <template #body="slotProps">
+            <span
+              v-if="!slotProps.data.isAuditRow"
+              :class="
+                slotProps.data.order_num === slotProps.data.auditRow.order_num
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              {{ slotProps.data.order_num }}
+            </span>
+            <span v-else> {{ slotProps.data.order_num }} </span>
+          </template>
+        </Column>
 
-        <Column field="order_date" header="DB Date" style="min-width: 120px" />
-        <Column field="type" header="DB Type" style="min-width: 100px" />
-        <Column
-          field="orderToGirlName"
-          header="DB To"
-          style="min-width: 150px"
-        />
-        <Column
-          field="orderFromGirlName"
-          header="DB From"
-          style="min-width: 150px"
-        />
-        <Column
-          field="order_num"
-          header="DB Order #"
-          style="min-width: 100px"
-        />
+        <Column field="from" header="From">
+          <template #body="slotProps">
+            <span
+              v-if="slotProps.data.isAuditRow !== true && slotProps.data.from"
+              :class="
+                slotProps.data.from === slotProps.data.auditRow.from
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              {{ girlsStore.getGirlNameById(slotProps.data.from) }}
+            </span>
+            <span v-else-if="slotProps.data.from">
+              {{ girlsStore.getGirlNameById(slotProps.data.from) }}
+            </span>
+          </template>
+        </Column>
+        <Column field="to" header="To">
+          <template #body="slotProps">
+            <span
+              v-if="slotProps.data.isAuditRow !== true && slotProps.data.to"
+              :class="
+                slotProps.data.to === slotProps.data.auditRow.to
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              {{ girlsStore.getGirlNameById(slotProps.data.to) }}
+            </span>
+            <span v-else-if="slotProps.data.to">
+              {{ girlsStore.getGirlNameById(slotProps.data.to) }}
+            </span>
+          </template>
+        </Column>
+        <Column field="type" header="Type">
+          <template #body="slotProps">
+            <span
+              v-if="slotProps.data.isAuditRow !== true && slotProps.data.type"
+              :class="
+                slotProps.data.matchDetails?.typeMatch
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              {{ slotProps.data.type }}
+            </span>
+            <span v-else-if="slotProps.data.type">
+              {{ slotProps.data.type }}
+            </span>
+          </template>
+        </Column>
+        <Column field="order_date" header="Date">
+          <template #body="slotProps">
+            <span
+              v-if="
+                slotProps.data.isAuditRow !== true && slotProps.data.order_date
+              "
+              :class="
+                slotProps.data.matchDetails?.dateMatch
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              {{ new Date(slotProps.data.order_date).toLocaleDateString() }}
+            </span>
+            <span v-else-if="slotProps.data.order_date">
+              {{ new Date(slotProps.data.order_date).toLocaleDateString() }}
+            </span>
+          </template>
+        </Column>
+        <Column field="notes" header="Notes" />
 
         <Column
           v-for="abbr in cookieColumns"
           :key="abbr"
           :field="`cookies.${abbr}`"
           :header="abbr"
-          style="min-width: 80px"
         >
           <template #body="slotProps">
             {{ slotProps.data.cookies?.[abbr] || 0 }}
           </template>
         </Column>
 
-        <Column header="Match Details" style="min-width: 200px">
+        <Column header="Match Details">
           <template #body="slotProps">
-            <div class="text-xs">
+            <div class="text-xs" v-if="slotProps.data.matchDetails">
               <div>
-                Date: {{ slotProps.data.matchDetails.dateMatch ? '✓' : '✗' }}
+                Date: {{ slotProps.data.matchDetails?.dateMatch ? '✓' : '✗' }}
               </div>
               <div>
-                Type: {{ slotProps.data.matchDetails.typeMatch ? '✓' : '✗' }}
+                Type: {{ slotProps.data.matchDetails?.typeMatch ? '✓' : '✗' }}
               </div>
               <div>
-                To: {{ slotProps.data.matchDetails.toMatch ? '✓' : '✗' }}
+                To: {{ slotProps.data.matchDetails?.toMatch ? '✓' : '✗' }}
               </div>
               <div>
-                From: {{ slotProps.data.matchDetails.fromMatch ? '✓' : '✗' }}
+                From: {{ slotProps.data.matchDetails?.fromMatch ? '✓' : '✗' }}
               </div>
               <div>
-                Fields: {{ slotProps.data.matchDetails.nonCookieFieldsMatched }}
+                Fields:
+                {{ slotProps.data.matchDetails?.nonCookieFieldsMatched }}
               </div>
             </div>
           </template>

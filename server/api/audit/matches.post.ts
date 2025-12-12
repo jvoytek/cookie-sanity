@@ -184,6 +184,8 @@ export default defineEventHandler(async (event) => {
 
     if (!auditDate || !auditType || (!auditFrom && !auditTo)) continue;
 
+    let auditRowMatched = false;
+
     // Try to match with orders
     for (const order of unmatchedOrders || []) {
       const orderDate = normalizeDate(order.order_date);
@@ -226,6 +228,7 @@ export default defineEventHandler(async (event) => {
       }
 
       if (cookiesMatch) {
+        auditRowMatched = true;
         perfectMatches.push({
           auditRow: auditRowObj,
           order,
@@ -238,28 +241,16 @@ export default defineEventHandler(async (event) => {
           unmatchedOrders.splice(index, 1);
         }
         break;
-      } else {
-        auditExtraRows.push(auditRowObj);
       }
+    }
+
+    if (!auditRowMatched) {
+      auditExtraRows.push(auditRowObj);
     }
   }
 
   // Find partial matches with remaining unmatched orders
   const partialMatches: PartialMatch[] = [];
-  const auditRowsWithoutPerfectMatch = new Set<Record<string, unknown>>();
-
-  for (const row of parsedRows) {
-    const auditRowObj = rowToObject(row);
-    if (!auditRowObj) continue;
-
-    // Skip if this row was already perfectly matched
-    const alreadyMatched = perfectMatches.some(
-      (pm) => pm.auditRow === auditRowObj,
-    );
-    if (alreadyMatched) continue;
-
-    auditRowsWithoutPerfectMatch.add(auditRowObj);
-  }
 
   // Helper function to normalize ORDER # field
   const normalizeOrderNum = (
@@ -292,7 +283,7 @@ export default defineEventHandler(async (event) => {
   };
 
   // For each audit row without a perfect match, find partial matches
-  for (const auditRowObj of auditRowsWithoutPerfectMatch) {
+  for (const auditRowObj of auditExtraRows) {
     const auditDate = normalizeDate(auditRowObj.DATE as string);
     let auditType = (auditRowObj.TYPE as string)?.trim() || '';
     if (auditType === 'COOKIE_SHARE') auditType = 'T2G';
@@ -341,8 +332,7 @@ export default defineEventHandler(async (event) => {
       let nonCookieFieldsMatched = 0;
       if (dateMatch) nonCookieFieldsMatched++;
       if (typeMatch) nonCookieFieldsMatched++;
-      if (toMatch) nonCookieFieldsMatched++;
-      if (fromMatch) nonCookieFieldsMatched++;
+      if (toMatch || fromMatch) nonCookieFieldsMatched++;
       if (orderNumMatch) nonCookieFieldsMatched++;
 
       // Calculate cookie match percentage
@@ -354,11 +344,13 @@ export default defineEventHandler(async (event) => {
         const auditQty = Number(auditRowObj[abbr]) || 0;
         const orderQty = Number(orderCookies[abbr]) || 0;
 
-        totalCookies++;
+        if (auditQty !== 0 || orderQty !== 0) {
+          totalCookies++;
 
-        // Cookie quantity ±1 counts toward % match
-        if (Math.abs(auditQty - orderQty) <= 1) {
-          cookiesMatched++;
+          // Cookie quantity ±1 counts toward % match
+          if (Math.abs(auditQty - orderQty) <= 1) {
+            cookiesMatched++;
+          }
         }
       }
 
@@ -373,7 +365,7 @@ export default defineEventHandler(async (event) => {
         (nonCookieFieldsMatched >= 2 && cookieMatchPercent > 20);
 
       // Must have TYPE exact match as per requirements
-      if (typeMatch && meetsThreshold) {
+      if (meetsThreshold) {
         matchedOrders.push({
           order,
           orderToGirl,

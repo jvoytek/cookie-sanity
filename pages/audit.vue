@@ -19,11 +19,31 @@
     <div v-if="auditSessionsStore.mostRecentAuditSession" class="col-span-12">
       <Tabs value="0">
         <TabList>
-          <Tab value="0">Raw Data</Tab>
-          <Tab value="1">Matching Transactions</Tab>
-          <Tab value="2">Partial Matches</Tab>
-          <Tab value="3">Transactions Missing from Upload</Tab>
-          <Tab value="4">Extra Rows in Upload</Tab>
+          <Tab value="0"
+            >Raw Data ({{
+              auditSessionsStore.mostRecentAuditSession.parsed_rows.length
+            }})</Tab
+          >
+          <Tab value="1"
+            >Matching Transactions ({{
+              auditSessionsStore.perfectMatches.length
+            }})</Tab
+          >
+          <Tab value="2"
+            >Partial Matches ({{
+              auditSessionsStore.partialMatches.length
+            }})</Tab
+          >
+          <Tab value="4"
+            >Extra Rows in Upload ({{
+              auditSessionsStore.auditExtraRows.length
+            }})</Tab
+          >
+          <Tab value="3"
+            >Transactions Missing from Upload ({{
+              auditSessionsStore.unmatchedOrders.length
+            }})</Tab
+          >
         </TabList>
         <TabPanels>
           <TabPanel value="0">
