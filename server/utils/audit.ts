@@ -1,17 +1,9 @@
 import type { Database } from '~/types/supabase';
-import type { Order } from '~/types/types';
-
-const expectedHeaders = [
-  'DATE',
-  'ORDER #',
-  'TYPE',
-  'FROM',
-  'TO',
-  'STATUS',
-  'TOTAL',
-  'TOTAL $',
-  // Cookie abbreviations will vary; assume any other headers are cookie types
-];
+import type { Cookie, Order } from '~/types/types';
+import {
+  invertCookieQuantitiesAuditRow,
+  transactionTypesToInvertAudit,
+} from '~/shared/utils/transactions';
 
 export const normalizeDate = (
   dateStr: string | null | undefined,
@@ -96,6 +88,7 @@ export const hasValidHeaders = (headers: string[]): boolean => {
 
 export const processAuditRowForMatching = (
   auditRowObj: Record<string, unknown>,
+  cookies: Cookie[],
 ): {
   date: string | null;
   type: string | null;
@@ -114,11 +107,23 @@ export const processAuditRowForMatching = (
   if (type === 'COOKIE_SHARE(B)') type = 'T2G(B)';
   if (type === 'COOKIE_SHARE(VB)') type = 'T2G(VB)';
 
+  if (type === 'INITIAL') {
+    type = 'C2T';
+  }
+
   const from =
-    type.slice(0, 3) === 'T2G' || type == 'DIRECT_SHIP'
+    type.slice(0, 3) === 'T2G' || type == 'DIRECT_SHIP' || type === 'C2T'
       ? null
       : (auditRowObj.FROM as string);
-  const to = type.slice(0, 3) === 'G2T' ? null : (auditRowObj.TO as string);
+  const to =
+    type.slice(0, 3) === 'G2T' || type === 'C2T'
+      ? null
+      : (auditRowObj.TO as string);
+
+  // invert cookie quantities if necessary
+  if (type && transactionTypesToInvertAudit.includes(type)) {
+    auditRowObj = invertCookieQuantitiesAuditRow(auditRowObj, cookies);
+  }
   return {
     ...auditRowObj,
     date: date,
@@ -162,9 +167,6 @@ export const checkForPartialCookieMatch = (
   for (const abbr of cookieAbbreviations) {
     const auditQty = Number(auditRowObj[abbr]) || 0;
     const orderQty = Number(orderCookies[abbr]) || 0;
-    console.log(
-      `Checking cookie ${abbr}: auditQty=${auditQty}, orderQty=${orderQty}`,
-    );
 
     if (auditQty !== 0 && orderQty !== 0) {
       totalCookies++;
@@ -173,12 +175,10 @@ export const checkForPartialCookieMatch = (
         cookiesMatched++;
       }
       // Or if the absolute values match (someone put a negative quantity in one)
-      if (Math.abs(auditQty) === Math.abs(orderQty)) {
+      else if (Math.abs(auditQty) === Math.abs(orderQty)) {
         cookiesMatched++;
       }
-    }
-
-    if (auditQty !== 0 || orderQty !== 0) {
+    } else if (auditQty !== 0 || orderQty !== 0) {
       totalCookies++;
       // Check for quantity match within 2 units
       if (Math.abs(auditQty - orderQty) <= 1) {

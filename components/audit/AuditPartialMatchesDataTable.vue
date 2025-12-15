@@ -245,29 +245,6 @@
             {{ slotProps.data.cookies?.[abbr] || 0 }}
           </template>
         </Column>
-
-        <Column header="Match Details">
-          <template #body="slotProps">
-            <div class="text-xs" v-if="slotProps.data.matchDetails">
-              <div>
-                Date: {{ slotProps.data.matchDetails?.dateMatch ? '✓' : '✗' }}
-              </div>
-              <div>
-                Type: {{ slotProps.data.matchDetails?.typeMatch ? '✓' : '✗' }}
-              </div>
-              <div>
-                To: {{ slotProps.data.matchDetails?.toMatch ? '✓' : '✗' }}
-              </div>
-              <div>
-                From: {{ slotProps.data.matchDetails?.fromMatch ? '✓' : '✗' }}
-              </div>
-              <div>
-                Fields:
-                {{ slotProps.data.matchDetails?.nonCookieFieldsMatched }}
-              </div>
-            </div>
-          </template>
-        </Column>
       </DataTable>
     </div>
   </div>

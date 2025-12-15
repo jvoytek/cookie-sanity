@@ -20,6 +20,7 @@ import {
   dateMatchesWithTolerance,
   checkForPartialCookieMatch,
 } from '~/server/utils/audit';
+import { transformDataForTransaction } from '~/shared/utils/transactions';
 
 export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseClient<Database>(event);
@@ -36,7 +37,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const auditSession = await fetchAuditSession(supabase, auditSessionId, user);
-  const orders = await fetchOrders(supabase, seasonId);
+  const orders = (await fetchOrders(supabase, seasonId)).map(
+    transformDataForTransaction,
+  );
   const totalOrders = orders?.length || 0;
   const sellers = await fetchSellers(supabase, seasonId);
   const sellerMap = getSellersMap(sellers);
@@ -72,13 +75,17 @@ export default defineEventHandler(async (event) => {
 
   // Normalized audit rows for matching
   const auditRowsForMatching = parsedRows.map((row) =>
-    processAuditRowForMatching(rowToObject(row, headers) || {}),
+    processAuditRowForMatching(rowToObject(row, headers) || {}, cookies),
   );
 
   for (const auditRow of auditRowsForMatching) {
     if (!auditRow) continue;
 
-    if (!auditRow.date || !auditRow.type || (!auditRow.from && !auditRow.to))
+    if (
+      !auditRow.date ||
+      !auditRow.type ||
+      (auditRow.type !== 'C2T' && !auditRow.from && !auditRow.to)
+    )
       continue;
 
     let auditRowMatched = false;
@@ -87,7 +94,11 @@ export default defineEventHandler(async (event) => {
     for (const order of unmatchedOrders || []) {
       const orderDate = normalizeDate(order.order_date);
 
+      if (auditRow.order_num === '1542') {
+        console.log('1542', auditRow, order);
+      }
       if (auditRow.date !== orderDate) continue;
+
       if (auditRow.type !== order.type) continue;
 
       // Check if TO/FROM matches a seller
@@ -101,10 +112,20 @@ export default defineEventHandler(async (event) => {
       const orderFromGirlFullName = orderFromGirl
         ? `${orderFromGirl.first_name} ${orderFromGirl.last_name}`
         : null;
+      if (auditRow.order_num === '1542') {
+        console.log('1542 type', auditRow.type);
+        console.log('1542 to', auditRow.to, 'vs', orderToGirlFullName);
+        console.log('1542 from', auditRow.from, 'vs', orderFromGirlFullName);
+      }
+      if (auditRow.type !== 'C2T' && auditRow.to !== orderToGirlFullName)
+        continue;
 
-      if (auditRow.to !== orderToGirlFullName) continue;
+      if (auditRow.type !== 'C2T' && auditRow.from !== orderFromGirlFullName)
+        continue;
 
-      if (auditRow.from !== orderFromGirlFullName) continue;
+      if (auditRow.order_num === '1542') {
+        console.log('order 1542 passed TO/FROM checks');
+      }
 
       // Check if cookies match
       const cookiesMatch = checkForCookieMatch(
@@ -112,7 +133,7 @@ export default defineEventHandler(async (event) => {
         order,
         cookieAbbreviations,
       );
-
+      console.log('Cookies match:', auditRow);
       if (cookiesMatch) {
         auditRowMatched = true;
         perfectMatches.push({
@@ -131,12 +152,15 @@ export default defineEventHandler(async (event) => {
     }
 
     if (!auditRowMatched) {
+      console.log('No perfect match for audit row:', auditRow.order_num);
       auditExtraRows.push(auditRow);
     }
   }
 
   // Find partial matches with remaining unmatched orders
   const partialMatches: PartialMatch[] = [];
+
+  console.log(auditExtraRows);
 
   // For each audit row without a perfect match, find partial matches
   for (const auditRow of auditExtraRows) {
@@ -188,6 +212,19 @@ export default defineEventHandler(async (event) => {
         totalCookies: totalCookiesToMatch,
         matchPercentage: cookieMatchPercent,
       } = checkForPartialCookieMatch(auditRow, order, cookieAbbreviations);
+
+      if (auditRow.order_num === '1542') {
+        console.log(
+          '1542 partial',
+          dateMatch,
+          typeMatch,
+          toMatch,
+          fromMatch,
+          orderNumMatch,
+          numberCookiesMatched,
+          totalCookiesToMatch,
+        );
+      }
 
       const totalMatchedPercentage =
         ((numberCookiesMatched + nonCookieFieldsMatched) /

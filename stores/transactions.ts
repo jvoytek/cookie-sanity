@@ -1,5 +1,11 @@
-import type { Database, Json } from '@/types/supabase';
+import type { Database } from '@/types/supabase';
 import type { Order, SCOrder2025, NewOrder } from '@/types/types';
+import {
+  transformDataForTransaction,
+  transactionTypesToInvert,
+  invertCookieQuantitiesInTransaction,
+  invertCookieQuantities,
+} from '~/shared/utils/transactions';
 
 /*
 ref()s become state properties
@@ -37,8 +43,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     { value: 'G2T', label: 'Girl to Troop' },
     { value: 'DIRECT_SHIP', label: 'Direct Ship' },
   ];
-
-  const transactionTypesToInvert = ['G2T', 'T2T', 'C2T'];
 
   /* Computed */
 
@@ -280,53 +284,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const _convertDateStringToMMDDYYYY = (
-    date: string | null | undefined,
-  ): string | null => {
-    if (!date) return null;
-    const dateParts = date.split('-');
-    if (dateParts.length !== 3) return date ?? null;
-    return `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
-  };
-
-  const invertCookieQuantities = (
-    cookies: Json | null | undefined,
-  ): Json | null => {
-    if (!cookies) return null;
-    return Object.fromEntries(
-      Object.entries(cookies).map(([key, value]) => {
-        return [
-          key,
-          typeof value === 'number' ? (value === 0 ? null : value * -1) : value,
-        ];
-      }),
-    ) as Json;
-  };
-
-  const _invertCookieQuantitiesInTransaction = (transaction: Order) => {
-    const invertedCookies = invertCookieQuantities(transaction.cookies);
-    transaction.cookies = invertedCookies
-      ? invertedCookies
-      : transaction.cookies;
-    return transaction;
-  };
-
-  const _transformDataForTransaction = (transaction: Order): Order => {
-    if (
-      transaction.type &&
-      transactionTypesToInvert.includes(transaction.type)
-    ) {
-      transaction = _invertCookieQuantitiesInTransaction(transaction);
-    }
-    return {
-      ...transaction,
-      order_date: _convertDateStringToMMDDYYYY(transaction.order_date),
-      sortDate: transaction.order_date
-        ? new Date(transaction.order_date)
-        : new Date(0),
-    } as Order;
-  };
-
   const _supabaseFetchTransactions = async () => {
     if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
       return { data: null, error: new Error('Profile or Season not set') };
@@ -402,7 +359,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         return;
       const { data, error } = await _supabaseFetchTransactions();
       if (error) throw error;
-      allTransactions.value = data.map(_transformDataForTransaction) ?? [];
+      allTransactions.value = data.map(transformDataForTransaction) ?? [];
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -416,7 +373,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       profileStore.currentProfile.season || seasonsStore.allSeasons[0].id;
     transaction.order_date = _returnDateStringOrNull(transaction.order_date);
     if (transactionTypesToInvert.includes(transaction.type || '')) {
-      transaction = _invertCookieQuantitiesInTransaction(transaction);
+      transaction = invertCookieQuantitiesInTransaction(transaction);
     }
 
     if (transaction.auto_calculate_cookies !== undefined)
@@ -431,7 +388,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       const { data, error } = await _supabaseInsertTransaction(transaction);
 
       if (error) throw error;
-      _addTransaction(_transformDataForTransaction(data));
+      _addTransaction(transformDataForTransaction(data));
       _sortTransactions();
       notificationHelpers.addSuccess('Transaction Created');
     } catch (error) {
@@ -461,7 +418,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const upsertTransaction = async (transaction: Order) => {
     if (transactionTypesToInvert.includes(transaction.type || '')) {
-      transaction = _invertCookieQuantitiesInTransaction(transaction);
+      transaction = invertCookieQuantitiesInTransaction(transaction);
     }
 
     if (transaction.auto_calculate_cookies !== undefined)
@@ -477,7 +434,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
       if (error) throw error;
 
-      _updateTransaction(_transformDataForTransaction(data));
+      _updateTransaction(transformDataForTransaction(data));
       _sortTransactions();
       notificationHelpers.addSuccess('Transaction Updated');
     } catch (error) {
@@ -547,6 +504,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       type = 'T2G(B)';
     } else if (type === 'COOKIE_SHARE(VB)') {
       type = 'T2G(VB)';
+    } else if (type === 'INITIAL') {
+      type = 'C2T';
     }
     return {
       profile: profileStore.currentProfile?.id,
@@ -571,7 +530,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         status,
       );
       if (error) throw error;
-      _updateTransaction(_transformDataForTransaction(data));
+      _updateTransaction(transformDataForTransaction(data));
       _sortTransactions();
       notificationHelpers.addSuccess(
         `Transaction Marked ${status.charAt(0).toUpperCase() + status.slice(1)}`,
