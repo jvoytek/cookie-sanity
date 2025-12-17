@@ -341,11 +341,11 @@ describe('auditSessions store', () => {
 
       const fetchPromise = store.fetchMatches();
 
-      expect(store.perfectMatchesLoading).toBe(true);
+      expect(store.matchesLoading).toBe(true);
 
       await fetchPromise;
 
-      expect(store.perfectMatchesLoading).toBe(false);
+      expect(store.matchesLoading).toBe(false);
     });
 
     it('should handle fetch errors', async () => {
@@ -369,7 +369,7 @@ describe('auditSessions store', () => {
 
       expect(store.perfectMatches).toEqual([]);
       expect(store.partialMatches).toEqual([]);
-      expect(store.perfectMatchesLoading).toBe(false);
+      expect(store.matchesLoading).toBe(false);
     });
 
     it('should throw error if no current season is selected', async () => {

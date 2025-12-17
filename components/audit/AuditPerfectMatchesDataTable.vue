@@ -49,10 +49,7 @@
       </p>
     </div>
 
-    <div
-      v-else-if="auditSessionsStore.perfectMatchesLoading"
-      class="text-center py-8"
-    >
+    <div v-else-if="auditSessionsStore.matchesLoading" class="text-center py-8">
       <ProgressSpinner />
       <p class="text-muted-color mt-4">Finding perfect matches...</p>
     </div>

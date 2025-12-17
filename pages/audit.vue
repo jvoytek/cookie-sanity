@@ -7,9 +7,28 @@
     <div class="col-span-12">
       <div class="card">
         <h1 class="text-2xl font-semibold mb-4">Audit Page</h1>
-        <p class="text-muted-color mb-4">
+        <p>
           Upload and compare Smart Cookies data exports with Cookie Sanity
           records to identify discrepancies.
+          <strong>Please use with caution.</strong> This feature only works with
+          data formatted from Smart Cookies.
+        </p>
+        <ul class="list-disc list-inside my-4 indent-0.5">
+          <li>
+            Column headers: DATE, ORDER #, TYPE, FROM, TO, [COOKIES], STATUS,
+            TOTAL,TOTAL $,
+          </li>
+          <li>
+            Positive quantities add to the troop supply, negative ones subtract
+            from it: Council To Troop (C2T) transactions should have positive
+            numbers while Troop To Girl (T2G) transactions should have negative
+            ones.
+          </li>
+        </ul>
+        <p>
+          To download a .xlsx file from Smart Cookies for comparison, go to
+          "Orders : Manage Orders" and click on "All" in the filters bar. Scroll
+          to the bottom and click on "Export to Excel"
         </p>
       </div>
     </div>
@@ -67,6 +86,13 @@
             </div>
           </TabPanel>
           <TabPanel value="4">
+            <p>
+              <strong>Please Note:</strong> In Smart Cookies "Girl To Girl"
+              transactions result in 2 rows per transaction (one transaction for
+              the giver and one for the receiver). They have the same order
+              number. Cookie Sanity only uses one. If you see Girl To Girl
+              transactions in this tab they are likely duplicates.
+            </p>
             <TransactionsDataTable
               v-if="auditSessionsStore.auditExtraRows.length > 0"
               :orders="auditSessionsStore.auditExtraRows"

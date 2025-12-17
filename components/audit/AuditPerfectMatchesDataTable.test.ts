@@ -13,7 +13,7 @@ describe('AuditPerfectMatchesDataTable', () => {
     mockAuditSessionsStore = {
       mostRecentAuditSession: null,
       perfectMatches: [],
-      perfectMatchesLoading: false,
+      matchesLoading: false,
       fetchMatches: vi.fn().mockResolvedValue(undefined),
     };
 
@@ -74,7 +74,7 @@ describe('AuditPerfectMatchesDataTable', () => {
       original_file_data: { headers: [] },
       parsed_rows: [],
     };
-    mockAuditSessionsStore.perfectMatchesLoading = true;
+    mockAuditSessionsStore.matchesLoading = true;
 
     const wrapper = mount(AuditPerfectMatchesDataTable, {
       global: {
@@ -105,7 +105,7 @@ describe('AuditPerfectMatchesDataTable', () => {
       parsed_rows: [{ rowNumber: 1, data: ['value'] }],
     };
     mockAuditSessionsStore.perfectMatches = [];
-    mockAuditSessionsStore.perfectMatchesLoading = false;
+    mockAuditSessionsStore.matchesLoading = false;
 
     const wrapper = mount(AuditPerfectMatchesDataTable, {
       global: {
@@ -179,7 +179,7 @@ describe('AuditPerfectMatchesDataTable', () => {
       ],
     };
     mockAuditSessionsStore.perfectMatches = mockMatches;
-    mockAuditSessionsStore.perfectMatchesLoading = false;
+    mockAuditSessionsStore.matchesLoading = false;
 
     const wrapper = mount(AuditPerfectMatchesDataTable, {
       global: {
@@ -225,7 +225,7 @@ describe('AuditPerfectMatchesDataTable', () => {
       ],
     };
     mockAuditSessionsStore.perfectMatches = mockMatches;
-    mockAuditSessionsStore.perfectMatchesLoading = false;
+    mockAuditSessionsStore.matchesLoading = false;
 
     const wrapper = mount(AuditPerfectMatchesDataTable, {
       global: {
@@ -272,7 +272,7 @@ describe('AuditPerfectMatchesDataTable', () => {
       parsed_rows: [{ rowNumber: 1, data: [] }],
     };
     mockAuditSessionsStore.perfectMatches = mockMatches;
-    mockAuditSessionsStore.perfectMatchesLoading = false;
+    mockAuditSessionsStore.matchesLoading = false;
 
     const wrapper = mount(AuditPerfectMatchesDataTable, {
       global: {

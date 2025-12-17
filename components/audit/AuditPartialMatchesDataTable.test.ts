@@ -13,7 +13,7 @@ describe('AuditPartialMatchesDataTable', () => {
     mockAuditSessionsStore = {
       mostRecentAuditSession: null,
       partialMatches: [],
-      perfectMatchesLoading: false,
+      matchesLoading: false,
     };
 
     mockCookiesStore = {
@@ -73,7 +73,7 @@ describe('AuditPartialMatchesDataTable', () => {
       original_file_data: { headers: [] },
       parsed_rows: [],
     };
-    mockAuditSessionsStore.perfectMatchesLoading = true;
+    mockAuditSessionsStore.matchesLoading = true;
 
     const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {
@@ -104,7 +104,7 @@ describe('AuditPartialMatchesDataTable', () => {
       parsed_rows: [{ rowNumber: 1, data: ['value'] }],
     };
     mockAuditSessionsStore.partialMatches = [];
-    mockAuditSessionsStore.perfectMatchesLoading = false;
+    mockAuditSessionsStore.matchesLoading = false;
 
     const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {
@@ -173,7 +173,7 @@ describe('AuditPartialMatchesDataTable', () => {
       ],
     };
     mockAuditSessionsStore.partialMatches = mockPartialMatches;
-    mockAuditSessionsStore.perfectMatchesLoading = false;
+    mockAuditSessionsStore.matchesLoading = false;
 
     const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {
@@ -230,7 +230,7 @@ describe('AuditPartialMatchesDataTable', () => {
       parsed_rows: [{ rowNumber: 1, data: [] }],
     };
     mockAuditSessionsStore.partialMatches = mockPartialMatches;
-    mockAuditSessionsStore.perfectMatchesLoading = false;
+    mockAuditSessionsStore.matchesLoading = false;
 
     const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {

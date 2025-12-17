@@ -28,7 +28,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   const unmatchedOrders = ref<Order[]>([]);
   const auditExtraRows = ref<Record<string, unknown>[]>([]);
   const auditSessionError = ref<string | null>(null);
-  const perfectMatchesLoading = ref(false);
+  const matchesLoading = ref(false);
 
   /* Computed */
 
@@ -99,7 +99,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     if (!seasonsStore.currentSeason?.id)
       throw new Error('No current season selected');
 
-    perfectMatchesLoading.value = true;
+    matchesLoading.value = true;
 
     try {
       const response = await $fetch('/api/audit/matches', {
@@ -144,7 +144,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
       unmatchedOrders.value = [];
       throw error;
     } finally {
-      perfectMatchesLoading.value = false;
+      matchesLoading.value = false;
     }
   };
 
@@ -154,7 +154,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     partialMatches,
     unmatchedOrders,
     auditExtraRows,
-    perfectMatchesLoading,
+    matchesLoading,
     auditSessionError,
     insertAuditSession,
     fetchMostRecentAuditSession,

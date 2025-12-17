@@ -47,7 +47,7 @@ describe('AuditPage', () => {
       partialMatches: [],
       unmatchedOrders: [],
       auditExtraRows: [],
-      perfectMatchesLoading: false,
+      matchesLoading: false,
       fetchMatches: vi.fn().mockResolvedValue(undefined),
     };
 
