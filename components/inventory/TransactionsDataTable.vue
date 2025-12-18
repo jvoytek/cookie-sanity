@@ -186,6 +186,13 @@
       transactionsStore.transactionRequiresReceipt(transaction),
     );
   });
+
+  const getStatusBadgeSeverity = (status: string | null) => {
+    if (status === 'complete') return 'success';
+    if (status === 'recorded') return 'info';
+    if (status === 'pending') return 'warn';
+    return 'secondary';
+  };
 </script>
 
 <template>
@@ -416,23 +423,14 @@
     </Column>
     <Column v-if="props.audit" field="status" header="Status" sortable>
       <template #body="slotProps">
-        <Badge
-          :severity="
-            slotProps.data.status === 'complete'
-              ? 'success'
-              : slotProps.data.status === 'recorded'
-                ? 'info'
-                : slotProps.data.status === 'pending'
-                  ? 'warn'
-                  : 'secondary'
-          "
-          >{{ slotProps.data.status }}</Badge
-        >
+        <Badge :severity="getStatusBadgeSeverity(slotProps.data.status)">{{
+          slotProps.data.status
+        }}</Badge>
       </template>
     </Column>
     <Column field="notes" header="Notes" />
     <Column
-      v-if="props.transactionTypes !== 'audit' || props.audit"
+      v-if="props.audit || props.transactionTypes !== 'audit'"
       field="actions"
       header="Actions"
       style="min-width: 224px"
