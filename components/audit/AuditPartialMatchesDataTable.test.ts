@@ -6,6 +6,8 @@ import AuditPartialMatchesDataTable from '@/components/audit/AuditPartialMatches
 describe('AuditPartialMatchesDataTable', () => {
   let mockAuditSessionsStore: ReturnType<typeof vi.fn>;
   let mockCookiesStore: ReturnType<typeof vi.fn>;
+  let mockTransactionsStore: ReturnType<typeof vi.fn>;
+  let mockGirlsStore: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -24,8 +26,31 @@ describe('AuditPartialMatchesDataTable', () => {
       ],
     };
 
+    mockTransactionsStore = {
+      convertSCOrderToNewTransaction: vi.fn((order) => ({
+        order_date: order.DATE,
+        order_num: order['ORDER #']?.toString() || '',
+        type: order.TYPE,
+        to: null,
+        from: null,
+        cookies: {
+          ADV: order.ADV || 0,
+          TM: order.TM || 0,
+          LEM: order.LEM || 0,
+        },
+        status: order.STATUS || 'complete',
+        profile: 'test-profile',
+      })),
+    };
+
+    mockGirlsStore = {
+      allGirls: [],
+    };
+
     vi.stubGlobal('useAuditSessionsStore', () => mockAuditSessionsStore);
     vi.stubGlobal('useCookiesStore', () => mockCookiesStore);
+    vi.stubGlobal('useTransactionsStore', () => mockTransactionsStore);
+    vi.stubGlobal('useGirlsStore', () => mockGirlsStore);
   });
 
   it('renders without crashing', () => {
