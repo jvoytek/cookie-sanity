@@ -80,6 +80,7 @@
               :orders="auditSessionsStore.unmatchedOrders"
               transaction-types="audit"
               :paginated="true"
+              :audit="true"
             />
             <div v-else class="text-center py-8">
               <p class="text-muted-color">No unmatched orders found.</p>
@@ -98,6 +99,7 @@
               :orders="auditSessionsStore.auditExtraRows"
               transaction-types="audit"
               :paginated="true"
+              :audit="true"
             />
             <div v-else class="text-center py-8">
               <p class="text-muted-color">No extra rows found in audit.</p>
