@@ -32,6 +32,24 @@ export type PerfectMatch = {
   orderFromGirl: Girl | null;
 };
 
+export type PartialMatch = {
+  auditRow: Record<string, unknown>;
+  matchedOrders: Array<{
+    order: Order;
+    orderToGirl: Girl | null;
+    orderFromGirl: Girl | null;
+    matchScore: number;
+    matchDetails: {
+      dateMatch: boolean;
+      typeMatch: boolean;
+      toMatch: boolean;
+      fromMatch: boolean;
+      cookieMatchPercent: number;
+      nonCookieFieldsMatched: number;
+    };
+  }>;
+};
+
 export type SCOrder2025 = {
   DATE: string;
   'ORDER #': number;

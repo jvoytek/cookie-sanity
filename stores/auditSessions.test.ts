@@ -245,10 +245,11 @@ describe('auditSessions store', () => {
       await store.fetchMatches();
 
       expect(store.perfectMatches).toEqual([]);
+      expect(store.partialMatches).toEqual([]);
       expect(global.$fetch).not.toHaveBeenCalled();
     });
 
-    it('should fetch perfect matches successfully', async () => {
+    it('should fetch perfect and partial matches successfully', async () => {
       const mockMatches = [
         {
           auditRow: { DATE: '2025-01-01', TYPE: 'T2G' },
@@ -257,11 +258,27 @@ describe('auditSessions store', () => {
         },
       ];
 
+      const mockPartialMatches = [
+        {
+          auditRow: { DATE: '2025-01-02', TYPE: 'T2G' },
+          matchedOrders: [
+            {
+              order: { id: 2, order_num: '12346' },
+              matchScore: 75.0,
+            },
+          ],
+        },
+      ];
+
       const mockResponse = {
         matches: mockMatches,
+        partialMatches: mockPartialMatches,
+        unmatchedOrders: [],
+        auditExtraRows: [],
         totalAuditRows: 10,
         totalOrders: 5,
         matchCount: 1,
+        partialMatchCount: 1,
       };
 
       (global.$fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
@@ -283,7 +300,8 @@ describe('auditSessions store', () => {
       await store.fetchMatches();
 
       expect(store.perfectMatches).toEqual(mockMatches);
-      expect(global.$fetch).toHaveBeenCalledWith('/api/audit/perfect-matches', {
+      expect(store.partialMatches).toEqual(mockPartialMatches);
+      expect(global.$fetch).toHaveBeenCalledWith('/api/audit/matches', {
         method: 'POST',
         body: {
           auditSessionId: 'test-id',
@@ -296,7 +314,16 @@ describe('auditSessions store', () => {
       (global.$fetch as ReturnType<typeof vi.fn>).mockImplementation(
         () =>
           new Promise((resolve) => {
-            setTimeout(() => resolve({ matches: [] }), 100);
+            setTimeout(
+              () =>
+                resolve({
+                  matches: [],
+                  partialMatches: [],
+                  unmatchedOrders: [],
+                  auditExtraRows: [],
+                }),
+              100,
+            );
           }),
       );
 
@@ -314,11 +341,11 @@ describe('auditSessions store', () => {
 
       const fetchPromise = store.fetchMatches();
 
-      expect(store.perfectMatchesLoading).toBe(true);
+      expect(store.matchesLoading).toBe(true);
 
       await fetchPromise;
 
-      expect(store.perfectMatchesLoading).toBe(false);
+      expect(store.matchesLoading).toBe(false);
     });
 
     it('should handle fetch errors', async () => {
@@ -341,7 +368,8 @@ describe('auditSessions store', () => {
       await expect(store.fetchMatches()).rejects.toThrow('Network error');
 
       expect(store.perfectMatches).toEqual([]);
-      expect(store.perfectMatchesLoading).toBe(false);
+      expect(store.partialMatches).toEqual([]);
+      expect(store.matchesLoading).toBe(false);
     });
 
     it('should throw error if no current season is selected', async () => {

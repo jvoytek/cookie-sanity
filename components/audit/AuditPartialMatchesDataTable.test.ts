@@ -1,20 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
-import AuditPerfectMatchesDataTable from '@/components/audit/AuditPerfectMatchesDataTable.vue';
+import AuditPartialMatchesDataTable from '@/components/audit/AuditPartialMatchesDataTable.vue';
 
-describe('AuditPerfectMatchesDataTable', () => {
+describe('AuditPartialMatchesDataTable', () => {
   let mockAuditSessionsStore: ReturnType<typeof vi.fn>;
   let mockCookiesStore: ReturnType<typeof vi.fn>;
+  let mockTransactionsStore: ReturnType<typeof vi.fn>;
+  let mockGirlsStore: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     mockAuditSessionsStore = {
       mostRecentAuditSession: null,
-      perfectMatches: [],
+      partialMatches: [],
       matchesLoading: false,
-      fetchMatches: vi.fn().mockResolvedValue(undefined),
     };
 
     mockCookiesStore = {
@@ -25,13 +26,36 @@ describe('AuditPerfectMatchesDataTable', () => {
       ],
     };
 
+    mockTransactionsStore = {
+      convertSCOrderToNewTransaction: vi.fn((order) => ({
+        order_date: order.DATE,
+        order_num: order['ORDER #']?.toString() || '',
+        type: order.TYPE,
+        to: null,
+        from: null,
+        cookies: {
+          ADV: order.ADV || 0,
+          TM: order.TM || 0,
+          LEM: order.LEM || 0,
+        },
+        status: order.STATUS || 'complete',
+        profile: 'test-profile',
+      })),
+    };
+
+    mockGirlsStore = {
+      allGirls: [],
+    };
+
     vi.stubGlobal('useAuditSessionsStore', () => mockAuditSessionsStore);
     vi.stubGlobal('useCookiesStore', () => mockCookiesStore);
+    vi.stubGlobal('useTransactionsStore', () => mockTransactionsStore);
+    vi.stubGlobal('useGirlsStore', () => mockGirlsStore);
   });
 
   it('renders without crashing', () => {
     expect(() => {
-      mount(AuditPerfectMatchesDataTable, {
+      mount(AuditPartialMatchesDataTable, {
         global: {
           plugins: [createTestingPinia()],
           stubs: {
@@ -47,7 +71,7 @@ describe('AuditPerfectMatchesDataTable', () => {
   it('displays message when no audit session exists', () => {
     mockAuditSessionsStore.mostRecentAuditSession = null;
 
-    const wrapper = mount(AuditPerfectMatchesDataTable, {
+    const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {
@@ -59,7 +83,7 @@ describe('AuditPerfectMatchesDataTable', () => {
     });
 
     expect(wrapper.text()).toContain(
-      'No audit data uploaded yet. Upload a file to see perfect matches.',
+      'No audit data uploaded yet. Upload a file to see partial matches.',
     );
   });
 
@@ -76,7 +100,7 @@ describe('AuditPerfectMatchesDataTable', () => {
     };
     mockAuditSessionsStore.matchesLoading = true;
 
-    const wrapper = mount(AuditPerfectMatchesDataTable, {
+    const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {
@@ -87,13 +111,13 @@ describe('AuditPerfectMatchesDataTable', () => {
       },
     });
 
-    expect(wrapper.text()).toContain('Finding perfect matches...');
+    expect(wrapper.text()).toContain('Finding partial matches...');
     expect(wrapper.findComponent({ name: 'ProgressSpinner' }).exists()).toBe(
       true,
     );
   });
 
-  it('displays message when no matches found', () => {
+  it('displays message when no partial matches found', () => {
     mockAuditSessionsStore.mostRecentAuditSession = {
       id: 'test-id',
       profile: 'test-user-id',
@@ -104,10 +128,10 @@ describe('AuditPerfectMatchesDataTable', () => {
       original_file_data: { headers: [] },
       parsed_rows: [{ rowNumber: 1, data: ['value'] }],
     };
-    mockAuditSessionsStore.perfectMatches = [];
+    mockAuditSessionsStore.partialMatches = [];
     mockAuditSessionsStore.matchesLoading = false;
 
-    const wrapper = mount(AuditPerfectMatchesDataTable, {
+    const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {
@@ -118,50 +142,46 @@ describe('AuditPerfectMatchesDataTable', () => {
       },
     });
 
-    expect(wrapper.text()).toContain('No perfect matches found.');
+    expect(wrapper.text()).toContain('No partial matches found.');
   });
 
-  it('displays perfect matches in DataTable', async () => {
-    const mockMatches = [
+  it('displays partial matches in DataTable', async () => {
+    const mockPartialMatches = [
       {
         auditRow: {
           DATE: '2025-01-01',
           TYPE: 'T2G',
           TO: 'Alice Smith',
+          FROM: null,
           ADV: 10,
           TM: 5,
         },
-        order: {
-          id: 1,
-          order_num: '12345',
-          order_date: '2025-01-01',
-          type: 'T2G',
-        },
-        seller: {
-          id: 1,
-          first_name: 'Alice',
-          last_name: 'Smith',
-        },
-      },
-      {
-        auditRow: {
-          DATE: '2025-01-02',
-          TYPE: 'T2G',
-          TO: 'Bob Johnson',
-          ADV: 15,
-          TM: 8,
-        },
-        order: {
-          id: 2,
-          order_num: '12346',
-          order_date: '2025-01-02',
-          type: 'T2G',
-        },
-        seller: {
-          id: 2,
-          first_name: 'Bob',
-          last_name: 'Johnson',
-        },
+        matchedOrders: [
+          {
+            order: {
+              id: 1,
+              order_num: '12345',
+              order_date: '2025-01-03',
+              type: 'T2G',
+              cookies: { ADV: 11, TM: 5, LEM: 0 },
+            },
+            orderToGirl: {
+              id: 1,
+              first_name: 'Alice',
+              last_name: 'Smyth',
+            },
+            orderFromGirl: null,
+            matchScore: 66.7,
+            matchDetails: {
+              dateMatch: true,
+              typeMatch: true,
+              toMatch: true,
+              fromMatch: true,
+              cookieMatchPercent: 66.7,
+              nonCookieFieldsMatched: 3,
+            },
+          },
+        ],
       },
     ];
 
@@ -175,13 +195,12 @@ describe('AuditPerfectMatchesDataTable', () => {
       original_file_data: { headers: ['DATE', 'TYPE', 'TO', 'ADV', 'TM'] },
       parsed_rows: [
         { rowNumber: 1, data: ['2025-01-01', 'T2G', 'Alice Smith', 10, 5] },
-        { rowNumber: 2, data: ['2025-01-02', 'T2G', 'Bob Johnson', 15, 8] },
       ],
     };
-    mockAuditSessionsStore.perfectMatches = mockMatches;
+    mockAuditSessionsStore.partialMatches = mockPartialMatches;
     mockAuditSessionsStore.matchesLoading = false;
 
-    const wrapper = mount(AuditPerfectMatchesDataTable, {
+    const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {
@@ -194,70 +213,34 @@ describe('AuditPerfectMatchesDataTable', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.text()).toContain('2');
+    expect(wrapper.text()).toContain('1');
     expect(wrapper.findComponent({ name: 'DataTable' }).exists()).toBe(true);
   });
 
   it('displays match summary statistics', async () => {
-    const mockMatches = [
+    const mockPartialMatches = [
       {
         auditRow: {
           DATE: '2025-01-01',
           TYPE: 'T2G',
           TO: 'Alice Smith',
         },
-        order: { id: 1, order_num: '12345' },
-        seller: { id: 1, first_name: 'Alice', last_name: 'Smith' },
-      },
-    ];
-
-    mockAuditSessionsStore.mostRecentAuditSession = {
-      id: 'test-id',
-      profile: 'test-user-id',
-      file_name: 'test.csv',
-      file_size: 1024,
-      created_at: '2025-01-01T12:00:00Z',
-      status: 'pending',
-      original_file_data: { headers: [] },
-      parsed_rows: [
-        { rowNumber: 1, data: [] },
-        { rowNumber: 2, data: [] },
-      ],
-    };
-    mockAuditSessionsStore.perfectMatches = mockMatches;
-    mockAuditSessionsStore.matchesLoading = false;
-
-    const wrapper = mount(AuditPerfectMatchesDataTable, {
-      global: {
-        plugins: [createTestingPinia()],
-        stubs: {
-          DataTable: true,
-          Column: true,
-          ProgressSpinner: true,
-        },
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.text()).toContain('Perfect Matches Found');
-    expect(wrapper.text()).toContain('1');
-    expect(wrapper.text()).toContain('50.0%'); // 1 match out of 2 rows
-  });
-
-  it('formats matches correctly with seller information', async () => {
-    const mockMatches = [
-      {
-        auditRow: {
-          DATE: '2025-01-01',
-          TYPE: 'T2G',
-          TO: 'Alice Smith',
-          ADV: 10,
-          TM: 5,
-          LEM: 3,
-        },
-        order: { id: 1, order_num: '12345' },
-        seller: { id: 1, first_name: 'Alice', last_name: 'Smith' },
+        matchedOrders: [
+          {
+            order: { id: 1, order_num: '12345' },
+            orderToGirl: { id: 1, first_name: 'Alice', last_name: 'Smyth' },
+            orderFromGirl: null,
+            matchScore: 75.0,
+            matchDetails: {
+              dateMatch: true,
+              typeMatch: true,
+              toMatch: true,
+              fromMatch: true,
+              cookieMatchPercent: 75.0,
+              nonCookieFieldsMatched: 3,
+            },
+          },
+        ],
       },
     ];
 
@@ -271,10 +254,10 @@ describe('AuditPerfectMatchesDataTable', () => {
       original_file_data: { headers: [] },
       parsed_rows: [{ rowNumber: 1, data: [] }],
     };
-    mockAuditSessionsStore.perfectMatches = mockMatches;
+    mockAuditSessionsStore.partialMatches = mockPartialMatches;
     mockAuditSessionsStore.matchesLoading = false;
 
-    const wrapper = mount(AuditPerfectMatchesDataTable, {
+    const wrapper = mount(AuditPartialMatchesDataTable, {
       global: {
         plugins: [createTestingPinia()],
         stubs: {
@@ -287,10 +270,7 @@ describe('AuditPerfectMatchesDataTable', () => {
 
     await wrapper.vm.$nextTick();
 
-    // Check that the component renders the DataTable with matches
-    expect(wrapper.findComponent({ name: 'DataTable' }).exists()).toBe(true);
-    // Verify the match summary is displayed
-    expect(wrapper.text()).toContain('Perfect Matches Found');
+    expect(wrapper.text()).toContain('Partial Matches Found');
     expect(wrapper.text()).toContain('1');
   });
 });

@@ -2,6 +2,7 @@ import type { Database } from '@/types/supabase';
 import type {
   AuditSession,
   PerfectMatch,
+  PartialMatch,
   Order,
   NewOrder,
   SCOrder2025,
@@ -23,10 +24,11 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   /* State */
   const mostRecentAuditSession = ref<AuditSession | null>(null);
   const perfectMatches = ref<PerfectMatch[]>([]);
+  const partialMatches = ref<PartialMatch[]>([]);
   const unmatchedOrders = ref<Order[]>([]);
   const auditExtraRows = ref<Record<string, unknown>[]>([]);
   const auditSessionError = ref<string | null>(null);
-  const perfectMatchesLoading = ref(false);
+  const matchesLoading = ref(false);
 
   /* Computed */
 
@@ -90,13 +92,14 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   const fetchMatches = async (): Promise<void> => {
     if (!mostRecentAuditSession.value?.id) {
       perfectMatches.value = [];
+      partialMatches.value = [];
       return;
     }
 
     if (!seasonsStore.currentSeason?.id)
       throw new Error('No current season selected');
 
-    perfectMatchesLoading.value = true;
+    matchesLoading.value = true;
 
     try {
       const response = await $fetch('/api/audit/matches', {
@@ -109,6 +112,8 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
       perfectMatches.value =
         (response as { matches: PerfectMatch[] }).matches || [];
+      partialMatches.value =
+        (response as { partialMatches: PartialMatch[] }).partialMatches || [];
       unmatchedOrders.value =
         (response as { unmatchedOrders: Order[] }).unmatchedOrders || [];
 
@@ -135,19 +140,21 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
         new Error('Failed to fetch perfect matches', error as Error),
       );
       perfectMatches.value = [];
+      partialMatches.value = [];
       unmatchedOrders.value = [];
       throw error;
     } finally {
-      perfectMatchesLoading.value = false;
+      matchesLoading.value = false;
     }
   };
 
   return {
     mostRecentAuditSession,
     perfectMatches,
+    partialMatches,
     unmatchedOrders,
     auditExtraRows,
-    perfectMatchesLoading,
+    matchesLoading,
     auditSessionError,
     insertAuditSession,
     fetchMostRecentAuditSession,
