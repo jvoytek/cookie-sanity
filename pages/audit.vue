@@ -69,6 +69,10 @@
             <AuditRowsDataTable />
           </TabPanel>
           <TabPanel value="1">
+            <p>
+              These transactions exactly match a row in the uploaded file. If
+              they are not marked "recorded" you can do that now.
+            </p>
             <AuditPerfectMatchesDataTable />
           </TabPanel>
           <TabPanel value="2">
@@ -80,7 +84,6 @@
               :orders="auditSessionsStore.unmatchedOrders"
               transaction-types="audit"
               :paginated="true"
-              :audit="true"
             />
             <div v-else class="text-center py-8">
               <p class="text-muted-color">No unmatched orders found.</p>
@@ -88,18 +91,18 @@
           </TabPanel>
           <TabPanel value="4">
             <p>
-              <strong>Please Note:</strong> In Smart Cookies "Girl To Girl"
-              transactions result in 2 rows per transaction (one transaction for
-              the giver and one for the receiver). They have the same order
-              number. Cookie Sanity only uses one. If you see Girl To Girl
-              transactions in this tab they are likely duplicates.
+              <strong>Please Note:</strong> These may also appear in Partial
+              Matches. In Smart Cookies "Girl To Girl" transactions result in 2
+              rows per transaction (one transaction for the giver and one for
+              the receiver). They have the same order number. Cookie Sanity only
+              uses one. If you see Girl To Girl transactions in this tab they
+              are likely duplicates.
             </p>
             <TransactionsDataTable
               v-if="auditSessionsStore.auditExtraRows.length > 0"
               :orders="auditSessionsStore.auditExtraRows"
-              transaction-types="audit"
+              transaction-types="audit-extra"
               :paginated="true"
-              :audit="true"
             />
             <div v-else class="text-center py-8">
               <p class="text-muted-color">No extra rows found in audit.</p>

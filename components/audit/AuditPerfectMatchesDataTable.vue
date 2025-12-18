@@ -100,7 +100,6 @@
         :orders="formattedMatches"
         transaction-types="audit"
         :paginated="true"
-        :audit="true"
       />
       <!-- DataTable -->
       <!---<DataTable

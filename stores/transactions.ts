@@ -19,6 +19,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const seasonsStore = useSeasonsStore();
   const girlsStore = useGirlsStore();
   const cookiesStore = useCookiesStore();
+  const auditSessionsStore = useAuditSessionsStore();
   const notificationHelpers = useNotificationHelpers();
 
   /* State */
@@ -543,6 +544,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const updateTransactionStatusBulk = async (
     transactionIds: number[],
     status: string,
+    audit: boolean = false,
   ) => {
     try {
       const { error } = await _supabaseUpdateTransactionStatusBulk(
@@ -552,6 +554,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
       if (error) throw error;
       // Since data is a single record, we need to refetch all transactions
       await fetchTransactions();
+      if (audit === true) {
+        auditSessionsStore.fetchMatches();
+      }
       notificationHelpers.addSuccess(
         `Transactions Marked ${
           status.charAt(0).toUpperCase() + status.slice(1)

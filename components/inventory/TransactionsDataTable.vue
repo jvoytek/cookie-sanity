@@ -3,9 +3,8 @@
 
   const props = defineProps<{
     orders: Order[];
-    transactionTypes: 'troop' | 'girl' | 'all' | 'audit';
+    transactionTypes: 'troop' | 'girl' | 'all' | 'audit' | 'audit-extra';
     paginated?: boolean;
-    audit?: boolean;
   }>();
 
   const ordersStore = useTransactionsStore();
@@ -63,33 +62,64 @@
   const hasSelection = computed(() => selectedTransactions.value.length > 0);
 
   const canMarkComplete = computed(() => {
-    if (props.transactionTypes === 'all') return false;
-    return props.orders.some((t) => t.status === 'pending');
+    if (
+      props.transactionTypes === 'all' ||
+      props.transactionTypes === 'audit-extra'
+    )
+      return false;
+    return (
+      (props.transactionTypes === 'audit' &&
+        props.orders.some((t) => t.status === 'recorded')) ||
+      props.orders.some((t) => t.status === 'pending')
+    );
   });
 
   const canUndoRecorded = computed(() => {
-    if (props.transactionTypes === 'all' && !props.audit) return false;
+    if (
+      props.transactionTypes === 'all' ||
+      props.transactionTypes === 'audit' ||
+      props.transactionTypes === 'audit-extra'
+    )
+      return false;
     return props.orders.some((t) => t.status === 'recorded');
   });
 
   const canMarkRecorded = computed(() => {
-    if (props.transactionTypes === 'all' && !props.audit) return false;
+    if (
+      props.transactionTypes === 'all' ||
+      props.transactionTypes === 'audit-extra'
+    )
+      return false;
     return props.orders.some((t) => t.status === 'complete');
   });
 
   const canApprove = computed(() => {
-    if (props.transactionTypes === 'all') return false;
+    if (
+      props.transactionTypes === 'all' ||
+      props.transactionTypes === 'audit-extra'
+    )
+      return false;
     return props.orders.some((t) => t.status === 'requested');
   });
 
   const canMarkPending = computed(() => {
-    if (props.transactionTypes === 'all') return false;
+    if (
+      props.transactionTypes === 'all' ||
+      props.transactionTypes === 'audit' ||
+      props.transactionTypes === 'audit-extra'
+    )
+      return false;
     return props.orders.some(
       (t) => t.status === 'complete' || t.status === 'rejected',
     );
   });
 
   const canDelete = computed(() => {
+    if (
+      props.transactionTypes === 'audit' ||
+      props.transactionTypes === 'audit-extra'
+    )
+      return false;
     if (props.transactionTypes === 'all') return true;
     if (props.transactionTypes === 'troop') return true;
     if (props.transactionTypes === 'girl') {
@@ -116,7 +146,11 @@
       (t) => t.status === 'pending' || t.status === 'recorded',
     );
     const transactionIds = toUpdate.map((t) => t.id);
-    await ordersStore.updateTransactionStatusBulk(transactionIds, 'complete');
+    await ordersStore.updateTransactionStatusBulk(
+      transactionIds,
+      'complete',
+      props.transactionTypes === 'audit' ? true : false,
+    );
     selectedTransactions.value = [];
   };
 
@@ -125,7 +159,11 @@
       (t) => t.status === 'complete',
     );
     const transactionIds = toUpdate.map((t) => t.id);
-    await ordersStore.updateTransactionStatusBulk(transactionIds, 'recorded');
+    await ordersStore.updateTransactionStatusBulk(
+      transactionIds,
+      'recorded',
+      props.transactionTypes === 'audit' ? true : false,
+    );
     selectedTransactions.value = [];
   };
 
@@ -182,6 +220,11 @@
   });
 
   const anyReceiptsAvailable = computed(() => {
+    if (
+      props.transactionTypes === 'audit' ||
+      props.transactionTypes === 'audit-extra'
+    )
+      return false;
     return props.orders.some((transaction) =>
       transactionsStore.transactionRequiresReceipt(transaction),
     );
@@ -196,20 +239,13 @@
 </script>
 
 <template>
-  <Toolbar
-    v-if="
-      (props.transactionTypes !== 'all' &&
-        props.transactionTypes !== 'audit') ||
-      props.audit
-    "
-    class="mb-4"
-  >
+  <Toolbar v-if="props.transactionTypes !== 'all'" class="mb-4">
     <template #start>
       <span class="mr-4 text-sm text-muted-color">
         {{ selectedTransactions.length }} selected
       </span>
       <Button
-        v-if="!props.audit && canMarkComplete"
+        v-if="canMarkComplete"
         v-tooltip.bottom="{
           value:
             'Mark all selected transactions as complete. Click this when physical inventory has changed hands',
@@ -251,7 +287,7 @@
         @click="bulkMarkRecorded"
       />
       <Button
-        v-if="!props.audit && canApprove"
+        v-if="canApprove"
         v-tooltip.bottom="{
           value: 'Approve selected requests and mark as pending',
           showDelay: 500,
@@ -264,7 +300,7 @@
         @click="bulkApprove"
       />
       <Button
-        v-if="!props.audit && canMarkPending"
+        v-if="canMarkPending"
         v-tooltip.bottom="{
           value: 'Mark selected transactions as pending again',
           showDelay: 500,
@@ -278,7 +314,7 @@
         @click="bulkMarkPending"
       />
       <Button
-        v-if="!props.audit && canReject"
+        v-if="canReject"
         v-tooltip.bottom="{
           value: 'Reject selected transaction requests',
           showDelay: 500,
@@ -292,7 +328,7 @@
         @click="bulkReject"
       />
       <Button
-        v-if="!props.audit && canDelete"
+        v-if="canDelete"
         v-tooltip.bottom="{
           value: 'Delete selected transactions',
           showDelay: 500,
@@ -305,7 +341,7 @@
         @click="deleteBulkTransactionsDialogVisible = true"
       />
       <Button
-        v-if="!props.audit && anyReceiptsAvailable"
+        v-if="anyReceiptsAvailable"
         v-tooltip.bottom="{
           value: 'View receipt for selected transaction(s)',
           showDelay: 500,
@@ -333,11 +369,7 @@
     size="small"
   >
     <Column
-      v-if="
-        (props.transactionTypes !== 'all' &&
-          props.transactionTypes !== 'audit') ||
-        props.audit
-      "
+      v-if="props.transactionTypes !== 'all'"
       selection-mode="multiple"
       header-style="width: 3rem"
     />
@@ -421,7 +453,12 @@
         <NuxtTime :datetime="slotProps.data.order_date" time-zone="UTC" />
       </template>
     </Column>
-    <Column v-if="props.audit" field="status" header="Status" sortable>
+    <Column
+      v-if="props.transactionTypes === 'audit'"
+      field="status"
+      header="Status"
+      sortable
+    >
       <template #body="slotProps">
         <Badge :severity="getStatusBadgeSeverity(slotProps.data.status)">{{
           slotProps.data.status
@@ -429,17 +466,12 @@
       </template>
     </Column>
     <Column field="notes" header="Notes" />
-    <Column
-      v-if="props.audit || props.transactionTypes !== 'audit'"
-      field="actions"
-      header="Actions"
-      style="min-width: 224px"
-    >
+    <Column field="actions" header="Actions" style="min-width: 224px">
       <template #body="slotProps">
         <Button
           v-if="
-            !props.audit &&
             props.transactionTypes !== 'all' &&
+            props.transactionTypes !== 'audit-extra' &&
             slotProps.data.status === 'pending'
           "
           v-tooltip.bottom="{
@@ -456,7 +488,8 @@
         />
         <Button
           v-if="
-            (props.audit || props.transactionTypes !== 'all') &&
+            props.transactionTypes !== 'all' &&
+            props.transactionTypes !== 'audit-extra' &&
             slotProps.data.status === 'complete'
           "
           v-tooltip.bottom="{
@@ -474,8 +507,8 @@
         />
         <Button
           v-if="
-            !props.audit &&
             props.transactionTypes !== 'all' &&
+            props.transactionTypes !== 'audit-extra' &&
             slotProps.data.status === 'requested'
           "
           v-tooltip.bottom="{
@@ -492,7 +525,8 @@
         />
         <Button
           v-if="
-            !props.audit &&
+            props.transactionTypes !== 'audit' &&
+            props.transactionTypes !== 'audit-extra' &&
             (slotProps.data.status === 'rejected' ||
               (props.transactionTypes !== 'all' &&
                 slotProps.data.status === 'complete'))
@@ -512,7 +546,8 @@
         />
         <Button
           v-if="
-            (props.audit || props.transactionTypes !== 'all') &&
+            props.transactionTypes !== 'all' &&
+            props.transactionTypes !== 'audit-extra' &&
             slotProps.data.status === 'recorded'
           "
           v-tooltip.bottom="{
@@ -530,7 +565,10 @@
           "
         />
         <Button
-          v-if="!props.audit"
+          v-if="
+            props.transactionTypes !== 'audit' &&
+            props.transactionTypes !== 'audit-extra'
+          "
           v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
           aria-label="Edit"
           icon="pi pi-pencil"
@@ -546,7 +584,8 @@
         />
         <Button
           v-if="
-            !props.audit &&
+            props.transactionTypes !== 'audit' &&
+            props.transactionTypes !== 'audit-extra' &&
             (props.transactionTypes === 'all' ||
               props.transactionTypes === 'troop' ||
               (props.transactionTypes === 'girl' &&
@@ -564,7 +603,8 @@
         />
         <Button
           v-if="
-            !props.audit &&
+            props.transactionTypes !== 'audit' &&
+            props.transactionTypes !== 'audit-extra' &&
             props.transactionTypes !== 'all' &&
             props.transactionTypes === 'girl' &&
             (slotProps.data.status === 'requested' ||
@@ -585,7 +625,8 @@
         />
         <Button
           v-if="
-            !props.audit &&
+            props.transactionTypes !== 'audit' &&
+            props.transactionTypes !== 'audit-extra' &&
             transactionsStore.transactionRequiresReceipt(slotProps.data)
           "
           v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
