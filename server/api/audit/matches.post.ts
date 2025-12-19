@@ -1,6 +1,11 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/supabase';
-import type { PerfectMatch, PartialMatch } from '~/types/types';
+import type {
+  PerfectMatch,
+  PartialMatch,
+  NewOrder,
+  SCOrder2025,
+} from '~/types/types';
 import { fuzzyMatch } from '~/server/utils/stringMatching';
 import {
   fetchAuditSession,
@@ -58,6 +63,54 @@ export default defineEventHandler(async (event) => {
   };
   const headers = originalFileData?.headers || [];
 
+  const _hasPositiveCookieQuantities = (auditRow: SCOrder2025): boolean => {
+    // Check if any cookie has a quantity greater than 0
+    const hasPositive = cookies.some((cookie) => {
+      if (auditRow[cookie.abbreviation] > 0) {
+        return true;
+      }
+    });
+    return hasPositive;
+  };
+
+  const dedupeGirlToGirlTransactions = (orders: NewOrder[]) => {
+    // remove duplicates by order_num for G2G transactions, keep the one with positive quantities if duplicates exist
+    // This is because Smart Cookies exports 2 rows per G2G order: one with negative quantities and one with positive quantities, the "TO" field is the same for both orders...yeah...
+    const uniqueOrdersMap = new Map<string, NewOrder>();
+    const uniqueOrders = [];
+    orders.forEach((order) => {
+      // If no order number, just add it
+      if (!order.order_num) {
+        uniqueOrders.push(order);
+        return;
+      }
+      if (order.type !== 'G2G') {
+        // For non-G2G orders, just add them
+        uniqueOrders.push(order);
+        return;
+      }
+      const existingOrder = uniqueOrdersMap.get(order.order_num);
+      if (!existingOrder) {
+        uniqueOrdersMap.set(order.order_num, order);
+      } else {
+        // If duplicate exists, prefer the one with positive quantities
+        const existingHasPositiveQuantities =
+          _hasPositiveCookieQuantities(existingOrder);
+        const newHasPositiveQuantities = _hasPositiveCookieQuantities(order);
+        // If existing has positive quantities, do nothing
+        // If new has positive quantities and existing does not, replace
+
+        if (newHasPositiveQuantities && !existingHasPositiveQuantities) {
+          uniqueOrdersMap.set(order.order_num, order);
+        }
+      }
+    });
+
+    // add orders with order numbers to uniqueOrders
+    uniqueOrders.push(...Array.from(uniqueOrdersMap.values()));
+    return uniqueOrders;
+  };
+
   // If headers don't match expected format, return empty matches
   if (!hasValidHeaders(headers)) {
     return {
@@ -74,8 +127,10 @@ export default defineEventHandler(async (event) => {
   const perfectMatches: PerfectMatch[] = [];
 
   // Normalized audit rows for matching
-  const auditRowsForMatching = parsedRows.map((row) =>
-    processAuditRowForMatching(rowToObject(row, headers) || {}, cookies),
+  const auditRowsForMatching = dedupeGirlToGirlTransactions(
+    parsedRows.map((row) =>
+      processAuditRowForMatching(rowToObject(row, headers) || {}, cookies),
+    ),
   );
 
   for (const auditRow of auditRowsForMatching) {

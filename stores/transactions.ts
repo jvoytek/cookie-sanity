@@ -365,55 +365,78 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const insertNewTransaction = async (transaction: NewOrder | null) => {
+  const validateNewTransaction = (tx: NewOrder, audit: boolean = false) => {
+    delete tx.id;
+    delete tx.auto_calculate_cookies;
+    delete tx.total_cookies;
+    delete tx.sortDate;
+
+    if (transactionTypesToInvert.includes(tx.type || '')) {
+      tx = invertCookieQuantitiesInTransaction(tx);
+    }
+    return {
+      ...tx,
+      status: audit === true ? 'recorded' : tx.status,
+      order_date: _returnDateStringOrNull(tx.order_date),
+      season:
+        typeof tx.season === 'number'
+          ? tx.season
+          : profileStore.currentProfile?.season ||
+            seasonsStore.allSeasons[0].id,
+    } as Order;
+  };
+
+  const insertNewTransaction = async (
+    transaction: NewOrder | null,
+    audit: boolean = false,
+  ) => {
     if (!profileStore.currentProfile || !transaction) return;
 
-    transaction.profile = profileStore.currentProfile.id;
-    transaction.season =
-      profileStore.currentProfile.season || seasonsStore.allSeasons[0].id;
-    transaction.order_date = _returnDateStringOrNull(transaction.order_date);
-    if (transactionTypesToInvert.includes(transaction.type || '')) {
-      transaction = invertCookieQuantitiesInTransaction(transaction);
-    }
-
-    if (transaction.auto_calculate_cookies !== undefined)
-      delete transaction.auto_calculate_cookies;
-
-    if (transaction.total_cookies !== undefined)
-      delete transaction.total_cookies;
-
-    if (transaction.sortDate !== undefined) delete transaction.sortDate;
+    const validatedTransaction = validateNewTransaction(transaction, audit);
 
     try {
-      const { data, error } = await _supabaseInsertTransaction(transaction);
+      const { data, error } =
+        await _supabaseInsertTransaction(validatedTransaction);
 
       if (error) throw error;
       _addTransaction(transformDataForTransaction(data));
       _sortTransactions();
+      if (audit === true) {
+        const auditSessionsStore = useAuditSessionsStore();
+        auditSessionsStore.fetchMatches();
+      }
       notificationHelpers.addSuccess('Transaction Created');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
   };
 
-  const insertNewTransactionFromUploads = async (
+  const bulkInsertNewTransactions = async (
     transactionsList: NewOrder[],
+    audit: boolean = false,
   ) => {
-    // Ensure all transactions have a valid season number (not null)
-    const validTransactionsList = transactionsList.map((tx) => ({
-      ...tx,
-      season:
-        typeof tx.season === 'number'
-          ? tx.season
-          : profileStore.currentProfile?.season ||
-            seasonsStore.allSeasons[0].id,
-    }));
+    try {
+      const validTransactionsList = transactionsList.map((tx) =>
+        validateNewTransaction(tx, audit),
+      );
 
-    const { error } = await supabaseClient
-      .from('orders')
-      .insert(validTransactionsList)
-      .select();
-    if (error) throw error;
+      const { error } = await supabaseClient
+        .from('orders')
+        .insert(validTransactionsList)
+        .select();
+
+      if (error) throw error;
+
+      // Since data is a single record, we need to refetch all transactions
+      await fetchTransactions();
+      if (audit === true) {
+        const auditSessionsStore = useAuditSessionsStore();
+        auditSessionsStore.fetchMatches();
+      }
+      notificationHelpers.addSuccess('Transactions Added');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
   };
 
   const upsertTransaction = async (transaction: Order) => {
@@ -670,8 +693,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     recordedTroopTransactionListCount,
     totalTransactionsByStatusAllCookies,
     fetchTransactions,
-    insertNewTransactionFromUploads,
     insertNewTransaction,
+    bulkInsertNewTransactions,
     upsertTransaction,
     deleteTransaction,
     bulkDeleteTransactions,

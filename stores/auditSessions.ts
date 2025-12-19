@@ -34,6 +34,26 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
   /* Private Functions */
 
+  function _generateUniqueId(): string {
+    // Prefer native UUID when available
+    if (typeof globalThis.crypto?.randomUUID === 'function') {
+      return globalThis.crypto.randomUUID();
+    }
+
+    // Fallback to crypto.getRandomValues for high-quality randomness
+    if (typeof globalThis.crypto?.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16);
+      globalThis.crypto.getRandomValues(bytes);
+      // Convert to hex string
+      return Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    // Last-resort fallback using timestamp + Math.random
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
   /* Actions */
 
   const insertAuditSession = async (
@@ -122,9 +142,15 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
         (response as { auditExtraRows: Record<string, unknown>[] })
           .auditExtraRows || []
       )
-        .map((obj: Record<string, unknown>) =>
-          transactionsStore.convertSCOrderToNewTransaction(obj as SCOrder2025),
-        )
+        .map((obj: Record<string, unknown>) => {
+          const order =
+            transactionsStore.convertSCOrderToNewTransaction(
+              obj as SCOrder2025,
+            ) || {};
+          // add temporary unique id for front-end tracking
+          order.id = _generateUniqueId();
+          return order;
+        })
         .filter(
           (order) =>
             order !== undefined &&

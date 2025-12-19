@@ -1,5 +1,5 @@
 import type { Json } from '@/types/supabase';
-import type { Cookie, Order } from '@/types/types';
+import type { Cookie, NewOrder, Order } from '@/types/types';
 
 export const transactionTypesToInvert = ['G2T', 'T2T', 'C2T'];
 export const transactionTypesToInvertAudit = [
@@ -7,9 +7,12 @@ export const transactionTypesToInvertAudit = [
   'T2G(B)',
   'T2G(VB)',
   'DIRECT_SHIP',
+  'G2G',
 ];
 
-export const invertCookieQuantitiesInTransaction = (transaction: Order) => {
+export const invertCookieQuantitiesInTransaction = (
+  transaction: Order | NewOrder,
+) => {
   const invertedCookies = invertCookieQuantities(transaction.cookies);
   transaction.cookies = invertedCookies ? invertedCookies : transaction.cookies;
   return transaction;

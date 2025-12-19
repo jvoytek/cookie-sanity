@@ -100,7 +100,7 @@
       uniqueOrders.push(...Array.from(uniqueOrdersMap.values()));
 
       // Insert into orders table
-      await ordersStore.insertNewTransactionFromUploads(uniqueOrders);
+      await ordersStore.bulkInsertNewTransactions(uniqueOrders);
 
       // Clear the file input
       event.files = [];
