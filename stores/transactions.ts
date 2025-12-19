@@ -543,6 +543,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const updateTransactionStatusBulk = async (
     transactionIds: number[],
     status: string,
+    audit: boolean = false,
   ) => {
     try {
       const { error } = await _supabaseUpdateTransactionStatusBulk(
@@ -552,6 +553,10 @@ export const useTransactionsStore = defineStore('transactions', () => {
       if (error) throw error;
       // Since data is a single record, we need to refetch all transactions
       await fetchTransactions();
+      if (audit === true) {
+        const auditSessionsStore = useAuditSessionsStore();
+        auditSessionsStore.fetchMatches();
+      }
       notificationHelpers.addSuccess(
         `Transactions Marked ${
           status.charAt(0).toUpperCase() + status.slice(1)
