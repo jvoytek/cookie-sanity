@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import type { Order } from '@/types/types';
+  import { Button } from 'primevue';
 
   const props = defineProps<{
     orders: Order[];
@@ -140,6 +141,10 @@
     );
   });
 
+  const canAddExtraAuditRows = computed(() => {
+    return props.transactionTypes === 'audit-extra';
+  });
+
   // Bulk action handlers
   const bulkMarkComplete = async () => {
     const toUpdate = selectedTransactions.value.filter(
@@ -213,6 +218,18 @@
     );
   };
 
+  const bulkAddAuditRows = async () => {
+    await ordersStore.bulkInsertNewTransactions(
+      selectedTransactions.value,
+      true,
+    );
+    selectedTransactions.value = [];
+  };
+
+  const addAuditRow = async (transaction: Order) => {
+    await ordersStore.insertNewTransaction(transaction, true);
+  };
+
   const canShowReceipt = computed(() => {
     return selectedTransactions.value.every((transaction) =>
       transactionsStore.transactionRequiresReceipt(transaction),
@@ -244,6 +261,19 @@
       <span class="mr-4 text-sm text-muted-color">
         {{ selectedTransactions.length }} selected
       </span>
+      <Button
+        v-if="canAddExtraAuditRows"
+        v-tooltip.bottom="{
+          value: 'Add selected rows to database as new transactions',
+          showDelay: 500,
+        }"
+        :disabled="!hasSelection"
+        label="Add Transactions to Database"
+        icon="pi pi-plus"
+        class="mr-2"
+        variant="outlined"
+        @click="bulkAddAuditRows"
+      />
       <Button
         v-if="canMarkComplete"
         v-tooltip.bottom="{
@@ -377,7 +407,8 @@
       v-if="
         props.transactionTypes === 'troop' ||
         props.transactionTypes === 'all' ||
-        props.transactionTypes === 'audit'
+        props.transactionTypes === 'audit' ||
+        props.transactionTypes === 'audit-extra'
       "
       field="supplier"
       header="Supplier"
@@ -388,7 +419,8 @@
       v-if="
         props.transactionTypes === 'girl' ||
         props.transactionTypes === 'all' ||
-        props.transactionTypes === 'audit'
+        props.transactionTypes === 'audit' ||
+        props.transactionTypes === 'audit-extra'
       "
       field="from"
       header="From"
@@ -406,7 +438,8 @@
       v-if="
         props.transactionTypes === 'girl' ||
         props.transactionTypes === 'all' ||
-        props.transactionTypes === 'audit'
+        props.transactionTypes === 'audit' ||
+        props.transactionTypes === 'audit-extra'
       "
       field="to"
       header="To"
@@ -468,6 +501,18 @@
     <Column field="notes" header="Notes" />
     <Column field="actions" header="Actions" style="min-width: 224px">
       <template #body="slotProps">
+        <Button
+          v-if="props.transactionTypes === 'audit-extra'"
+          v-tooltip.bottom="{
+            value: 'Add this row to the database as a new transaction',
+            showDelay: 500,
+          }"
+          aria-label="Extra Audit Row"
+          icon="pi pi-plus"
+          class="mr-2"
+          variant="outlined"
+          @click="addAuditRow(slotProps.data)"
+        />
         <Button
           v-if="
             props.transactionTypes !== 'all' &&
