@@ -376,6 +376,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
     return {
       ...tx,
+      type: tx.type?.trim() || null,
       status: audit === true ? 'recorded' : tx.status,
       order_date: _returnDateStringOrNull(tx.order_date),
       season:
@@ -520,7 +521,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const toGirlId = girlsStore.getGirlIdByName(obj.TO);
     const fromGirlId = girlsStore.getGirlIdByName(obj.FROM);
     // Convert COOKIE_SHARE types to T2G
-    let type = obj.TYPE;
+    let type = obj.TYPE.trim();
     if (type === 'COOKIE_SHARE') {
       type = 'T2G';
     } else if (type === 'COOKIE_SHARE(B)') {
