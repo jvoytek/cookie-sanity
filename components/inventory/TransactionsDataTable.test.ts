@@ -42,10 +42,9 @@ describe('TransactionsDataTable', () => {
     expect(wrapper.exists()).toBe(true);
   });
 
-  it('shows toolbar when audit prop is true', () => {
+  it('shows toolbar when transactionTypes is audit', () => {
     const wrapper = createWrapper({
       transactionTypes: 'audit',
-      audit: true,
     });
     expect(wrapper.exists()).toBe(true);
   });
@@ -57,11 +56,17 @@ describe('TransactionsDataTable', () => {
     expect(wrapper.exists()).toBe(true);
   });
 
-  it('accepts audit prop', () => {
+  it('accepts transactionTypes prop with audit value', () => {
     const wrapper = createWrapper({
       transactionTypes: 'audit',
-      audit: true,
     });
-    expect(wrapper.props('audit')).toBe(true);
+    expect(wrapper.props('transactionTypes')).toBe('audit');
+  });
+
+  it('accepts transactionTypes prop with audit-extra value', () => {
+    const wrapper = createWrapper({
+      transactionTypes: 'audit-extra',
+    });
+    expect(wrapper.props('transactionTypes')).toBe('audit-extra');
   });
 });
