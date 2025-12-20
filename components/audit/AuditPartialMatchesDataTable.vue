@@ -125,7 +125,7 @@
         "
         showGridlines
       >
-        <Column header="Confirm Match">
+        <Column header="Confirm Match" style="min-width: 99px">
           <template #body="slotProps">
             <span v-if="slotProps.data.isAuditRow">--</span>
             <span v-else>
@@ -138,8 +138,33 @@
                     slotProps.data.id,
                   )
                 "
-                >Confirm</Button
-              >
+                aria-label="Confirm match and update database with uploaded data"
+                icon="pi pi-check"
+                class="mr-2"
+                v-tooltip.bottom="{
+                  value:
+                    'Click this to confirm this match and update the database order with the uploaded audit row data.',
+                  showDelay: 500,
+                }"
+              ></Button>
+              <Button
+                size="small"
+                severity="info"
+                @click="
+                  transactionsStore.updateTransactionStatus(
+                    slotProps.data.id,
+                    'complete',
+                  )
+                "
+                aria-label="Flag this transaction for followup (for example, if the uploaded data needs to be corrected rather than the data in this database)"
+                icon="pi pi-flag"
+                class="mr-2"
+                v-tooltip.bottom="{
+                  value:
+                    'Click this to flag this transaction for followup (for example, if the uploaded data needs to be corrected rather than the data in this database).',
+                  showDelay: 500,
+                }"
+              ></Button>
             </span>
           </template>
         </Column>
