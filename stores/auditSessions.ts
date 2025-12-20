@@ -23,6 +23,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
   /* State */
   const mostRecentAuditSession = ref<AuditSession | null>(null);
+  const allAuditSessions = ref<AuditSession[]>([]);
   const perfectMatches = ref<PerfectMatch[]>([]);
   const partialMatches = ref<PartialMatch[]>([]);
   const unmatchedOrders = ref<Order[]>([]);
@@ -99,6 +100,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
       .select()
       .eq('profile', user.value.id)
       .eq('season', seasonsStore.currentSeason?.id)
+      .neq('status', 'archived')
       .order('created_at', { ascending: false });
 
     if (error && error.code !== 'PGRST116') {
@@ -106,7 +108,51 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
       throw new Error(error.message);
     }
 
-    mostRecentAuditSession.value = data[0] || null;
+    mostRecentAuditSession.value = (data && data[0]) || null;
+  };
+
+  const fetchAllAuditSessions = async (
+    includeArchived: boolean = false,
+  ): Promise<void> => {
+    if (!user.value?.id) throw new Error('User not authenticated');
+    if (!seasonsStore.currentSeason?.id)
+      throw new Error('No current season selected');
+
+    let query = supabaseClient
+      .from('audit_sessions')
+      .select()
+      .eq('profile', user.value.id)
+      .eq('season', seasonsStore.currentSeason?.id);
+
+    if (!includeArchived) {
+      query = query.neq('status', 'archived');
+    }
+
+    const { data, error } = await query.order('created_at', {
+      ascending: false,
+    });
+
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(error.message);
+    }
+
+    allAuditSessions.value = data || [];
+  };
+
+  const archiveAuditSession = async (sessionId: string): Promise<void> => {
+    if (!user.value?.id) throw new Error('User not authenticated');
+
+    const { error } = await supabaseClient
+      .from('audit_sessions')
+      .update({ status: 'archived' })
+      .eq('id', sessionId)
+      .eq('profile', user.value.id);
+
+    if (error) throw new Error(error.message);
+
+    // Refresh the audit sessions list
+    await fetchAllAuditSessions();
+    await fetchMostRecentAuditSession();
   };
 
   const fetchMatches = async (): Promise<void> => {
@@ -203,6 +249,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
   return {
     mostRecentAuditSession,
+    allAuditSessions,
     perfectMatches,
     partialMatches,
     unmatchedOrders,
@@ -211,6 +258,8 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     auditSessionError,
     insertAuditSession,
     fetchMostRecentAuditSession,
+    fetchAllAuditSessions,
+    archiveAuditSession,
     fetchMatches,
     confirmPartialMatch,
   };

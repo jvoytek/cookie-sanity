@@ -35,6 +35,14 @@ vi.mock('@/components/audit/AuditPartialMatchesDataTable.vue', () => ({
   },
 }));
 
+// Mock the AuditSessionsList component
+vi.mock('@/components/audit/AuditSessionsList.vue', () => ({
+  default: {
+    name: 'AuditSessionsList',
+    template: '<div class="audit-sessions-list-mock"></div>',
+  },
+}));
+
 describe('AuditPage', () => {
   let mockAuditSessionsStore: ReturnType<typeof vi.fn>;
 
@@ -43,12 +51,14 @@ describe('AuditPage', () => {
 
     mockAuditSessionsStore = {
       mostRecentAuditSession: null,
+      allAuditSessions: [],
       perfectMatches: [],
       partialMatches: [],
       unmatchedOrders: [],
       auditExtraRows: [],
       matchesLoading: false,
       fetchMatches: vi.fn().mockResolvedValue(undefined),
+      fetchAllAuditSessions: vi.fn().mockResolvedValue(undefined),
     };
 
     vi.stubGlobal('useAuditSessionsStore', () => mockAuditSessionsStore);
@@ -61,6 +71,7 @@ describe('AuditPage', () => {
           plugins: [createTestingPinia()],
           stubs: {
             AuditFileUpload: true,
+            AuditSessionsList: true,
             AuditRowsDataTable: true,
             AuditPerfectMatchesDataTable: true,
             AuditPartialMatchesDataTable: true,
@@ -82,6 +93,7 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditSessionsList: true,
           AuditRowsDataTable: true,
           AuditPerfectMatchesDataTable: true,
           AuditPartialMatchesDataTable: true,
@@ -104,6 +116,7 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditSessionsList: true,
           AuditRowsDataTable: true,
           AuditPerfectMatchesDataTable: true,
           AuditPartialMatchesDataTable: true,
@@ -127,6 +140,7 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditSessionsList: true,
           AuditRowsDataTable: true,
           AuditPerfectMatchesDataTable: true,
           AuditPartialMatchesDataTable: true,
@@ -151,6 +165,7 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditSessionsList: true,
           AuditRowsDataTable: true,
           AuditPerfectMatchesDataTable: true,
           AuditPartialMatchesDataTable: true,
@@ -175,6 +190,7 @@ describe('AuditPage', () => {
         plugins: [createTestingPinia()],
         stubs: {
           AuditFileUpload: true,
+          AuditSessionsList: true,
           AuditRowsDataTable: true,
           AuditPerfectMatchesDataTable: true,
           AuditPartialMatchesDataTable: true,

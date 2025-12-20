@@ -35,6 +35,9 @@
     <div class="col-span-12">
       <AuditFileUpload />
     </div>
+    <div class="col-span-12">
+      <AuditSessionsList />
+    </div>
     <div class="col-span-12" v-if="auditSessionsStore.mostRecentAuditSession">
       <Button @click="auditSessionsStore.fetchMatches()"
         >Refresh Matches</Button
