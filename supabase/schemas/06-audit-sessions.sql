@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS "public"."audit_sessions" (
     "file_size" integer NOT NULL,
     "created_at" timestamp with time zone DEFAULT now() NOT NULL,
     "status" text NOT NULL DEFAULT 'pending',
+    "season" bigint DEFAULT '1'::bigint NOT NULL,
     "original_file_data" jsonb NOT NULL,
     "parsed_rows" jsonb NOT NULL DEFAULT '[]'::jsonb,
     constraint "audit_sessions_pkey" primary key ("id"),
@@ -15,6 +16,9 @@ CREATE TABLE IF NOT EXISTS "public"."audit_sessions" (
 
 -- Add comment to explain the table purpose
 COMMENT ON TABLE "public"."audit_sessions" IS 'Stores uploaded file information and parsed rows for persistent audit sessions to reconcile Smart Cookies data';
+
+ALTER TABLE ONLY "public"."audit_sessions"
+    ADD CONSTRAINT "audit_sessions_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id") on delete cascade;
 
 -- Enable row level security
 alter table "public"."audit_sessions" enable row level security;
