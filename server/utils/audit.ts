@@ -21,6 +21,20 @@ export const normalizeDate = (
   }
 };
 
+export const formatDateToMMDDYYYY = (date: Date, timeZone = 'UTC'): string => {
+  // 'en-US' locale formats as MM/DD/YYYY by default
+  // We explicitly set the timeZone to ensure consistent results regardless of the user's browser settings
+  const options = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: timeZone,
+  };
+
+  // The result will be in the format "MM/DD/YYYY"
+  return new Intl.DateTimeFormat('en-US', options).format(date);
+};
+
 export const normalizeOrderNum = (
   orderNum: string | number | null | undefined,
 ): string => {

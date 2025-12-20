@@ -174,6 +174,33 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     }
   };
 
+  const confirmPartialMatch = async (
+    auditRow: Order | NewOrder,
+    matchedOrderId: number,
+  ): Promise<void> => {
+    const matchedOrder = transactionsStore.getTransactionsById([
+      matchedOrderId,
+    ])[0];
+    if (!matchedOrder) {
+      throw new Error(`Matched order with ID ${matchedOrderId} not found`);
+    }
+    const updatedTransaction = {
+      ...matchedOrder,
+      ...auditRow,
+    } as Order;
+    // Convert order_date to MM/DD/YYYY format if needed
+    updatedTransaction.order_date = new Date(
+      updatedTransaction.order_date || '',
+    )
+      .toISOString()
+      .split('T')[0];
+    updatedTransaction.supplier =
+      updatedTransaction.supplier?.toString() || null;
+    await transactionsStore.upsertTransaction(updatedTransaction);
+    // Refresh matches after confirming
+    await fetchMatches();
+  };
+
   return {
     mostRecentAuditSession,
     perfectMatches,
@@ -185,5 +212,6 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     insertAuditSession,
     fetchMostRecentAuditSession,
     fetchMatches,
+    confirmPartialMatch,
   };
 });

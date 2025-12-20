@@ -541,6 +541,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       season: profileStore.currentProfile.season || undefined,
       type: type,
       status: 'complete',
+      supplier: type === 'C2T' ? 'Council' : type === 'T2T' ? obj.FROM : null,
     };
   };
 

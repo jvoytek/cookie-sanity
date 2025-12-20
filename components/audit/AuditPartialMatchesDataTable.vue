@@ -101,13 +101,13 @@
           <div>
             <p class="text-sm text-muted-color">Match Criteria</p>
             <p class="font-semibold">
-              Date ±2 days, Type, Fuzzy Names, Cookies ±1
+              Date ±2 days, Type, Fuzzy Names, Abs. Value Cookies ±1
             </p>
           </div>
           <div>
             <p class="text-sm text-muted-color">Threshold</p>
             <p class="font-semibold">
-              >50% cookies + ≥1 field OR >20% cookies + ≥2 fields
+              >60% cookies + ≥1 field OR >40% cookies + ≥2 fields
             </p>
           </div>
         </div>
@@ -125,9 +125,33 @@
         "
         showGridlines
       >
+        <Column header="Confirm Match">
+          <template #body="slotProps">
+            <span v-if="slotProps.data.isAuditRow">--</span>
+            <span v-else>
+              <Button
+                size="small"
+                severity="success"
+                @click="
+                  auditSessionsStore.confirmPartialMatch(
+                    slotProps.data.auditRow,
+                    slotProps.data.id,
+                  )
+                "
+                >Confirm</Button
+              >
+            </span>
+          </template>
+        </Column>
+        <Column header="Source">
+          <template #body="slotProps">
+            <span v-if="slotProps.data.isAuditRow">Upload</span>
+            <span v-else>Database</span>
+          </template>
+        </Column>
         <Column field="matchScore" header="Match Score">
           <template #body="slotProps">
-            <span v-if="slotProps.data.isAuditRow">Audit Row</span>
+            <span v-if="slotProps.data.isAuditRow">--</span>
 
             <span
               v-else
@@ -141,6 +165,27 @@
               class="font-semibold"
             >
               {{ slotProps.data.matchScore?.toFixed(1) }}%
+            </span>
+          </template>
+        </Column>
+        <Column field="supplier" header="Supplier/Other Troop">
+          <template #body="slotProps">
+            <span
+              v-if="
+                slotProps.data.isAuditRow !== true && slotProps.data.supplier
+              "
+              :class="
+                slotProps.data.supplier === slotProps.data.auditRow.supplier
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              "{{ typeof slotProps.data.supplier }}" "{{
+                typeof slotProps.data.auditRow.supplier
+              }}"
+            </span>
+            <span v-else-if="slotProps.data.supplier">
+              {{ slotProps.data.supplier }}
             </span>
           </template>
         </Column>
@@ -213,7 +258,9 @@
         </Column>
         <Column field="order_date" header="Date">
           <template #body="slotProps">
-            <span
+            <NuxtTime
+              :datetime="slotProps.data.order_date"
+              time-zone="UTC"
               v-if="
                 slotProps.data.isAuditRow !== true && slotProps.data.order_date
               "
@@ -222,12 +269,12 @@
                   ? 'text-green-600'
                   : 'text-red-600'
               "
-            >
-              {{ new Date(slotProps.data.order_date).toLocaleDateString() }}
-            </span>
-            <span v-else-if="slotProps.data.order_date">
-              {{ new Date(slotProps.data.order_date).toLocaleDateString() }}
-            </span>
+            />
+            <NuxtTime
+              :datetime="slotProps.data.order_date"
+              time-zone="UTC"
+              v-else-if="slotProps.data.order_date"
+            />
           </template>
         </Column>
         <Column field="notes" header="Notes" />
@@ -239,7 +286,23 @@
           :header="abbr"
         >
           <template #body="slotProps">
-            {{ slotProps.data.cookies?.[abbr] || 0 }}
+            <span
+              v-if="
+                slotProps.data.isAuditRow !== true &&
+                slotProps.data.cookies?.[abbr]
+              "
+              :class="
+                slotProps.data.cookies?.[abbr] ==
+                slotProps.data.auditRow?.cookies?.[abbr]
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              {{ slotProps.data.cookies?.[abbr] || 0 }}
+            </span>
+            <span v-else-if="slotProps.data.cookies?.[abbr]">
+              {{ slotProps.data.cookies?.[abbr] || 0 }}
+            </span>
           </template>
         </Column>
       </DataTable>

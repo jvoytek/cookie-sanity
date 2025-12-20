@@ -129,7 +129,7 @@ export default defineEventHandler(async (event) => {
   // Normalized audit rows for matching
   const auditRowsForMatching = dedupeGirlToGirlTransactions(
     parsedRows.map((row) =>
-      processAuditRowForMatching(rowToObject(row, headers) || {}, cookies),
+      processAuditRowForMatching(rowToObject(row, headers) || {}, cookies, row),
     ),
   );
 
@@ -149,7 +149,8 @@ export default defineEventHandler(async (event) => {
     for (const order of unmatchedOrders || []) {
       const orderDate = normalizeDate(order.order_date);
 
-      if (auditRow.date !== orderDate) continue;
+      if (normalizeDate(auditRow.date) !== orderDate) continue;
+
       if (auditRow.type !== order.type) continue;
 
       // Check if TO/FROM matches a seller
@@ -164,10 +165,18 @@ export default defineEventHandler(async (event) => {
         ? `${orderFromGirl.first_name} ${orderFromGirl.last_name}`
         : null;
 
-      if (auditRow.type !== 'C2T' && auditRow.to !== orderToGirlFullName)
+      if (
+        auditRow.type !== 'C2T' &&
+        auditRow.type !== 'T2T' &&
+        auditRow.to !== orderToGirlFullName
+      )
         continue;
 
-      if (auditRow.type !== 'C2T' && auditRow.from !== orderFromGirlFullName)
+      if (
+        auditRow.type !== 'C2T' &&
+        auditRow.type !== 'T2T' &&
+        auditRow.from !== orderFromGirlFullName
+      )
         continue;
 
       // Check if cookies match
@@ -259,8 +268,8 @@ export default defineEventHandler(async (event) => {
         100;
 
       // Apply matching thresholds:
-      // >50% cookie match if ≥1 non-cookie field matches
-      // >20% cookie match if ≥2 non-cookie fields match
+      // >60% cookie match if ≥1 non-cookie field matches
+      // >40% cookie match if ≥2 non-cookie fields match
       const meetsThreshold =
         (nonCookieFieldsMatched >= 1 && totalMatchedPercentage > 60) ||
         (nonCookieFieldsMatched >= 2 && totalMatchedPercentage > 40);

@@ -68,6 +68,8 @@ export function fuzzyMatch(
   str2: string | null | undefined,
   maxDistance: number = 2,
 ): boolean {
-  if (!str1 || !str2) return str1 === str2;
+  if (typeof str1 !== 'string' || typeof str2 !== 'string' || !str1 || !str2) {
+    return str1 === str2;
+  }
   return levenshteinDistance(str1, str2) <= maxDistance;
 }
