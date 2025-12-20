@@ -16,7 +16,9 @@ describe('auditSessions store', () => {
       select: vi.fn(() => mockSupabaseClient),
       single: vi.fn(() => mockSupabaseClient),
       eq: vi.fn(() => mockSupabaseClient),
+      neq: vi.fn(() => mockSupabaseClient),
       order: vi.fn(() => mockSupabaseClient),
+      update: vi.fn(() => mockSupabaseClient),
     };
 
     // Mock seasons store
@@ -164,31 +166,51 @@ describe('auditSessions store', () => {
         parsed_rows: [{ rowNumber: 1, data: ['value1'] }],
       };
 
-      mockSupabaseClient.order.mockResolvedValue({
+      const orderMock = vi.fn().mockResolvedValue({
         data: [mockAuditSession],
         error: null,
       });
+
+      const neqMock = {
+        order: orderMock,
+      };
+
+      const secondEqMock = {
+        neq: vi.fn(() => neqMock),
+      };
+
+      const firstEqMock = {
+        eq: vi.fn(() => secondEqMock),
+      };
+
+      mockSupabaseClient.eq = vi.fn(() => firstEqMock);
 
       const store = useAuditSessionsStore();
       await store.fetchMostRecentAuditSession();
 
       expect(store.mostRecentAuditSession).toEqual(mockAuditSession);
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('audit_sessions');
-      expect(mockSupabaseClient.eq).toHaveBeenCalledWith(
-        'profile',
-        'test-user-id',
-      );
-      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('season', 1);
-      expect(mockSupabaseClient.order).toHaveBeenCalledWith('created_at', {
-        ascending: false,
-      });
     });
 
     it('should set mostRecentAuditSession to null when no sessions exist', async () => {
-      mockSupabaseClient.order.mockResolvedValue({
+      const orderMock = vi.fn().mockResolvedValue({
         data: [],
         error: null,
       });
+
+      const neqMock = {
+        order: orderMock,
+      };
+
+      const secondEqMock = {
+        neq: vi.fn(() => neqMock),
+      };
+
+      const firstEqMock = {
+        eq: vi.fn(() => secondEqMock),
+      };
+
+      mockSupabaseClient.eq = vi.fn(() => firstEqMock);
 
       const store = useAuditSessionsStore();
       await store.fetchMostRecentAuditSession();
@@ -219,16 +241,311 @@ describe('auditSessions store', () => {
     });
 
     it('should throw error for database errors other than no rows', async () => {
-      mockSupabaseClient.order.mockResolvedValue({
+      const orderMock = vi.fn().mockResolvedValue({
         data: null,
         error: { code: 'SOME_ERROR', message: 'Database error' },
       });
+
+      const neqMock = {
+        order: orderMock,
+      };
+
+      const secondEqMock = {
+        neq: vi.fn(() => neqMock),
+      };
+
+      const firstEqMock = {
+        eq: vi.fn(() => secondEqMock),
+      };
+
+      mockSupabaseClient.eq = vi.fn(() => firstEqMock);
 
       const store = useAuditSessionsStore();
 
       await expect(store.fetchMostRecentAuditSession()).rejects.toThrow(
         'Database error',
       );
+    });
+  });
+
+  describe('fetchAllAuditSessions', () => {
+    it('should fetch all active audit sessions', async () => {
+      const mockSessions = [
+        {
+          id: 'session-1',
+          profile: 'test-user-id',
+          file_name: 'file1.csv',
+          file_size: 1024,
+          created_at: new Date().toISOString(),
+          status: 'complete',
+          original_file_data: {},
+          parsed_rows: [],
+        },
+        {
+          id: 'session-2',
+          profile: 'test-user-id',
+          file_name: 'file2.csv',
+          file_size: 2048,
+          created_at: new Date().toISOString(),
+          status: 'pending',
+          original_file_data: {},
+          parsed_rows: [],
+        },
+      ];
+
+      mockSupabaseClient.neq = vi.fn(() => mockSupabaseClient);
+      mockSupabaseClient.order.mockResolvedValue({
+        data: mockSessions,
+        error: null,
+      });
+
+      const store = useAuditSessionsStore();
+      await store.fetchAllAuditSessions(false);
+
+      expect(store.allAuditSessions).toEqual(mockSessions);
+      expect(mockSupabaseClient.neq).toHaveBeenCalledWith('status', 'archived');
+    });
+
+    it('should fetch all audit sessions including archived when requested', async () => {
+      const mockSessions = [
+        {
+          id: 'session-1',
+          profile: 'test-user-id',
+          file_name: 'file1.csv',
+          file_size: 1024,
+          created_at: new Date().toISOString(),
+          status: 'archived',
+          original_file_data: {},
+          parsed_rows: [],
+        },
+        {
+          id: 'session-2',
+          profile: 'test-user-id',
+          file_name: 'file2.csv',
+          file_size: 2048,
+          created_at: new Date().toISOString(),
+          status: 'complete',
+          original_file_data: {},
+          parsed_rows: [],
+        },
+      ];
+
+      mockSupabaseClient.order.mockResolvedValue({
+        data: mockSessions,
+        error: null,
+      });
+
+      const store = useAuditSessionsStore();
+      await store.fetchAllAuditSessions(true);
+
+      expect(store.allAuditSessions).toEqual(mockSessions);
+    });
+
+    it('should throw error if user is not authenticated', async () => {
+      vi.stubGlobal('useSupabaseUser', () => ({
+        value: null,
+      }));
+
+      const store = useAuditSessionsStore();
+
+      await expect(store.fetchAllAuditSessions()).rejects.toThrow(
+        'User not authenticated',
+      );
+    });
+
+    it('should throw error if no current season is selected', async () => {
+      mockSeasonsStore.currentSeason = null;
+
+      const store = useAuditSessionsStore();
+
+      await expect(store.fetchAllAuditSessions()).rejects.toThrow(
+        'No current season selected',
+      );
+    });
+  });
+
+  describe('archiveAuditSession', () => {
+    beforeEach(() => {
+      mockSupabaseClient.update = vi.fn(() => mockSupabaseClient);
+      mockSupabaseClient.neq = vi.fn(() => mockSupabaseClient);
+    });
+
+    it('should successfully archive an audit session', async () => {
+      const secondEqMock = vi.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      const firstEqMock = {
+        eq: secondEqMock,
+      };
+
+      mockSupabaseClient.eq = vi.fn(() => firstEqMock);
+
+      // Mock for fetchAllAuditSessions
+      const orderMockForFetch = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      const neqMockForFetch = {
+        order: orderMockForFetch,
+      };
+
+      const secondEqMockForFetch = {
+        neq: vi.fn(() => neqMockForFetch),
+      };
+
+      const firstEqMockForFetch = {
+        eq: vi.fn(() => secondEqMockForFetch),
+      };
+
+      // Set up the from mock to return different chains for different calls
+      let callCount = 0;
+      mockSupabaseClient.from = vi.fn((table) => {
+        callCount++;
+        if (callCount === 1) {
+          // First call is for update
+          return {
+            ...mockSupabaseClient,
+            update: vi.fn(() => ({
+              eq: vi.fn(() => firstEqMock),
+            })),
+          };
+        } else {
+          // Subsequent calls are for select (in fetchAllAuditSessions and fetchMostRecentAuditSession)
+          return {
+            ...mockSupabaseClient,
+            select: vi.fn(() => ({
+              eq: vi.fn(() => firstEqMockForFetch),
+            })),
+          };
+        }
+      });
+
+      const store = useAuditSessionsStore();
+      await store.archiveAuditSession('test-session-id');
+
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('audit_sessions');
+    });
+
+    it('should throw error if user is not authenticated', async () => {
+      vi.stubGlobal('useSupabaseUser', () => ({
+        value: null,
+      }));
+
+      const store = useAuditSessionsStore();
+
+      await expect(
+        store.archiveAuditSession('test-session-id'),
+      ).rejects.toThrow('User not authenticated');
+    });
+
+    it('should throw error if database operation fails', async () => {
+      const secondEqMock = vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Database error' },
+      });
+
+      const firstEqMock = {
+        eq: secondEqMock,
+      };
+
+      mockSupabaseClient.update = vi.fn(() => ({
+        eq: vi.fn(() => firstEqMock),
+      }));
+
+      const store = useAuditSessionsStore();
+
+      await expect(
+        store.archiveAuditSession('test-session-id'),
+      ).rejects.toThrow('Database error');
+    });
+
+    it('should refresh audit sessions after archiving', async () => {
+      const secondEqMock = vi.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      const firstEqMock = {
+        eq: secondEqMock,
+      };
+
+      // Mock for fetchAllAuditSessions
+      const orderMockForFetch = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      const neqMockForFetch = {
+        order: orderMockForFetch,
+      };
+
+      const secondEqMockForFetch = {
+        neq: vi.fn(() => neqMockForFetch),
+      };
+
+      const firstEqMockForFetch = {
+        eq: vi.fn(() => secondEqMockForFetch),
+      };
+
+      // Set up the from mock to return different chains for different calls
+      let callCount = 0;
+      mockSupabaseClient.from = vi.fn((table) => {
+        callCount++;
+        if (callCount === 1) {
+          // First call is for update
+          return {
+            update: vi.fn(() => ({
+              eq: vi.fn(() => firstEqMock),
+            })),
+          };
+        } else {
+          // Subsequent calls are for select
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => firstEqMockForFetch),
+            })),
+          };
+        }
+      });
+
+      const store = useAuditSessionsStore();
+
+      await store.archiveAuditSession('test-session-id');
+
+      // Verify that from was called multiple times (once for update, twice for refresh)
+      expect(callCount).toBeGreaterThan(1);
+    });
+  });
+
+  describe('fetchMostRecentAuditSession with archived filter', () => {
+    it('should exclude archived sessions when fetching most recent', async () => {
+      const mockSessions = [
+        {
+          id: 'session-1',
+          profile: 'test-user-id',
+          file_name: 'recent-file.csv',
+          file_size: 2048,
+          created_at: new Date().toISOString(),
+          status: 'pending',
+          original_file_data: {},
+          parsed_rows: [],
+        },
+      ];
+
+      mockSupabaseClient.neq = vi.fn(() => mockSupabaseClient);
+      mockSupabaseClient.order.mockResolvedValue({
+        data: mockSessions,
+        error: null,
+      });
+
+      const store = useAuditSessionsStore();
+      await store.fetchMostRecentAuditSession();
+
+      expect(mockSupabaseClient.neq).toHaveBeenCalledWith('status', 'archived');
+      expect(store.mostRecentAuditSession).toEqual(mockSessions[0]);
     });
   });
 

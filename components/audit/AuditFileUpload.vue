@@ -49,6 +49,7 @@
       notificationHelpers.addSuccess(
         `File uploaded successfully! Processed ${parsedData.rowCount} rows.`,
       );
+      await auditSessionsStore.fetchAllAuditSessions();
       auditSessionsStore.fetchMatches();
     } catch (error) {
       if (error instanceof Error) {
