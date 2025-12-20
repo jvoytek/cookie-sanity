@@ -25,6 +25,31 @@ export type InventoryCheck =
 export type SeasonCollaborator =
   Database['public']['Tables']['season_collaborators']['Row'];
 
+export type PerfectMatch = {
+  auditRow: Record<string, unknown>;
+  order: Order;
+  orderToGirl: Girl;
+  orderFromGirl: Girl | null;
+};
+
+export type PartialMatch = {
+  auditRow: Record<string, unknown>;
+  matchedOrders: Array<{
+    order: Order;
+    orderToGirl: Girl | null;
+    orderFromGirl: Girl | null;
+    matchScore: number;
+    matchDetails: {
+      dateMatch: boolean;
+      typeMatch: boolean;
+      toMatch: boolean;
+      fromMatch: boolean;
+      cookieMatchPercent: number;
+      nonCookieFieldsMatched: number;
+    };
+  }>;
+};
+
 export type SCOrder2025 = {
   DATE: string;
   'ORDER #': number;

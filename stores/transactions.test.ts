@@ -509,7 +509,7 @@ describe('Transactions Store', () => {
     });
   });
 
-  describe('insertNewTransactionFromUploads', () => {
+  describe('bulkInsertNewTransactions', () => {
     it('should insert multiple transactions successfully', async () => {
       const mockOrders = [
         { order_date: '2024-01-01', order_num: '12345' },
@@ -532,7 +532,7 @@ describe('Transactions Store', () => {
       const newOrdersStore = useTransactionsStore();
 
       await expect(
-        newOrdersStore.insertNewTransactionFromUploads(mockOrders),
+        newOrdersStore.bulkInsertNewTransactions(mockOrders),
       ).resolves.not.toThrow();
     });
 
@@ -557,7 +557,7 @@ describe('Transactions Store', () => {
       const newOrdersStore = useTransactionsStore();
 
       await expect(
-        newOrdersStore.insertNewTransactionFromUploads(mockOrders),
+        newOrdersStore.bulkInsertNewTransactions(mockOrders),
       ).rejects.toEqual({
         message: 'Insert failed',
       });

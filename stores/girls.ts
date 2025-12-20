@@ -186,6 +186,7 @@ export const useGirlsStore = defineStore('girls', () => {
 
   const getGirlIdByName = (name: string) => {
     try {
+      if (typeof name !== 'string') return null;
       const [first_name, last_name] = name.split(' ');
       const matchingGirl = allGirls.value.find(
         (girl) =>
