@@ -39,10 +39,6 @@
     await auditSessionsStore.fetchMatches();
   };
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleString();
-  };
-
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -115,7 +111,7 @@
 
       <Column field="created_at" header="Created" sortable>
         <template #body="{ data }">
-          {{ formatDate(data.created_at) }}
+          <NuxtTime :datetime="data.created_at" relative />
         </template>
       </Column>
 
