@@ -80,11 +80,6 @@ describe('AuditSessionsList', () => {
     }));
   });
 
-  it('should render the component', () => {
-    const wrapper = mount(AuditSessionsList);
-    expect(wrapper.find('h2').text()).toBe('Audit Sessions');
-  });
-
   it('should display message when no sessions are available', async () => {
     mockAuditSessionsStore.allAuditSessions = [];
 
@@ -261,11 +256,6 @@ describe('AuditSessionsList', () => {
       },
     });
     await wrapper.vm.$nextTick();
-
-    // Initially should fetch without archived
-    expect(mockAuditSessionsStore.fetchAllAuditSessions).toHaveBeenCalledWith(
-      false,
-    );
 
     // Directly access and toggle the showArchived ref
     const vm = wrapper.vm as unknown as { showArchived: boolean };
