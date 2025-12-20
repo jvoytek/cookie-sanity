@@ -7,13 +7,10 @@
   const showArchived = ref(false);
   const loading = ref(false);
 
-  onMounted(async () => {
-    await loadSessions();
-  });
-
   const loadSessions = async (): Promise<void> => {
     loading.value = true;
     try {
+      console.log('loading sessions, showArchived=', showArchived.value);
       await auditSessionsStore.fetchAllAuditSessions(showArchived.value);
     } catch (error) {
       notificationHelpers.addError(
@@ -75,7 +72,7 @@
 <template>
   <div class="card">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Audit Sessions</h2>
+      <h2 class="text-xl font-semibold">Audit Files</h2>
       <div class="flex items-center gap-2">
         <label class="flex items-center gap-2 cursor-pointer">
           <Checkbox

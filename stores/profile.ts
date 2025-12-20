@@ -70,6 +70,7 @@ export const useProfileStore = defineStore('profile', () => {
       await inventoryChecksStore.fetchInventoryChecks();
       await auditSessionsStore.fetchMostRecentAuditSession();
       await auditSessionsStore.fetchMatches();
+      await auditSessionsStore.fetchAllAuditSessions(false);
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }

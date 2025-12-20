@@ -1,9 +1,5 @@
 <script setup lang="ts">
   const auditSessionsStore = useAuditSessionsStore();
-
-  onMounted(async () => {
-    await auditSessionsStore.fetchAllAuditSessions();
-  });
 </script>
 
 <template>
