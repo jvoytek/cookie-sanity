@@ -3,22 +3,25 @@
  * Redirects to /settings if no season is available
  */
 export default defineNuxtRouteMiddleware((to) => {
-  const user = useSupabaseUser();
-  const seasonsStore = useSeasonsStore();
-
   // Skip middleware for login, settings, and other excluded routes
   const excludedRoutes = ['/login', '/confirm', '/request', '/settings'];
   if (excludedRoutes.includes(to.path)) {
     return;
   }
 
+  const user = useSupabaseUser();
+  
   // Only run for authenticated users
   if (!user.value) {
     return;
   }
 
-  // Check if we have a valid current season
-  if (!seasonsStore.currentSeason?.id) {
+  const seasonsStore = useSeasonsStore();
+  const profileStore = useProfileStore();
+  
+  // Only redirect if profile is loaded and we know there are no seasons
+  // This prevents redirecting during initial load
+  if (profileStore.currentProfile && seasonsStore.allSeasons.length === 0) {
     return navigateTo('/settings');
   }
 });

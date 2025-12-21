@@ -53,7 +53,7 @@ export const useTutorialStore = defineStore('tutorial', () => {
       return true;
     }
 
-    // Show girls tutorial if season exists but no girls and not completed
+    // Show girls tutorial if season exists but no girls and season step completed
     if (
       seasonsStore.currentSeason?.id &&
       girlsStore.allGirls.length === 0 &&
@@ -63,20 +63,23 @@ export const useTutorialStore = defineStore('tutorial', () => {
       return true;
     }
 
-    // Show cookies tutorial if girls exist but no cookies and not completed
+    // Show cookies tutorial if girls exist but no cookies and girls step completed
     if (
       girlsStore.allGirls.length > 0 &&
       cookiesStore.allCookies.length === 0 &&
+      completedSteps.value.includes('season') &&
       completedSteps.value.includes('girls') &&
       !completedSteps.value.includes('cookies')
     ) {
       return true;
     }
 
-    // Show transactions tutorial if cookies exist but no transactions and not completed
+    // Show transactions tutorial if cookies exist but no transactions and cookies step completed
     if (
       cookiesStore.allCookies.length > 0 &&
       transactionsStore.allTransactions.length === 0 &&
+      completedSteps.value.includes('season') &&
+      completedSteps.value.includes('girls') &&
       completedSteps.value.includes('cookies') &&
       !completedSteps.value.includes('transactions')
     ) {
@@ -100,6 +103,7 @@ export const useTutorialStore = defineStore('tutorial', () => {
     if (
       seasonsStore.currentSeason?.id &&
       girlsStore.allGirls.length === 0 &&
+      completedSteps.value.includes('season') &&
       !completedSteps.value.includes('girls')
     ) {
       return 'girls';
@@ -108,6 +112,8 @@ export const useTutorialStore = defineStore('tutorial', () => {
     if (
       girlsStore.allGirls.length > 0 &&
       cookiesStore.allCookies.length === 0 &&
+      completedSteps.value.includes('season') &&
+      completedSteps.value.includes('girls') &&
       !completedSteps.value.includes('cookies')
     ) {
       return 'cookies';
@@ -116,6 +122,9 @@ export const useTutorialStore = defineStore('tutorial', () => {
     if (
       cookiesStore.allCookies.length > 0 &&
       transactionsStore.allTransactions.length === 0 &&
+      completedSteps.value.includes('season') &&
+      completedSteps.value.includes('girls') &&
+      completedSteps.value.includes('cookies') &&
       !completedSteps.value.includes('transactions')
     ) {
       return 'transactions';
