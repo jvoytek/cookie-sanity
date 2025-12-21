@@ -13,7 +13,8 @@
 <template>
   <div
     v-if="
-      tutorialStore.tutorialActive && tutorialStore.currentStep === 'transactions'
+      tutorialStore.tutorialActive &&
+      tutorialStore.currentStep === 'transactions'
     "
     class="fixed inset-0 z-[1200] pointer-events-none"
   >
@@ -35,7 +36,9 @@
             <i class="pi pi-arrow-right-arrow-left text-4xl text-primary" />
           </div>
           <div class="flex-1">
-            <h3 class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0">
+            <h3
+              class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0"
+            >
               Add Troop Transactions 📦
             </h3>
             <p class="text-surface-600 dark:text-surface-400 mb-4">

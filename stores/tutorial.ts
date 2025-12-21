@@ -6,21 +6,23 @@
 export const useTutorialStore = defineStore('tutorial', () => {
   // State
   const tutorialActive = ref(false);
-  const currentStep = ref<'season' | 'girls' | 'cookies' | 'transactions' | null>(null);
+  const currentStep = ref<
+    'season' | 'girls' | 'cookies' | 'transactions' | null
+  >(null);
   const tutorialDismissed = ref(false);
   const completedSteps = ref<string[]>([]);
 
   // Load tutorial state from localStorage on initialization
   const loadTutorialState = () => {
     if (typeof window === 'undefined') return;
-    
+
     const dismissed = localStorage.getItem('tutorial_dismissed');
     const completed = localStorage.getItem('tutorial_completed_steps');
-    
+
     if (dismissed === 'true') {
       tutorialDismissed.value = true;
     }
-    
+
     if (completed) {
       try {
         completedSteps.value = JSON.parse(completed);
@@ -33,9 +35,15 @@ export const useTutorialStore = defineStore('tutorial', () => {
   // Save tutorial state to localStorage
   const saveTutorialState = () => {
     if (typeof window === 'undefined') return;
-    
-    localStorage.setItem('tutorial_dismissed', tutorialDismissed.value.toString());
-    localStorage.setItem('tutorial_completed_steps', JSON.stringify(completedSteps.value));
+
+    localStorage.setItem(
+      'tutorial_dismissed',
+      tutorialDismissed.value.toString(),
+    );
+    localStorage.setItem(
+      'tutorial_completed_steps',
+      JSON.stringify(completedSteps.value),
+    );
   };
 
   // Check if tutorial should be shown
@@ -49,7 +57,10 @@ export const useTutorialStore = defineStore('tutorial', () => {
     if (tutorialDismissed.value) return false;
 
     // Show season tutorial if no seasons exist and not completed
-    if (!seasonsStore.currentSeason?.id && !completedSteps.value.includes('season')) {
+    if (
+      !seasonsStore.currentSeason?.id &&
+      !completedSteps.value.includes('season')
+    ) {
       return true;
     }
 
@@ -96,7 +107,10 @@ export const useTutorialStore = defineStore('tutorial', () => {
     const cookiesStore = useCookiesStore();
     const transactionsStore = useTransactionsStore();
 
-    if (!seasonsStore.currentSeason?.id && !completedSteps.value.includes('season')) {
+    if (
+      !seasonsStore.currentSeason?.id &&
+      !completedSteps.value.includes('season')
+    ) {
       return 'season';
     }
 
@@ -148,7 +162,7 @@ export const useTutorialStore = defineStore('tutorial', () => {
       completedSteps.value.push(step);
       saveTutorialState();
     }
-    
+
     // Move to next step
     currentStep.value = determineCurrentStep();
     if (!currentStep.value) {

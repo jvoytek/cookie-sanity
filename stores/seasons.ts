@@ -133,10 +133,13 @@ export const useSeasonsStore = defineStore('seasons', () => {
       await fetchSeasons();
       if (error) throw error;
       notificationHelpers.addSuccess('Season Created');
-      
+
       // Complete tutorial step if active
       const tutorialStore = useTutorialStore();
-      if (tutorialStore.tutorialActive && tutorialStore.currentStep === 'season') {
+      if (
+        tutorialStore.tutorialActive &&
+        tutorialStore.currentStep === 'season'
+      ) {
         tutorialStore.completeStep('season');
       }
     } catch (error) {

@@ -10,7 +10,7 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   const user = useSupabaseUser();
-  
+
   // Only run for authenticated users
   if (!user.value) {
     return;
@@ -18,7 +18,7 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const seasonsStore = useSeasonsStore();
   const profileStore = useProfileStore();
-  
+
   // Only redirect if profile is loaded and we know there are no seasons
   // This prevents redirecting during initial load
   if (profileStore.currentProfile && seasonsStore.allSeasons.length === 0) {

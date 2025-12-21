@@ -407,10 +407,13 @@ export const useTransactionsStore = defineStore('transactions', () => {
         auditSessionsStore.fetchMatches();
       }
       notificationHelpers.addSuccess('Transaction Created');
-      
+
       // Complete tutorial step if active
       const tutorialStore = useTutorialStore();
-      if (tutorialStore.tutorialActive && tutorialStore.currentStep === 'transactions') {
+      if (
+        tutorialStore.tutorialActive &&
+        tutorialStore.currentStep === 'transactions'
+      ) {
         tutorialStore.completeStep('transactions');
       }
     } catch (error) {

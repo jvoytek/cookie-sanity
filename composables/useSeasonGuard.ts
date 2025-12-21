@@ -14,7 +14,10 @@ export const useSeasonGuard = () => {
     // Wait a bit for stores to initialize if needed
     await nextTick();
 
-    if (!hasValidSeason.value && router.currentRoute.value.path !== '/settings') {
+    if (
+      !hasValidSeason.value &&
+      router.currentRoute.value.path !== '/settings'
+    ) {
       await navigateTo('/settings');
       return false;
     }

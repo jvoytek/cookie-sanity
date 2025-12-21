@@ -12,7 +12,9 @@
 
 <template>
   <div
-    v-if="tutorialStore.tutorialActive && tutorialStore.currentStep === 'cookies'"
+    v-if="
+      tutorialStore.tutorialActive && tutorialStore.currentStep === 'cookies'
+    "
     class="fixed inset-0 z-[1200] pointer-events-none"
   >
     <!-- Semi-transparent backdrop -->
@@ -33,11 +35,14 @@
             <i class="pi pi-box text-4xl text-primary" />
           </div>
           <div class="flex-1">
-            <h3 class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0">
+            <h3
+              class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0"
+            >
               Add Cookie Types 🍪
             </h3>
             <p class="text-surface-600 dark:text-surface-400 mb-4">
-              Excellent! Now add the types of cookies that will be sold this season.
+              Excellent! Now add the types of cookies that will be sold this
+              season.
             </p>
             <div class="flex gap-2">
               <Button

@@ -8,7 +8,9 @@
 
 <template>
   <div
-    v-if="tutorialStore.tutorialActive && tutorialStore.currentStep === 'season'"
+    v-if="
+      tutorialStore.tutorialActive && tutorialStore.currentStep === 'season'
+    "
     class="fixed inset-0 z-[1200] pointer-events-none"
   >
     <!-- Semi-transparent backdrop -->
@@ -29,7 +31,9 @@
             <i class="pi pi-sparkles text-4xl text-primary" />
           </div>
           <div class="flex-1">
-            <h3 class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0">
+            <h3
+              class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0"
+            >
               Welcome to Cookie Sanity! 🎉
             </h3>
             <p class="text-surface-600 dark:text-surface-400 mb-4">

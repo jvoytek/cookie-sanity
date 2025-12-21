@@ -409,10 +409,13 @@ export const useCookiesStore = defineStore('cookies', () => {
       _addCookie(data as Cookie);
       _sortCookies();
       notificationHelpers.addSuccess('Cookie Created');
-      
+
       // Complete tutorial step if active
       const tutorialStore = useTutorialStore();
-      if (tutorialStore.tutorialActive && tutorialStore.currentStep === 'cookies') {
+      if (
+        tutorialStore.tutorialActive &&
+        tutorialStore.currentStep === 'cookies'
+      ) {
         tutorialStore.completeStep('cookies');
       }
     } catch (error) {

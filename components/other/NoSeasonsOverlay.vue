@@ -19,11 +19,14 @@
     >
       <div class="text-center">
         <i class="pi pi-info-circle text-6xl text-primary mb-4" />
-        <h2 class="text-2xl font-semibold mb-3 text-surface-900 dark:text-surface-0">
+        <h2
+          class="text-2xl font-semibold mb-3 text-surface-900 dark:text-surface-0"
+        >
           No Seasons Available
         </h2>
         <p class="text-surface-600 dark:text-surface-400 mb-6">
-          Create a season in the settings page to access the application features.
+          Create a season in the settings page to access the application
+          features.
         </p>
         <Button
           label="Go to Settings"

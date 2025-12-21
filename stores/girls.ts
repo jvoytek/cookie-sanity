@@ -133,10 +133,13 @@ export const useGirlsStore = defineStore('girls', () => {
       _addGirl(data as Girl);
       _sortGirls();
       notificationHelpers.addSuccess('Girl Created');
-      
+
       // Complete tutorial step if active
       const tutorialStore = useTutorialStore();
-      if (tutorialStore.tutorialActive && tutorialStore.currentStep === 'girls') {
+      if (
+        tutorialStore.tutorialActive &&
+        tutorialStore.currentStep === 'girls'
+      ) {
         tutorialStore.completeStep('girls');
       }
     } catch (error) {

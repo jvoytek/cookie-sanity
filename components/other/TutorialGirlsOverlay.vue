@@ -33,12 +33,14 @@
             <i class="pi pi-users text-4xl text-primary" />
           </div>
           <div class="flex-1">
-            <h3 class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0">
+            <h3
+              class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0"
+            >
               Add Girls/Sellers 👧
             </h3>
             <p class="text-surface-600 dark:text-surface-400 mb-4">
-              Great! Your season is created. Next, add the girls/sellers who will be
-              participating in the cookie season.
+              Great! Your season is created. Next, add the girls/sellers who
+              will be participating in the cookie season.
             </p>
             <div class="flex gap-2">
               <Button
