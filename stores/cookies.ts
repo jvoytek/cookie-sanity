@@ -165,6 +165,11 @@ export const useCookiesStore = defineStore('cookies', () => {
         'troop',
         includeVirtualCookies,
       );
+      const recordedTroopMap = ordersStore.totalTransactionsByStatusAllCookies(
+        'recorded',
+        'troop',
+        includeVirtualCookies,
+      );
 
       return allCookies.value.map((cookie) => {
         let onHand = ordersStore.sumTransactionsByCookie(
@@ -175,7 +180,8 @@ export const useCookiesStore = defineStore('cookies', () => {
 
         const totalReceivedByTroop = cookie.is_virtual
           ? onHand * -1
-          : completedTroopMap[cookie.abbreviation] || 0;
+          : completedTroopMap[cookie.abbreviation] +
+              recordedTroopMap[cookie.abbreviation] || 0;
 
         if (cookie.is_virtual) {
           onHand = 0; // Virtual cookies do not have inventory on hand
