@@ -20,10 +20,17 @@
   const selectedAccount = ref<number | null>(accountIdParam);
 
   const girlAccount = computed(() => {
-    return (
-      (selectedAccount.value !== null
+    const account =
+      selectedAccount.value !== null
         ? accountsStore.getGirlAccountById(selectedAccount.value)
-        : undefined) || {
+        : undefined;
+    if (account === undefined) {
+      // change the view to the troop view if the account id is invalid
+      selectedAccount.value = null;
+      setQueryParam();
+    }
+    return (
+      account || {
         girl: { first_name: '' },
         girlPaymentsList: [],
         balance: 0,
