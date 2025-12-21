@@ -23,8 +23,8 @@
   });
   const submitted = ref(false);
 
-  // Check if there are other seasons with cookies
-  const hasOtherSeasonsWithCookies = computed(() => {
+  // Check if there are other seasons
+  const hasOtherSeasons = computed(() => {
     return seasonsStore.allSeasons.some(
       (season) => season.id !== seasonsStore.currentSeason?.id,
     );
@@ -111,7 +111,7 @@
                 @click="openNew"
               />
               <Button
-                v-if="hasOtherSeasonsWithCookies"
+                v-if="hasOtherSeasons"
                 label="Copy from previous season"
                 icon="pi pi-copy"
                 severity="secondary"
