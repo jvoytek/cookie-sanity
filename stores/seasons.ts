@@ -94,8 +94,14 @@ export const useSeasonsStore = defineStore('seasons', () => {
           (c) => c.id === profileStore.currentProfile?.season,
         );
         currentSeason.value = allSeasons.value[index];
-      } else {
+      } else if (allSeasons.value.length > 0) {
+        // Auto-select first season if none is selected
         currentSeason.value = allSeasons.value[0];
+        // Save it to the profile
+        await profileStore.saveCurrentSeasonInProfile();
+      } else {
+        // No seasons exist
+        currentSeason.value = undefined;
       }
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -124,9 +130,15 @@ export const useSeasonsStore = defineStore('seasons', () => {
     season.profile = user.value.id;
     try {
       const { error } = await _supabaseInsertSeason(season);
-      fetchSeasons();
+      await fetchSeasons();
       if (error) throw error;
       notificationHelpers.addSuccess('Season Created');
+      
+      // Complete tutorial step if active
+      const tutorialStore = useTutorialStore();
+      if (tutorialStore.tutorialActive && tutorialStore.currentStep === 'season') {
+        tutorialStore.completeStep('season');
+      }
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }

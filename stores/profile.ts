@@ -52,15 +52,20 @@ export const useProfileStore = defineStore('profile', () => {
       display_name.value = currentProfile.value?.display_name ?? '';
       currentSeasonId.value = currentProfile.value?.season ?? -1;
 
-      // Trigger state update for other stores depending on profile
+      // Trigger state update for seasons store
       await seasonsStore.fetchSeasons();
 
-      // Fetch collaborators data for the current season if it exists
-      if (seasonsStore.currentSeason?.id) {
-        const collaboratorsStore = useCollaboratorsStore();
-        await collaboratorsStore.fetchCollaborators();
+      // Check if we have a valid current season before loading dependent stores
+      if (!seasonsStore.currentSeason?.id) {
+        // No seasons exist or no current season selected - skip loading other stores
+        return;
       }
 
+      // Fetch collaborators data for the current season if it exists
+      const collaboratorsStore = useCollaboratorsStore();
+      await collaboratorsStore.fetchCollaborators();
+
+      // Load all other stores that depend on a current season
       await cookiesStore.fetchCookies();
       await girlsStore.fetchGirls();
       await ordersStore.fetchTransactions();

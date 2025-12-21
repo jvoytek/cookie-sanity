@@ -85,5 +85,9 @@
     </div>
     <Toast />
     <TransactionDialog />
+    <TutorialSeasonOverlay />
+    <TutorialGirlsOverlay />
+    <TutorialCookiesOverlay />
+    <TutorialTransactionsOverlay />
   </div>
 </template>

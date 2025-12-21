@@ -1,0 +1,74 @@
+<script setup>
+  const tutorialStore = useTutorialStore();
+
+  const dismiss = () => {
+    tutorialStore.dismissTutorial();
+  };
+</script>
+
+<template>
+  <div
+    v-if="tutorialStore.tutorialActive && tutorialStore.currentStep === 'season'"
+    class="fixed inset-0 z-[1200] pointer-events-none"
+  >
+    <!-- Semi-transparent backdrop -->
+    <div
+      class="absolute inset-0 bg-surface-900/80 dark:bg-surface-950/90 backdrop-blur-sm pointer-events-auto"
+      @click="dismiss"
+    />
+
+    <!-- Tutorial content - positioned near the New Season button -->
+    <div
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+    >
+      <div
+        class="bg-surface-0 dark:bg-surface-900 p-6 rounded-lg shadow-2xl max-w-md border-2 border-primary"
+      >
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0">
+            <i class="pi pi-sparkles text-4xl text-primary" />
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-0">
+              Welcome to Cookie Sanity! 🎉
+            </h3>
+            <p class="text-surface-600 dark:text-surface-400 mb-4">
+              Let's get you started by creating your first season. Click the
+              <strong>"+ New"</strong> button below to create a season.
+            </p>
+            <div class="flex gap-2">
+              <Button
+                label="Dismiss Tutorial"
+                icon="pi pi-times"
+                severity="secondary"
+                variant="outlined"
+                size="small"
+                @click="dismiss"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Arrow pointing down -->
+      <div class="flex justify-center mt-2">
+        <i class="pi pi-arrow-down text-primary text-3xl animate-bounce" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-bounce {
+    animation: bounce 1s infinite;
+  }
+</style>
