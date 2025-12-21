@@ -83,7 +83,7 @@
           :options="availableSeasons"
           :option-label="seasonsStore.getSeasonName"
           placeholder="Choose a season"
-          :on-change="handleSeasonChange"
+          :onChange="handleSeasonChange"
           fluid
         />
       </div>

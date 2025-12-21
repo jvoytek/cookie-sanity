@@ -112,9 +112,10 @@
               />
               <Button
                 v-if="hasOtherSeasonsWithCookies"
-                label="Add from other season"
+                label="Copy from previous season"
                 icon="pi pi-copy"
                 severity="secondary"
+                variant="outlined"
                 @click="copyCookiesDialogVisible = true"
               />
             </template>
