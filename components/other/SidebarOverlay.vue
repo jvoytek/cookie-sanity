@@ -10,7 +10,7 @@
 <template>
   <div
     v-if="showOverlay"
-    class="absolute inset-0 z-40 flex items-center justify-center bg-surface-900/70 dark:bg-surface-950/80 backdrop-blur-sm rounded-lg"
+    class="absolute inset-0 z-[1000] flex items-center justify-center bg-surface-900/70 dark:bg-surface-950/80 backdrop-blur-sm rounded-lg"
   >
     <div class="text-center p-6 max-w-xs">
       <i class="pi pi-lock text-4xl mb-3 text-surface-400" />
@@ -23,9 +23,3 @@
     </div>
   </div>
 </template>
-
-<style scoped>
-  .z-40 {
-    z-index: 1000;
-  }
-</style>
