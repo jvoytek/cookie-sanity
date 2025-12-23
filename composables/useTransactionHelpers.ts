@@ -1,4 +1,4 @@
-import type { Order } from '@/types/types';
+import type { NewOrder, Order } from '@/types/types';
 import { watchDebounced, watchDeep } from '@vueuse/core';
 
 export const useTransactionHelpers = () => {
@@ -413,7 +413,7 @@ export const useTransactionHelpers = () => {
   };
 
   function editTransaction(
-    order: Order,
+    order: Order | NewOrder,
     type: 'troop' | 'girl' | 'all' = 'all',
   ) {
     ordersStore.setActiveTransaction({ ...order });
@@ -428,11 +428,10 @@ export const useTransactionHelpers = () => {
   ) {
     // Create a copy of the transaction without database-generated fields
     // This ensures it will be treated as a new transaction when saved
-    const { id, created_at, processed_date, ...transactionCopy } = order;
-    ordersStore.setActiveTransaction({ ...transactionCopy });
-    ordersStore.transactionDialogFormSchema.value =
-      getTransactionDialogFormSchema(type);
-    ordersStore.editTransactionDialogVisible = true;
+    const { id, created_at, processed_date, order_num, ...transactionCopy } =
+      order;
+    transactionCopy.status = type == 'troop' ? 'pending' : 'requested';
+    editTransaction({ ...transactionCopy }, type);
   }
 
   function cancelEditTransaction() {
