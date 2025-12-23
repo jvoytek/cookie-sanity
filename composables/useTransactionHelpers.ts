@@ -422,6 +422,19 @@ export const useTransactionHelpers = () => {
     ordersStore.editTransactionDialogVisible = true;
   }
 
+  function duplicateTransaction(
+    order: Order,
+    type: 'troop' | 'girl' | 'all' = 'all',
+  ) {
+    // Create a copy of the transaction without database-generated fields
+    // This ensures it will be treated as a new transaction when saved
+    const { id, created_at, processed_date, ...transactionCopy } = order;
+    ordersStore.setActiveTransaction({ ...transactionCopy });
+    ordersStore.transactionDialogFormSchema.value =
+      getTransactionDialogFormSchema(type);
+    ordersStore.editTransactionDialogVisible = true;
+  }
+
   function cancelEditTransaction() {
     if (ordersStore.activeTransaction?.id) {
       ordersStore.resetActiveTransaction();
@@ -491,6 +504,7 @@ export const useTransactionHelpers = () => {
     submitted,
     receiptDialogVisible,
     editTransaction,
+    duplicateTransaction,
     cancelEditTransaction,
     hideDialog,
     saveTransaction,

@@ -630,6 +630,24 @@
         <Button
           v-if="
             props.transactionTypes !== 'audit' &&
+            props.transactionTypes !== 'audit-extra'
+          "
+          v-tooltip.bottom="{ value: 'Duplicate', showDelay: 500 }"
+          aria-label="Duplicate"
+          icon="pi pi-copy"
+          class="mr-2"
+          variant="outlined"
+          severity="secondary"
+          @click="
+            transactionHelpers.duplicateTransaction(
+              slotProps.data,
+              props.transactionTypes,
+            )
+          "
+        />
+        <Button
+          v-if="
+            props.transactionTypes !== 'audit' &&
             props.transactionTypes !== 'audit-extra' &&
             (props.transactionTypes === 'all' ||
               props.transactionTypes === 'troop' ||
