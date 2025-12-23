@@ -229,14 +229,16 @@
             >
               <template #body="slotProps">
                 <div class="flex items-center gap-2">
-                  <a
+                  <Button
+                    as="a"
                     :href="getRequestUrl(slotProps.data.id)"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="text-primary hover:underline"
-                  >
-                    <i class="pi pi-external-link" />
-                  </a>
+                    icon="pi pi-external-link"
+                    size="small"
+                    variant="outlined"
+                    severity="secondary"
+                  />
                   <Button
                     v-tooltip.bottom="{
                       value:
@@ -263,7 +265,7 @@
                 </div>
               </template>
             </Column>
-            <Column :exportable="false" nowrap>
+            <Column :exportable="false" header="Actions" nowrap>
               <template #body="slotProps">
                 <Button
                   v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
