@@ -204,7 +204,7 @@
               <template #body="slotProps">
                 <div class="flex items-center gap-2">
                   <a
-                    :href="`/request?id=${slotProps.data.id}`"
+                    :href="getRequestUrl(slotProps.data.id)"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="text-primary hover:underline"
