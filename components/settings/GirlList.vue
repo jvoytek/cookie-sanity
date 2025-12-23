@@ -3,6 +3,25 @@
   import { useToast } from 'primevue/usetoast';
   import { useGirlsStore } from '@/stores/girls';
 
+  const notificationHelpers = useNotificationHelpers();
+
+  const publishGirlRequestForm = computed({
+    get: () => seasonsStore.currentSeason?.publish_girl_request_form ?? false,
+    set: async (value) => {
+      if (seasonsStore.currentSeason?.id && seasonsStore.currentSeason.id > 0) {
+        try {
+          await seasonsStore.upsertSeason({
+            ...seasonsStore.currentSeason,
+            publish_girl_request_form: value,
+          });
+          await seasonsStore.fetchSeasons();
+        } catch (error) {
+          notificationHelpers.addError(error);
+        }
+      }
+    },
+  });
+
   const loading = ref(true);
 
   loading.value = true;
@@ -110,6 +129,15 @@
                 variant="outlined"
                 @click="openCopyFromSeason"
               />
+              <div class="flex items-center ml-6">
+                <label for="publish-girl-request-form" class="mr-2"
+                  >Publish Girl Request Form</label
+                >
+                <ToggleSwitch
+                  v-model="publishGirlRequestForm"
+                  input-id="publish-girl-request-form"
+                />
+              </div>
             </template>
           </Toolbar>
 
