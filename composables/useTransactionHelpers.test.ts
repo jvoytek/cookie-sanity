@@ -130,6 +130,111 @@ describe('useTransactionHelpers', () => {
     });
   });
 
+  describe('duplicateTransaction', () => {
+    it('creates a copy of transaction without id and database-generated fields', () => {
+      const testOrder: Order = {
+        id: 1,
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'T2G',
+        status: 'pending',
+        profile: 'test-profile',
+        season: 1,
+        cookies: { TM: 5, ADV: 3 },
+        to: 1,
+        from: null,
+        supplier: null,
+        notes: 'Original notes',
+        processed_date: null,
+        created_at: '2024-01-15T10:00:00Z',
+      };
+
+      transactionHelpers.duplicateTransaction(testOrder, 'girl');
+
+      // Should be called with a copy that excludes id, created_at, and processed_date
+      const expectedCopy = {
+        order_date: '2024-01-15',
+        type: 'T2G',
+        status: 'requested',
+        profile: 'test-profile',
+        season: 1,
+        cookies: { TM: 5, ADV: 3 },
+        to: 1,
+        from: null,
+        supplier: null,
+        notes: 'Original notes',
+      };
+
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(
+        expectedCopy,
+      );
+      expect(mockOrdersStore.transactionDialogFormSchema.value).toBeDefined();
+      expect(mockOrdersStore.editTransactionDialogVisible).toBe(true);
+    });
+
+    it('uses default type when not specified', () => {
+      const testOrder: Order = {
+        id: 1,
+        order_date: '2024-01-15',
+        order_num: 'TEST123',
+        type: 'C2T',
+        status: 'complete',
+        profile: 'test-profile',
+        season: 1,
+        cookies: { TM: 10 },
+        to: null,
+        from: null,
+        supplier: 'Council',
+        notes: null,
+        processed_date: null,
+        created_at: '2024-01-15T10:00:00Z',
+      };
+
+      transactionHelpers.duplicateTransaction(testOrder);
+
+      expect(mockOrdersStore.transactionDialogFormSchema.value).toBeDefined();
+      expect(mockOrdersStore.editTransactionDialogVisible).toBe(true);
+    });
+
+    it('preserves all transaction data except database-generated fields', () => {
+      const testOrder: Order = {
+        id: 99,
+        order_date: '2024-02-20',
+        order_num: 'ORDER999',
+        type: 'G2T',
+        status: 'recorded',
+        profile: 'test-user',
+        season: 2,
+        cookies: { TM: 12, ADV: 8 },
+        to: null,
+        from: 5,
+        supplier: null,
+        notes: 'Test transaction for duplication',
+        processed_date: '2024-02-21',
+        created_at: '2024-02-20T08:00:00Z',
+      };
+
+      transactionHelpers.duplicateTransaction(testOrder, 'girl');
+
+      const expectedCopy = {
+        order_date: '2024-02-20',
+        type: 'G2T',
+        status: 'requested',
+        profile: 'test-user',
+        season: 2,
+        cookies: { TM: 12, ADV: 8 },
+        to: null,
+        from: 5,
+        supplier: null,
+        notes: 'Test transaction for duplication',
+      };
+
+      expect(mockOrdersStore.setActiveTransaction).toHaveBeenCalledWith(
+        expectedCopy,
+      );
+    });
+  });
+
   describe('hideDialog', () => {
     it('hides the transaction dialog and resets submitted state', () => {
       mockOrdersStore.editTransactionDialogVisible = true;
@@ -242,6 +347,7 @@ describe('useTransactionHelpers', () => {
     it('returns all expected methods and properties', () => {
       expect(transactionHelpers).toHaveProperty('submitted');
       expect(transactionHelpers).toHaveProperty('editTransaction');
+      expect(transactionHelpers).toHaveProperty('duplicateTransaction');
       expect(transactionHelpers).toHaveProperty('hideDialog');
       expect(transactionHelpers).toHaveProperty('saveTransaction');
       expect(transactionHelpers).toHaveProperty('confirmDeleteTransaction');
@@ -249,6 +355,7 @@ describe('useTransactionHelpers', () => {
       expect(transactionHelpers).toHaveProperty('transactionTypeBadgeSeverity');
 
       expect(typeof transactionHelpers.editTransaction).toBe('function');
+      expect(typeof transactionHelpers.duplicateTransaction).toBe('function');
       expect(typeof transactionHelpers.hideDialog).toBe('function');
       expect(typeof transactionHelpers.saveTransaction).toBe('function');
       expect(typeof transactionHelpers.confirmDeleteTransaction).toBe(

@@ -599,7 +599,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     return _getTransactionListByStatusTypeAndGirl(status, 'girl', girlId);
   };
 
-  const setActiveTransaction = (transaction: Order | null) => {
+  const setActiveTransaction = (transaction: Order | NewOrder | null) => {
     activeTransaction.value = transaction;
     // Create a deep copy of the original transaction for change tracking
     activeTransactionOriginal.value = transaction
