@@ -46,10 +46,18 @@
 
   // Track which request link was copied
   const copiedLinkId = ref(null);
+  let copyTimeoutId = null;
 
   // Check if there are other seasons to copy from
   const hasOtherSeasons = computed(() => {
     return seasonsStore.allSeasons.length > 1;
+  });
+
+  // Cleanup timeout on unmount
+  onUnmounted(() => {
+    if (copyTimeoutId) {
+      clearTimeout(copyTimeoutId);
+    }
   });
 
   // Function to get the request form URL for a girl
@@ -60,12 +68,30 @@
 
   // Function to copy the request URL to clipboard
   async function copyRequestUrl(girlId) {
+    // Check if clipboard API is available
+    if (!navigator.clipboard) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Clipboard API not available in this browser',
+        life: 3000,
+      });
+      return;
+    }
+
     try {
       const url = getRequestUrl(girlId);
       await navigator.clipboard.writeText(url);
       copiedLinkId.value = girlId;
-      setTimeout(() => {
+
+      // Clear any existing timeout
+      if (copyTimeoutId) {
+        clearTimeout(copyTimeoutId);
+      }
+
+      copyTimeoutId = setTimeout(() => {
         copiedLinkId.value = null;
+        copyTimeoutId = null;
       }, 2000);
     } catch {
       toast.add({
