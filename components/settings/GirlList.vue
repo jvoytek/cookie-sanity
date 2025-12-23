@@ -45,7 +45,7 @@
   const submitted = ref(false);
 
   // Track which request link was copied
-  const copiedLinkId = ref<number | null>(null);
+  const copiedLinkId = ref(null);
 
   // Check if there are other seasons to copy from
   const hasOtherSeasons = computed(() => {
@@ -53,13 +53,13 @@
   });
 
   // Function to get the request form URL for a girl
-  function getRequestUrl(girlId: number): string {
+  function getRequestUrl(girlId) {
     const baseUrl = window.location.origin;
     return `${baseUrl}/request?id=${girlId}`;
   }
 
   // Function to copy the request URL to clipboard
-  async function copyRequestUrl(girlId: number) {
+  async function copyRequestUrl(girlId) {
     try {
       const url = getRequestUrl(girlId);
       await navigator.clipboard.writeText(url);
