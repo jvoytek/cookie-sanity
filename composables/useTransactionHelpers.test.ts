@@ -154,9 +154,8 @@ describe('useTransactionHelpers', () => {
       // Should be called with a copy that excludes id, created_at, and processed_date
       const expectedCopy = {
         order_date: '2024-01-15',
-        order_num: 'TEST123',
         type: 'T2G',
-        status: 'pending',
+        status: 'requested',
         profile: 'test-profile',
         season: 1,
         cookies: { TM: 5, ADV: 3 },
@@ -219,9 +218,8 @@ describe('useTransactionHelpers', () => {
 
       const expectedCopy = {
         order_date: '2024-02-20',
-        order_num: 'ORDER999',
         type: 'G2T',
-        status: 'recorded',
+        status: 'requested',
         profile: 'test-user',
         season: 2,
         cookies: { TM: 12, ADV: 8 },
