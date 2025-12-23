@@ -38,11 +38,6 @@
       validation: 'required|integer|min:1900|max:2100',
       placeholder: 'Enter the Year (e.g., 2024)',
     },
-    {
-      $formkit: 'primeToggleSwitch',
-      name: 'publish_girl_request_form',
-      label: 'Publish Girl Request Form',
-    },
   ];
 </script>
 <template>

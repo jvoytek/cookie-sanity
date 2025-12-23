@@ -521,6 +521,7 @@ export type Database = {
           created_at: string;
           id: number;
           profile: string;
+          publish_girl_request_form: boolean | null;
           troop_number: string;
           year: number;
         };
@@ -528,6 +529,7 @@ export type Database = {
           created_at?: string;
           id?: number;
           profile: string;
+          publish_girl_request_form?: boolean | null;
           troop_number?: string;
           year?: number;
         };
@@ -535,6 +537,7 @@ export type Database = {
           created_at?: string;
           id?: number;
           profile?: string;
+          publish_girl_request_form?: boolean | null;
           troop_number?: string;
           year?: number;
         };
