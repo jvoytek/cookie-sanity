@@ -44,10 +44,64 @@
   });
   const submitted = ref(false);
 
+  // Track which request link was copied
+  const copiedLinkId = ref(null);
+  let copyTimeoutId = null;
+
   // Check if there are other seasons to copy from
   const hasOtherSeasons = computed(() => {
     return seasonsStore.allSeasons.length > 1;
   });
+
+  // Cleanup timeout on unmount
+  onUnmounted(() => {
+    if (copyTimeoutId) {
+      clearTimeout(copyTimeoutId);
+    }
+  });
+
+  // Function to get the request form URL for a girl
+  function getRequestUrl(girlId) {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/request?id=${girlId}`;
+  }
+
+  // Function to copy the request URL to clipboard
+  async function copyRequestUrl(girlId) {
+    // Check if clipboard API is available
+    if (!navigator.clipboard) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Clipboard API not available in this browser',
+        life: 3000,
+      });
+      return;
+    }
+
+    try {
+      const url = getRequestUrl(girlId);
+      await navigator.clipboard.writeText(url);
+      copiedLinkId.value = girlId;
+
+      // Clear any existing timeout
+      if (copyTimeoutId) {
+        clearTimeout(copyTimeoutId);
+      }
+
+      copyTimeoutId = setTimeout(() => {
+        copiedLinkId.value = null;
+        copyTimeoutId = null;
+      }, 2000);
+    } catch {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to copy link to clipboard',
+        life: 3000,
+      });
+    }
+  }
 
   function openNew() {
     girl.value = {
@@ -168,7 +222,50 @@
             <Column field="last_name" header="Last Name" sortable />
             <Column field="preferred_name" header="Preferred Name" sortable />
             <Column field="email" header="Email" sortable />
-            <Column :exportable="false" nowrap>
+            <Column
+              v-if="publishGirlRequestForm"
+              header="Request Link"
+              :exportable="false"
+            >
+              <template #body="slotProps">
+                <div class="flex items-center gap-2">
+                  <Button
+                    as="a"
+                    :href="getRequestUrl(slotProps.data.id)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    icon="pi pi-external-link"
+                    size="small"
+                    variant="outlined"
+                    severity="secondary"
+                  />
+                  <Button
+                    v-tooltip.bottom="{
+                      value:
+                        copiedLinkId === slotProps.data.id
+                          ? 'Copied!'
+                          : 'Copy Link',
+                      showDelay: 500,
+                    }"
+                    :icon="
+                      copiedLinkId === slotProps.data.id
+                        ? 'pi pi-check'
+                        : 'pi pi-copy'
+                    "
+                    :aria-label="
+                      copiedLinkId === slotProps.data.id
+                        ? 'Copied'
+                        : 'Copy Link'
+                    "
+                    size="small"
+                    variant="outlined"
+                    severity="secondary"
+                    @click="copyRequestUrl(slotProps.data.id)"
+                  />
+                </div>
+              </template>
+            </Column>
+            <Column :exportable="false" header="Actions" nowrap>
               <template #body="slotProps">
                 <Button
                   v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
