@@ -5,16 +5,12 @@
   const publishGirlRequestForm = computed({
     get: () => seasonsStore.currentSeason?.publish_girl_request_form ?? false,
     set: async (value) => {
-      if (seasonsStore.currentSeason?.id) {
+      if (seasonsStore.currentSeason?.id && seasonsStore.currentSeason.id > 0) {
         try {
           await seasonsStore.upsertSeason({
             ...seasonsStore.currentSeason,
             publish_girl_request_form: value,
           });
-          // Update local state
-          if (seasonsStore.currentSeason) {
-            seasonsStore.currentSeason.publish_girl_request_form = value;
-          }
           await seasonsStore.fetchSeasons();
         } catch (error) {
           notificationHelpers.addError(error as Error);
