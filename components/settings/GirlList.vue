@@ -44,10 +44,38 @@
   });
   const submitted = ref(false);
 
+  // Track which request link was copied
+  const copiedLinkId = ref<number | null>(null);
+
   // Check if there are other seasons to copy from
   const hasOtherSeasons = computed(() => {
     return seasonsStore.allSeasons.length > 1;
   });
+
+  // Function to get the request form URL for a girl
+  function getRequestUrl(girlId: number): string {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/request?id=${girlId}`;
+  }
+
+  // Function to copy the request URL to clipboard
+  async function copyRequestUrl(girlId: number) {
+    try {
+      const url = getRequestUrl(girlId);
+      await navigator.clipboard.writeText(url);
+      copiedLinkId.value = girlId;
+      setTimeout(() => {
+        copiedLinkId.value = null;
+      }, 2000);
+    } catch {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to copy link to clipboard',
+        life: 3000,
+      });
+    }
+  }
 
   function openNew() {
     girl.value = {
@@ -168,6 +196,47 @@
             <Column field="last_name" header="Last Name" sortable />
             <Column field="preferred_name" header="Preferred Name" sortable />
             <Column field="email" header="Email" sortable />
+            <Column
+              v-if="publishGirlRequestForm"
+              header="Request Link"
+              :exportable="false"
+            >
+              <template #body="slotProps">
+                <div class="flex items-center gap-2">
+                  <a
+                    :href="`/request?id=${slotProps.data.id}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-primary hover:underline"
+                  >
+                    <i class="pi pi-external-link" />
+                  </a>
+                  <Button
+                    v-tooltip.bottom="{
+                      value:
+                        copiedLinkId === slotProps.data.id
+                          ? 'Copied!'
+                          : 'Copy Link',
+                      showDelay: 500,
+                    }"
+                    :icon="
+                      copiedLinkId === slotProps.data.id
+                        ? 'pi pi-check'
+                        : 'pi pi-copy'
+                    "
+                    :aria-label="
+                      copiedLinkId === slotProps.data.id
+                        ? 'Copied'
+                        : 'Copy Link'
+                    "
+                    size="small"
+                    variant="outlined"
+                    severity="secondary"
+                    @click="copyRequestUrl(slotProps.data.id)"
+                  />
+                </div>
+              </template>
+            </Column>
             <Column :exportable="false" nowrap>
               <template #body="slotProps">
                 <Button
