@@ -59,18 +59,17 @@ export const useProfileStore = defineStore('profile', () => {
       if (seasonsStore.currentSeason?.id) {
         const collaboratorsStore = useCollaboratorsStore();
         await collaboratorsStore.fetchCollaborators();
+        await cookiesStore.fetchCookies();
+        await girlsStore.fetchGirls();
+        await ordersStore.fetchTransactions();
+        await accountsStore.fetchPayments();
+        await boothsStore.fetchBoothSales();
+        await depositsStore.fetchDeposits();
+        await inventoryChecksStore.fetchInventoryChecks();
+        await auditSessionsStore.fetchMostRecentAuditSession();
+        await auditSessionsStore.fetchMatches();
+        await auditSessionsStore.fetchAllAuditSessions(false);
       }
-
-      await cookiesStore.fetchCookies();
-      await girlsStore.fetchGirls();
-      await ordersStore.fetchTransactions();
-      await accountsStore.fetchPayments();
-      await boothsStore.fetchBoothSales();
-      await depositsStore.fetchDeposits();
-      await inventoryChecksStore.fetchInventoryChecks();
-      await auditSessionsStore.fetchMostRecentAuditSession();
-      await auditSessionsStore.fetchMatches();
-      await auditSessionsStore.fetchAllAuditSessions(false);
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
