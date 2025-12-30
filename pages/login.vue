@@ -31,7 +31,8 @@
               Cookie Sanity
             </div>
             <span class="text-muted-color font-medium"
-              >Sign in via magic link with your email below</span
+              >Sign in or sign up via magic link. Just enter your email and then
+              check your inbox.</span
             >
           </div>
           <AuthForm />

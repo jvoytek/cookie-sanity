@@ -22,6 +22,23 @@
       loading.value = false;
     }
   };
+
+  const signInWithGithub = async () => {
+    try {
+      loading.value = true;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: 'http://localhost:3000/confirm',
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      alert(error.error_description || error.message);
+    } finally {
+      loading.value = false;
+    }
+  };
 </script>
 
 <template>
@@ -37,7 +54,7 @@
         v-model="email"
         type="text"
         placeholder="Email address"
-        class="w-full md:w-[30rem] mb-8"
+        class="w-full mb-8"
       />
 
       <Button
@@ -48,4 +65,16 @@
       />
     </div>
   </form>
+  <Divider align="center">
+    <strong>or</strong>
+  </Divider>
+  <Button
+    type="button"
+    label="Sign in with GitHub"
+    :disabled="loading"
+    class="w-full"
+    icon="pi pi-github"
+    @click="signInWithGithub"
+    style="background-color: #333; border-color: #333"
+  />
 </template>
