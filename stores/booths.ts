@@ -7,6 +7,11 @@ computed()s become getters
 function()s become actions
 */
 
+const BOOTH_STATUS = {
+  ARCHIVED: 'archived',
+  ACTIVE: '',
+} as const;
+
 export const useBoothsStore = defineStore('booths', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
@@ -21,8 +26,18 @@ export const useBoothsStore = defineStore('booths', () => {
   const activeBoothSale = ref<BoothSale | null>(null);
   const activeBoothSaleOriginal = ref<BoothSale | null>(null);
   const boothDialogVisible = ref(false);
+  const showArchivedBoothSales = ref(false);
 
   /* Computed */
+
+  const visibleBoothSales = computed(() => {
+    if (showArchivedBoothSales.value) {
+      return allBoothSales.value;
+    }
+    return allBoothSales.value.filter(
+      (booth: BoothSale) => booth.status !== BOOTH_STATUS.ARCHIVED,
+    );
+  });
 
   const upcomingBoothSales = computed(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -34,7 +49,9 @@ export const useBoothsStore = defineStore('booths', () => {
 
   const boothSalesUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
-      (booth: BoothSale) => booth.inventory_type === 'troop',
+      (booth: BoothSale) =>
+        booth.inventory_type === 'troop' &&
+        booth.status !== BOOTH_STATUS.ARCHIVED,
     );
   });
 
@@ -254,8 +271,46 @@ export const useBoothsStore = defineStore('booths', () => {
     activeBoothSaleOriginal.value = null;
   };
 
+  const archiveBoothSale = async (boothSale: BoothSale) => {
+    try {
+      const updatedBoothSale = {
+        ...boothSale,
+        status: BOOTH_STATUS.ARCHIVED,
+      };
+
+      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(updatedBoothSale);
+      notificationHelpers.addSuccess('Booth Sale Archived');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const unarchiveBoothSale = async (boothSale: BoothSale) => {
+    try {
+      const updatedBoothSale = {
+        ...boothSale,
+        status: null,
+      };
+
+      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(updatedBoothSale);
+      notificationHelpers.addSuccess('Booth Sale Archived');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     allBoothSales,
+    visibleBoothSales,
+    showArchivedBoothSales,
     boothDialogFormSchema,
     resetActiveBoothSale,
     setActiveBoothSale,
@@ -271,6 +326,8 @@ export const useBoothsStore = defineStore('booths', () => {
     insertBoothSale,
     upsertBoothSale,
     deleteBoothSale,
+    archiveBoothSale,
+    unarchiveBoothSale,
     getPredictedBoothSaleQuantityByCookie,
   };
 });

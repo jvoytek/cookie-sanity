@@ -2,6 +2,7 @@
   import type { BoothSale } from '@/types/types';
   import { useFormKitNodeById } from '@formkit/vue';
   import { watchDebounced, watchDeep } from '@vueuse/core';
+  import { Button } from 'primevue';
 
   const formNode = useFormKitNodeById('booth-form');
 
@@ -45,7 +46,7 @@
     if (formNode.value) formNode.value.submit();
   };
 
-  function editBoothSale(sale: BoothSale) {
+  function editBoothSale(sale: BoothSale | null) {
     boothsStore.boothDialogFormSchema.value = getBoothSaleDialogFormSchema();
     boothsStore.setActiveBoothSale(sale);
     boothsStore.boothDialogVisible = true;
@@ -61,6 +62,14 @@
     deleteBoothSaleDialog.value = true;
   }
 
+  function duplicateBoothSale(sale: BoothSale) {
+    // Create a copy of the boothsale without database-generated fields
+    // This ensures it will be treated as a new transaction when saved
+    const { id, created_at, ...saleCopy } = sale;
+    saleCopy.status = null;
+    editBoothSale({ ...saleCopy });
+  }
+
   async function deleteBoothSale() {
     try {
       boothsStore.deleteBoothSale(boothsStore.activeBoothSale);
@@ -69,6 +78,14 @@
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
+  }
+
+  async function archiveBoothSale(sale: BoothSale) {
+    await boothsStore.archiveBoothSale(sale);
+  }
+
+  async function unarchiveBoothSale(sale: BoothSale) {
+    await boothsStore.unarchiveBoothSale(sale);
   }
 
   watchDebounced(
@@ -260,9 +277,18 @@
           </template>
         </Toolbar>
 
+        <div class="mb-4 flex items-center gap-2 float-right">
+          <Checkbox
+            v-model="boothsStore.showArchivedBoothSales"
+            inputId="showArchived"
+            :binary="true"
+          />
+          <label for="showArchived">Show archived booth sales</label>
+        </div>
+
         <DataTable
           ref="dt"
-          :value="boothsStore.allBoothSales"
+          :value="boothsStore.visibleBoothSales"
           data-key="id"
           sort-field="sale_date"
         >
@@ -298,20 +324,59 @@
             </template>
           </Column>
           <Column field="expected_sales" header="Expected Sales" sortable />
-          <Column :exportable="false" style="min-width: 12rem">
+          <Column field="status" header="Status" sortable>
+            <template #body="slotProps">
+              <Badge
+                :severity="
+                  slotProps.data.status === 'archived' ? 'info' : 'success'
+                "
+              >
+                {{ slotProps.data.status || 'active' }}
+              </Badge>
+            </template>
+          </Column>
+          <Column :exportable="false" style="min-width: 12rem" header="Actions">
             <template #body="slotProps">
               <Button
                 icon="pi pi-pencil"
                 outlined
-                rounded
                 class="mr-2"
+                v-tooltip.bottom="'Edit Sale'"
                 @click="editBoothSale(slotProps.data)"
+              />
+              <Button
+                icon="pi pi-copy"
+                outlined
+                severity="secondary"
+                class="mr-2"
+                v-tooltip.bottom="'Duplicate Sale'"
+                @click="duplicateBoothSale(slotProps.data)"
+              />
+              <Button
+                v-if="slotProps.data.status !== 'archived'"
+                icon="pi pi-inbox"
+                outlined
+                severity="secondary"
+                class="mr-2"
+                v-tooltip.bottom="
+                  'Archive Sale. It will no longer appear in troop inventory calculations.'
+                "
+                @click="archiveBoothSale(slotProps.data)"
+              />
+              <Button
+                v-if="slotProps.data.status == 'archived'"
+                icon="pi pi-undo"
+                outlined
+                severity="secondary"
+                class="mr-2"
+                v-tooltip.bottom="'Unarchive'"
+                @click="unarchiveBoothSale(slotProps.data)"
               />
               <Button
                 icon="pi pi-trash"
                 outlined
-                rounded
                 severity="danger"
+                v-tooltip.bottom="'Delete Sale'"
                 @click="confirmDeleteBoothSale(slotProps.data)"
               />
             </template>

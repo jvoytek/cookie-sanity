@@ -89,6 +89,7 @@ export type Database = {
           sale_time: string | null;
           scouts_attending: Json | null;
           season: number;
+          status: string | null;
         };
         Insert: {
           created_at?: string;
@@ -103,6 +104,7 @@ export type Database = {
           sale_time?: string | null;
           scouts_attending?: Json | null;
           season?: number;
+          status?: string | null;
         };
         Update: {
           created_at?: string;
@@ -117,6 +119,7 @@ export type Database = {
           sale_time?: string | null;
           scouts_attending?: Json | null;
           season?: number;
+          status?: string | null;
         };
         Relationships: [
           {

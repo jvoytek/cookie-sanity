@@ -107,6 +107,7 @@ describe('stores/booths', () => {
           sale_time: null,
           scouts_attending: {},
           season: 0,
+          status: null,
         },
         {
           id: 2,
@@ -121,6 +122,7 @@ describe('stores/booths', () => {
           sale_time: null,
           scouts_attending: {},
           season: 0,
+          status: null,
         },
         {
           id: 3,
@@ -135,6 +137,7 @@ describe('stores/booths', () => {
           sale_time: null,
           scouts_attending: {},
           season: 0,
+          status: null,
         },
       ];
 
@@ -144,6 +147,139 @@ describe('stores/booths', () => {
         SM: 5,
         TS: 8,
       });
+    });
+
+    it('filters troop inventory booth sales correctly and excludes archived', () => {
+      boothsStore.allBoothSales = [
+        {
+          id: 1,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: { TM: 10 },
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: null,
+        },
+        {
+          id: 2,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: { TM: 15 },
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: 'archived',
+        },
+        {
+          id: 3,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'girl',
+          location: '',
+          notes: null,
+          predicted_cookies: { TM: 100 },
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: null,
+        },
+      ];
+
+      const troopSales = boothsStore.boothSalesUsingTroopInventory;
+      expect(troopSales).toHaveLength(1);
+      expect(troopSales[0].id).toBe(1);
+    });
+
+    it('visibleBoothSales shows only non-archived by default', () => {
+      boothsStore.allBoothSales = [
+        {
+          id: 1,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: {},
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: null,
+        },
+        {
+          id: 2,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: {},
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: 'archived',
+        },
+      ];
+
+      boothsStore.showArchivedBoothSales = false;
+      const visible = boothsStore.visibleBoothSales;
+      expect(visible).toHaveLength(1);
+      expect(visible[0].id).toBe(1);
+    });
+
+    it('visibleBoothSales shows all when showArchived is true', () => {
+      boothsStore.allBoothSales = [
+        {
+          id: 1,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: {},
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: null,
+        },
+        {
+          id: 2,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: {},
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: 'archived',
+        },
+      ];
+
+      boothsStore.showArchivedBoothSales = true;
+      const visible = boothsStore.visibleBoothSales;
+      expect(visible).toHaveLength(2);
     });
   });
 
@@ -634,6 +770,82 @@ describe('stores/booths', () => {
     });
   });
 
+  describe('archiveBoothSale', () => {
+    it('successfully archives booth sale and shows success toast', async () => {
+      const toastSpy = vi.fn();
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addSuccess: toastSpy,
+      }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
+
+      const useSupabaseClientMock = vi.fn(() => ({
+        from: vi.fn(() => ({
+          upsert: vi.fn(() => Promise.resolve({ error: null })),
+        })),
+      }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+      newBoothsStore.allBoothSales = [
+        {
+          id: 1,
+          sale_date: '2024-01-01',
+          expected_sales: 100,
+          inventory_type: 'troop',
+          status: null,
+        },
+      ] as BoothSale[];
+
+      const saleToArchive = {
+        id: 1,
+        sale_date: '2024-01-01',
+        expected_sales: 100,
+        inventory_type: 'troop',
+        status: null,
+      } as BoothSale;
+      await newBoothsStore.archiveBoothSale(saleToArchive);
+
+      expect(newBoothsStore.allBoothSales[0].status).toBe('archived');
+      expect(toastSpy).toHaveBeenCalledWith('Booth Sale Archived');
+    });
+
+    it('handles archive error and shows error toast', async () => {
+      const toastSpy = vi.fn();
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addError: toastSpy,
+      }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
+
+      const useSupabaseClientMock = vi.fn(() => ({
+        from: vi.fn(() => ({
+          upsert: vi.fn(() =>
+            Promise.resolve({ error: { message: 'Archive failed' } }),
+          ),
+        })),
+      }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+
+      const saleToArchive = {
+        id: 1,
+        sale_date: '2024-01-01',
+        expected_sales: 100,
+        inventory_type: 'troop',
+        status: null,
+      } as BoothSale;
+      await newBoothsStore.archiveBoothSale(saleToArchive);
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        message: 'Archive failed',
+      });
+    });
+  });
+
   describe('utility functions', () => {
     const baseBoothSale = {
       created_at: '',
@@ -648,6 +860,7 @@ describe('stores/booths', () => {
       sale_time: null,
       scouts_attending: {},
       season: 0,
+      status: null,
     };
 
     it('getPredictedBoothSaleQuantityByCookie returns correct negative total', () => {
