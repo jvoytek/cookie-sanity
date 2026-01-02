@@ -9,6 +9,7 @@ function()s become actions
 
 const BOOTH_STATUS = {
   ARCHIVED: 'archived',
+  ACTIVE: '',
 } as const;
 
 export const useBoothsStore = defineStore('booths', () => {
@@ -288,6 +289,24 @@ export const useBoothsStore = defineStore('booths', () => {
     }
   };
 
+  const unarchiveBoothSale = async (boothSale: BoothSale) => {
+    try {
+      const updatedBoothSale = {
+        ...boothSale,
+        status: null,
+      };
+
+      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(updatedBoothSale);
+      notificationHelpers.addSuccess('Booth Sale Archived');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     allBoothSales,
     visibleBoothSales,
@@ -308,6 +327,7 @@ export const useBoothsStore = defineStore('booths', () => {
     upsertBoothSale,
     deleteBoothSale,
     archiveBoothSale,
+    unarchiveBoothSale,
     getPredictedBoothSaleQuantityByCookie,
   };
 });
