@@ -71,6 +71,10 @@
     }
   }
 
+  async function archiveBoothSale(sale: BoothSale) {
+    await boothsStore.archiveBoothSale(sale);
+  }
+
   watchDebounced(
     () => boothsStore.activeBoothSale?.expected_sales,
     (newTotalCookies, oldTotalCookies) => {
@@ -260,9 +264,18 @@
           </template>
         </Toolbar>
 
+        <div class="mb-4 flex items-center gap-2">
+          <Checkbox
+            v-model="boothsStore.showArchivedBoothSales"
+            inputId="showArchived"
+            :binary="true"
+          />
+          <label for="showArchived">Show archived booth sales</label>
+        </div>
+
         <DataTable
           ref="dt"
-          :value="boothsStore.allBoothSales"
+          :value="boothsStore.visibleBoothSales"
           data-key="id"
           sort-field="sale_date"
         >
@@ -306,6 +319,16 @@
                 rounded
                 class="mr-2"
                 @click="editBoothSale(slotProps.data)"
+              />
+              <Button
+                v-if="slotProps.data.status !== 'archived'"
+                icon="pi pi-inbox"
+                outlined
+                rounded
+                severity="secondary"
+                class="mr-2"
+                v-tooltip.bottom="'Archive'"
+                @click="archiveBoothSale(slotProps.data)"
               />
               <Button
                 icon="pi pi-trash"
