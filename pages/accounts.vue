@@ -84,7 +84,7 @@
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 relative">
     <!-- Page Header -->
     <div class="col-span-12 lg:col-span-12 xl:col-span-12">
       <div class="card">
@@ -166,5 +166,6 @@
 
     <PaymentDialog />
     <ImportPaymentsDialog v-model:visible="importDialogVisible" />
+    <NoGirlsOverlay />
   </div>
 </template>

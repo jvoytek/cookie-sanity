@@ -10,7 +10,6 @@
   const loadSessions = async (): Promise<void> => {
     loading.value = true;
     try {
-      console.log('loading sessions, showArchived=', showArchived.value);
       await auditSessionsStore.fetchAllAuditSessions(showArchived.value);
     } catch (error) {
       notificationHelpers.addError(

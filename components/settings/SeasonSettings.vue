@@ -15,9 +15,20 @@
 </script>
 
 <template>
-  <div class="col-span-12">
+  <div class="col-span-12 md:col-span-12 lg:col-span-12 xl:col-span-6">
     <div class="card">
-      <h5>All Seasons</h5>
+      <h5>Seasons</h5>
+      <p>
+        Create a season for each troop and year you manage. You can manage
+        inventory, cookies and girls separately for each season. You can also
+        copy cookies and girls from one season to the next. You can easily
+        switch between them using the dropdown in the header.
+      </p>
+
+      <p>
+        Once you've created a season add Girls, Cookies, and Collaborators from
+        the left menu under "Season Settings"
+      </p>
 
       <div>
         <div class="card">

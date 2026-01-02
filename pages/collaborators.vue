@@ -88,8 +88,22 @@
     <div class="col-span-12">
       <div class="card">
         <h5>Collaborators</h5>
-        <p class="text-surface-500 dark:text-surface-400 mb-6">
-          Invite others to help manage this season.
+
+        <p>
+          Invite others to help manage this season. Collaborators can view and
+          edit the season just as you can using their own login, but only season
+          owners can add/edit/delete other collaborators.
+        </p>
+
+        <p>
+          To add a collaborator have them sign up and then share their Profile
+          ID from their
+          <a
+            href="/settings"
+            class="text-primary-500 no-underline hover:underline"
+            >account settings</a
+          >
+          page.
         </p>
 
         <div v-if="!seasonsStore.isCurrentSeasonOwner()">

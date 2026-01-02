@@ -124,7 +124,8 @@ export const useSeasonsStore = defineStore('seasons', () => {
     season.profile = user.value.id;
     try {
       const { error } = await _supabaseInsertSeason(season);
-      fetchSeasons();
+      await fetchSeasons();
+      await profileStore.saveCurrentSeasonInProfile();
       if (error) throw error;
       notificationHelpers.addSuccess('Season Created');
     } catch (error) {

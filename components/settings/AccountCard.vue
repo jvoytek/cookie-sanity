@@ -32,7 +32,7 @@
 </script>
 
 <template>
-  <div class="col-span-12">
+  <div class="col-span-12 md:col-span-12 lg:col-span-12 xl:col-span-6">
     <div class="card">
       <form @submit.prevent="updateProfile">
         <div class="font-semibold text-xl">Account</div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import type { InventoryCheck } from '@/types/types';
+  import NoCookiesOverlay from '~/components/other/NoCookiesOverlay.vue';
 
   const loading = ref(true);
   loading.value = true;
@@ -179,7 +180,7 @@
 </script>
 
 <template>
-  <div class="grid grid-cols-12 gap-8">
+  <div class="grid grid-cols-12 gap-8 relative">
     <div class="col-span-12">
       <div class="card">
         <div class="flex items-center justify-between mb-6">
@@ -430,5 +431,6 @@
         <Button label="Yes" icon="pi pi-check" @click="deleteCheck" />
       </template>
     </Dialog>
+    <NoCookiesOverlay />
   </div>
 </template>

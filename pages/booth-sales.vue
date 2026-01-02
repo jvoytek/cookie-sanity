@@ -240,7 +240,7 @@
 </script>
 
 <template>
-  <div class="grid grid-cols-12 gap-8">
+  <div class="grid grid-cols-12 gap-8 relative">
     <div class="col-span-12">
       <div class="card">
         <h5>Booth Sales</h5>
@@ -384,5 +384,6 @@
         </Dialog>
       </div>
     </div>
+    <NoCookiesOverlay />
   </div>
 </template>
