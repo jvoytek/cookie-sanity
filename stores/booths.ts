@@ -7,6 +7,10 @@ computed()s become getters
 function()s become actions
 */
 
+const BOOTH_STATUS = {
+  ARCHIVED: 'archived',
+} as const;
+
 export const useBoothsStore = defineStore('booths', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
@@ -30,7 +34,7 @@ export const useBoothsStore = defineStore('booths', () => {
       return allBoothSales.value;
     }
     return allBoothSales.value.filter(
-      (booth: BoothSale) => booth.status !== 'archived',
+      (booth: BoothSale) => booth.status !== BOOTH_STATUS.ARCHIVED,
     );
   });
 
@@ -45,7 +49,8 @@ export const useBoothsStore = defineStore('booths', () => {
   const boothSalesUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
-        booth.inventory_type === 'troop' && booth.status !== 'archived',
+        booth.inventory_type === 'troop' &&
+        booth.status !== BOOTH_STATUS.ARCHIVED,
     );
   });
 
@@ -269,7 +274,7 @@ export const useBoothsStore = defineStore('booths', () => {
     try {
       const updatedBoothSale = {
         ...boothSale,
-        status: 'archived' as const,
+        status: BOOTH_STATUS.ARCHIVED,
       };
 
       const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);

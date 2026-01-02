@@ -12,7 +12,7 @@ create table booth_sales (
   expected_sales integer, -- Expected number of cookie boxes to be sold,
   predicted_cookies jsonb, -- Store predicted cookie quantities as JSON
   notes text,
-  status text check (status in ('archived'))
+  status text check (status is null or status in ('archived'))
 );
 
 -- Enable RLS
