@@ -27,6 +27,11 @@ export const useBoothsStore = defineStore('booths', () => {
   const activeBoothSaleOriginal = ref<BoothSale | null>(null);
   const boothDialogVisible = ref(false);
   const showArchivedBoothSales = ref(false);
+  const recordSalesDialogVisible = ref(false);
+  const activeBoothSaleForRecording = ref<BoothSale | null>(null);
+  const salesRecordData = ref<
+    Record<string, { predicted: number; remaining: number; sales: number }>
+  >({});
 
   /* Computed */
 
@@ -307,6 +312,104 @@ export const useBoothsStore = defineStore('booths', () => {
     }
   };
 
+  const openRecordSalesDialog = (boothSale: BoothSale) => {
+    activeBoothSaleForRecording.value = boothSale;
+
+    // Initialize salesRecordData with predicted cookies from the booth sale
+    const recordData: Record<
+      string,
+      { predicted: number; remaining: number; sales: number }
+    > = {};
+
+    if (boothSale.predicted_cookies) {
+      const cookies = boothSale.predicted_cookies as Record<string, number>;
+      Object.entries(cookies).forEach(([cookieAbbr, predictedAmount]) => {
+        recordData[cookieAbbr] = {
+          predicted: predictedAmount || 0,
+          remaining: 0,
+          sales: predictedAmount || 0,
+        };
+      });
+    }
+
+    salesRecordData.value = recordData;
+    recordSalesDialogVisible.value = true;
+  };
+
+  const updateSalesRecordRemaining = (
+    cookieAbbr: string,
+    remaining: number,
+  ) => {
+    if (salesRecordData.value[cookieAbbr]) {
+      salesRecordData.value[cookieAbbr].remaining = remaining;
+      salesRecordData.value[cookieAbbr].sales =
+        salesRecordData.value[cookieAbbr].predicted - remaining;
+    }
+  };
+
+  const updateSalesRecordPredicted = (
+    cookieAbbr: string,
+    predicted: number,
+  ) => {
+    if (salesRecordData.value[cookieAbbr]) {
+      salesRecordData.value[cookieAbbr].predicted = predicted;
+      salesRecordData.value[cookieAbbr].sales =
+        predicted - salesRecordData.value[cookieAbbr].remaining;
+    }
+  };
+
+  const updateSalesRecordSales = (cookieAbbr: string, sales: number) => {
+    if (salesRecordData.value[cookieAbbr]) {
+      salesRecordData.value[cookieAbbr].sales = sales;
+      salesRecordData.value[cookieAbbr].remaining =
+        salesRecordData.value[cookieAbbr].predicted - sales;
+    }
+  };
+
+  const saveRecordedSales = async () => {
+    try {
+      if (!activeBoothSaleForRecording.value) {
+        throw new Error('No booth sale selected');
+      }
+
+      // Build cookies_sold object from salesRecordData
+      const cookiesSold: Record<string, number> = {};
+      const updatedPredictedCookies: Record<string, number> = {};
+      let totalExpectedSales = 0;
+
+      Object.entries(salesRecordData.value).forEach(([cookieAbbr, data]) => {
+        cookiesSold[cookieAbbr] = data.sales;
+        updatedPredictedCookies[cookieAbbr] = data.predicted;
+        totalExpectedSales += data.predicted;
+      });
+
+      // Update the booth sale with cookies_sold, predicted_cookies, and expected_sales
+      const updatedBoothSale = {
+        ...activeBoothSaleForRecording.value,
+        cookies_sold: cookiesSold,
+        predicted_cookies: updatedPredictedCookies,
+        expected_sales: totalExpectedSales,
+      };
+
+      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(updatedBoothSale);
+      notificationHelpers.addSuccess('Sales Recorded Successfully');
+      recordSalesDialogVisible.value = false;
+      activeBoothSaleForRecording.value = null;
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const closeRecordSalesDialog = () => {
+    recordSalesDialogVisible.value = false;
+    activeBoothSaleForRecording.value = null;
+    salesRecordData.value = {};
+  };
+
   return {
     allBoothSales,
     visibleBoothSales,
@@ -329,5 +432,14 @@ export const useBoothsStore = defineStore('booths', () => {
     archiveBoothSale,
     unarchiveBoothSale,
     getPredictedBoothSaleQuantityByCookie,
+    recordSalesDialogVisible,
+    activeBoothSaleForRecording,
+    salesRecordData,
+    openRecordSalesDialog,
+    updateSalesRecordRemaining,
+    updateSalesRecordPredicted,
+    updateSalesRecordSales,
+    saveRecordedSales,
+    closeRecordSalesDialog,
   };
 });

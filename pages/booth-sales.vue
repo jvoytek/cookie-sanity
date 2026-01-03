@@ -338,6 +338,14 @@
           <Column :exportable="false" style="min-width: 12rem" header="Actions">
             <template #body="slotProps">
               <Button
+                icon="pi pi-check-circle"
+                outlined
+                severity="success"
+                class="mr-2"
+                v-tooltip.bottom="'Record Sales'"
+                @click="boothsStore.openRecordSalesDialog(slotProps.data)"
+              />
+              <Button
                 icon="pi pi-pencil"
                 outlined
                 class="mr-2"
@@ -445,6 +453,104 @@
               @click="deleteBoothSaleDialog = false"
             />
             <Button label="Yes" icon="pi pi-check" @click="deleteBoothSale" />
+          </template>
+        </Dialog>
+
+        <Dialog
+          v-model:visible="boothsStore.recordSalesDialogVisible"
+          :style="{ width: '650px' }"
+          header="Record Booth Sales"
+          :modal="true"
+          @after-hide="boothsStore.closeRecordSalesDialog"
+        >
+          <div class="flex flex-col gap-4">
+            <p class="mb-2">
+              Enter the remaining packages after the booth sale. Sales will be
+              automatically calculated.
+            </p>
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr class="bg-gray-100">
+                    <th class="border p-2 text-left">Cookie</th>
+                    <th class="border p-2 text-right">Predicted</th>
+                    <th class="border p-2 text-right">Remaining</th>
+                    <th class="border p-2 text-right">Sales</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(
+                      cookieData, cookieAbbr
+                    ) in boothsStore.salesRecordData"
+                    :key="cookieAbbr"
+                  >
+                    <td class="border p-2">
+                      {{
+                        cookiesStore.getCookieByAbbreviation(cookieAbbr)
+                          ?.name || cookieAbbr
+                      }}
+                    </td>
+                    <td class="border p-2">
+                      <InputNumber
+                        v-model="cookieData.predicted"
+                        :min="0"
+                        class="w-full"
+                        @update:model-value="
+                          (val) =>
+                            boothsStore.updateSalesRecordPredicted(
+                              cookieAbbr,
+                              val || 0,
+                            )
+                        "
+                      />
+                    </td>
+                    <td class="border p-2">
+                      <InputNumber
+                        v-model="cookieData.remaining"
+                        :min="0"
+                        class="w-full"
+                        @update:model-value="
+                          (val) =>
+                            boothsStore.updateSalesRecordRemaining(
+                              cookieAbbr,
+                              val || 0,
+                            )
+                        "
+                      />
+                    </td>
+                    <td class="border p-2">
+                      <InputNumber
+                        v-model="cookieData.sales"
+                        :min="0"
+                        class="w-full"
+                        @update:model-value="
+                          (val) =>
+                            boothsStore.updateSalesRecordSales(
+                              cookieAbbr,
+                              val || 0,
+                            )
+                        "
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <template #footer>
+            <Button
+              label="Cancel"
+              icon="pi pi-times"
+              outlined
+              @click="boothsStore.closeRecordSalesDialog"
+            />
+            <Button
+              label="Save"
+              icon="pi pi-check"
+              @click="boothsStore.saveRecordedSales"
+            />
           </template>
         </Dialog>
       </div>

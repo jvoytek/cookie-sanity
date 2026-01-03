@@ -77,6 +77,7 @@ export type Database = {
       };
       booth_sales: {
         Row: {
+          cookies_sold: Json | null;
           created_at: string;
           expected_sales: number | null;
           id: number;
@@ -92,6 +93,7 @@ export type Database = {
           status: string | null;
         };
         Insert: {
+          cookies_sold?: Json | null;
           created_at?: string;
           expected_sales?: number | null;
           id?: number;
@@ -107,6 +109,7 @@ export type Database = {
           status?: string | null;
         };
         Update: {
+          cookies_sold?: Json | null;
           created_at?: string;
           expected_sales?: number | null;
           id?: number;
