@@ -9,6 +9,7 @@ function()s become actions
 
 const BOOTH_STATUS = {
   ARCHIVED: 'archived',
+  PENDING: 'pending',
   ACTIVE: '',
 } as const;
 
@@ -70,7 +71,8 @@ export const useBoothsStore = defineStore('booths', () => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
         booth.inventory_type === 'troop' &&
-        booth.status !== BOOTH_STATUS.ARCHIVED,
+        booth.status !== BOOTH_STATUS.ARCHIVED &&
+        booth.status !== BOOTH_STATUS.PENDING,
     );
   });
 
@@ -320,7 +322,43 @@ export const useBoothsStore = defineStore('booths', () => {
       if (error) throw error;
 
       _updateBoothSale(updatedBoothSale);
-      notificationHelpers.addSuccess('Booth Sale Archived');
+      notificationHelpers.addSuccess('Booth Sale Unarchived');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const markPendingBoothSale = async (boothSale: BoothSale) => {
+    try {
+      const updatedBoothSale = {
+        ...boothSale,
+        status: BOOTH_STATUS.PENDING,
+      };
+
+      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(updatedBoothSale);
+      notificationHelpers.addSuccess('Booth Sale Marked as Pending');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const unmarkPendingBoothSale = async (boothSale: BoothSale) => {
+    try {
+      const updatedBoothSale = {
+        ...boothSale,
+        status: null,
+      };
+
+      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(updatedBoothSale);
+      notificationHelpers.addSuccess('Booth Sale Unmarked as Pending');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -462,6 +500,8 @@ export const useBoothsStore = defineStore('booths', () => {
     deleteBoothSale,
     archiveBoothSale,
     unarchiveBoothSale,
+    markPendingBoothSale,
+    unmarkPendingBoothSale,
     getPredictedBoothSaleQuantityByCookie,
     getTotalActualSalesForBoothSale,
     recordSalesDialogVisible,

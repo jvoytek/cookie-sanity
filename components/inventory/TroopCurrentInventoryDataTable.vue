@@ -98,7 +98,7 @@
           <Column header="Pending" />
           <Column>
             <template #header>
-              <strong>Booth</strong>
+              <strong>Upcoming Booths</strong>
               <i
                 v-tooltip.bottom="{
                   value: 'Estimated sales for upcoming booth sales.',

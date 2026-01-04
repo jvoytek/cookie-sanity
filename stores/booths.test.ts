@@ -281,6 +281,64 @@ describe('stores/booths', () => {
       const visible = boothsStore.visibleBoothSales;
       expect(visible).toHaveLength(2);
     });
+
+    it('filters out pending booth sales from troop inventory calculations', () => {
+      boothsStore.allBoothSales = [
+        {
+          id: 1,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: { TM: 10 },
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: null,
+        },
+        {
+          id: 2,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: { TM: 15 },
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: 'pending',
+        },
+        {
+          id: 3,
+          created_at: '',
+          expected_sales: null,
+          inventory_type: 'troop',
+          location: '',
+          notes: null,
+          predicted_cookies: { TM: 20 },
+          profile: '',
+          sale_date: '',
+          sale_time: null,
+          scouts_attending: {},
+          season: 0,
+          status: 'archived',
+        },
+      ];
+
+      const troopSales = boothsStore.boothSalesUsingTroopInventory;
+      expect(troopSales).toHaveLength(1);
+      expect(troopSales[0].id).toBe(1);
+      
+      // Verify that only the active sale is included in predictions
+      const predictions = boothsStore.predictedCookieAmounts;
+      expect(predictions.TM).toBe(10); // Only from booth 1, not 2 (pending) or 3 (archived)
+    });
   });
 
   describe('fetchBoothSales', () => {

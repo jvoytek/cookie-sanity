@@ -80,6 +80,14 @@
     }
   }
 
+  async function unmarkPendingBoothSale(sale: BoothSale) {
+    await boothsStore.unmarkPendingBoothSale(sale);
+  }
+
+  async function markPendingBoothSale(sale: BoothSale) {
+    await boothsStore.markPendingBoothSale(sale);
+  }
+
   async function archiveBoothSale(sale: BoothSale) {
     await boothsStore.archiveBoothSale(sale);
   }
@@ -333,7 +341,11 @@
             <template #body="slotProps">
               <Badge
                 :severity="
-                  slotProps.data.status === 'archived' ? 'info' : 'success'
+                  slotProps.data.status === 'archived'
+                    ? 'info'
+                    : slotProps.data.status === 'pending'
+                      ? 'warn'
+                      : 'success'
                 "
               >
                 {{ slotProps.data.status || 'active' }}
@@ -364,6 +376,30 @@
                 class="mr-2"
                 v-tooltip.bottom="'Record Sales'"
                 @click="boothsStore.openRecordSalesDialog(slotProps.data)"
+              />
+              <Button
+                v-if="
+                  slotProps.data.status !== 'archived' &&
+                  slotProps.data.status !== 'pending' &&
+                  slotProps.data.inventory_type === 'troop'
+                "
+                icon="pi pi-clock"
+                outlined
+                severity="secondary"
+                class="mr-2"
+                v-tooltip.bottom="
+                  'Mark this sale pending to remove estimated cookie sales from inventory calculations'
+                "
+                @click="markPendingBoothSale(slotProps.data)"
+              />
+              <Button
+                v-if="slotProps.data.status === 'pending'"
+                icon="pi pi-check-circle"
+                outlined
+                severity="secondary"
+                class="mr-2"
+                v-tooltip.bottom="'Unmark as Pending'"
+                @click="unmarkPendingBoothSale(slotProps.data)"
               />
               <Button
                 v-if="slotProps.data.status !== 'archived'"
