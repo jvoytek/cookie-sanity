@@ -68,7 +68,29 @@ describe('stores/cookies', () => {
     }));
     vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
 
+    // Now create the cookies store
     cookiesStore = useCookiesStore();
+
+    // Set up booth sales data after all stores are created
+    const boothsStore = useBoothsStore();
+    boothsStore.allBoothSales = [
+      {
+        id: 1,
+        created_at: '',
+        expected_sales: null,
+        inventory_type: 'troop',
+        location: '',
+        notes: null,
+        predicted_cookies: { ADV: 9, TM: 9 },
+        profile: '',
+        sale_date: '',
+        sale_time: null,
+        scouts_attending: {},
+        season: 0,
+        status: null, // Active booth sale
+        cookies_sold: null,
+      } as any,
+    ];
 
     // Set up some mock cookie data
     cookiesStore.allCookies = [
@@ -145,8 +167,9 @@ describe('stores/cookies', () => {
       expect(advCookie?.requestedGirl).toBe(10);
       expect(advCookie?.pendingGirl).toBe(3);
       expect(advCookie?.pendingTroop).toBe(2);
-      expect(advCookie?.afterPending).toBe(96); // 100 + 3 + 2 -9
-      expect(advCookie?.afterPendingIncludingRequests).toBe(106); // 105 + 10
+      expect(advCookie?.afterPending).toBe(105); // 100 + 3 + 2
+      expect(advCookie?.afterPendingIncludingRequests).toBe(115); // 105 + 10
+      expect(advCookie?.afterPendingIncludingBooths).toBe(96); // 105 + (-9)
 
       // Test Thin Mints (TM): onHand=75, requestedGirl=5, pendingGirl=8, pendingTroop=2, pendedBooth=-9
       const tmCookie = inventoryTotals.find((c) => c.abbreviation === 'TM');
@@ -154,8 +177,9 @@ describe('stores/cookies', () => {
       expect(tmCookie?.requestedGirl).toBe(5);
       expect(tmCookie?.pendingGirl).toBe(8);
       expect(tmCookie?.pendingTroop).toBe(2);
-      expect(tmCookie?.afterPending).toBe(76); // 75 + 8 + 2 -9
-      expect(tmCookie?.afterPendingIncludingRequests).toBe(81); // 85 + 5 -9
+      expect(tmCookie?.afterPending).toBe(85); // 75 + 8 + 2
+      expect(tmCookie?.afterPendingIncludingRequests).toBe(90); // 85 + 5
+      expect(tmCookie?.afterPendingIncludingBooths).toBe(76); // 85 + (-9)
 
       // Test Lemon-Ups (LEM): onHand=50, requestedGirl=5, pendingGirl=3, pendingTroop=12
       const lemCookie = inventoryTotals.find((c) => c.abbreviation === 'LEM');
@@ -163,16 +187,16 @@ describe('stores/cookies', () => {
       expect(lemCookie?.requestedGirl).toBe(5);
       expect(lemCookie?.pendingGirl).toBe(3);
       expect(lemCookie?.pendingTroop).toBe(12);
-      expect(lemCookie?.afterPending).toBe(56); // 50 + 3 + 12 -9
-      expect(lemCookie?.afterPendingIncludingRequests).toBe(61); // 65 + 5 -9
+      expect(lemCookie?.afterPending).toBe(65); // 50 + 3 + 12
+      expect(lemCookie?.afterPendingIncludingRequests).toBe(70); // 65 + 5
     });
 
     it('assigns correct status severity based on afterPending quantity', () => {
       const inventoryTotals = cookiesStore.allCookiesWithInventoryTotals(false);
 
-      // ADV: afterPending=96 (>50) should be "success"/"Good"
+      // ADV: afterPending=105 (>50) should be "success"/"Good"
       const advCookie = inventoryTotals.find((c) => c.abbreviation === 'ADV');
-      expect(advCookie?.afterPending).toBe(96);
+      expect(advCookie?.afterPending).toBe(105);
       expect(advCookie?.afterPendingStatusSeverity).toBe('success');
       expect(advCookie?.afterPendingStatus).toBe('Good');
 
@@ -186,21 +210,21 @@ describe('stores/cookies', () => {
       expect(lemCookie?.afterPendingStatusSeverity).toBe('success');
       expect(lemCookie?.afterPendingStatus).toBe('Good');
 
-      // TRE: afterPending=21 (>20 but <=50) should be "secondary"/"Ok"
+      // TRE: afterPending=30 (>20 but <=50) should be "secondary"/"Ok"
       const treCookie = inventoryTotals.find((c) => c.abbreviation === 'TRE');
-      expect(treCookie?.afterPending).toBe(21); // 25 + 3 + 2 -9
+      expect(treCookie?.afterPending).toBe(30); // 25 + 1 + 4
       expect(treCookie?.afterPendingStatusSeverity).toBe('secondary');
       expect(treCookie?.afterPendingStatus).toBe('Ok');
 
-      // CD: afterPending=11 (<=20) should be "warn"/"Low"
+      // CD: afterPending=20 (>=0 but <=20) should be "warn"/"Low"
       const cdCookie = inventoryTotals.find((c) => c.abbreviation === 'CD');
-      expect(cdCookie?.afterPending).toBe(11); // 15 + 3 + 2 -9
+      expect(cdCookie?.afterPending).toBe(20); // 15 + 1 + 4
       expect(cdCookie?.afterPendingStatusSeverity).toBe('warn');
       expect(cdCookie?.afterPendingStatus).toBe('Low');
 
       // PBP: afterPending=-5 (<0) should be "danger"/"Critical"
       const pbpCookie = inventoryTotals.find((c) => c.abbreviation === 'PBP');
-      expect(pbpCookie?.afterPending).toBe(-14); // 0 -5 + 0 -9
+      expect(pbpCookie?.afterPending).toBe(-5); // 0 + (-5) + 0
       expect(pbpCookie?.afterPendingStatusSeverity).toBe('danger');
       expect(pbpCookie?.afterPendingStatus).toBe('Critical');
     });
