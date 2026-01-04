@@ -37,17 +37,15 @@ export const useBoothsStore = defineStore('booths', () => {
 
   const orderedSalesRecordData = computed(() => {
     // Return an array of sales record data ordered by cookie order
-    return cookiesStore.allCookiesNotVirtual
-      .map((cookie) => ({
-        cookieAbbr: cookie.abbreviation,
-        cookieName: cookie.name,
-        data: salesRecordData.value[cookie.abbreviation] || {
-          predicted: 0,
-          remaining: 0,
-          sales: 0,
-        },
-      }))
-      .filter((item) => salesRecordData.value[item.cookieAbbr]);
+    return cookiesStore.allCookiesNotVirtual.map((cookie) => ({
+      cookieAbbr: cookie.abbreviation,
+      cookieName: cookie.name,
+      data: salesRecordData.value[cookie.abbreviation] || {
+        predicted: 0,
+        remaining: 0,
+        sales: 0,
+      },
+    }));
   });
 
   const visibleBoothSales = computed(() => {
