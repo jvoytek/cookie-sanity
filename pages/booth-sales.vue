@@ -323,7 +323,12 @@
               </Badge>
             </template>
           </Column>
-          <Column field="expected_sales" header="Expected Sales" sortable />
+          <Column field="expected_sales" header="Estimated Sales" sortable />
+          <Column header="Actual Sales" sortable>
+            <template #body="slotProps">
+              {{ boothsStore.getTotalActualSalesForBoothSale(slotProps.data) }}
+            </template>
+          </Column>
           <Column field="status" header="Status" sortable>
             <template #body="slotProps">
               <Badge
@@ -338,14 +343,6 @@
           <Column :exportable="false" style="min-width: 12rem" header="Actions">
             <template #body="slotProps">
               <Button
-                icon="pi pi-check-circle"
-                outlined
-                severity="success"
-                class="mr-2"
-                v-tooltip.bottom="'Record Sales'"
-                @click="boothsStore.openRecordSalesDialog(slotProps.data)"
-              />
-              <Button
                 icon="pi pi-pencil"
                 outlined
                 class="mr-2"
@@ -359,6 +356,14 @@
                 class="mr-2"
                 v-tooltip.bottom="'Duplicate Sale'"
                 @click="duplicateBoothSale(slotProps.data)"
+              />
+              <Button
+                icon="pi pi-tag"
+                outlined
+                severity="secondary"
+                class="mr-2"
+                v-tooltip.bottom="'Record Sales'"
+                @click="boothsStore.openRecordSalesDialog(slotProps.data)"
               />
               <Button
                 v-if="slotProps.data.status !== 'archived'"
@@ -468,70 +473,69 @@
               Enter the remaining packages after the booth sale. Sales will be
               automatically calculated.
             </p>
-            <div class="overflow-x-auto">
-              <table class="w-full border-collapse">
-                <thead>
-                  <tr class="bg-gray-100">
-                    <th class="border p-2 text-left">Cookie</th>
-                    <th class="border p-2 text-right">Predicted</th>
-                    <th class="border p-2 text-right">Remaining</th>
-                    <th class="border p-2 text-right">Sales</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="item in boothsStore.orderedSalesRecordData"
-                    :key="item.cookieAbbr"
-                  >
-                    <td class="border p-2">
-                      {{ item.cookieName }}
-                    </td>
-                    <td class="border p-2">
-                      <InputNumber
-                        v-model="item.data.predicted"
-                        :min="0"
-                        class="w-full"
-                        @update:model-value="
-                          (val) =>
-                            boothsStore.updateSalesRecordPredicted(
-                              item.cookieAbbr,
-                              val || 0,
-                            )
-                        "
-                      />
-                    </td>
-                    <td class="border p-2">
-                      <InputNumber
-                        v-model="item.data.remaining"
-                        :min="0"
-                        class="w-full"
-                        @update:model-value="
-                          (val) =>
-                            boothsStore.updateSalesRecordRemaining(
-                              item.cookieAbbr,
-                              val || 0,
-                            )
-                        "
-                      />
-                    </td>
-                    <td class="border p-2">
-                      <InputNumber
-                        v-model="item.data.sales"
-                        :min="0"
-                        class="w-full"
-                        @update:model-value="
-                          (val) =>
-                            boothsStore.updateSalesRecordSales(
-                              item.cookieAbbr,
-                              val || 0,
-                            )
-                        "
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <DataTable :value="boothsStore.orderedSalesRecordData" size="small">
+              <Column field="name" header="Cookie">
+                <template #body="slotProps">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="w-3 h-3 rounded-full flex-shrink-0"
+                      :style="{
+                        backgroundColor: slotProps.data.color || '#888',
+                      }"
+                    />
+                    <span>{{ slotProps.data.name }}</span>
+                  </div>
+                </template>
+              </Column>
+              <Column field="data.predicted" header="Predicted">
+                <template #body="slotProps">
+                  <InputNumber
+                    v-model="slotProps.data.data.predicted"
+                    :min="0"
+                    @update:model-value="
+                      (val) =>
+                        boothsStore.updateSalesRecordPredicted(
+                          slotProps.data.abbreviation,
+                          val || 0,
+                        )
+                    "
+                    input-class="w-16"
+                  />
+                </template>
+              </Column>
+              <Column field="data.remaining" header="Remaining">
+                <template #body="slotProps">
+                  <InputNumber
+                    v-model="slotProps.data.data.remaining"
+                    :min="0"
+                    @update:model-value="
+                      (val) =>
+                        boothsStore.updateSalesRecordRemaining(
+                          slotProps.data.abbreviation,
+                          val || 0,
+                        )
+                    "
+                    input-class="w-16"
+                  />
+                </template>
+              </Column>
+              <Column field="data.sales" header="Sales">
+                <template #body="slotProps">
+                  <InputNumber
+                    v-model="slotProps.data.data.sales"
+                    :min="0"
+                    @update:model-value="
+                      (val) =>
+                        boothsStore.updateSalesRecordSales(
+                          slotProps.data.abbreviation,
+                          val || 0,
+                        )
+                    "
+                    input-class="w-16"
+                  />
+                </template>
+              </Column>
+            </DataTable>
           </div>
 
           <template #footer>

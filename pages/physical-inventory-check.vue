@@ -311,7 +311,7 @@
             :value="cookiesStore.allCookies.filter((c) => !c.is_virtual)"
             size="small"
           >
-            <Column field="name" header="Cookie Type">
+            <Column field="name" header="Cookie">
               <template #body="slotProps">
                 <div class="flex items-center gap-2">
                   <span

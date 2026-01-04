@@ -38,8 +38,9 @@ export const useBoothsStore = defineStore('booths', () => {
   const orderedSalesRecordData = computed(() => {
     // Return an array of sales record data ordered by cookie order
     return cookiesStore.allCookiesNotVirtual.map((cookie) => ({
-      cookieAbbr: cookie.abbreviation,
-      cookieName: cookie.name,
+      abbreviation: cookie.abbreviation,
+      name: cookie.name,
+      color: cookie.color,
       data: salesRecordData.value[cookie.abbreviation] || {
         predicted: 0,
         remaining: 0,
@@ -342,10 +343,16 @@ export const useBoothsStore = defineStore('booths', () => {
           ] || 0
         : 0;
 
+      const sold = boothSale.cookies_sold
+        ? (boothSale.cookies_sold as Record<string, number>)[
+            cookie.abbreviation
+          ] || 0
+        : predictedAmount;
+
       recordData[cookie.abbreviation] = {
         predicted: predictedAmount,
-        remaining: 0,
-        sales: predictedAmount,
+        remaining: predictedAmount - sold,
+        sales: sold,
       };
     });
 
@@ -427,6 +434,13 @@ export const useBoothsStore = defineStore('booths', () => {
     salesRecordData.value = {};
   };
 
+  const getTotalActualSalesForBoothSale = (boothSale: BoothSale): number => {
+    if (!boothSale.cookies_sold) return 0;
+    return Object.values(boothSale.cookies_sold as Record<string, number>)
+      .map((val) => Number(val) || 0)
+      .reduce((sum: number, val: number) => sum + val, 0);
+  };
+
   return {
     allBoothSales,
     visibleBoothSales,
@@ -449,6 +463,7 @@ export const useBoothsStore = defineStore('booths', () => {
     archiveBoothSale,
     unarchiveBoothSale,
     getPredictedBoothSaleQuantityByCookie,
+    getTotalActualSalesForBoothSale,
     recordSalesDialogVisible,
     activeBoothSaleForRecording,
     salesRecordData,
