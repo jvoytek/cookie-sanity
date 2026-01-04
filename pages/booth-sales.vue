@@ -480,26 +480,21 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="(
-                      cookieData, cookieAbbr
-                    ) in boothsStore.salesRecordData"
-                    :key="cookieAbbr"
+                    v-for="item in boothsStore.orderedSalesRecordData"
+                    :key="item.cookieAbbr"
                   >
                     <td class="border p-2">
-                      {{
-                        cookiesStore.getCookieByAbbreviation(cookieAbbr)
-                          ?.name || cookieAbbr
-                      }}
+                      {{ item.cookieName }}
                     </td>
                     <td class="border p-2">
                       <InputNumber
-                        v-model="cookieData.predicted"
+                        v-model="item.data.predicted"
                         :min="0"
                         class="w-full"
                         @update:model-value="
                           (val) =>
                             boothsStore.updateSalesRecordPredicted(
-                              cookieAbbr,
+                              item.cookieAbbr,
                               val || 0,
                             )
                         "
@@ -507,13 +502,13 @@
                     </td>
                     <td class="border p-2">
                       <InputNumber
-                        v-model="cookieData.remaining"
+                        v-model="item.data.remaining"
                         :min="0"
                         class="w-full"
                         @update:model-value="
                           (val) =>
                             boothsStore.updateSalesRecordRemaining(
-                              cookieAbbr,
+                              item.cookieAbbr,
                               val || 0,
                             )
                         "
@@ -521,13 +516,13 @@
                     </td>
                     <td class="border p-2">
                       <InputNumber
-                        v-model="cookieData.sales"
+                        v-model="item.data.sales"
                         :min="0"
                         class="w-full"
                         @update:model-value="
                           (val) =>
                             boothsStore.updateSalesRecordSales(
-                              cookieAbbr,
+                              item.cookieAbbr,
                               val || 0,
                             )
                         "

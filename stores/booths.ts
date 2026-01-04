@@ -35,6 +35,21 @@ export const useBoothsStore = defineStore('booths', () => {
 
   /* Computed */
 
+  const orderedSalesRecordData = computed(() => {
+    // Return an array of sales record data ordered by cookie order
+    return cookiesStore.allCookiesNotVirtual
+      .map((cookie) => ({
+        cookieAbbr: cookie.abbreviation,
+        cookieName: cookie.name,
+        data: salesRecordData.value[cookie.abbreviation] || {
+          predicted: 0,
+          remaining: 0,
+          sales: 0,
+        },
+      }))
+      .filter((item) => salesRecordData.value[item.cookieAbbr]);
+  });
+
   const visibleBoothSales = computed(() => {
     if (showArchivedBoothSales.value) {
       return allBoothSales.value;
@@ -315,22 +330,26 @@ export const useBoothsStore = defineStore('booths', () => {
   const openRecordSalesDialog = (boothSale: BoothSale) => {
     activeBoothSaleForRecording.value = boothSale;
 
-    // Initialize salesRecordData with predicted cookies from the booth sale
+    // Initialize salesRecordData with all cookies
     const recordData: Record<
       string,
       { predicted: number; remaining: number; sales: number }
     > = {};
 
-    if (boothSale.predicted_cookies) {
-      const cookies = boothSale.predicted_cookies as Record<string, number>;
-      Object.entries(cookies).forEach(([cookieAbbr, predictedAmount]) => {
-        recordData[cookieAbbr] = {
-          predicted: predictedAmount || 0,
-          remaining: 0,
-          sales: predictedAmount || 0,
-        };
-      });
-    }
+    // Get all non-virtual cookies from the cookies store
+    cookiesStore.allCookiesNotVirtual.forEach((cookie) => {
+      const predictedAmount = boothSale.predicted_cookies
+        ? (boothSale.predicted_cookies as Record<string, number>)[
+            cookie.abbreviation
+          ] || 0
+        : 0;
+
+      recordData[cookie.abbreviation] = {
+        predicted: predictedAmount,
+        remaining: 0,
+        sales: predictedAmount,
+      };
+    });
 
     salesRecordData.value = recordData;
     recordSalesDialogVisible.value = true;
@@ -435,6 +454,7 @@ export const useBoothsStore = defineStore('booths', () => {
     recordSalesDialogVisible,
     activeBoothSaleForRecording,
     salesRecordData,
+    orderedSalesRecordData,
     openRecordSalesDialog,
     updateSalesRecordRemaining,
     updateSalesRecordPredicted,
