@@ -9,18 +9,41 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return;
   }
 
-  const seasonsStore = useSeasonsStore();
-  const profileStore = useProfileStore();
+  // Access supabase directly in middleware to avoid hydration mismatches
+  const supabase = useSupabaseClient();
+  const user = useSupabaseUser();
 
-  await profileStore.fetchProfile();
+  // If no user is logged in, skip the middleware
+  if (!user.value) {
+    return;
+  }
+
+  //fetch the user profile
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.value.id)
+    .single();
+
+  if (profileError || !profileData) {
+    // If there's an error fetching the profile, skip the middleware
+    return;
+  }
+
+  // fetch seasons for the profile
+  const { data: seasonsData, error: seasonsError } = await supabase
+    .from('seasons')
+    .select('*')
+    .eq('profile', profileData.id);
+
+  if (seasonsError) {
+    // If there's an error fetching seasons, skip the middleware
+    return;
+  }
 
   // Only redirect if profile is loaded and we know there are no seasons
   // This prevents redirecting during initial load
-  if (
-    profileStore.currentProfile &&
-    seasonsStore.allSeasons.length === 0 &&
-    to.path !== '/settings'
-  ) {
+  if (seasonsData.length === 0 && to.path !== '/settings') {
     return navigateTo('/settings');
   }
 });
