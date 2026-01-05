@@ -7,6 +7,7 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
   const seasonsStore = useSeasonsStore();
   const cookiesStore = useCookiesStore();
   const transactionsStore = useTransactionsStore();
+  const boothsStore = useBoothsStore();
   const notificationHelpers = useNotificationHelpers();
 
   /* State */
@@ -125,17 +126,6 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
     activeInventoryCheck.value = check;
   };
 
-  const calculateExpectedInventory = (): Record<string, number> => {
-    const expected: Record<string, number> = {};
-    cookiesStore.allCookies
-      .filter((cookie) => !cookie.is_virtual)
-      .forEach((cookie) => {
-        expected[cookie.abbreviation] =
-          transactionsStore.sumTransactionsByCookie(cookie.abbreviation);
-      });
-    return expected;
-  };
-
   const calculateDiscrepancies = (
     physicalInventory: Record<string, { cases: number; packages: number }>,
     expectedInventory: Record<string, number>,
@@ -218,7 +208,6 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
     updateInventoryCheck,
     deleteInventoryCheck,
     setActiveInventoryCheck,
-    calculateExpectedInventory,
     calculateDiscrepancies,
   };
 });

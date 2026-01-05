@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
-import TroopInventoryChart from '@/components/inventory/TroopInventoryChart.vue';
+import TroopInventoryChart from '@/components/dashboard/TroopInventoryChart.vue';
 
 describe('TroopInventoryChart Component', () => {
   beforeEach(() => {

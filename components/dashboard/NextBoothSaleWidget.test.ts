@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
-import NextBoothSaleWidget from '@/components/inventory/NextBoothSaleWidget.vue';
+import NextBoothSaleWidget from '@/components/dashboard/NextBoothSaleWidget.vue';
 import type { BoothSale } from '@/types/types';
 
 describe('NextBoothSaleWidget', () => {
@@ -76,17 +76,16 @@ describe('NextBoothSaleWidget', () => {
       inventory_type: 'troop',
       expected_sales: 100,
       predicted_cookies: {},
+      cookies_sold: {},
       notes: '',
       profile: 'test-profile',
       season: 1,
       created_at: '',
     };
 
-    // Mock the store to return upcomingBoothSales
     vi.stubGlobal('useBoothsStore', () => ({
-      getPredictedBoothSaleQuantityByCookie: vi.fn(() => -9),
-      upcomingBoothSales: [mockBoothSale],
       allBoothSales: [mockBoothSale],
+      upcomingBoothSales: [mockBoothSale],
     }));
 
     const wrapper = mount(NextBoothSaleWidget, {

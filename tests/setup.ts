@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import { defineStore } from 'pinia';
 import { ref, computed, reactive, watch, onMounted } from 'vue';
+import { startVitest } from 'vitest/dist/node.js';
 
 // Mock Nuxt global functions and auto-imports
 //global.defineStore = defineStore
@@ -102,6 +103,7 @@ vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 // Mock store composables - these will be overridden in individual tests as needed
 const useProfileStoreMock = vi.fn(() => ({
   currentProfile: { id: 'test-profile-id' },
+  saveCurrentSeasonInProfile: vi.fn(),
 }));
 
 vi.stubGlobal('useProfileStore', useProfileStoreMock);
@@ -210,7 +212,6 @@ const useCookiesStoreMock = vi.fn(() => ({
 vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 
 const useBoothsStoreMock = vi.fn(() => ({
-  getPredictedBoothSaleQuantityByCookie: vi.fn(() => -9),
   upcomingBoothSales: [],
   allBoothSales: [],
 }));

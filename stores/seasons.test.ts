@@ -21,6 +21,7 @@ describe('stores/seasons', () => {
           season: 1,
         },
         fetchProfile: vi.fn(),
+        saveCurrentSeasonInProfile: vi.fn(),
       })),
     );
 

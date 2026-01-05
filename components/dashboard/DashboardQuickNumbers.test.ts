@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
-import DashboardQuickNumbers from '@/components/inventory/DashboardQuickNumbers.vue';
+import DashboardQuickNumbers from '@/components/dashboard/DashboardQuickNumbers.vue';
 
 describe('DashboardQuickNumbers', () => {
   it('renders without crashing', () => {

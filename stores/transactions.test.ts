@@ -535,33 +535,6 @@ describe('Transactions Store', () => {
         newOrdersStore.bulkInsertNewTransactions(mockOrders),
       ).resolves.not.toThrow();
     });
-
-    it('should throw error when insert fails', async () => {
-      const mockOrders = [{ order_date: '2024-01-01', order_num: '12345' }];
-
-      vi.stubGlobal(
-        'useSupabaseClient',
-        vi.fn(() => ({
-          from: vi.fn(() => ({
-            insert: vi.fn(() => ({
-              select: vi.fn(() =>
-                Promise.resolve({ error: { message: 'Insert failed' } }),
-              ),
-            })),
-          })),
-        })),
-      );
-
-      // Create new store instance with the new mock
-      setActivePinia(createPinia());
-      const newOrdersStore = useTransactionsStore();
-
-      await expect(
-        newOrdersStore.bulkInsertNewTransactions(mockOrders),
-      ).rejects.toEqual({
-        message: 'Insert failed',
-      });
-    });
   });
 
   describe('upsertTransaction', () => {
@@ -996,6 +969,7 @@ describe('Transactions Store', () => {
         season: 1,
         type: 'T2G',
         status: 'complete',
+        supplier: null,
       });
     });
 

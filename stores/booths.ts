@@ -9,6 +9,7 @@ function()s become actions
 
 const BOOTH_STATUS = {
   ARCHIVED: 'archived',
+  PENDING: 'pending',
   ACTIVE: '',
 } as const;
 
@@ -29,19 +30,19 @@ export const useBoothsStore = defineStore('booths', () => {
   const showArchivedBoothSales = ref(false);
   const recordSalesDialogVisible = ref(false);
   const activeBoothSaleForRecording = ref<BoothSale | null>(null);
-  const salesRecordData = ref<
+  const activeBoothSalesRecordData = ref<
     Record<string, { predicted: number; remaining: number; sales: number }>
   >({});
 
   /* Computed */
 
-  const orderedSalesRecordData = computed(() => {
+  const orderedActiveBoothSalesRecordData = computed(() => {
     // Return an array of sales record data ordered by cookie order
     return cookiesStore.allCookiesNotVirtual.map((cookie) => ({
       abbreviation: cookie.abbreviation,
       name: cookie.name,
       color: cookie.color,
-      data: salesRecordData.value[cookie.abbreviation] || {
+      data: activeBoothSalesRecordData.value[cookie.abbreviation] || {
         predicted: 0,
         remaining: 0,
         sales: 0,
@@ -66,7 +67,7 @@ export const useBoothsStore = defineStore('booths', () => {
     return upcomingSales;
   });
 
-  const boothSalesUsingTroopInventory = computed(() => {
+  const unArchivedBoothSalesUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
         booth.inventory_type === 'troop' &&
@@ -74,19 +75,81 @@ export const useBoothsStore = defineStore('booths', () => {
     );
   });
 
-  const predictedCookieAmounts = computed(() => {
-    const predictions: Record<string, number> = {};
+  const upcomingBoothSalesUsingTroopInventory = computed(() => {
+    return allBoothSales.value.filter(
+      (booth: BoothSale) =>
+        booth.inventory_type === 'troop' &&
+        _totalCookiesSold(booth.cookies_sold) == 0 &&
+        booth.status !== BOOTH_STATUS.ARCHIVED &&
+        booth.status !== BOOTH_STATUS.PENDING,
+    );
+  });
 
-    boothSalesUsingTroopInventory.value.forEach((booth: BoothSale) => {
+  const pendingBoothSalesUsingTroopInventory = computed(() => {
+    return allBoothSales.value.filter(
+      (booth: BoothSale) =>
+        booth.inventory_type === 'troop' &&
+        _totalCookiesSold(booth.cookies_sold) == 0 &&
+        booth.status === BOOTH_STATUS.PENDING,
+    );
+  });
+
+  const recordedBoothSalesUsingTroopInventory = computed(() => {
+    return allBoothSales.value.filter(
+      (booth: BoothSale) =>
+        booth.inventory_type === 'troop' &&
+        _totalCookiesSold(booth.cookies_sold) > 0 &&
+        booth.status !== BOOTH_STATUS.ARCHIVED,
+    );
+  });
+
+  const upcomingTroopBoothSaleEstimatesMap = computed(() => {
+    const estimatesMap: Record<string, number> = {};
+    upcomingBoothSalesUsingTroopInventory.value.forEach((booth) => {
       if (booth.predicted_cookies) {
-        const cookies = booth.predicted_cookies as Record<string, number>;
-        Object.entries(cookies).forEach(([cookieId, amount]) => {
-          predictions[cookieId] = (predictions[cookieId] || 0) + amount;
+        Object.entries(booth.predicted_cookies).forEach(
+          ([cookieAbbr, quantity]) => {
+            if (!estimatesMap[cookieAbbr]) {
+              estimatesMap[cookieAbbr] = 0;
+            }
+            estimatesMap[cookieAbbr] -= Number(quantity) || 0;
+          },
+        );
+      }
+    });
+    return estimatesMap;
+  });
+
+  const pendingTroopBoothSaleEstimatesMap = computed(() => {
+    const estimatesMap: Record<string, number> = {};
+    pendingBoothSalesUsingTroopInventory.value.forEach((booth) => {
+      if (booth.predicted_cookies) {
+        Object.entries(booth.predicted_cookies).forEach(
+          ([cookieAbbr, quantity]) => {
+            if (!estimatesMap[cookieAbbr]) {
+              estimatesMap[cookieAbbr] = 0;
+            }
+            estimatesMap[cookieAbbr] -= Number(quantity) || 0;
+          },
+        );
+      }
+    });
+    return estimatesMap;
+  });
+
+  const recordedTroopBoothSalesMap = computed(() => {
+    const salesMap: Record<string, number> = {};
+    recordedBoothSalesUsingTroopInventory.value.forEach((booth) => {
+      if (booth.cookies_sold) {
+        Object.entries(booth.cookies_sold).forEach(([cookieAbbr, quantity]) => {
+          if (!salesMap[cookieAbbr]) {
+            salesMap[cookieAbbr] = 0;
+          }
+          salesMap[cookieAbbr] += Number(quantity) || 0;
         });
       }
     });
-
-    return predictions;
+    return salesMap;
   });
 
   /* Private Functions */
@@ -155,6 +218,15 @@ export const useBoothsStore = defineStore('booths', () => {
       ...booth,
       sale_date: formattedDate,
     };
+  };
+
+  const _totalCookiesSold = (cookiesSold: Json | null | undefined) => {
+    if (cookiesSold === null || cookiesSold === undefined) return 0;
+    const totalSold = Object.values(cookiesSold).reduce(
+      (sum, val) => sum + Number(val || 0),
+      0,
+    );
+    return totalSold;
   };
 
   /* Actions */
@@ -257,22 +329,6 @@ export const useBoothsStore = defineStore('booths', () => {
     }
   };
 
-  const getPredictedBoothSaleQuantityByCookie = (
-    cookieAbbreviation: string,
-  ): number => {
-    let total = 0;
-    boothSalesUsingTroopInventory.value.forEach((booth: BoothSale) => {
-      if (booth.predicted_cookies) {
-        const cookies = booth.predicted_cookies as Record<string, number>;
-        // Find cookie by abbreviation
-        if (cookies[cookieAbbreviation]) {
-          total += cookies[cookieAbbreviation];
-        }
-      }
-    });
-    return total * -1; // Return negative for inventory purposes
-  };
-
   const setActiveBoothSale = (boothSale: BoothSale | null) => {
     activeBoothSale.value = boothSale;
     activeBoothSaleOriginal.value = boothSale
@@ -320,7 +376,43 @@ export const useBoothsStore = defineStore('booths', () => {
       if (error) throw error;
 
       _updateBoothSale(updatedBoothSale);
-      notificationHelpers.addSuccess('Booth Sale Archived');
+      notificationHelpers.addSuccess('Booth Sale Unarchived');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const markPendingBoothSale = async (boothSale: BoothSale) => {
+    try {
+      const updatedBoothSale = {
+        ...boothSale,
+        status: BOOTH_STATUS.PENDING,
+      };
+
+      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(updatedBoothSale);
+      notificationHelpers.addSuccess('Booth Sale Marked as Pending');
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const unmarkPendingBoothSale = async (boothSale: BoothSale) => {
+    try {
+      const updatedBoothSale = {
+        ...boothSale,
+        status: null,
+      };
+
+      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(updatedBoothSale);
+      notificationHelpers.addSuccess('Booth Sale Unmarked as Pending');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -329,7 +421,7 @@ export const useBoothsStore = defineStore('booths', () => {
   const openRecordSalesDialog = (boothSale: BoothSale) => {
     activeBoothSaleForRecording.value = boothSale;
 
-    // Initialize salesRecordData with all cookies
+    // Initialize activeBoothSalesRecordData with all cookies
     const recordData: Record<
       string,
       { predicted: number; remaining: number; sales: number }
@@ -356,7 +448,7 @@ export const useBoothsStore = defineStore('booths', () => {
       };
     });
 
-    salesRecordData.value = recordData;
+    activeBoothSalesRecordData.value = recordData;
     recordSalesDialogVisible.value = true;
   };
 
@@ -364,10 +456,10 @@ export const useBoothsStore = defineStore('booths', () => {
     cookieAbbr: string,
     remaining: number,
   ) => {
-    if (salesRecordData.value[cookieAbbr]) {
-      salesRecordData.value[cookieAbbr].remaining = remaining;
-      salesRecordData.value[cookieAbbr].sales =
-        salesRecordData.value[cookieAbbr].predicted - remaining;
+    if (activeBoothSalesRecordData.value[cookieAbbr]) {
+      activeBoothSalesRecordData.value[cookieAbbr].remaining = remaining;
+      activeBoothSalesRecordData.value[cookieAbbr].sales =
+        activeBoothSalesRecordData.value[cookieAbbr].predicted - remaining;
     }
   };
 
@@ -375,18 +467,18 @@ export const useBoothsStore = defineStore('booths', () => {
     cookieAbbr: string,
     predicted: number,
   ) => {
-    if (salesRecordData.value[cookieAbbr]) {
-      salesRecordData.value[cookieAbbr].predicted = predicted;
-      salesRecordData.value[cookieAbbr].sales =
-        predicted - salesRecordData.value[cookieAbbr].remaining;
+    if (activeBoothSalesRecordData.value[cookieAbbr]) {
+      activeBoothSalesRecordData.value[cookieAbbr].predicted = predicted;
+      activeBoothSalesRecordData.value[cookieAbbr].sales =
+        predicted - activeBoothSalesRecordData.value[cookieAbbr].remaining;
     }
   };
 
   const updateSalesRecordSales = (cookieAbbr: string, sales: number) => {
-    if (salesRecordData.value[cookieAbbr]) {
-      salesRecordData.value[cookieAbbr].sales = sales;
-      salesRecordData.value[cookieAbbr].remaining =
-        salesRecordData.value[cookieAbbr].predicted - sales;
+    if (activeBoothSalesRecordData.value[cookieAbbr]) {
+      activeBoothSalesRecordData.value[cookieAbbr].sales = sales;
+      activeBoothSalesRecordData.value[cookieAbbr].remaining =
+        activeBoothSalesRecordData.value[cookieAbbr].predicted - sales;
     }
   };
 
@@ -396,16 +488,18 @@ export const useBoothsStore = defineStore('booths', () => {
         throw new Error('No booth sale selected');
       }
 
-      // Build cookies_sold object from salesRecordData
+      // Build cookies_sold object from activeBoothSalesRecordData
       const cookiesSold: Record<string, number> = {};
       const updatedPredictedCookies: Record<string, number> = {};
       let totalExpectedSales = 0;
 
-      Object.entries(salesRecordData.value).forEach(([cookieAbbr, data]) => {
-        cookiesSold[cookieAbbr] = data.sales;
-        updatedPredictedCookies[cookieAbbr] = data.predicted;
-        totalExpectedSales += data.predicted;
-      });
+      Object.entries(activeBoothSalesRecordData.value).forEach(
+        ([cookieAbbr, data]) => {
+          cookiesSold[cookieAbbr] = data.sales;
+          updatedPredictedCookies[cookieAbbr] = data.predicted;
+          totalExpectedSales += data.predicted;
+        },
+      );
 
       // Update the booth sale with cookies_sold, predicted_cookies, and expected_sales
       const updatedBoothSale = {
@@ -431,7 +525,7 @@ export const useBoothsStore = defineStore('booths', () => {
   const closeRecordSalesDialog = () => {
     recordSalesDialogVisible.value = false;
     activeBoothSaleForRecording.value = null;
-    salesRecordData.value = {};
+    activeBoothSalesRecordData.value = {};
   };
 
   const getTotalActualSalesForBoothSale = (boothSale: BoothSale): number => {
@@ -454,20 +548,25 @@ export const useBoothsStore = defineStore('booths', () => {
     setActiveBoothSalePredictedCookies,
     setActiveBoothSaleTotalExpectedSales,
     upcomingBoothSales,
-    boothSalesUsingTroopInventory,
-    predictedCookieAmounts,
+    upcomingBoothSalesUsingTroopInventory,
+    upcomingTroopBoothSaleEstimatesMap,
+    pendingTroopBoothSaleEstimatesMap,
+    recordedTroopBoothSalesMap,
+    pendingBoothSalesUsingTroopInventory,
+    recordedBoothSalesUsingTroopInventory,
+    unArchivedBoothSalesUsingTroopInventory,
     fetchBoothSales,
     insertBoothSale,
     upsertBoothSale,
     deleteBoothSale,
     archiveBoothSale,
     unarchiveBoothSale,
-    getPredictedBoothSaleQuantityByCookie,
+    markPendingBoothSale,
+    unmarkPendingBoothSale,
     getTotalActualSalesForBoothSale,
     recordSalesDialogVisible,
     activeBoothSaleForRecording,
-    salesRecordData,
-    orderedSalesRecordData,
+    orderedActiveBoothSalesRecordData,
     openRecordSalesDialog,
     updateSalesRecordRemaining,
     updateSalesRecordPredicted,
