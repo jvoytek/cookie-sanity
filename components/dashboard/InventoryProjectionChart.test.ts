@@ -28,7 +28,7 @@ describe('InventoryProjectionChart Component', () => {
               },
               booths: {
                 allBoothSales: [],
-                boothSalesUsingTroopInventory: [],
+                upcomingBoothSalesUsingTroopInventory: [],
               },
             },
           }),
@@ -58,7 +58,7 @@ describe('InventoryProjectionChart Component', () => {
               },
               booths: {
                 allBoothSales: [],
-                boothSalesUsingTroopInventory: [],
+                upcomingBoothSalesUsingTroopInventory: [],
               },
             },
           }),
@@ -120,7 +120,7 @@ describe('InventoryProjectionChart Component', () => {
               },
               booths: {
                 allBoothSales: [],
-                boothSalesUsingTroopInventory: [],
+                upcomingBoothSalesUsingTroopInventory: [],
               },
             },
             stubActions: false,
@@ -151,7 +151,7 @@ describe('InventoryProjectionChart Component', () => {
               },
               booths: {
                 allBoothSales: [],
-                boothSalesUsingTroopInventory: [],
+                upcomingBoothSalesUsingTroopInventory: [],
               },
             },
           }),
@@ -200,7 +200,7 @@ describe('InventoryProjectionChart Component', () => {
               },
               booths: {
                 allBoothSales: [],
-                boothSalesUsingTroopInventory: [],
+                upcomingBoothSalesUsingTroopInventory: [],
               },
             },
             stubActions: false,
@@ -248,7 +248,7 @@ describe('InventoryProjectionChart Component', () => {
                     predicted_cookies: { TM: 20 },
                   },
                 ],
-                boothSalesUsingTroopInventory: [
+                upcomingBoothSalesUsingTroopInventory: [
                   {
                     id: 1,
                     sale_date: '2024-02-01',
@@ -310,7 +310,7 @@ describe('InventoryProjectionChart Component', () => {
               },
               booths: {
                 allBoothSales: [],
-                boothSalesUsingTroopInventory: [],
+                upcomingBoothSalesUsingTroopInventory: [],
               },
             },
             stubActions: false,
@@ -365,7 +365,7 @@ describe('InventoryProjectionChart Component', () => {
               },
               booths: {
                 allBoothSales: [],
-                boothSalesUsingTroopInventory: [],
+                upcomingBoothSalesUsingTroopInventory: [],
               },
             },
             stubActions: false,

@@ -67,10 +67,19 @@ export const useBoothsStore = defineStore('booths', () => {
     return upcomingSales;
   });
 
+  const unArchivedBoothSalesUsingTroopInventory = computed(() => {
+    return allBoothSales.value.filter(
+      (booth: BoothSale) =>
+        booth.inventory_type === 'troop' &&
+        booth.status !== BOOTH_STATUS.ARCHIVED,
+    );
+  });
+
   const upcomingBoothSalesUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
         booth.inventory_type === 'troop' &&
+        _totalCookiesSold(booth.cookies_sold) == 0 &&
         booth.status !== BOOTH_STATUS.ARCHIVED &&
         booth.status !== BOOTH_STATUS.PENDING,
     );
@@ -80,6 +89,7 @@ export const useBoothsStore = defineStore('booths', () => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
         booth.inventory_type === 'troop' &&
+        _totalCookiesSold(booth.cookies_sold) == 0 &&
         booth.status === BOOTH_STATUS.PENDING,
     );
   });
@@ -88,7 +98,8 @@ export const useBoothsStore = defineStore('booths', () => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
         booth.inventory_type === 'troop' &&
-        _totalCookiesSold(booth.cookies_sold) > 0,
+        _totalCookiesSold(booth.cookies_sold) > 0 &&
+        booth.status !== BOOTH_STATUS.ARCHIVED,
     );
   });
 
@@ -209,8 +220,8 @@ export const useBoothsStore = defineStore('booths', () => {
     };
   };
 
-  const _totalCookiesSold = (cookiesSold: Json | null) => {
-    if (cookiesSold === null) return 0;
+  const _totalCookiesSold = (cookiesSold: Json | null | undefined) => {
+    if (cookiesSold === null || cookiesSold === undefined) return 0;
     const totalSold = Object.values(cookiesSold).reduce(
       (sum, val) => sum + Number(val || 0),
       0,
@@ -543,6 +554,7 @@ export const useBoothsStore = defineStore('booths', () => {
     recordedTroopBoothSalesMap,
     pendingBoothSalesUsingTroopInventory,
     recordedBoothSalesUsingTroopInventory,
+    unArchivedBoothSalesUsingTroopInventory,
     fetchBoothSales,
     insertBoothSale,
     upsertBoothSale,

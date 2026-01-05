@@ -87,7 +87,8 @@
     );
 
     // Get booth sales that affect troop inventory
-    const relevantBooths = boothsStore.boothSalesUsingTroopInventory || [];
+    const relevantBooths =
+      boothsStore.unArchivedBoothSalesUsingTroopInventory || [];
 
     // Create events list combining transactions and booth sales
     const events: InventoryEvent[] = [];
@@ -114,10 +115,22 @@
       }
     });
 
+    const _totalCookiesSold = (cookiesSold: Json | null | undefined) => {
+      if (cookiesSold === null || cookiesSold === undefined) return 0;
+      const totalSold = Object.values(cookiesSold).reduce(
+        (sum, val) => sum + Number(val || 0),
+        0,
+      );
+      return totalSold;
+    };
+
     // Add booth sale events
     relevantBooths.forEach((booth) => {
       if (booth.predicted_cookies) {
-        const cookiesRecord = booth.predicted_cookies as Record<string, number>;
+        const cookiesRecord =
+          _totalCookiesSold(booth.cookies_sold) > 0
+            ? (booth.cookies_sold as Record<string, number>)
+            : (booth.predicted_cookies as Record<string, number>);
         const date =
           typeof booth.sale_date === 'string'
             ? booth.sale_date.replace(/(\d\d)\/(\d\d)\/(\d{4})/, '$3-$1-$2')
