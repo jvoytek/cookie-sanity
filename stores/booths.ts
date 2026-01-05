@@ -33,6 +33,7 @@ export const useBoothsStore = defineStore('booths', () => {
   const activeBoothSalesRecordData = ref<
     Record<string, { predicted: number; remaining: number; sales: number }>
   >({});
+  const deleteBoothSaleDialogVisible = ref(false);
 
   /* Computed */
 
@@ -545,6 +546,7 @@ export const useBoothsStore = defineStore('booths', () => {
     activeBoothSale,
     activeBoothSaleOriginal,
     boothDialogVisible,
+    deleteBoothSaleDialogVisible,
     setActiveBoothSalePredictedCookies,
     setActiveBoothSaleTotalExpectedSales,
     upcomingBoothSales,
