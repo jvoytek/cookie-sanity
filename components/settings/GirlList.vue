@@ -1,7 +1,5 @@
 <script setup>
   import { FilterMatchMode } from '@primevue/core/api';
-  import { useToast } from 'primevue/usetoast';
-  import { useGirlsStore } from '@/stores/girls';
 
   const notificationHelpers = useNotificationHelpers();
 

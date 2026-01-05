@@ -86,7 +86,13 @@
     if (editingCheckId.value !== null) {
       return snapshotExpectedInventory.value;
     }
-    return inventoryChecksStore.calculateExpectedInventory();
+    return cookiesStore.allCookiesWithInventoryTotals(false).reduce(
+      (acc, item) => {
+        acc[item.abbreviation] = item.onHand || 0;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   });
 
   const cancelCheck = () => {
@@ -97,17 +103,11 @@
   };
 
   const saveCheck = async () => {
-    // Use snapshot expected inventory when editing, otherwise calculate current
-    const expectedInventory =
-      editingCheckId.value !== null
-        ? snapshotExpectedInventory.value
-        : inventoryChecksStore.calculateExpectedInventory();
-
     // Calculate discrepancies
     const { discrepancies, totalDiscrepancies } =
       inventoryChecksStore.calculateDiscrepancies(
         physicalCounts.value,
-        expectedInventory,
+        expectedInventory.value,
       );
 
     // Convert physical counts to total packages for storage

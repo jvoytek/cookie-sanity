@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createPinia, setActivePinia } from 'pinia';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { setActivePinia, createPinia } from 'pinia';
 
 // Import the store after setting up global mocks in setup.ts
 import { useBoothsStore } from '@/stores/booths';
 import type { BoothSale } from '~/types/types';
 
-describe('stores/booths', () => {
+describe('useBoothsStore', () => {
   let boothsStore: ReturnType<typeof useBoothsStore>;
 
   beforeEach(() => {
@@ -87,66 +87,9 @@ describe('stores/booths', () => {
     });
 
     it('filters troop inventory booth sales correctly', () => {
-      const troopSales = boothsStore.boothSalesUsingTroopInventory;
+      const troopSales = boothsStore.upcomingBoothSalesUsingTroopInventory;
       expect(troopSales).toHaveLength(1);
       expect(troopSales[0].inventory_type).toBe('troop');
-    });
-
-    it('calculates predicted cookie amounts from troop inventory booths', () => {
-      boothsStore.allBoothSales = [
-        {
-          id: 1,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'troop',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 10, SM: 5 },
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: null,
-        },
-        {
-          id: 2,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'troop',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 15, TS: 8 },
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: null,
-        },
-        {
-          id: 3,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'girl',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 100 }, // Should be ignored
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: null,
-        },
-      ];
-
-      const predictions = boothsStore.predictedCookieAmounts;
-      expect(predictions).toEqual({
-        TM: 25, // 10 + 15
-        SM: 5,
-        TS: 8,
-      });
     });
 
     it('filters troop inventory booth sales correctly and excludes archived', () => {
@@ -159,6 +102,7 @@ describe('stores/booths', () => {
           location: '',
           notes: null,
           predicted_cookies: { TM: 10 },
+          cookies_sold: {},
           profile: '',
           sale_date: '',
           sale_time: null,
@@ -174,6 +118,7 @@ describe('stores/booths', () => {
           location: '',
           notes: null,
           predicted_cookies: { TM: 15 },
+          cookies_sold: {},
           profile: '',
           sale_date: '',
           sale_time: null,
@@ -189,6 +134,7 @@ describe('stores/booths', () => {
           location: '',
           notes: null,
           predicted_cookies: { TM: 100 },
+          cookies_sold: {},
           profile: '',
           sale_date: '',
           sale_time: null,
@@ -198,7 +144,7 @@ describe('stores/booths', () => {
         },
       ];
 
-      const troopSales = boothsStore.boothSalesUsingTroopInventory;
+      const troopSales = boothsStore.upcomingBoothSalesUsingTroopInventory;
       expect(troopSales).toHaveLength(1);
       expect(troopSales[0].id).toBe(1);
     });
@@ -213,6 +159,7 @@ describe('stores/booths', () => {
           location: '',
           notes: null,
           predicted_cookies: {},
+          cookies_sold: {},
           profile: '',
           sale_date: '',
           sale_time: null,
@@ -228,6 +175,7 @@ describe('stores/booths', () => {
           location: '',
           notes: null,
           predicted_cookies: {},
+          cookies_sold: {},
           profile: '',
           sale_date: '',
           sale_time: null,
@@ -253,6 +201,7 @@ describe('stores/booths', () => {
           location: '',
           notes: null,
           predicted_cookies: {},
+          cookies_sold: {},
           profile: '',
           sale_date: '',
           sale_time: null,
@@ -268,6 +217,7 @@ describe('stores/booths', () => {
           location: '',
           notes: null,
           predicted_cookies: {},
+          cookies_sold: {},
           profile: '',
           sale_date: '',
           sale_time: null,
@@ -280,64 +230,6 @@ describe('stores/booths', () => {
       boothsStore.showArchivedBoothSales = true;
       const visible = boothsStore.visibleBoothSales;
       expect(visible).toHaveLength(2);
-    });
-
-    it('filters out pending booth sales from troop inventory calculations', () => {
-      boothsStore.allBoothSales = [
-        {
-          id: 1,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'troop',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 10 },
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: null,
-        },
-        {
-          id: 2,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'troop',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 15 },
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: 'pending',
-        },
-        {
-          id: 3,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'troop',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 20 },
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: 'archived',
-        },
-      ];
-
-      const troopSales = boothsStore.boothSalesUsingTroopInventory;
-      expect(troopSales).toHaveLength(1);
-      expect(troopSales[0].id).toBe(1);
-      
-      // Verify that only the active sale is included in predictions
-      const predictions = boothsStore.predictedCookieAmounts;
-      expect(predictions.TM).toBe(10); // Only from booth 1, not 2 (pending) or 3 (archived)
     });
   });
 
@@ -920,41 +812,6 @@ describe('stores/booths', () => {
       season: 0,
       status: null,
     };
-
-    it('getPredictedBoothSaleQuantityByCookie returns correct negative total', () => {
-      boothsStore.allBoothSales = [
-        {
-          ...baseBoothSale,
-          id: 1,
-          predicted_cookies: { TM: 10, SM: 5 },
-          inventory_type: 'troop',
-        },
-        {
-          ...baseBoothSale,
-          id: 2,
-          predicted_cookies: { TM: 15, TS: 8 },
-          inventory_type: 'troop',
-        },
-      ];
-
-      const predicted = boothsStore.getPredictedBoothSaleQuantityByCookie('TM');
-      expect(predicted).toBe(-25); // Negative for inventory purposes
-    });
-
-    it('getPredictedBoothSaleQuantityByCookie returns 0 for non-existent cookie', () => {
-      boothsStore.allBoothSales = [
-        {
-          ...baseBoothSale,
-          id: 1,
-          inventory_type: 'troop',
-          predicted_cookies: { TM: 10 },
-        },
-      ];
-
-      const predicted =
-        boothsStore.getPredictedBoothSaleQuantityByCookie('NONEXISTENT');
-      expect(predicted).toBe(-0); // The function returns total * -1, so 0 * -1 = -0
-    });
 
     it('setActiveBoothSaleTotalExpectedSales updates total from predictions', () => {
       boothsStore.activeBoothSale = {

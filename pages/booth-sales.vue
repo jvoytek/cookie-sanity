@@ -3,6 +3,7 @@
   import { useFormKitNodeById } from '@formkit/vue';
   import { watchDebounced, watchDeep } from '@vueuse/core';
   import { Button } from 'primevue';
+  import type { Json } from '~/types/supabase';
 
   const formNode = useFormKitNodeById('booth-form');
 
@@ -262,6 +263,39 @@
   const data = {
     validationRules: cookiesStore.customCookieValidationRules, // Add the 'overBooking' function to the validationRules
   };
+
+  const cookiesSoldGreaterThanOne = (cookiesSold: Json | null) => {
+    if (cookiesSold === null) return false;
+    const totalSold = Object.values(cookiesSold).reduce(
+      (sum, val) => sum + Number(val || 0),
+      0,
+    );
+    return totalSold > 0;
+  };
+
+  const getDerivedStatus = (sale: BoothSale) => {
+    if (sale.status === 'archived') {
+      return 'archived';
+    } else if (cookiesSoldGreaterThanOne(sale.cookies_sold)) {
+      return 'recorded';
+    } else if (sale.status === 'pending') {
+      return 'pending';
+    } else {
+      return 'upcoming';
+    }
+  };
+
+  const getStatusToolTip = (status: string | null) => {
+    if (status === 'archived') {
+      return 'No data from this booth sale will be included in inventory calculations.';
+    } else if (status === 'pending') {
+      return 'Estimated cookies have been removed from on-hand inventory calculations, but actual sales have not yet been recorded.';
+    } else if (status === 'recorded') {
+      return 'Actual sales have been recorded for this booth sale, but they have not yet been distributed to girls. Actual sales data will be reflected in inventory calculations.';
+    } else {
+      return 'Estimated sales will be included in the Upcoming Booths column of Troop Inventory (even if the actual date is in the past).';
+    }
+  };
 </script>
 
 <template>
@@ -337,18 +371,22 @@
               {{ boothsStore.getTotalActualSalesForBoothSale(slotProps.data) }}
             </template>
           </Column>
-          <Column field="status" header="Status" sortable>
+          <Column field="derived_status" header="Status" sortable>
             <template #body="slotProps">
               <Badge
+                :set="derivedStatus = getDerivedStatus(slotProps.data)"
                 :severity="
-                  slotProps.data.status === 'archived'
+                  derivedStatus === 'archived' || derivedStatus === 'recorded'
                     ? 'info'
-                    : slotProps.data.status === 'pending'
+                    : derivedStatus === 'pending'
                       ? 'warn'
                       : 'success'
                 "
+                v-tooltip.bottom="{
+                  value: getStatusToolTip(derivedStatus),
+                }"
               >
-                {{ slotProps.data.status || 'active' }}
+                {{ getDerivedStatus(slotProps.data) }}
               </Badge>
             </template>
           </Column>
@@ -509,7 +547,10 @@
               Enter the remaining packages after the booth sale. Sales will be
               automatically calculated.
             </p>
-            <DataTable :value="boothsStore.orderedSalesRecordData" size="small">
+            <DataTable
+              :value="boothsStore.orderedActiveBoothSalesRecordData"
+              size="small"
+            >
               <Column field="name" header="Cookie">
                 <template #body="slotProps">
                   <div class="flex items-center gap-2">

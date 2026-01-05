@@ -137,25 +137,6 @@ describe('stores/inventoryChecks', () => {
     });
   });
 
-  describe('calculateExpectedInventory', () => {
-    it('calculates expected inventory correctly', () => {
-      const expected = inventoryChecksStore.calculateExpectedInventory();
-
-      expect(expected.TM).toBe(100);
-      expect(expected.SM).toBe(50);
-      expect(expected.VIRTUAL).toBeUndefined(); // Virtual cookies should not be included
-    });
-
-    it('excludes virtual cookies from expected inventory', () => {
-      const expected = inventoryChecksStore.calculateExpectedInventory();
-      const keys = Object.keys(expected);
-
-      expect(keys).not.toContain('VIRTUAL');
-      expect(keys).toContain('TM');
-      expect(keys).toContain('SM');
-    });
-  });
-
   describe('calculateDiscrepancies', () => {
     it('calculates discrepancies correctly', () => {
       const physicalInventory = {

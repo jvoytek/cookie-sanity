@@ -4,7 +4,6 @@ import type { Cookie } from '@/types/types';
 
 // Import the store after setting up global mocks in setup.ts
 import { useCookiesStore } from '@/stores/cookies';
-
 describe('stores/cookies', () => {
   let cookiesStore: ReturnType<typeof useCookiesStore>;
 
@@ -68,29 +67,16 @@ describe('stores/cookies', () => {
     }));
     vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
 
+    const useBoothsStoreMock = vi.fn(() => ({
+      pendingTroopBoothSaleEstimatesMap: { ADV: -9, TM: -9 },
+      recordedTroopBoothSalesMap: {},
+      upcomingTroopBoothSaleEstimatesMap: {},
+    }));
+
+    vi.stubGlobal('useBoothsStore', useBoothsStoreMock);
+
     // Now create the cookies store
     cookiesStore = useCookiesStore();
-
-    // Set up booth sales data after all stores are created
-    const boothsStore = useBoothsStore();
-    boothsStore.allBoothSales = [
-      {
-        id: 1,
-        created_at: '',
-        expected_sales: null,
-        inventory_type: 'troop',
-        location: '',
-        notes: null,
-        predicted_cookies: { ADV: 9, TM: 9 },
-        profile: '',
-        sale_date: '',
-        sale_time: null,
-        scouts_attending: {},
-        season: 0,
-        status: null, // Active booth sale
-        cookies_sold: null,
-      } as any,
-    ];
 
     // Set up some mock cookie data
     cookiesStore.allCookies = [
@@ -163,22 +149,22 @@ describe('stores/cookies', () => {
 
       // Test Adventurefuls (ADV): onHand=100, requestedGirl=10, pendingGirl=3, pendingTroop=2, pendedBooth=-9
       const advCookie = inventoryTotals.find((c) => c.abbreviation === 'ADV');
-      expect(advCookie?.onHand).toBe(100);
+      expect(advCookie?.onHand).toBe(91); // 100 - 9 from pending booth sales
       expect(advCookie?.requestedGirl).toBe(10);
       expect(advCookie?.pendingGirl).toBe(3);
       expect(advCookie?.pendingTroop).toBe(2);
-      expect(advCookie?.afterPending).toBe(105); // 100 + 3 + 2
-      expect(advCookie?.afterPendingIncludingRequests).toBe(115); // 105 + 10
+      expect(advCookie?.afterPending).toBe(96); // 100 + 3 + 2 -9
+      expect(advCookie?.afterPendingIncludingRequests).toBe(106); // 105 + 10 -9
       expect(advCookie?.afterPendingIncludingBooths).toBe(96); // 105 + (-9)
 
       // Test Thin Mints (TM): onHand=75, requestedGirl=5, pendingGirl=8, pendingTroop=2, pendedBooth=-9
       const tmCookie = inventoryTotals.find((c) => c.abbreviation === 'TM');
-      expect(tmCookie?.onHand).toBe(75);
+      expect(tmCookie?.onHand).toBe(66); // 75 - 9 from pending booth sales
       expect(tmCookie?.requestedGirl).toBe(5);
       expect(tmCookie?.pendingGirl).toBe(8);
       expect(tmCookie?.pendingTroop).toBe(2);
-      expect(tmCookie?.afterPending).toBe(85); // 75 + 8 + 2
-      expect(tmCookie?.afterPendingIncludingRequests).toBe(90); // 85 + 5
+      expect(tmCookie?.afterPending).toBe(76); // 75 + 8 + 2 -9
+      expect(tmCookie?.afterPendingIncludingRequests).toBe(81); // 85 + 5 -9
       expect(tmCookie?.afterPendingIncludingBooths).toBe(76); // 85 + (-9)
 
       // Test Lemon-Ups (LEM): onHand=50, requestedGirl=5, pendingGirl=3, pendingTroop=12
@@ -196,7 +182,7 @@ describe('stores/cookies', () => {
 
       // ADV: afterPending=105 (>50) should be "success"/"Good"
       const advCookie = inventoryTotals.find((c) => c.abbreviation === 'ADV');
-      expect(advCookie?.afterPending).toBe(105);
+      expect(advCookie?.afterPending).toBe(96); // 105 + (-9) from booth sales
       expect(advCookie?.afterPendingStatusSeverity).toBe('success');
       expect(advCookie?.afterPendingStatus).toBe('Good');
 
@@ -445,9 +431,11 @@ describe('stores/cookies', () => {
       }));
       vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
 
-      // Mock booths store
+      // Mock booths store with empty data for booth sales, but we will override this in specific tests as needed
       useBoothsStoreMock = vi.fn(() => ({
-        getPredictedBoothSaleQuantityByCookie: vi.fn(() => 0),
+        pendingTroopBoothSaleEstimatesMap: {},
+        recordedTroopBoothSalesMap: {},
+        upcomingTroopBoothSaleEstimatesMap: {},
       }));
       vi.stubGlobal('useBoothsStore', useBoothsStoreMock);
 
