@@ -174,7 +174,7 @@
         label: 'Auto-Calculate Predicted Cookies',
         key: 'auto_calculate_predicted_cookies',
         id: 'auto_calculate_predicted_cookies',
-        value: true,
+        value: false,
         wrapperClass: 'grid grid-cols-3 gap-4 items-center',
         labelClass: 'col-span-1',
         innerClass: 'col-span-2 mt-1 mb-1',
