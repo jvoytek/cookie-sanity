@@ -778,4 +778,258 @@ describe('useBoothsStore', () => {
       expect(boothsStore.activeBoothSale.expected_sales).toBe(0);
     });
   });
+
+  describe('cash receipts functionality', () => {
+    const baseBoothSale = {
+      created_at: '',
+      expected_sales: null,
+      id: 0,
+      inventory_type: '',
+      location: '',
+      notes: null,
+      predicted_cookies: {},
+      cookies_sold: null,
+      profile: '',
+      sale_date: '',
+      sale_time: null,
+      scouts_attending: {},
+      season: 0,
+      status: null,
+      cash_receipts: null,
+      cash_breakdown: null,
+    };
+
+    const createEmptyCashBreakdown = () => ({
+      ones: 0,
+      fives: 0,
+      tens: 0,
+      twenties: 0,
+      fifties: 0,
+      hundreds: 0,
+      cents: 0,
+    });
+
+    beforeEach(() => {
+      boothsStore.cashBreakdown = createEmptyCashBreakdown();
+    });
+
+    it('calculates total cash receipts correctly with bills only', () => {
+      boothsStore.cashBreakdown = {
+        ones: 5, // $5
+        fives: 3, // $15
+        tens: 2, // $20
+        twenties: 1, // $20
+        fifties: 1, // $50
+        hundreds: 1, // $100
+        cents: 0,
+      };
+
+      expect(boothsStore.totalCashReceipts).toBe(210);
+    });
+
+    it('calculates total cash receipts correctly with coins only', () => {
+      boothsStore.cashBreakdown = {
+        ones: 0,
+        fives: 0,
+        tens: 0,
+        twenties: 0,
+        fifties: 0,
+        hundreds: 0,
+        cents: 1.75,
+      };
+
+      expect(boothsStore.totalCashReceipts).toBe(1.75);
+    });
+
+    it('calculates total cash receipts correctly with bills and coins', () => {
+      boothsStore.cashBreakdown = {
+        ones: 3, // $3
+        fives: 1, // $5
+        tens: 2, // $20
+        twenties: 0,
+        fifties: 0,
+        hundreds: 0,
+        cents: 0.5,
+      };
+
+      expect(boothsStore.totalCashReceipts).toBe(28.5);
+    });
+
+    it('rounds total cash receipts to 2 decimal places', () => {
+      boothsStore.cashBreakdown = {
+        ones: 0,
+        fives: 0,
+        tens: 0,
+        twenties: 0,
+        fifties: 0,
+        hundreds: 0,
+        cents: 1.999,
+      };
+
+      expect(boothsStore.totalCashReceipts).toBe(2);
+    });
+
+    it('initializes cash breakdown when opening record sales dialog', () => {
+      const useCookiesStoreMock = vi.fn(() => ({
+        allCookiesNotVirtual: [],
+      }));
+      vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+
+      const mockBoothSale = {
+        ...baseBoothSale,
+        id: 1,
+        sale_date: '2024-01-01',
+        inventory_type: 'troop',
+        predicted_cookies: { TM: 10, SM: 20 },
+        cookies_sold: null,
+        cash_breakdown: {
+          ones: 2,
+          fives: 1,
+          tens: 3,
+          twenties: 0,
+          fifties: 0,
+          hundreds: 1,
+          cents: 0.25,
+        },
+      } as BoothSale;
+
+      newBoothsStore.openRecordSalesDialog(mockBoothSale);
+
+      expect(newBoothsStore.cashBreakdown.ones).toBe(2);
+      expect(newBoothsStore.cashBreakdown.fives).toBe(1);
+      expect(newBoothsStore.cashBreakdown.tens).toBe(3);
+      expect(newBoothsStore.cashBreakdown.hundreds).toBe(1);
+      expect(newBoothsStore.cashBreakdown.cents).toBe(0.25);
+    });
+
+    it('resets cash breakdown to zero when booth sale has no cash_breakdown', () => {
+      const useCookiesStoreMock = vi.fn(() => ({
+        allCookiesNotVirtual: [],
+      }));
+      vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+
+      // First set some values
+      newBoothsStore.cashBreakdown = {
+        ones: 5,
+        fives: 3,
+        tens: 2,
+        twenties: 1,
+        fifties: 1,
+        hundreds: 1,
+        cents: 1.5,
+      };
+
+      const mockBoothSale = {
+        ...baseBoothSale,
+        id: 1,
+        sale_date: '2024-01-01',
+        inventory_type: 'troop',
+        predicted_cookies: { TM: 10 },
+        cash_breakdown: null,
+      } as BoothSale;
+
+      newBoothsStore.openRecordSalesDialog(mockBoothSale);
+
+      expect(newBoothsStore.cashBreakdown.ones).toBe(0);
+      expect(newBoothsStore.cashBreakdown.fives).toBe(0);
+      expect(newBoothsStore.cashBreakdown.tens).toBe(0);
+      expect(newBoothsStore.cashBreakdown.twenties).toBe(0);
+      expect(newBoothsStore.cashBreakdown.fifties).toBe(0);
+      expect(newBoothsStore.cashBreakdown.hundreds).toBe(0);
+      expect(newBoothsStore.cashBreakdown.cents).toBe(0);
+    });
+
+    it('saves cash receipts data when recording sales', async () => {
+      const toastSpy = vi.fn();
+      const useNotificationHelpersMock = vi.fn(() => ({
+        addSuccess: toastSpy,
+      }));
+      vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
+
+      const useCookiesStoreMock = vi.fn(() => ({
+        allCookiesNotVirtual: [],
+      }));
+      vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
+
+      const mockBoothSale = {
+        ...baseBoothSale,
+        id: 1,
+        sale_date: '2024-01-01',
+        inventory_type: 'troop',
+        predicted_cookies: { TM: 10 },
+      } as BoothSale;
+
+      let savedBoothSale: any = null;
+      const useSupabaseClientMock = vi.fn(() => ({
+        from: vi.fn(() => ({
+          upsert: vi.fn((data) => {
+            savedBoothSale = data;
+            return Promise.resolve({ error: null });
+          }),
+        })),
+      }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+      // Create new store instance with the new mock
+      setActivePinia(createPinia());
+      const newBoothsStore = useBoothsStore();
+      newBoothsStore.allBoothSales = [mockBoothSale];
+
+      // Open dialog and set cash breakdown
+      newBoothsStore.openRecordSalesDialog(mockBoothSale);
+      newBoothsStore.cashBreakdown = {
+        ones: 10,
+        fives: 5,
+        tens: 3,
+        twenties: 2,
+        fifties: 1,
+        hundreds: 1,
+        cents: 0.75,
+      };
+
+      await newBoothsStore.saveRecordedSales();
+
+      expect(savedBoothSale).not.toBeNull();
+      expect(savedBoothSale.cash_receipts).toBe(255.75); // 10*1 + 5*5 + 3*10 + 2*20 + 1*50 + 1*100 + 0.75
+      expect(savedBoothSale.cash_breakdown).toEqual({
+        ones: 10,
+        fives: 5,
+        tens: 3,
+        twenties: 2,
+        fifties: 1,
+        hundreds: 1,
+        cents: 0.75,
+      });
+    });
+
+    it('resets cash breakdown when closing record sales dialog', () => {
+      boothsStore.cashBreakdown = {
+        ones: 5,
+        fives: 3,
+        tens: 2,
+        twenties: 1,
+        fifties: 1,
+        hundreds: 1,
+        cents: 1.5,
+      };
+
+      boothsStore.closeRecordSalesDialog();
+
+      expect(boothsStore.cashBreakdown.ones).toBe(0);
+      expect(boothsStore.cashBreakdown.fives).toBe(0);
+      expect(boothsStore.cashBreakdown.tens).toBe(0);
+      expect(boothsStore.cashBreakdown.twenties).toBe(0);
+      expect(boothsStore.cashBreakdown.fifties).toBe(0);
+      expect(boothsStore.cashBreakdown.hundreds).toBe(0);
+      expect(boothsStore.cashBreakdown.cents).toBe(0);
+    });
+  });
 });

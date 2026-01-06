@@ -13,7 +13,9 @@ create table booth_sales (
   predicted_cookies jsonb, -- Store predicted cookie quantities as JSON
   cookies_sold jsonb, -- Store predicted cookie quantities as JSON
   notes text,
-  status text check (status is null or status in ('archived', 'committed', 'recorded'))
+  status text check (status is null or status in ('archived', 'committed', 'recorded')),
+  cash_receipts double precision, -- Total cash received at booth sale
+  cash_breakdown jsonb -- Breakdown of bills and coins received
 );
 
 -- Enable RLS
