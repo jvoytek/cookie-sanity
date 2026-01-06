@@ -56,6 +56,8 @@ export const useBoothsStore = defineStore('booths', () => {
   >({});
   const deleteBoothSaleDialogVisible = ref(false);
   const cashBreakdown = ref<CashBreakdown>(createEmptyCashBreakdown());
+  const creditReceipts = ref(0);
+  const otherReceipts = ref(0);
 
   /* Computed */
 
@@ -574,6 +576,10 @@ export const useBoothsStore = defineStore('booths', () => {
       cashBreakdown.value = createEmptyCashBreakdown();
     }
 
+    // Initialize credit and other receipts from booth sale or reset to zero
+    creditReceipts.value = boothSale.credit_receipts ?? 0;
+    otherReceipts.value = boothSale.other_receipts ?? 0;
+
     recordSalesDialogVisible.value = true;
   };
 
@@ -626,7 +632,7 @@ export const useBoothsStore = defineStore('booths', () => {
         },
       );
 
-      // Update the booth sale with cookies_sold, predicted_cookies, expected_sales, cash_receipts, and cash_breakdown
+      // Update the booth sale with cookies_sold, predicted_cookies, expected_sales, cash_receipts, cash_breakdown, credit_receipts, and other_receipts
       const updatedBoothSale = {
         ...activeBoothSaleForRecording.value,
         cookies_sold: cookiesSold,
@@ -634,6 +640,8 @@ export const useBoothsStore = defineStore('booths', () => {
         expected_sales: totalExpectedSales,
         cash_receipts: totalCashReceipts.value,
         cash_breakdown: Object.assign({}, cashBreakdown.value),
+        credit_receipts: creditReceipts.value,
+        other_receipts: otherReceipts.value,
       };
 
       const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
@@ -654,6 +662,8 @@ export const useBoothsStore = defineStore('booths', () => {
     activeBoothSaleForRecording.value = null;
     activeBoothSalesRecordData.value = {};
     cashBreakdown.value = createEmptyCashBreakdown();
+    creditReceipts.value = 0;
+    otherReceipts.value = 0;
   };
 
   const getTotalActualSalesForBoothSale = (boothSale: BoothSale): number => {
@@ -709,5 +719,7 @@ export const useBoothsStore = defineStore('booths', () => {
     closeRecordSalesDialog,
     cashBreakdown,
     totalCashReceipts,
+    creditReceipts,
+    otherReceipts,
   };
 });

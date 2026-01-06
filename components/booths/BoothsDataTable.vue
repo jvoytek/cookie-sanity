@@ -8,6 +8,7 @@
 
   const boothsStore = useBoothsStore();
   const girlsStore = useGirlsStore();
+  const { formatCurrency } = useFormatHelpers();
 
   const dt = ref();
 
@@ -174,6 +175,21 @@
     <Column header="Actual Sales" sortable>
       <template #body="slotProps">
         {{ boothsStore.getTotalActualSalesForBoothSale(slotProps.data) }}
+      </template>
+    </Column>
+    <Column field="cash_receipts" header="Cash Receipts" sortable>
+      <template #body="slotProps">
+        {{ formatCurrency(slotProps.data.cash_receipts || 0) }}
+      </template>
+    </Column>
+    <Column field="credit_receipts" header="Credit Receipts" sortable>
+      <template #body="slotProps">
+        {{ formatCurrency(slotProps.data.credit_receipts || 0) }}
+      </template>
+    </Column>
+    <Column field="other_receipts" header="Other Receipts" sortable>
+      <template #body="slotProps">
+        {{ formatCurrency(slotProps.data.other_receipts || 0) }}
       </template>
     </Column>
     <Column

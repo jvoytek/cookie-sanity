@@ -113,8 +113,9 @@
         <h3 class="text-lg font-semibold mb-3">Receipts</h3>
         <p>Enter money received below.</p>
 
-        <!-- Bills Section -->
+        <!-- Cash -->
         <div class="mb-4">
+          <h4 class="text-base font-semibold mb-2">Cash</h4>
           <div class="grid grid-cols-7 gap-3">
             <div class="flex flex-col">
               <label for="ones" class="text-sm mb-1">$1</label>
@@ -198,6 +199,42 @@
           </div>
         </div>
 
+        <!-- Credit Receipts -->
+        <div class="mb-4">
+          <h4 class="text-base font-semibold mb-2">Credit Receipts</h4>
+          <div class="flex flex-col">
+            <InputNumber
+              id="credit-receipts"
+              v-model="boothsStore.creditReceipts"
+              :min="0"
+              :max-fraction-digits="2"
+              mode="currency"
+              currency="USD"
+              locale="en-US"
+              input-class="w-full"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <!-- Other Receipts -->
+        <div class="mb-4">
+          <h4 class="text-base font-semibold mb-2">Other Receipts</h4>
+          <div class="flex flex-col">
+            <InputNumber
+              id="other-receipts"
+              v-model="boothsStore.otherReceipts"
+              :min="0"
+              :max-fraction-digits="2"
+              mode="currency"
+              currency="USD"
+              locale="en-US"
+              input-class="w-full"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
         <!-- Total Cash -->
         <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
           <div class="flex justify-between items-center">
@@ -212,11 +249,44 @@
               {{ formatCurrency(boothsStore.totalCashReceipts) }}
             </span>
           </div>
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">Total Credit Receipts:</span>
+            <span>
+              {{ formatCurrency(boothsStore.creditReceipts) }}
+            </span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">Total Other Receipts:</span>
+            <span>
+              {{ formatCurrency(boothsStore.otherReceipts) }}
+            </span>
+          </div>
+          <div
+            class="flex justify-between items-center border-t border-gray-300 dark:border-gray-600 mt-2 pt-2"
+          >
+            <span class="font-semibold">Total Receipts:</span>
+            <span>
+              {{
+                formatCurrency(
+                  boothsStore.totalCashReceipts +
+                    boothsStore.creditReceipts +
+                    boothsStore.otherReceipts,
+                )
+              }}
+            </span>
+          </div>
 
           <div class="flex justify-between items-center">
             <span class="font-semibold">Difference:</span>
             <span>
-              {{ formatCurrency(totalSales - boothsStore.totalCashReceipts) }}
+              {{
+                formatCurrency(
+                  totalSales -
+                    boothsStore.totalCashReceipts -
+                    boothsStore.creditReceipts -
+                    boothsStore.otherReceipts,
+                )
+              }}
             </span>
           </div>
         </div>
