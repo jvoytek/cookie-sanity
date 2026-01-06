@@ -77,6 +77,8 @@ export type Database = {
       };
       booth_sales: {
         Row: {
+          cash_breakdown: Json | null;
+          cash_receipts: number | null;
           cookies_sold: Json | null;
           created_at: string;
           expected_sales: number | null;
@@ -93,6 +95,8 @@ export type Database = {
           status: string | null;
         };
         Insert: {
+          cash_breakdown?: Json | null;
+          cash_receipts?: number | null;
           cookies_sold?: Json | null;
           created_at?: string;
           expected_sales?: number | null;
@@ -109,6 +113,8 @@ export type Database = {
           status?: string | null;
         };
         Update: {
+          cash_breakdown?: Json | null;
+          cash_receipts?: number | null;
           cookies_sold?: Json | null;
           created_at?: string;
           expected_sales?: number | null;

@@ -80,6 +80,116 @@
           </template>
         </Column>
       </DataTable>
+
+      <!-- Cash Receipts Section -->
+      <div class="mt-4 border-t pt-4">
+        <h3 class="text-lg font-semibold mb-3">Cash Received</h3>
+        <p class="text-sm mb-3 text-gray-600">
+          Enter cash received either as a total or as a breakdown of bills and
+          coins.
+        </p>
+
+        <!-- Bills Section -->
+        <div class="mb-4">
+          <h4 class="text-md font-medium mb-2">Bills</h4>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="flex flex-col">
+              <label for="ones" class="text-sm mb-1">$1</label>
+              <InputNumber
+                id="ones"
+                v-model="boothsStore.cashBreakdown.ones"
+                :min="0"
+                :use-grouping="false"
+                input-class="w-full"
+                placeholder="0"
+              />
+            </div>
+            <div class="flex flex-col">
+              <label for="fives" class="text-sm mb-1">$5</label>
+              <InputNumber
+                id="fives"
+                v-model="boothsStore.cashBreakdown.fives"
+                :min="0"
+                :use-grouping="false"
+                input-class="w-full"
+                placeholder="0"
+              />
+            </div>
+            <div class="flex flex-col">
+              <label for="tens" class="text-sm mb-1">$10</label>
+              <InputNumber
+                id="tens"
+                v-model="boothsStore.cashBreakdown.tens"
+                :min="0"
+                :use-grouping="false"
+                input-class="w-full"
+                placeholder="0"
+              />
+            </div>
+            <div class="flex flex-col">
+              <label for="twenties" class="text-sm mb-1">$20</label>
+              <InputNumber
+                id="twenties"
+                v-model="boothsStore.cashBreakdown.twenties"
+                :min="0"
+                :use-grouping="false"
+                input-class="w-full"
+                placeholder="0"
+              />
+            </div>
+            <div class="flex flex-col">
+              <label for="fifties" class="text-sm mb-1">$50</label>
+              <InputNumber
+                id="fifties"
+                v-model="boothsStore.cashBreakdown.fifties"
+                :min="0"
+                :use-grouping="false"
+                input-class="w-full"
+                placeholder="0"
+              />
+            </div>
+            <div class="flex flex-col">
+              <label for="hundreds" class="text-sm mb-1">$100</label>
+              <InputNumber
+                id="hundreds"
+                v-model="boothsStore.cashBreakdown.hundreds"
+                :min="0"
+                :use-grouping="false"
+                input-class="w-full"
+                placeholder="0"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Coins Section -->
+        <div class="mb-4">
+          <h4 class="text-md font-medium mb-2">Coins</h4>
+          <div class="flex flex-col max-w-xs">
+            <label for="cents" class="text-sm mb-1">Cents</label>
+            <InputNumber
+              id="cents"
+              v-model="boothsStore.cashBreakdown.cents"
+              :min="0"
+              :max-fraction-digits="2"
+              :use-grouping="false"
+              mode="decimal"
+              input-class="w-full"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <!-- Total Cash -->
+        <div
+          class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex justify-between items-center"
+        >
+          <span class="font-semibold text-lg">Total Cash Receipts:</span>
+          <span class="text-xl font-bold text-green-600 dark:text-green-400">
+            ${{ boothsStore.totalCashReceipts.toFixed(2) }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <template #footer>

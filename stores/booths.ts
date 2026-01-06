@@ -35,8 +35,37 @@ export const useBoothsStore = defineStore('booths', () => {
     Record<string, { predicted: number; remaining: number; sales: number }>
   >({});
   const deleteBoothSaleDialogVisible = ref(false);
+  const cashBreakdown = ref<{
+    ones: number;
+    fives: number;
+    tens: number;
+    twenties: number;
+    fifties: number;
+    hundreds: number;
+    cents: number;
+  }>({
+    ones: 0,
+    fives: 0,
+    tens: 0,
+    twenties: 0,
+    fifties: 0,
+    hundreds: 0,
+    cents: 0,
+  });
 
   /* Computed */
+
+  const totalCashReceipts = computed(() => {
+    const billsTotal =
+      cashBreakdown.value.ones * 1 +
+      cashBreakdown.value.fives * 5 +
+      cashBreakdown.value.tens * 10 +
+      cashBreakdown.value.twenties * 20 +
+      cashBreakdown.value.fifties * 50 +
+      cashBreakdown.value.hundreds * 100;
+    const total = billsTotal + cashBreakdown.value.cents;
+    return Math.round(total * 100) / 100; // Round to 2 decimal places
+  });
 
   const orderedActiveBoothSalesRecordData = computed(() => {
     // Return an array of sales record data ordered by cookie order
@@ -523,6 +552,31 @@ export const useBoothsStore = defineStore('booths', () => {
     });
 
     activeBoothSalesRecordData.value = recordData;
+
+    // Initialize cash breakdown from booth sale or reset to zero
+    if (boothSale.cash_breakdown) {
+      const breakdown = boothSale.cash_breakdown as Record<string, number>;
+      cashBreakdown.value = {
+        ones: breakdown.ones || 0,
+        fives: breakdown.fives || 0,
+        tens: breakdown.tens || 0,
+        twenties: breakdown.twenties || 0,
+        fifties: breakdown.fifties || 0,
+        hundreds: breakdown.hundreds || 0,
+        cents: breakdown.cents || 0,
+      };
+    } else {
+      cashBreakdown.value = {
+        ones: 0,
+        fives: 0,
+        tens: 0,
+        twenties: 0,
+        fifties: 0,
+        hundreds: 0,
+        cents: 0,
+      };
+    }
+
     recordSalesDialogVisible.value = true;
   };
 
@@ -575,12 +629,14 @@ export const useBoothsStore = defineStore('booths', () => {
         },
       );
 
-      // Update the booth sale with cookies_sold, predicted_cookies, and expected_sales
+      // Update the booth sale with cookies_sold, predicted_cookies, expected_sales, cash_receipts, and cash_breakdown
       const updatedBoothSale = {
         ...activeBoothSaleForRecording.value,
         cookies_sold: cookiesSold,
         predicted_cookies: updatedPredictedCookies,
         expected_sales: totalExpectedSales,
+        cash_receipts: totalCashReceipts.value,
+        cash_breakdown: { ...cashBreakdown.value },
       };
 
       const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
@@ -600,6 +656,15 @@ export const useBoothsStore = defineStore('booths', () => {
     recordSalesDialogVisible.value = false;
     activeBoothSaleForRecording.value = null;
     activeBoothSalesRecordData.value = {};
+    cashBreakdown.value = {
+      ones: 0,
+      fives: 0,
+      tens: 0,
+      twenties: 0,
+      fifties: 0,
+      hundreds: 0,
+      cents: 0,
+    };
   };
 
   const getTotalActualSalesForBoothSale = (boothSale: BoothSale): number => {
@@ -653,5 +718,7 @@ export const useBoothsStore = defineStore('booths', () => {
     updateSalesRecordSales,
     saveRecordedSales,
     closeRecordSalesDialog,
+    cashBreakdown,
+    totalCashReceipts,
   };
 });
