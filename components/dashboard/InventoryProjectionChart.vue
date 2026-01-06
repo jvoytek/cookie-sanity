@@ -86,7 +86,7 @@
         t.type !== 'G2G',
     );
 
-    // Get booth sales that affect troop inventory
+    // Get booth sales that affect troop inventory (anything not archived)
     const relevantBooths =
       boothsStore.unArchivedBoothSalesUsingTroopInventory || [];
 

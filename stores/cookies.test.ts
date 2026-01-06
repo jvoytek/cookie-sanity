@@ -68,7 +68,8 @@ describe('stores/cookies', () => {
     vi.stubGlobal('useTransactionsStore', useTransactionsStoreMock);
 
     const useBoothsStoreMock = vi.fn(() => ({
-      pendingTroopBoothSaleEstimatesMap: { ADV: -9, TM: -9 },
+      committedTroopBoothSaleEstimatesMap: { ADV: -9, TM: -9 },
+      unCommittedTroopBoothSaleEstimatesMap: {},
       recordedTroopBoothSalesMap: {},
       upcomingTroopBoothSaleEstimatesMap: {},
     }));
@@ -433,7 +434,8 @@ describe('stores/cookies', () => {
 
       // Mock booths store with empty data for booth sales, but we will override this in specific tests as needed
       useBoothsStoreMock = vi.fn(() => ({
-        pendingTroopBoothSaleEstimatesMap: {},
+        committedTroopBoothSaleEstimatesMap: {},
+        unCommittedTroopBoothSaleEstimatesMap: {},
         recordedTroopBoothSalesMap: {},
         upcomingTroopBoothSaleEstimatesMap: {},
       }));

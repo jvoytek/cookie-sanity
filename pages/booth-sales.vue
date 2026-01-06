@@ -1,301 +1,12 @@
 <script setup lang="ts">
   import type { BoothSale } from '@/types/types';
-  import { useFormKitNodeById } from '@formkit/vue';
-  import { watchDebounced, watchDeep } from '@vueuse/core';
-  import { Button } from 'primevue';
-  import type { Json } from '~/types/supabase';
-
-  const formNode = useFormKitNodeById('booth-form');
-
-  const loading = ref(true);
-  loading.value = true;
 
   const boothsStore = useBoothsStore();
-  const girlsStore = useGirlsStore();
-  const cookiesStore = useCookiesStore();
-  const notificationHelpers = useNotificationHelpers();
-
-  loading.value = false;
-
-  const dt = ref();
-  const deleteBoothSaleDialog = ref(false);
-
-  const inventoryTypeOptions = [
-    { label: 'Troop Inventory', value: 'troop' },
-    { label: 'Scout Inventory', value: 'scout' },
-  ];
 
   function openNew() {
-    editBoothSale(null);
-  }
-
-  function hideDialog() {
-    boothsStore.boothDialogVisible = false;
-  }
-
-  async function saveBoothSale() {
-    if (boothsStore.activeBoothSale?.id) {
-      boothsStore.upsertBoothSale(boothsStore.activeBoothSale);
-    } else if (boothsStore.activeBoothSale) {
-      boothsStore.insertBoothSale(boothsStore.activeBoothSale);
-    }
-    boothsStore.boothDialogVisible = false;
     boothsStore.setActiveBoothSale(null);
-  }
-
-  const submitButtonClickHandler = () => {
-    if (formNode.value) formNode.value.submit();
-  };
-
-  function editBoothSale(sale: BoothSale | null) {
-    boothsStore.boothDialogFormSchema.value = getBoothSaleDialogFormSchema();
-    boothsStore.setActiveBoothSale(sale);
     boothsStore.boothDialogVisible = true;
   }
-
-  function cancelEditBoothSale() {
-    boothsStore.resetActiveBoothSale();
-    boothsStore.boothDialogVisible = false;
-  }
-
-  function confirmDeleteBoothSale(sale: BoothSale) {
-    boothsStore.setActiveBoothSale(sale);
-    deleteBoothSaleDialog.value = true;
-  }
-
-  function duplicateBoothSale(sale: BoothSale) {
-    // Create a copy of the boothsale without database-generated fields
-    // This ensures it will be treated as a new transaction when saved
-    const { id, created_at, ...saleCopy } = sale;
-    saleCopy.status = null;
-    editBoothSale({ ...saleCopy });
-  }
-
-  async function deleteBoothSale() {
-    try {
-      boothsStore.deleteBoothSale(boothsStore.activeBoothSale);
-      deleteBoothSaleDialog.value = false;
-      boothsStore.setActiveBoothSale(null);
-    } catch (error) {
-      notificationHelpers.addError(error as Error);
-    }
-  }
-
-  async function unmarkPendingBoothSale(sale: BoothSale) {
-    await boothsStore.unmarkPendingBoothSale(sale);
-  }
-
-  async function markPendingBoothSale(sale: BoothSale) {
-    await boothsStore.markPendingBoothSale(sale);
-  }
-
-  async function archiveBoothSale(sale: BoothSale) {
-    await boothsStore.archiveBoothSale(sale);
-  }
-
-  async function unarchiveBoothSale(sale: BoothSale) {
-    await boothsStore.unarchiveBoothSale(sale);
-  }
-
-  watchDebounced(
-    () => boothsStore.activeBoothSale?.expected_sales,
-    (newTotalCookies, oldTotalCookies) => {
-      if (
-        !boothsStore.activeBoothSale?.auto_calculate_predicted_cookies ||
-        oldTotalCookies === newTotalCookies
-      ) {
-        return;
-      }
-
-      if (oldTotalCookies !== newTotalCookies) {
-        boothsStore.setActiveBoothSalePredictedCookies(newTotalCookies || 0);
-      }
-    },
-    { debounce: 200, maxWait: 1000 },
-  );
-
-  watchDeep(
-    () => boothsStore.activeBoothSale?.predicted_cookies,
-    (newCookies, _oldCookies) => {
-      if (
-        boothsStore.activeBoothSale?.auto_calculate_predicted_cookies ||
-        newCookies === undefined
-      ) {
-        return;
-      }
-
-      const sumNewPredictedCookies = Object.values(newCookies).reduce(
-        (sum, val) => sum + Number(val || 0),
-        0,
-      );
-
-      const activeBoothSaleTotalCookies =
-        boothsStore.activeBoothSale?.expected_sales || 0;
-
-      if (sumNewPredictedCookies !== activeBoothSaleTotalCookies || 0) {
-        boothsStore.setActiveBoothSaleTotalExpectedSales();
-      }
-    },
-  );
-
-  const getBoothSaleDialogFormSchema = () => {
-    return [
-      {
-        $formkit: 'primeDatePicker',
-        name: 'sale_date',
-        label: 'Date',
-        key: 'sale_date',
-        placeholder: 'Select date',
-        validation: 'required|date',
-        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
-        labelClass: 'col-span-1',
-        innerClass: 'col-span-3 mt-1 mb-1',
-        class: 'w-full',
-        'date-format': 'mm/dd/yy',
-        'show-icon': true,
-      },
-      {
-        $formkit: 'primeInputText',
-        name: 'sale_time',
-        label: 'Time',
-        key: 'sale_time',
-        placeholder: 'Set time',
-        validation: 'required|time',
-        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
-        labelClass: 'col-span-1',
-        innerClass: 'col-span-3 mt-1 mb-1',
-        class: 'w-full',
-      },
-      {
-        $formkit: 'primeInputText',
-        name: 'location',
-        label: 'Location',
-        key: 'location',
-        placeholder: 'Walmart, Local Grocery Store, etc.',
-        validation: 'required',
-        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
-        labelClass: 'col-span-1',
-        innerClass: 'col-span-3 mt-1 mb-1',
-        class: 'w-full',
-      },
-      {
-        $formkit: 'primeMultiSelect',
-        name: 'scouts_attending',
-        options: girlsStore.girlOptions,
-        'option-label': 'label',
-        'option-value': 'value',
-        placeholder: 'Select scouts',
-        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
-        labelClass: 'col-span-1',
-        innerClass: 'col-span-3 mt-1 mb-1',
-        class: 'w-full',
-        label: 'Scouts Attending',
-        key: 'scouts_attending',
-        showToggleAll: false,
-      },
-
-      {
-        $formkit: 'primeSelect',
-        name: 'inventory_type',
-        label: 'Inventory Type',
-        key: 'inventory_type',
-        placeholder: 'Choose a type',
-        options: inventoryTypeOptions,
-        validation: 'required',
-        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
-        labelClass: 'col-span-1',
-        innerClass: 'col-span-3 mt-1 mb-1',
-        class: 'w-full',
-        'option-label': 'label',
-        'option-value': 'value',
-      },
-      {
-        $formkit: 'primeTextarea',
-        name: 'notes',
-        label: 'Notes (optional)',
-        placeholder: 'Notes about this booth sale',
-        class: 'w-full',
-        rows: 2,
-      },
-      {
-        $el: 'h6',
-        children: 'Predicted Cookie Demand',
-      },
-      {
-        $el: 'p',
-        children:
-          'Enter total estimated sales to auto-calculate cookie variety demand, or manually enter variety estimates. Setup expected cookie variety percentages in Cookie Settings.',
-      },
-      {
-        $formkit: 'primeToggleSwitch',
-        name: 'auto_calculate_predicted_cookies',
-        label: 'Auto-Calculate Predicted Cookies',
-        key: 'auto_calculate_predicted_cookies',
-        id: 'auto_calculate_predicted_cookies',
-        value: true,
-        wrapperClass: 'grid grid-cols-3 gap-4 items-center',
-        labelClass: 'col-span-1',
-        innerClass: 'col-span-2 mt-1 mb-1',
-        class: 'w-full',
-      },
-      {
-        $formkit: 'primeInputNumber',
-        name: 'expected_sales',
-        label: 'Total Estimated Sales',
-        key: 'expected_sales',
-        placeholder: '25, 50, 100, etc.',
-        validation: 'required|integer|min:0',
-        wrapperClass: 'grid grid-cols-3 gap-4 items-center',
-        labelClass: 'col-span-1',
-        innerClass: 'col-span-2 mt-1 mb-1',
-        class: 'w-full',
-        disabled: "$get('auto_calculate_predicted_cookies').value === false",
-      },
-      {
-        $formkit: 'group',
-        name: 'predicted_cookies',
-        children: cookiesStore.cookieFormFieldsForBoothSales,
-        disabled: "$get('auto_calculate_predicted_cookies').value === true",
-      },
-    ];
-  };
-
-  const data = {
-    validationRules: cookiesStore.customCookieValidationRules, // Add the 'overBooking' function to the validationRules
-  };
-
-  const cookiesSoldGreaterThanOne = (cookiesSold: Json | null) => {
-    if (cookiesSold === null) return false;
-    const totalSold = Object.values(cookiesSold).reduce(
-      (sum, val) => sum + Number(val || 0),
-      0,
-    );
-    return totalSold > 0;
-  };
-
-  const getDerivedStatus = (sale: BoothSale) => {
-    if (sale.status === 'archived') {
-      return 'archived';
-    } else if (cookiesSoldGreaterThanOne(sale.cookies_sold)) {
-      return 'recorded';
-    } else if (sale.status === 'pending') {
-      return 'pending';
-    } else {
-      return 'upcoming';
-    }
-  };
-
-  const getStatusToolTip = (status: string | null) => {
-    if (status === 'archived') {
-      return 'No data from this booth sale will be included in inventory calculations.';
-    } else if (status === 'pending') {
-      return 'Estimated cookies have been removed from on-hand inventory calculations, but actual sales have not yet been recorded.';
-    } else if (status === 'recorded') {
-      return 'Actual sales have been recorded for this booth sale, but they have not yet been distributed to girls. Actual sales data will be reflected in inventory calculations.';
-    } else {
-      return 'Estimated sales will be included in the Upcoming Booths column of Troop Inventory (even if the actual date is in the past).';
-    }
-  };
 </script>
 
 <template>
@@ -318,317 +29,54 @@
             />
           </template>
         </Toolbar>
-
-        <div class="mb-4 flex items-center gap-2 float-right">
-          <Checkbox
-            v-model="boothsStore.showArchivedBoothSales"
-            inputId="showArchived"
-            :binary="true"
-          />
-          <label for="showArchived">Show archived booth sales</label>
-        </div>
-
-        <DataTable
-          ref="dt"
-          :value="boothsStore.visibleBoothSales"
-          data-key="id"
-          sort-field="sale_date"
-        >
-          <Column field="sale_date" header="Date" sortable>
-            <template #body="slotProps">
-              <NuxtTime :datetime="slotProps.data.sale_date" time-zone="UTC" />
-            </template>
-          </Column>
-          <Column field="sale_time" header="Time" sortable>
-            <template #body="slotProps">
-              {{ slotProps.data.sale_time }}
-            </template>
-          </Column>
-          <Column field="location" header="Location" sortable />
-          <Column field="scouts_attending" header="Scouts">
-            <template #body="slotProps">
-              {{
-                girlsStore.getGirlNamesByIdList(slotProps.data.scouts_attending)
-              }}
-            </template>
-          </Column>
-          <Column field="inventory_type" header="Inventory Type" sortable>
-            <template #body="slotProps">
-              <Badge
-                :severity="
-                  slotProps.data.inventory_type === 'troop'
-                    ? 'info'
-                    : 'secondary'
-                "
-              >
-                {{ slotProps.data.inventory_type }}
-              </Badge>
-            </template>
-          </Column>
-          <Column field="expected_sales" header="Estimated Sales" sortable />
-          <Column header="Actual Sales" sortable>
-            <template #body="slotProps">
-              {{ boothsStore.getTotalActualSalesForBoothSale(slotProps.data) }}
-            </template>
-          </Column>
-          <Column field="derived_status" header="Status" sortable>
-            <template #body="slotProps">
-              <Badge
-                :set="derivedStatus = getDerivedStatus(slotProps.data)"
-                :severity="
-                  derivedStatus === 'archived' || derivedStatus === 'recorded'
-                    ? 'info'
-                    : derivedStatus === 'pending'
-                      ? 'warn'
-                      : 'success'
-                "
-                v-tooltip.bottom="{
-                  value: getStatusToolTip(derivedStatus),
-                }"
-              >
-                {{ getDerivedStatus(slotProps.data) }}
-              </Badge>
-            </template>
-          </Column>
-          <Column :exportable="false" style="min-width: 12rem" header="Actions">
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-pencil"
-                outlined
-                class="mr-2"
-                v-tooltip.bottom="'Edit Sale'"
-                @click="editBoothSale(slotProps.data)"
-              />
-              <Button
-                icon="pi pi-copy"
-                outlined
-                severity="secondary"
-                class="mr-2"
-                v-tooltip.bottom="'Duplicate Sale'"
-                @click="duplicateBoothSale(slotProps.data)"
-              />
-              <Button
-                icon="pi pi-tag"
-                outlined
-                severity="secondary"
-                class="mr-2"
-                v-tooltip.bottom="'Record Sales'"
-                @click="boothsStore.openRecordSalesDialog(slotProps.data)"
-              />
-              <Button
-                v-if="
-                  slotProps.data.status !== 'archived' &&
-                  slotProps.data.status !== 'pending' &&
-                  slotProps.data.inventory_type === 'troop'
-                "
-                icon="pi pi-clock"
-                outlined
-                severity="secondary"
-                class="mr-2"
-                v-tooltip.bottom="
-                  'Mark this sale pending to remove estimated cookie sales from inventory calculations'
-                "
-                @click="markPendingBoothSale(slotProps.data)"
-              />
-              <Button
-                v-if="slotProps.data.status === 'pending'"
-                icon="pi pi-check-circle"
-                outlined
-                severity="secondary"
-                class="mr-2"
-                v-tooltip.bottom="'Unmark as Pending'"
-                @click="unmarkPendingBoothSale(slotProps.data)"
-              />
-              <Button
-                v-if="slotProps.data.status !== 'archived'"
-                icon="pi pi-inbox"
-                outlined
-                severity="secondary"
-                class="mr-2"
-                v-tooltip.bottom="
-                  'Archive Sale. It will no longer appear in troop inventory calculations.'
-                "
-                @click="archiveBoothSale(slotProps.data)"
-              />
-              <Button
-                v-if="slotProps.data.status == 'archived'"
-                icon="pi pi-undo"
-                outlined
-                severity="secondary"
-                class="mr-2"
-                v-tooltip.bottom="'Unarchive'"
-                @click="unarchiveBoothSale(slotProps.data)"
-              />
-              <Button
-                icon="pi pi-trash"
-                outlined
-                severity="danger"
-                v-tooltip.bottom="'Delete Sale'"
-                @click="confirmDeleteBoothSale(slotProps.data)"
-              />
-            </template>
-          </Column>
-        </DataTable>
-
-        <Dialog
-          v-model:visible="boothsStore.boothDialogVisible"
-          :style="{ width: '550px' }"
-          header="Booth Sale Details"
-          :modal="true"
-          @after-hide="cancelEditBoothSale"
-        >
-          <div class="flex flex-col gap-6">
-            <FormKit
-              id="booth-form"
-              v-model="boothsStore.activeBoothSale"
-              type="form"
-              :actions="false"
-              @submit="saveBoothSale"
+        <Tabs value="0">
+          <TabList>
+            <Tab value="0" class="flex items-center gap-2"
+              ><i class="pi pi-calendar" />Upcoming Sales ({{
+                boothsStore.upcomingBoothSales.length
+              }})</Tab
             >
-              <FormKitSchema
-                :schema="boothsStore.boothDialogFormSchema.value"
-                :data="data"
-              />
-            </FormKit>
-          </div>
-
-          <template #footer>
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              outlined
-              @click="hideDialog"
-            />
-            <Button
-              label="Save"
-              icon="pi pi-check"
-              @click="submitButtonClickHandler"
-            />
-          </template>
-        </Dialog>
-
-        <Dialog
-          v-model:visible="deleteBoothSaleDialog"
-          :style="{ width: '450px' }"
-          header="Confirm"
-          :modal="true"
-        >
-          <div class="flex items-center gap-4">
-            <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
-            <span v-if="boothsStore.activeBoothSale">
-              Are you sure you want to delete the booth sale at
-              <b>{{ boothsStore.activeBoothSale.location }}</b> on
-              <b
-                ><NuxtTime
-                  :datetime="boothsStore.activeBoothSale.sale_date" /></b
-              >?
-            </span>
-          </div>
-          <template #footer>
-            <Button
-              label="No"
-              icon="pi pi-times"
-              text
-              @click="deleteBoothSaleDialog = false"
-            />
-            <Button label="Yes" icon="pi pi-check" @click="deleteBoothSale" />
-          </template>
-        </Dialog>
-
-        <Dialog
-          v-model:visible="boothsStore.recordSalesDialogVisible"
-          :style="{ width: '650px' }"
-          header="Record Booth Sales"
-          :modal="true"
-          @after-hide="boothsStore.closeRecordSalesDialog"
-        >
-          <div class="flex flex-col gap-4">
-            <p class="mb-2">
-              Enter the remaining packages after the booth sale. Sales will be
-              automatically calculated.
-            </p>
-            <DataTable
-              :value="boothsStore.orderedActiveBoothSalesRecordData"
-              size="small"
+            <Tab value="2" class="flex items-center gap-2"
+              ><i class="pi pi-clock" />Past Sales ({{
+                boothsStore.pastBoothSales.length
+              }})</Tab
             >
-              <Column field="name" header="Cookie">
-                <template #body="slotProps">
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="w-3 h-3 rounded-full flex-shrink-0"
-                      :style="{
-                        backgroundColor: slotProps.data.color || '#888',
-                      }"
-                    />
-                    <span>{{ slotProps.data.name }}</span>
-                  </div>
-                </template>
-              </Column>
-              <Column field="data.predicted" header="Predicted">
-                <template #body="slotProps">
-                  <InputNumber
-                    v-model="slotProps.data.data.predicted"
-                    :min="0"
-                    @update:model-value="
-                      (val) =>
-                        boothsStore.updateSalesRecordPredicted(
-                          slotProps.data.abbreviation,
-                          val || 0,
-                        )
-                    "
-                    input-class="w-16"
-                  />
-                </template>
-              </Column>
-              <Column field="data.remaining" header="Remaining">
-                <template #body="slotProps">
-                  <InputNumber
-                    v-model="slotProps.data.data.remaining"
-                    :min="0"
-                    @update:model-value="
-                      (val) =>
-                        boothsStore.updateSalesRecordRemaining(
-                          slotProps.data.abbreviation,
-                          val || 0,
-                        )
-                    "
-                    input-class="w-16"
-                  />
-                </template>
-              </Column>
-              <Column field="data.sales" header="Sales">
-                <template #body="slotProps">
-                  <InputNumber
-                    v-model="slotProps.data.data.sales"
-                    :min="0"
-                    @update:model-value="
-                      (val) =>
-                        boothsStore.updateSalesRecordSales(
-                          slotProps.data.abbreviation,
-                          val || 0,
-                        )
-                    "
-                    input-class="w-16"
-                  />
-                </template>
-              </Column>
-            </DataTable>
-          </div>
+            <Tab value="3" class="flex items-center gap-2"
+              ><i class="pi pi-list-check" />Recorded Sales ({{
+                boothsStore.recordedBoothSales.length
+              }})</Tab
+            >
+            <Tab value="4" class="flex items-center gap-2"
+              ><i class="pi pi-inbox" />Archived ({{
+                boothsStore.archivedBoothSales.length
+              }})</Tab
+            >
+          </TabList>
+          <TabPanels>
+            <TabPanel value="0"
+              ><BoothsDataTable
+                :value="boothsStore.upcomingBoothSales"
+                type="upcoming"
+            /></TabPanel>
+            <TabPanel value="2"
+              ><BoothsDataTable :value="boothsStore.pastBoothSales" type="past"
+            /></TabPanel>
+            <TabPanel value="3"
+              ><BoothsDataTable
+                :value="boothsStore.recordedBoothSales"
+                type="recorded"
+            /></TabPanel>
+            <TabPanel value="4"
+              ><BoothsDataTable
+                :value="boothsStore.archivedBoothSales"
+                type="archived"
+            /></TabPanel>
+          </TabPanels>
+        </Tabs>
 
-          <template #footer>
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              outlined
-              @click="boothsStore.closeRecordSalesDialog"
-            />
-            <Button
-              label="Save"
-              icon="pi pi-check"
-              @click="boothsStore.saveRecordedSales"
-            />
-          </template>
-        </Dialog>
+        <BoothSaleDialog />
+        <BoothSaleDeleteDialog />
+        <BoothSaleRecordDialog />
       </div>
     </div>
     <NoCookiesOverlay />
