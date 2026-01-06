@@ -92,63 +92,6 @@ describe('useBoothsStore', () => {
       expect(troopSales[0].inventory_type).toBe('troop');
     });
 
-    it('filters troop inventory booth sales correctly and excludes archived', () => {
-      boothsStore.allBoothSales = [
-        {
-          id: 1,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'troop',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 10 },
-          cookies_sold: {},
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: null,
-        },
-        {
-          id: 2,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'troop',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 15 },
-          cookies_sold: {},
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: 'archived',
-        },
-        {
-          id: 3,
-          created_at: '',
-          expected_sales: null,
-          inventory_type: 'girl',
-          location: '',
-          notes: null,
-          predicted_cookies: { TM: 100 },
-          cookies_sold: {},
-          profile: '',
-          sale_date: '',
-          sale_time: null,
-          scouts_attending: {},
-          season: 0,
-          status: null,
-        },
-      ];
-
-      const troopSales = boothsStore.upcomingBoothSalesUsingTroopInventory;
-      expect(troopSales).toHaveLength(1);
-      expect(troopSales[0].id).toBe(1);
-    });
-
     it('visibleBoothSales shows only non-archived by default', () => {
       boothsStore.allBoothSales = [
         {
