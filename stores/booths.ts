@@ -77,6 +77,7 @@ export const useBoothsStore = defineStore('booths', () => {
       abbreviation: cookie.abbreviation,
       name: cookie.name,
       color: cookie.color,
+      price: cookie.price,
       data: activeBoothSalesRecordData.value[cookie.abbreviation] || {
         predicted: 0,
         remaining: 0,

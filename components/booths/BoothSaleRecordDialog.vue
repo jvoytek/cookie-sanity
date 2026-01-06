@@ -1,20 +1,39 @@
 <script setup lang="ts">
   const boothsStore = useBoothsStore();
   const { formatCurrency } = useFormatHelpers();
+
+  const enterRemainingPackages = ref(true);
+  const packagesSold = computed(() => {
+    return boothsStore.orderedActiveBoothSalesRecordData.reduce(
+      (sum, item) => sum + (item.data.sales || 0),
+      0,
+    );
+  });
+  const totalSales = computed(() => {
+    return boothsStore.orderedActiveBoothSalesRecordData.reduce(
+      (sum, item) => sum + (item.data.sales || 0) * item.price,
+      0,
+    );
+  });
 </script>
 <template>
   <Dialog
     v-model:visible="boothsStore.recordSalesDialogVisible"
     :style="{ width: '650px' }"
-    header="Record Booth Sales"
+    header="Record Sales"
     :modal="true"
     @after-hide="boothsStore.closeRecordSalesDialog"
   >
     <div class="flex flex-col gap-4">
-      <p class="mb-2">
-        Enter the remaining packages after the booth sale. Sales will be
-        automatically calculated.
-      </p>
+      <div class="flex items-center gap-2">
+        <ToggleSwitch
+          v-model="enterRemainingPackages"
+          inputId="remaining-packages-toggle"
+        />
+        <label for="remaining-packages-toggle"
+          >Enter remaining packages and automatically calculate sales</label
+        >
+      </div>
       <DataTable
         :value="boothsStore.orderedActiveBoothSalesRecordData"
         size="small"
@@ -28,29 +47,19 @@
                   backgroundColor: slotProps.data.color || '#888',
                 }"
               />
-              <span>{{ slotProps.data.name }}</span>
+              <span
+                >{{ slotProps.data.name }} ({{
+                  formatCurrency(slotProps.data.price)
+                }})</span
+              >
             </div>
           </template>
         </Column>
-        <Column field="data.predicted" header="Estimated">
-          <template #body="slotProps">
-            <InputNumber
-              v-model="slotProps.data.data.predicted"
-              :min="0"
-              @update:model-value="
-                (val) =>
-                  boothsStore.updateSalesRecordPredicted(
-                    slotProps.data.abbreviation,
-                    val || 0,
-                  )
-              "
-              input-class="w-16"
-            />
-          </template>
-        </Column>
+        <Column field="data.predicted" header="Estimated" />
         <Column field="data.remaining" header="Remaining">
           <template #body="slotProps">
             <InputNumber
+              v-if="enterRemainingPackages"
               v-model="slotProps.data.data.remaining"
               :min="0"
               @update:model-value="
@@ -62,11 +71,13 @@
               "
               input-class="w-16"
             />
+            <span v-else>{{ slotProps.data.data.remaining }}</span>
           </template>
         </Column>
         <Column field="data.sales" header="Sales">
           <template #body="slotProps">
             <InputNumber
+              v-if="!enterRemainingPackages"
               v-model="slotProps.data.data.sales"
               :min="0"
               @update:model-value="
@@ -78,22 +89,33 @@
               "
               input-class="w-16"
             />
+            <span v-else>{{ slotProps.data.data.sales }}</span>
           </template>
         </Column>
+        <ColumnGroup type="footer">
+          <Row>
+            <Column />
+            <Column />
+            <Column :footer="`Packages`" />
+            <Column field="packages" :footer="packagesSold" />
+          </Row>
+          <Row>
+            <Column />
+            <Column />
+            <Column :footer="`Sales`" />
+            <Column field="sales" :footer="formatCurrency(totalSales)" />
+          </Row>
+        </ColumnGroup>
       </DataTable>
 
       <!-- Cash Receipts Section -->
-      <div class="mt-4 border-t pt-4">
-        <h3 class="text-lg font-semibold mb-3">Cash Received</h3>
-        <p class="text-sm mb-3 text-gray-600">
-          Enter cash received either as a total or as a breakdown of bills and
-          coins.
-        </p>
+      <div>
+        <h3 class="text-lg font-semibold mb-3">Receipts</h3>
+        <p>Enter money received below.</p>
 
         <!-- Bills Section -->
         <div class="mb-4">
-          <h4 class="text-md font-medium mb-2">Bills</h4>
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-7 gap-3">
             <div class="flex flex-col">
               <label for="ones" class="text-sm mb-1">$1</label>
               <InputNumber
@@ -160,35 +182,43 @@
                 placeholder="0"
               />
             </div>
-          </div>
-        </div>
-
-        <!-- Coins Section -->
-        <div class="mb-4">
-          <h4 class="text-md font-medium mb-2">Coins</h4>
-          <div class="flex flex-col max-w-xs">
-            <label for="cents" class="text-sm mb-1">Cents</label>
-            <InputNumber
-              id="cents"
-              v-model="boothsStore.cashBreakdown.cents"
-              :min="0"
-              :max-fraction-digits="2"
-              :use-grouping="false"
-              mode="decimal"
-              input-class="w-full"
-              placeholder="0.00"
-            />
+            <div class="flex flex-col">
+              <label for="cents" class="text-sm mb-1">Cents</label>
+              <InputNumber
+                id="cents"
+                v-model="boothsStore.cashBreakdown.cents"
+                :min="0"
+                :max-fraction-digits="2"
+                :use-grouping="false"
+                mode="decimal"
+                input-class="w-full"
+                placeholder="0.00"
+              />
+            </div>
           </div>
         </div>
 
         <!-- Total Cash -->
-        <div
-          class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex justify-between items-center"
-        >
-          <span class="font-semibold text-lg">Total Cash Receipts:</span>
-          <span class="text-xl font-bold text-green-600 dark:text-green-400">
-            {{ formatCurrency(boothsStore.totalCashReceipts) }}
-          </span>
+        <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">Sales:</span>
+            <span>
+              {{ formatCurrency(totalSales) }}
+            </span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">Total Cash Receipts:</span>
+            <span>
+              {{ formatCurrency(boothsStore.totalCashReceipts) }}
+            </span>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">Difference:</span>
+            <span>
+              {{ formatCurrency(totalSales - boothsStore.totalCashReceipts) }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
