@@ -142,7 +142,9 @@
           >
           <Badge
             v-if="
-              slotProps.data.afterPending != 0 && slotProps.data.percent_of_sale
+              slotProps.data.afterPending != 0 &&
+              slotProps.data.percent_of_sale &&
+              totalAfterPending > 0
             "
             :set="
               percentDiff = Math.round(
@@ -184,7 +186,8 @@
           <Badge
             v-if="
               slotProps.data.afterPendingIncludingRequests != 0 &&
-              slotProps.data.percent_of_sale
+              slotProps.data.percent_of_sale &&
+              totalAfterPendingIncludingRequests > 0
             "
             :set="
               percentDiff = Math.round(
@@ -232,7 +235,8 @@
           <Badge
             v-if="
               slotProps.data.afterPendingIncludingBooths != 0 &&
-              slotProps.data.percent_of_sale
+              slotProps.data.percent_of_sale &&
+              totalAfterPendingIncludingBooths > 0
             "
             :set="
               percentDiff = Math.round(

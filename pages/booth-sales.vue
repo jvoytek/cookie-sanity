@@ -29,17 +29,50 @@
             />
           </template>
         </Toolbar>
-
-        <div class="mb-4 flex items-center gap-2 float-right">
-          <Checkbox
-            v-model="boothsStore.showArchivedBoothSales"
-            inputId="showArchived"
-            :binary="true"
-          />
-          <label for="showArchived">Show archived booth sales</label>
-        </div>
-
-        <BoothsDataTable :value="boothsStore.visibleBoothSales" />
+        <Tabs value="0">
+          <TabList>
+            <Tab value="0" class="flex items-center gap-2"
+              ><i class="pi pi-calendar" />Upcoming Sales ({{
+                boothsStore.upcomingBoothSales.length
+              }})</Tab
+            >
+            <Tab value="2" class="flex items-center gap-2"
+              ><i class="pi pi-clock" />Past Sales ({{
+                boothsStore.pastBoothSales.length
+              }})</Tab
+            >
+            <Tab value="3" class="flex items-center gap-2"
+              ><i class="pi pi-list-check" />Recorded Sales ({{
+                boothsStore.recordedBoothSales.length
+              }})</Tab
+            >
+            <Tab value="4" class="flex items-center gap-2"
+              ><i class="pi pi-inbox" />Archived ({{
+                boothsStore.archivedBoothSales.length
+              }})</Tab
+            >
+          </TabList>
+          <TabPanels>
+            <TabPanel value="0"
+              ><BoothsDataTable
+                :value="boothsStore.upcomingBoothSales"
+                type="upcoming"
+            /></TabPanel>
+            <TabPanel value="2"
+              ><BoothsDataTable :value="boothsStore.pastBoothSales" type="past"
+            /></TabPanel>
+            <TabPanel value="3"
+              ><BoothsDataTable
+                :value="boothsStore.recordedBoothSales"
+                type="recorded"
+            /></TabPanel>
+            <TabPanel value="4"
+              ><BoothsDataTable
+                :value="boothsStore.archivedBoothSales"
+                type="archived"
+            /></TabPanel>
+          </TabPanels>
+        </Tabs>
 
         <BoothSaleDialog />
         <BoothSaleDeleteDialog />

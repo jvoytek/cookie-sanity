@@ -8,9 +8,10 @@ function()s become actions
 */
 
 const BOOTH_STATUS = {
+  PENDING: '',
+  COMMITTED: 'committed',
+  RECORDED: 'recorded',
   ARCHIVED: 'archived',
-  PENDING: 'pending',
-  ACTIVE: '',
 } as const;
 
 export const useBoothsStore = defineStore('booths', () => {
@@ -63,9 +64,39 @@ export const useBoothsStore = defineStore('booths', () => {
   const upcomingBoothSales = computed(() => {
     const today = new Date().toISOString().split('T')[0];
     const upcomingSales = allBoothSales.value.filter((booth) => {
-      return new Date(booth.sale_date) >= new Date(today);
+      return (
+        new Date(booth.sale_date) >= new Date(today) &&
+        booth.status !== BOOTH_STATUS.ARCHIVED &&
+        _totalCookiesSold(booth.cookies_sold) == 0
+      );
     });
     return upcomingSales;
+  });
+
+  const pastBoothSales = computed(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const pastSales = allBoothSales.value.filter((booth) => {
+      return (
+        new Date(booth.sale_date) < new Date(today) &&
+        booth.status !== BOOTH_STATUS.ARCHIVED &&
+        _totalCookiesSold(booth.cookies_sold) == 0
+      );
+    });
+    return pastSales;
+  });
+
+  const archivedBoothSales = computed(() => {
+    return allBoothSales.value.filter(
+      (booth: BoothSale) => booth.status === BOOTH_STATUS.ARCHIVED,
+    );
+  });
+
+  const recordedBoothSales = computed(() => {
+    return allBoothSales.value.filter(
+      (booth: BoothSale) =>
+        booth.status !== BOOTH_STATUS.ARCHIVED &&
+        _totalCookiesSold(booth.cookies_sold) > 0,
+    );
   });
 
   const unArchivedBoothSalesUsingTroopInventory = computed(() => {
@@ -77,30 +108,38 @@ export const useBoothsStore = defineStore('booths', () => {
   });
 
   const upcomingBoothSalesUsingTroopInventory = computed(() => {
-    return allBoothSales.value.filter(
-      (booth: BoothSale) =>
-        booth.inventory_type === 'troop' &&
-        _totalCookiesSold(booth.cookies_sold) == 0 &&
-        booth.status !== BOOTH_STATUS.ARCHIVED &&
-        booth.status !== BOOTH_STATUS.PENDING,
+    return upcomingBoothSales.value.filter(
+      (booth: BoothSale) => booth.inventory_type === 'troop',
     );
   });
 
-  const pendingBoothSalesUsingTroopInventory = computed(() => {
+  const pastBoothSalesUsingTroopInventory = computed(() => {
+    return pastBoothSales.value.filter(
+      (booth: BoothSale) => booth.inventory_type === 'troop',
+    );
+  });
+
+  const committedBoothSalesUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
         booth.inventory_type === 'troop' &&
-        _totalCookiesSold(booth.cookies_sold) == 0 &&
-        booth.status === BOOTH_STATUS.PENDING,
+        booth.status === BOOTH_STATUS.COMMITTED &&
+        _totalCookiesSold(booth.cookies_sold) === 0,
+    );
+  });
+
+  const unCommittedBoothSalesUsingTroopInventory = computed(() => {
+    return allBoothSales.value.filter(
+      (booth: BoothSale) =>
+        booth.inventory_type === 'troop' &&
+        booth.status !== BOOTH_STATUS.COMMITTED &&
+        booth.status !== BOOTH_STATUS.ARCHIVED,
     );
   });
 
   const recordedBoothSalesUsingTroopInventory = computed(() => {
-    return allBoothSales.value.filter(
-      (booth: BoothSale) =>
-        booth.inventory_type === 'troop' &&
-        _totalCookiesSold(booth.cookies_sold) > 0 &&
-        booth.status !== BOOTH_STATUS.ARCHIVED,
+    return recordedBoothSales.value.filter(
+      (booth: BoothSale) => booth.inventory_type === 'troop',
     );
   });
 
@@ -121,9 +160,43 @@ export const useBoothsStore = defineStore('booths', () => {
     return estimatesMap;
   });
 
-  const pendingTroopBoothSaleEstimatesMap = computed(() => {
+  const pastTroopBoothSaleEstimatesMap = computed(() => {
     const estimatesMap: Record<string, number> = {};
-    pendingBoothSalesUsingTroopInventory.value.forEach((booth) => {
+    pastBoothSalesUsingTroopInventory.value.forEach((booth) => {
+      if (booth.predicted_cookies) {
+        Object.entries(booth.predicted_cookies).forEach(
+          ([cookieAbbr, quantity]) => {
+            if (!estimatesMap[cookieAbbr]) {
+              estimatesMap[cookieAbbr] = 0;
+            }
+            estimatesMap[cookieAbbr] -= Number(quantity) || 0;
+          },
+        );
+      }
+    });
+    return estimatesMap;
+  });
+
+  const committedTroopBoothSaleEstimatesMap = computed(() => {
+    const estimatesMap: Record<string, number> = {};
+    committedBoothSalesUsingTroopInventory.value.forEach((booth) => {
+      if (booth.predicted_cookies) {
+        Object.entries(booth.predicted_cookies).forEach(
+          ([cookieAbbr, quantity]) => {
+            if (!estimatesMap[cookieAbbr]) {
+              estimatesMap[cookieAbbr] = 0;
+            }
+            estimatesMap[cookieAbbr] -= Number(quantity) || 0;
+          },
+        );
+      }
+    });
+    return estimatesMap;
+  });
+
+  const unCommittedTroopBoothSaleEstimatesMap = computed(() => {
+    const estimatesMap: Record<string, number> = {};
+    unCommittedBoothSalesUsingTroopInventory.value.forEach((booth) => {
       if (booth.predicted_cookies) {
         Object.entries(booth.predicted_cookies).forEach(
           ([cookieAbbr, quantity]) => {
@@ -146,7 +219,7 @@ export const useBoothsStore = defineStore('booths', () => {
           if (!salesMap[cookieAbbr]) {
             salesMap[cookieAbbr] = 0;
           }
-          salesMap[cookieAbbr] += Number(quantity) || 0;
+          salesMap[cookieAbbr] -= Number(quantity) || 0;
         });
       }
     });
@@ -383,11 +456,11 @@ export const useBoothsStore = defineStore('booths', () => {
     }
   };
 
-  const markPendingBoothSale = async (boothSale: BoothSale) => {
+  const markCommittedBoothSale = async (boothSale: BoothSale) => {
     try {
       const updatedBoothSale = {
         ...boothSale,
-        status: BOOTH_STATUS.PENDING,
+        status: BOOTH_STATUS.COMMITTED,
       };
 
       const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
@@ -395,25 +468,25 @@ export const useBoothsStore = defineStore('booths', () => {
       if (error) throw error;
 
       _updateBoothSale(updatedBoothSale);
-      notificationHelpers.addSuccess('Booth Sale Marked as Pending');
+      notificationHelpers.addSuccess('Booth Sale Marked as Committed');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
   };
 
-  const unmarkPendingBoothSale = async (boothSale: BoothSale) => {
+  const unmarkCommittedBoothSale = async (boothSale: BoothSale) => {
     try {
       const updatedBoothSale = {
         ...boothSale,
-        status: null,
       };
+      delete updatedBoothSale.status;
 
       const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
 
       if (error) throw error;
 
       _updateBoothSale(updatedBoothSale);
-      notificationHelpers.addSuccess('Booth Sale Unmarked as Pending');
+      notificationHelpers.addSuccess('Booth Sale Unmarked as committed');
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -550,11 +623,16 @@ export const useBoothsStore = defineStore('booths', () => {
     setActiveBoothSalePredictedCookies,
     setActiveBoothSaleTotalExpectedSales,
     upcomingBoothSales,
+    pastBoothSales,
+    archivedBoothSales,
+    recordedBoothSales,
     upcomingBoothSalesUsingTroopInventory,
     upcomingTroopBoothSaleEstimatesMap,
-    pendingTroopBoothSaleEstimatesMap,
+    pastTroopBoothSaleEstimatesMap,
+    committedTroopBoothSaleEstimatesMap,
+    unCommittedTroopBoothSaleEstimatesMap,
     recordedTroopBoothSalesMap,
-    pendingBoothSalesUsingTroopInventory,
+    pastBoothSalesUsingTroopInventory,
     recordedBoothSalesUsingTroopInventory,
     unArchivedBoothSalesUsingTroopInventory,
     fetchBoothSales,
@@ -563,8 +641,8 @@ export const useBoothsStore = defineStore('booths', () => {
     deleteBoothSale,
     archiveBoothSale,
     unarchiveBoothSale,
-    markPendingBoothSale,
-    unmarkPendingBoothSale,
+    markCommittedBoothSale,
+    unmarkCommittedBoothSale,
     getTotalActualSalesForBoothSale,
     recordSalesDialogVisible,
     activeBoothSaleForRecording,

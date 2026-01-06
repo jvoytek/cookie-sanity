@@ -178,10 +178,11 @@ export const useCookiesStore = defineStore('cookies', () => {
           includeVirtualCookies,
         );
 
-        // Remove pending booth sales from onHand
+        // Remove committed booth sales estimates from onHand
         onHand +=
-          boothsStore.pendingTroopBoothSaleEstimatesMap[cookie.abbreviation] ||
-          0;
+          boothsStore.committedTroopBoothSaleEstimatesMap[
+            cookie.abbreviation
+          ] || 0;
 
         // Remove recorded booth sales from onHand
         onHand +=
@@ -199,8 +200,9 @@ export const useCookiesStore = defineStore('cookies', () => {
         const pendingGirl = pendingGirlMap[cookie.abbreviation];
         const pendingTroop = pendingTroopMap[cookie.abbreviation];
         const pendingBooth =
-          boothsStore.upcomingTroopBoothSaleEstimatesMap[cookie.abbreviation] ||
-          0;
+          boothsStore.unCommittedTroopBoothSaleEstimatesMap[
+            cookie.abbreviation
+          ] || 0;
         const afterPending = cookie.is_virtual
           ? 0
           : onHand + pendingGirl + pendingTroop;

@@ -31,7 +31,7 @@
             </div>
           </template>
         </Column>
-        <Column field="data.predicted" header="Predicted">
+        <Column field="data.predicted" header="Estimated">
           <template #body="slotProps">
             <InputNumber
               v-model="slotProps.data.data.predicted"
