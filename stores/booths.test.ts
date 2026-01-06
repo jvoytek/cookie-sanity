@@ -799,16 +799,18 @@ describe('useBoothsStore', () => {
       cash_breakdown: null,
     };
 
+    const createEmptyCashBreakdown = () => ({
+      ones: 0,
+      fives: 0,
+      tens: 0,
+      twenties: 0,
+      fifties: 0,
+      hundreds: 0,
+      cents: 0,
+    });
+
     beforeEach(() => {
-      boothsStore.cashBreakdown = {
-        ones: 0,
-        fives: 0,
-        tens: 0,
-        twenties: 0,
-        fifties: 0,
-        hundreds: 0,
-        cents: 0,
-      };
+      boothsStore.cashBreakdown = createEmptyCashBreakdown();
     });
 
     it('calculates total cash receipts correctly with bills only', () => {

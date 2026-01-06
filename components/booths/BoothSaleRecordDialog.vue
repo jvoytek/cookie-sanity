@@ -1,5 +1,6 @@
 <script setup lang="ts">
   const boothsStore = useBoothsStore();
+  const { formatCurrency } = useFormatHelpers();
 </script>
 <template>
   <Dialog
@@ -186,7 +187,7 @@
         >
           <span class="font-semibold text-lg">Total Cash Receipts:</span>
           <span class="text-xl font-bold text-green-600 dark:text-green-400">
-            ${{ boothsStore.totalCashReceipts.toFixed(2) }}
+            {{ formatCurrency(boothsStore.totalCashReceipts) }}
           </span>
         </div>
       </div>

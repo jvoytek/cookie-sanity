@@ -14,6 +14,26 @@ const BOOTH_STATUS = {
   ARCHIVED: 'archived',
 } as const;
 
+type CashBreakdown = {
+  ones: number;
+  fives: number;
+  tens: number;
+  twenties: number;
+  fifties: number;
+  hundreds: number;
+  cents: number;
+};
+
+const createEmptyCashBreakdown = (): CashBreakdown => ({
+  ones: 0,
+  fives: 0,
+  tens: 0,
+  twenties: 0,
+  fifties: 0,
+  hundreds: 0,
+  cents: 0,
+});
+
 export const useBoothsStore = defineStore('booths', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
@@ -35,23 +55,7 @@ export const useBoothsStore = defineStore('booths', () => {
     Record<string, { predicted: number; remaining: number; sales: number }>
   >({});
   const deleteBoothSaleDialogVisible = ref(false);
-  const cashBreakdown = ref<{
-    ones: number;
-    fives: number;
-    tens: number;
-    twenties: number;
-    fifties: number;
-    hundreds: number;
-    cents: number;
-  }>({
-    ones: 0,
-    fives: 0,
-    tens: 0,
-    twenties: 0,
-    fifties: 0,
-    hundreds: 0,
-    cents: 0,
-  });
+  const cashBreakdown = ref<CashBreakdown>(createEmptyCashBreakdown());
 
   /* Computed */
 
@@ -566,15 +570,7 @@ export const useBoothsStore = defineStore('booths', () => {
         cents: breakdown.cents || 0,
       };
     } else {
-      cashBreakdown.value = {
-        ones: 0,
-        fives: 0,
-        tens: 0,
-        twenties: 0,
-        fifties: 0,
-        hundreds: 0,
-        cents: 0,
-      };
+      cashBreakdown.value = createEmptyCashBreakdown();
     }
 
     recordSalesDialogVisible.value = true;
@@ -636,7 +632,7 @@ export const useBoothsStore = defineStore('booths', () => {
         predicted_cookies: updatedPredictedCookies,
         expected_sales: totalExpectedSales,
         cash_receipts: totalCashReceipts.value,
-        cash_breakdown: { ...cashBreakdown.value },
+        cash_breakdown: Object.assign({}, cashBreakdown.value),
       };
 
       const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
@@ -656,15 +652,7 @@ export const useBoothsStore = defineStore('booths', () => {
     recordSalesDialogVisible.value = false;
     activeBoothSaleForRecording.value = null;
     activeBoothSalesRecordData.value = {};
-    cashBreakdown.value = {
-      ones: 0,
-      fives: 0,
-      tens: 0,
-      twenties: 0,
-      fifties: 0,
-      hundreds: 0,
-      cents: 0,
-    };
+    cashBreakdown.value = createEmptyCashBreakdown();
   };
 
   const getTotalActualSalesForBoothSale = (boothSale: BoothSale): number => {
