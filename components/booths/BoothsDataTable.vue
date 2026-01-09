@@ -8,6 +8,8 @@
 
   const boothsStore = useBoothsStore();
   const girlsStore = useGirlsStore();
+  const cookiesStore = useCookiesStore();
+  const { formatCurrency } = useFormatHelpers();
 
   const dt = ref();
 
@@ -170,10 +172,55 @@
         </Badge>
       </template>
     </Column>
-    <Column field="expected_sales" header="Estimated Sales" sortable />
-    <Column header="Actual Sales" sortable>
+    <Column field="expected_sales" header="Estimated Packages" sortable />
+    <Column
+      field="packages_sold"
+      header="Packages Sold"
+      v-if="props.type === 'recorded' || props.type === 'archived'"
+      sortable
+    >
       <template #body="slotProps">
-        {{ boothsStore.getTotalActualSalesForBoothSale(slotProps.data) }}
+        {{ slotProps.data.packages_sold }}
+      </template>
+    </Column>
+    <Column
+      field="total_sales"
+      header="Sales"
+      v-if="props.type === 'recorded' || props.type === 'archived'"
+      sortable
+    >
+      <template #body="slotProps">
+        {{ formatCurrency(slotProps.data.total_sales) }}</template
+      >
+    </Column>
+    <Column
+      field="cash_receipts"
+      header="Cash Receipts"
+      v-if="props.type === 'recorded' || props.type === 'archived'"
+      sortable
+    >
+      <template #body="slotProps">
+        {{ formatCurrency(slotProps.data.cash_receipts || 0) }}
+      </template>
+    </Column>
+    <Column
+      field="credit_receipts"
+      header="Credit Receipts"
+      v-if="props.type === 'recorded'"
+      sortable
+    >
+      <template #body="slotProps">
+        {{ formatCurrency(slotProps.data.credit_receipts || 0) }}
+      </template>
+    </Column>
+    <Column
+      field="other_receipts"
+      header="Other Receipts"
+      v-if="props.type === 'recorded' || props.type === 'archived'"
+      sortable
+    >
+      <template #body="slotProps">
+        {{ formatCurrency(slotProps.data.other_receipts || 0) }}
       </template>
     </Column>
     <Column

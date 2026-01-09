@@ -15,7 +15,9 @@ create table booth_sales (
   notes text,
   status text check (status is null or status in ('archived', 'committed', 'recorded')),
   cash_receipts double precision, -- Total cash received at booth sale
-  cash_breakdown jsonb -- Breakdown of bills and coins received
+  cash_breakdown jsonb, -- Breakdown of bills and coins received
+  credit_receipts double precision, -- Total credit card receipts received at booth sale
+  other_receipts double precision -- Total other receipts received at booth sale
 );
 
 -- Enable RLS
