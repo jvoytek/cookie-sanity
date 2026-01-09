@@ -38,3 +38,7 @@
 .no-header-datatable .p-datatable-header {
   padding: 0 !important;
 }
+
+.print-table .p-datatable-tbody > tr > td {
+  border-color: #555 !important;
+}

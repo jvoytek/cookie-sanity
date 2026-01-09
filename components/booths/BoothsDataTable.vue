@@ -63,30 +63,6 @@
     return totalSold > 0;
   };
 
-  const getDerivedStatus = (sale: BoothSale) => {
-    if (sale.status === 'archived') {
-      return 'archived';
-    } else if (cookiesSoldGreaterThanOne(sale.cookies_sold)) {
-      return 'recorded';
-    } else if (sale.status === 'pending') {
-      return 'pending';
-    } else {
-      return 'upcoming';
-    }
-  };
-
-  const getStatusToolTip = (status: string | null) => {
-    if (status === 'archived') {
-      return 'No data from this booth sale will be included in inventory calculations.';
-    } else if (status === 'pending') {
-      return 'Estimated cookies have been removed from on-hand inventory calculations, but actual sales have not yet been recorded.';
-    } else if (status === 'recorded') {
-      return 'Actual sales have been recorded for this booth sale, but they have not yet been distributed to girls. Actual sales data will be reflected in inventory calculations.';
-    } else {
-      return 'Estimated sales will be included in the Upcoming Booths column of Troop Inventory (even if the actual date is in the past).';
-    }
-  };
-
   const moreActions = (sale: BoothSale) => [
     {
       label:
@@ -172,7 +148,7 @@
         </Badge>
       </template>
     </Column>
-    <Column field="expected_sales" header="Estimated Packages" sortable />
+    <Column field="expected_sales" header="Starting Inventory" sortable />
     <Column
       field="packages_sold"
       header="Packages Sold"
@@ -233,7 +209,7 @@
         <i
           v-tooltip.bottom="{
             value:
-              'Estimated packages committed to this sale will not be included in on-hand inventory calculations. This is useful when checking out troop inventory for a booth sale (i.e. removing it from physical troop inventory) but actual sales are not yet known.',
+              'Starting inventory committed to this sale will not be included in on-hand inventory calculations. This is useful when checking out troop inventory for a booth sale (i.e. removing it from physical troop inventory) but actual sales are not yet known.',
           }"
           class="pi pi-info-circle ml-2 text-sm text-gray-500 cursor-pointer"
         />
@@ -258,7 +234,7 @@
           severity="secondary"
           class="mr-2"
           v-tooltip.bottom="
-            'Mark this sale committed to remove estimated cookie sales from inventory calculations'
+            'Mark this sale committed to remove starting inventory from inventory calculations. Click this when you have checked out inventory for this booth sale and want to reflect that in inventory calculations, but you have not yet recorded actual sales data.'
           "
           @click="markCommittedBoothSale(slotProps.data)"
         />
@@ -279,6 +255,19 @@
           v-tooltip.bottom="'Record Sales'"
           @click="boothsStore.openRecordSalesDialog(slotProps.data)"
         />
+        <NuxtLink
+          :to="`/booth-sale-print?boothSaleId=${slotProps.data.id}`"
+          target="_blank"
+          v-if="props.type !== 'recorded' && props.type !== 'archived'"
+        >
+          <Button
+            icon="pi pi-print"
+            outlined
+            severity="secondary"
+            class="mr-2"
+            v-tooltip.bottom="'Print Worksheet'"
+          />
+        </NuxtLink>
         <Button
           type="button"
           icon="pi pi-ellipsis-v"

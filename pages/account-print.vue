@@ -140,26 +140,3 @@
     </DataTable>
   </div>
 </template>
-
-<style scoped>
-  @media print {
-    .print-report {
-      padding: 0;
-    }
-
-    .no-print {
-      display: none;
-    }
-
-    /* Ensure tables don't break across pages */
-    .print-table {
-      page-break-inside: avoid;
-    }
-
-    /* Remove any background colors for printing */
-    * {
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-  }
-</style>
