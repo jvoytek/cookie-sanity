@@ -42,12 +42,15 @@
   // Get cookies from predicted_cookies
   const cookiesList = computed(() => {
     const predictedCookies = boothSale.value.predicted_cookies || {};
+    // Handle predicted_cookies which is stored as Json (Record<string, unknown>)
+    const cookiesMap =
+      typeof predictedCookies === 'object' && predictedCookies !== null
+        ? (predictedCookies as Record<string, unknown>)
+        : {};
     return cookiesStore.allCookiesNotVirtual.map((cookie) => ({
       name: cookie.name,
       abbreviation: cookie.abbreviation,
-      predicted: (predictedCookies as Record<string, number>)[
-        cookie.abbreviation
-      ] || 0,
+      predicted: Number(cookiesMap[cookie.abbreviation]) || 0,
     }));
   });
 
@@ -471,7 +474,9 @@
       padding: 0;
     }
 
-    * {
+    .sales-table th,
+    .sales-table .fill-in-cell,
+    .sales-table .total-row {
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
