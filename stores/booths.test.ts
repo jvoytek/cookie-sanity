@@ -55,22 +55,30 @@ describe('useBoothsStore', () => {
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
 
+      // Format dates as mm/dd/yyyy to match how they are stored in the app
+      const formatDate = (date: Date) => {
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+      };
+
       boothsStore.allBoothSales = [
         {
           id: 1,
-          sale_date: yesterday.toLocaleString().split(',')[0],
+          sale_date: formatDate(yesterday),
           sale_time: '10:00',
           inventory_type: 'girl',
         },
         {
           id: 2,
-          sale_date: tomorrow.toLocaleString().split(',')[0],
+          sale_date: formatDate(tomorrow),
           sale_time: '14:00',
           inventory_type: 'troop',
         },
         {
           id: 3,
-          sale_date: tomorrow.toLocaleString().split(',')[0],
+          sale_date: formatDate(tomorrow),
           sale_time: '16:00',
           inventory_type: 'girl',
         },
@@ -80,10 +88,14 @@ describe('useBoothsStore', () => {
     it('filters upcoming booth sales correctly', () => {
       const upcoming = boothsStore.upcomingBoothSales;
       expect(upcoming).toHaveLength(2);
+      // Check that all upcoming sales have a future or today's date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       expect(
-        upcoming.every(
-          (sale) => sale.sale_date >= new Date().toLocaleString().split(',')[0],
-        ),
+        upcoming.every((sale) => {
+          const saleDate = new Date(sale.sale_date);
+          return saleDate >= today;
+        }),
       ).toBe(true);
     });
 
@@ -200,12 +212,16 @@ describe('useBoothsStore', () => {
           sale_date: '01/01/2024',
           sale_time: '10:00',
           inventory_type: 'troop',
+          packages_sold: 0,
+          total_sales: 0,
         },
         {
           id: 2,
           sale_date: '01/02/2024',
           sale_time: '14:00',
           inventory_type: 'girl',
+          packages_sold: 0,
+          total_sales: 0,
         },
       ];
 
@@ -351,6 +367,8 @@ describe('useBoothsStore', () => {
       expect(newBoothsStore.allBoothSales[0]).toEqual({
         ...mockInsertedSale,
         sale_date: '01/01/2024',
+        packages_sold: 0,
+        total_sales: 0,
       });
       expect(toastSpy).toHaveBeenCalledWith('Booth Sale Created');
     });
@@ -526,7 +544,21 @@ describe('useBoothsStore', () => {
 
       const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
-          upsert: vi.fn(() => Promise.resolve({ error: null })),
+          upsert: vi.fn(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn(() =>
+                Promise.resolve({
+                  data: {
+                    id: 1,
+                    sale_date: '2024-01-01',
+                    expected_sales: 150,
+                    inventory_type: 'troop',
+                  },
+                  error: null,
+                }),
+              ),
+            })),
+          })),
         })),
       }));
       vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
@@ -564,9 +596,13 @@ describe('useBoothsStore', () => {
 
       const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
-          upsert: vi.fn(() =>
-            Promise.resolve({ error: { message: 'Upsert failed' } }),
-          ),
+          upsert: vi.fn(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn(() =>
+                Promise.resolve({ error: { message: 'Upsert failed' } }),
+              ),
+            })),
+          })),
         })),
       }));
       vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
@@ -678,7 +714,22 @@ describe('useBoothsStore', () => {
 
       const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
-          upsert: vi.fn(() => Promise.resolve({ error: null })),
+          upsert: vi.fn(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn(() =>
+                Promise.resolve({
+                  data: {
+                    id: 1,
+                    sale_date: '2024-01-01',
+                    expected_sales: 100,
+                    inventory_type: 'troop',
+                    status: 'archived',
+                  },
+                  error: null,
+                }),
+              ),
+            })),
+          })),
         })),
       }));
       vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
