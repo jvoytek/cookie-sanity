@@ -279,6 +279,18 @@
           v-tooltip.bottom="'Record Sales'"
           @click="boothsStore.openRecordSalesDialog(slotProps.data)"
         />
+        <NuxtLink
+          :to="`/booth-sale-print?boothSaleId=${slotProps.data.id}`"
+          target="_blank"
+        >
+          <Button
+            icon="pi pi-print"
+            outlined
+            severity="secondary"
+            class="mr-2"
+            v-tooltip.bottom="'Print Worksheet'"
+          />
+        </NuxtLink>
         <Button
           type="button"
           icon="pi pi-ellipsis-v"
