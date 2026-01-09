@@ -1,4 +1,4 @@
-import type { Database } from '@/types/supabase';
+import type { Database, Json } from '@/types/supabase';
 import type { BoothSale } from '@/types/types';
 
 /*
@@ -310,7 +310,11 @@ export const useBoothsStore = defineStore('booths', () => {
   };
 
   const _supabaseUpsertBoothSale = async (boothSale: BoothSale) => {
-    return await supabaseClient.from('booth_sales').upsert(boothSale);
+    return await supabaseClient
+      .from('booth_sales')
+      .upsert(boothSale)
+      .select()
+      .single();
   };
 
   const _supabaseDeleteBoothSale = async (boothSale: BoothSale) => {
@@ -323,11 +327,28 @@ export const useBoothsStore = defineStore('booths', () => {
   const _transformDataForBoothSale = (booth: BoothSale) => {
     // transform sale_date from yyyy-mm-dd to mm/dd/yyyy
     const dateParts = booth.sale_date.split('-');
-    const formattedDate = `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
+    const formattedDate =
+      dateParts.length > 1
+        ? `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`
+        : booth.sale_date;
     return {
       ...booth,
       sale_date: formattedDate,
+      total_sales: _getTotalSales(booth.cookies_sold),
+      packages_sold: _getTotalPackagesSoldForBoothSale(booth.cookies_sold),
     };
+  };
+
+  const _transformDataForSave = (booth: BoothSale) => {
+    if (!booth.predicted_cookies) {
+      booth.predicted_cookies =
+        cookiesStore.getPredictedCookiesFromExpectedSales(
+          booth.expected_sales ?? 0,
+        );
+    }
+    delete booth.total_sales;
+    delete booth.packages_sold;
+    delete booth.auto_calculate_predicted_cookies;
   };
 
   const _totalCookiesSold = (cookiesSold: Json | null | undefined) => {
@@ -337,6 +358,15 @@ export const useBoothsStore = defineStore('booths', () => {
       0,
     );
     return totalSold;
+  };
+
+  const _getTotalSales = (cookies: Json | null) => {
+    if (!cookies) return 0;
+    let total = 0;
+    cookiesStore.allCookies.forEach((cookie) => {
+      total += Number(cookies[cookie.abbreviation] || 0) * cookie.price;
+    });
+    return total;
   };
 
   /* Actions */
@@ -374,16 +404,7 @@ export const useBoothsStore = defineStore('booths', () => {
 
     boothSale.profile = user.value.id;
     boothSale.season = seasonsStore.currentSeason.id;
-
-    if (!boothSale.predicted_cookies) {
-      boothSale.predicted_cookies =
-        cookiesStore.getPredictedCookiesFromExpectedSales(
-          boothSale.expected_sales ?? 0,
-        );
-    }
-
-    if (boothSale.auto_calculate_predicted_cookies !== undefined)
-      delete boothSale.auto_calculate_predicted_cookies;
+    _transformDataForSave(boothSale);
 
     try {
       const { data, error } = await _supabaseInsertBoothSale(boothSale);
@@ -399,24 +420,14 @@ export const useBoothsStore = defineStore('booths', () => {
   };
 
   const upsertBoothSale = async (boothSale: BoothSale) => {
+    _transformDataForSave(boothSale);
+
     try {
-      // Auto-calculate predicted cookies if not provided
-      if (!boothSale.predicted_cookies) {
-        boothSale.predicted_cookies =
-          cookiesStore.getPredictedCookiesFromExpectedSales(
-            boothSale.expected_sales ?? 0,
-          );
-      }
-
-      // Remove auto_calculate_predicted_cookies if it exists
-      if (boothSale.auto_calculate_predicted_cookies !== undefined)
-        delete boothSale.auto_calculate_predicted_cookies;
-
-      const { error } = await _supabaseUpsertBoothSale(boothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(boothSale);
 
       if (error) throw error;
 
-      _updateBoothSale(boothSale);
+      _updateBoothSale(_transformDataForBoothSale(data));
       _sortBoothSales();
       notificationHelpers.addSuccess('Booth Sale Updated');
     } catch (error) {
@@ -463,11 +474,12 @@ export const useBoothsStore = defineStore('booths', () => {
         status: BOOTH_STATUS.ARCHIVED,
       };
 
-      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+      _transformDataForSave(updatedBoothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
 
       if (error) throw error;
 
-      _updateBoothSale(updatedBoothSale);
+      _updateBoothSale(_transformDataForBoothSale(data));
       notificationHelpers.addSuccess('Booth Sale Archived');
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -481,11 +493,12 @@ export const useBoothsStore = defineStore('booths', () => {
         status: null,
       };
 
-      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+      _transformDataForSave(updatedBoothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
 
       if (error) throw error;
 
-      _updateBoothSale(updatedBoothSale);
+      _updateBoothSale(_transformDataForBoothSale(data));
       notificationHelpers.addSuccess('Booth Sale Unarchived');
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -499,11 +512,12 @@ export const useBoothsStore = defineStore('booths', () => {
         status: BOOTH_STATUS.COMMITTED,
       };
 
-      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+      _transformDataForSave(updatedBoothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
 
       if (error) throw error;
 
-      _updateBoothSale(updatedBoothSale);
+      _updateBoothSale(_transformDataForBoothSale(data));
       notificationHelpers.addSuccess('Booth Sale Marked as Committed');
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -517,11 +531,12 @@ export const useBoothsStore = defineStore('booths', () => {
       };
       delete updatedBoothSale.status;
 
-      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+      _transformDataForSave(updatedBoothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
 
       if (error) throw error;
 
-      _updateBoothSale(updatedBoothSale);
+      _updateBoothSale(_transformDataForBoothSale(data));
       notificationHelpers.addSuccess('Booth Sale Unmarked as committed');
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -643,12 +658,12 @@ export const useBoothsStore = defineStore('booths', () => {
         credit_receipts: creditReceipts.value,
         other_receipts: otherReceipts.value,
       };
-
-      const { error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+      _transformDataForSave(updatedBoothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
 
       if (error) throw error;
 
-      _updateBoothSale(updatedBoothSale);
+      _updateBoothSale(_transformDataForBoothSale(data));
       notificationHelpers.addSuccess('Sales Recorded Successfully');
       recordSalesDialogVisible.value = false;
       activeBoothSaleForRecording.value = null;
@@ -666,9 +681,9 @@ export const useBoothsStore = defineStore('booths', () => {
     otherReceipts.value = 0;
   };
 
-  const getTotalActualSalesForBoothSale = (boothSale: BoothSale): number => {
-    if (!boothSale.cookies_sold) return 0;
-    return Object.values(boothSale.cookies_sold as Record<string, number>)
+  const _getTotalPackagesSoldForBoothSale = (cookies: Json | null): number => {
+    if (!cookies) return 0;
+    return Object.values(cookies as Record<string, number>)
       .map((val) => Number(val) || 0)
       .reduce((sum: number, val: number) => sum + val, 0);
   };
@@ -707,7 +722,6 @@ export const useBoothsStore = defineStore('booths', () => {
     unarchiveBoothSale,
     markCommittedBoothSale,
     unmarkCommittedBoothSale,
-    getTotalActualSalesForBoothSale,
     recordSalesDialogVisible,
     activeBoothSaleForRecording,
     orderedActiveBoothSalesRecordData,
