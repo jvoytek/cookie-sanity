@@ -166,7 +166,7 @@
       {
         $el: 'p',
         children:
-          'Enter total estimated sales to auto-calculate cookie variety demand, or manually enter variety estimates. Setup expected cookie variety percentages in Cookie Settings.',
+          'Enter total starting inventory to auto-calculate cookie variety demand, or manually enter variety estimates. Setup expected cookie variety percentages in Cookie Settings.',
       },
       {
         $formkit: 'primeToggleSwitch',
@@ -183,7 +183,7 @@
       {
         $formkit: 'primeInputNumber',
         name: 'expected_sales',
-        label: 'Total Estimated Sales',
+        label: 'Starting Inventory',
         key: 'expected_sales',
         placeholder: '25, 50, 100, etc.',
         validation: 'required|integer|min:0',

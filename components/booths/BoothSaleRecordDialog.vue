@@ -60,7 +60,7 @@
             </div>
           </template>
         </Column>
-        <Column field="data.predicted" header="Estimated">
+        <Column field="data.predicted" header="Starting Inventory">
           <template #body="slotProps">
             <span v-if="slotProps.data.is_virtual === false">{{
               slotProps.data.data.predicted
