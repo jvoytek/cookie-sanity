@@ -4,6 +4,7 @@ import { setActivePinia, createPinia } from 'pinia';
 // Import the store after setting up global mocks in setup.ts
 import { useBoothsStore } from '@/stores/booths';
 import type { BoothSale } from '~/types/types';
+import { add } from 'date-fns';
 
 describe('useBoothsStore', () => {
   let boothsStore: ReturnType<typeof useBoothsStore>;
@@ -301,6 +302,7 @@ describe('useBoothsStore', () => {
       const toastSpy = vi.fn();
       const useNotificationHelpersMock = vi.fn(() => ({
         addSuccess: toastSpy,
+        addError: toastSpy,
       }));
       vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
@@ -517,6 +519,7 @@ describe('useBoothsStore', () => {
       const toastSpy = vi.fn();
       const useNotificationHelpersMock = vi.fn(() => ({
         addSuccess: toastSpy,
+        addError: toastSpy,
       }));
 
       vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
@@ -597,6 +600,7 @@ describe('useBoothsStore', () => {
       const toastSpy = vi.fn();
       const useNotificationHelpersMock = vi.fn(() => ({
         addSuccess: toastSpy,
+        addError: toastSpy,
       }));
       vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
@@ -668,6 +672,7 @@ describe('useBoothsStore', () => {
       const toastSpy = vi.fn();
       const useNotificationHelpersMock = vi.fn(() => ({
         addSuccess: toastSpy,
+        addError: toastSpy,
       }));
       vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
@@ -713,9 +718,13 @@ describe('useBoothsStore', () => {
 
       const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn(() => ({
-          upsert: vi.fn(() =>
-            Promise.resolve({ error: { message: 'Archive failed' } }),
-          ),
+          upsert: vi.fn(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn(() =>
+                Promise.resolve({ error: { message: 'Archive failed' } }),
+              ),
+            })),
+          })),
         })),
       }));
       vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
@@ -951,6 +960,7 @@ describe('useBoothsStore', () => {
       const toastSpy = vi.fn();
       const useNotificationHelpersMock = vi.fn(() => ({
         addSuccess: toastSpy,
+        addError: toastSpy,
       }));
       vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 

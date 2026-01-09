@@ -122,9 +122,7 @@
           >
         </div>
 
-        <!-- Total Cash -->
         <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-          <!-- Cash -->
           <div class="mb-4" v-if="enterCashBreakdown">
             <div class="grid grid-cols-7 gap-3">
               <div class="flex flex-col">
