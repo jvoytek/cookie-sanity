@@ -75,11 +75,12 @@ export const useBoothsStore = defineStore('booths', () => {
 
   const orderedActiveBoothSalesRecordData = computed(() => {
     // Return an array of sales record data ordered by cookie order
-    return cookiesStore.allCookiesNotVirtual.map((cookie) => ({
+    return cookiesStore.allCookies.map((cookie) => ({
       abbreviation: cookie.abbreviation,
       name: cookie.name,
       color: cookie.color,
       price: cookie.price,
+      is_virtual: cookie.is_virtual,
       data: activeBoothSalesRecordData.value[cookie.abbreviation] || {
         predicted: 0,
         remaining: 0,
@@ -553,7 +554,7 @@ export const useBoothsStore = defineStore('booths', () => {
     > = {};
 
     // Get all non-virtual cookies from the cookies store
-    cookiesStore.allCookiesNotVirtual.forEach((cookie) => {
+    cookiesStore.allCookies.forEach((cookie) => {
       const predictedAmount = boothSale.predicted_cookies
         ? (boothSale.predicted_cookies as Record<string, number>)[
             cookie.abbreviation

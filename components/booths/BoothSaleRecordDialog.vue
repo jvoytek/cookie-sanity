@@ -52,15 +52,27 @@
                 >{{ slotProps.data.name }} ({{
                   formatCurrency(slotProps.data.price)
                 }})</span
+              ><span
+                v-if="slotProps.data.is_virtual"
+                class="text-xs italic text-gray-500"
+                >(Virtual)</span
               >
             </div>
           </template>
         </Column>
-        <Column field="data.predicted" header="Estimated" />
+        <Column field="data.predicted" header="Estimated">
+          <template #body="slotProps">
+            <span v-if="slotProps.data.is_virtual === false">{{
+              slotProps.data.data.predicted
+            }}</span>
+          </template>
+        </Column>
         <Column field="data.remaining" header="Remaining">
           <template #body="slotProps">
             <InputNumber
-              v-if="enterRemainingPackages"
+              v-if="
+                enterRemainingPackages && slotProps.data.is_virtual === false
+              "
               v-model="slotProps.data.data.remaining"
               :min="0"
               @update:model-value="
@@ -72,13 +84,17 @@
               "
               input-class="w-16"
             />
-            <span v-else>{{ slotProps.data.data.remaining }}</span>
+            <span v-else-if="slotProps.data.is_virtual === false">{{
+              slotProps.data.data.remaining
+            }}</span>
           </template>
         </Column>
         <Column field="data.sales" header="Sales">
           <template #body="slotProps">
             <InputNumber
-              v-if="!enterRemainingPackages"
+              v-if="
+                !enterRemainingPackages || slotProps.data.is_virtual === true
+              "
               v-model="slotProps.data.data.sales"
               :min="0"
               @update:model-value="
