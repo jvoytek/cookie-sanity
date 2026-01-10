@@ -163,10 +163,10 @@
                 'text-red-600 dark:text-red-400 font-bold':
                   remainingCookies[cookie.abbreviation] !== 0,
               }"
-            />
+            >
               {{ remainingCookies[cookie.abbreviation] }}
             </td>
-            <td></td>
+            <td />
           </tr>
         </template>
 
