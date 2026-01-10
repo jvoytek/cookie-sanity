@@ -414,7 +414,7 @@ export const useTransactionHelpers = () => {
 
   function editTransaction(
     order: Order | NewOrder,
-    type: 'troop' | 'girl' | 'all' = 'all',
+    type: 'troop' | 'girl' | 'all' | 'audit' | 'audit-extra' | 'all' = 'all',
   ) {
     ordersStore.setActiveTransaction({ ...order });
     ordersStore.transactionDialogFormSchema.value =
@@ -424,7 +424,7 @@ export const useTransactionHelpers = () => {
 
   function duplicateTransaction(
     order: Order,
-    type: 'troop' | 'girl' | 'all' = 'all',
+    type: 'troop' | 'girl' | 'all' | 'audit' | 'audit-extra' | 'all' = 'all',
   ) {
     // Create a copy of the transaction without database-generated fields
     // This ensures it will be treated as a new transaction when saved

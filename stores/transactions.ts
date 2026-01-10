@@ -341,8 +341,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const friendlyTransactionTypes = (type: string): string => {
     const transactionTypeMap: Record<string, string> = {
       T2G: 'Troop to Girl',
-      'T2G(B)': 'Booth',
-      'T2G(VB)': 'Virtual Booth',
+      'T2G(B)': 'Troop to Girl (Booth)',
+      'T2G(VB)': 'Troop to Girl (Virtual Booth)',
       G2G: 'Girl to Girl',
       G2T: 'Girl to Troop',
       T2T: 'Troop to Troop',

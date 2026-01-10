@@ -167,12 +167,14 @@
             <TransactionsDataTable
               :orders="filteredRequestedTransactions"
               transaction-types="girl"
+              no-transactions-message="No requests found."
             />
           </TabPanel>
           <TabPanel value="1">
             <TransactionsDataTable
               :orders="filteredPendingTransactions"
               transaction-types="girl"
+              no-transactions-message="No pending transactions found."
             />
           </TabPanel>
           <TabPanel value="2">
@@ -180,6 +182,7 @@
               :orders="filteredCompletedTransactions"
               transaction-types="girl"
               :paginated="true"
+              no-transactions-message="No completed transactions found."
             />
           </TabPanel>
           <TabPanel value="3">
@@ -187,12 +190,14 @@
               :orders="filteredRecordedTransactions"
               transaction-types="girl"
               :paginated="true"
+              no-transactions-message="No recorded transactions found."
             />
           </TabPanel>
           <TabPanel value="4">
             <TransactionsDataTable
               :orders="filteredRejectedTransactions"
               transaction-types="girl"
+              no-transactions-message="No rejected transactions found."
             />
           </TabPanel>
         </TabPanels>
