@@ -932,6 +932,7 @@ describe('useBoothsStore', () => {
     it('initializes cash breakdown when opening record sales dialog', () => {
       const useCookiesStoreMock = vi.fn(() => ({
         allCookiesNotVirtual: [],
+        allCookies: [],
       }));
       vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 
@@ -969,6 +970,7 @@ describe('useBoothsStore', () => {
     it('resets cash breakdown to zero when booth sale has no cash_breakdown', () => {
       const useCookiesStoreMock = vi.fn(() => ({
         allCookiesNotVirtual: [],
+        allCookies: [],
       }));
       vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 
@@ -1017,6 +1019,7 @@ describe('useBoothsStore', () => {
 
       const useCookiesStoreMock = vi.fn(() => ({
         allCookiesNotVirtual: [],
+        allCookies: [],
       }));
       vi.stubGlobal('useCookiesStore', useCookiesStoreMock);
 
