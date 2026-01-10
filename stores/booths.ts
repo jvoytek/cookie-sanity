@@ -778,16 +778,15 @@ export const useBoothsStore = defineStore('booths', () => {
       const transactionsStore = useTransactionsStore();
       const today = new Date().toISOString().split('T')[0];
 
-      // Create a transaction for each girl
-      const transactionPromises = Object.entries(distributionData.value).map(
-        ([girlIdStr, cookies]) => {
-          const girlId = Number(girlIdStr);
-
+      // Create a transaction for each girl with cookies distributed
+      const transactionsToCreate = Object.entries(distributionData.value)
+        .filter(([_girlIdStr, cookies]) => {
           // Skip girls with no cookies distributed
-          const hasCookies = Object.values(cookies).some((qty) => qty > 0);
-          if (!hasCookies) return Promise.resolve();
-
-          const transaction = {
+          return Object.values(cookies).some((qty) => qty > 0);
+        })
+        .map(([girlIdStr, cookies]) => {
+          const girlId = Number(girlIdStr);
+          return {
             type: 'T2G(B)',
             order_date: today,
             to: girlId,
@@ -795,9 +794,11 @@ export const useBoothsStore = defineStore('booths', () => {
             cookies: cookies,
             status: 'complete',
           };
+        });
 
-          return transactionsStore.insertNewTransaction(transaction, false);
-        },
+      // Insert all transactions
+      const transactionPromises = transactionsToCreate.map((transaction) =>
+        transactionsStore.insertNewTransaction(transaction, false),
       );
 
       await Promise.all(transactionPromises);
