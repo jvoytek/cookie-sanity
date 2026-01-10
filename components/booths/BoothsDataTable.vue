@@ -8,7 +8,6 @@
 
   const boothsStore = useBoothsStore();
   const girlsStore = useGirlsStore();
-  const cookiesStore = useCookiesStore();
   const { formatCurrency } = useFormatHelpers();
 
   const dt = ref();
@@ -110,6 +109,14 @@
       sale.status === 'committed' &&
       sale.inventory_type === 'troop' &&
       cookiesSoldGreaterThanOne(sale.cookies_sold) === false
+    );
+  };
+
+  const showDistributeButton = (sale: BoothSale) => {
+    return (
+      sale.inventory_type === 'troop' &&
+      props.type === 'recorded' &&
+      cookiesSoldGreaterThanOne(sale.cookies_sold)
     );
   };
 </script>
@@ -254,6 +261,15 @@
           class="mr-2"
           v-tooltip.bottom="'Record Sales'"
           @click="boothsStore.openRecordSalesDialog(slotProps.data)"
+        />
+        <Button
+          v-if="showDistributeButton(slotProps.data)"
+          icon="pi pi-share-alt"
+          outlined
+          severity="secondary"
+          class="mr-2"
+          v-tooltip.bottom="'Distribute Sales to Girls'"
+          @click="boothsStore.openDistributeSalesDialog(slotProps.data)"
         />
         <NuxtLink
           :to="`/booth-sale-print?boothSaleId=${slotProps.data.id}`"
