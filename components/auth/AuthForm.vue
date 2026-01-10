@@ -39,6 +39,40 @@
       loading.value = false;
     }
   };
+
+  const signInWithGoogle = async () => {
+    try {
+      loading.value = true;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'http://localhost:3000/confirm',
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      alert(error.error_description || error.message);
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const signInWithFacebook = async () => {
+    try {
+      loading.value = true;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: 'http://localhost:3000/confirm',
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      alert(error.error_description || error.message);
+    } finally {
+      loading.value = false;
+    }
+  };
 </script>
 
 <template>
@@ -68,6 +102,24 @@
   <Divider align="center">
     <strong>or</strong>
   </Divider>
+  <Button
+    type="button"
+    label="Sign in with Google"
+    :disabled="loading"
+    class="w-full mb-6"
+    icon="pi pi-google"
+    @click="signInWithGoogle"
+    style="background-color: #de5246; border-color: #de5246"
+  />
+  <Button
+    type="button"
+    label="Sign in with Facebook"
+    :disabled="loading"
+    class="w-full mb-6"
+    icon="pi pi-facebook"
+    @click="signInWithFacebook"
+    style="background-color: #1877f2; border-color: #1877f2"
+  />
   <Button
     type="button"
     label="Sign in with GitHub"

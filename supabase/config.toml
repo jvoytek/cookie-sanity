@@ -264,6 +264,14 @@ max_frequency = "5s"
 enabled = true
 client_id = "env(GITHUB_CLIENT_ID)"
 secret = "env(GITHUB_SECRET)"
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_SECRET)"
+[auth.external.facebook]
+enabled = true
+client_id = "env(FACEBOOK_CLIENT_ID)"
+secret = "env(FACEBOOK_SECRET)"
 # Overrides the default auth redirectUrl.
 redirect_uri = ""
 # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
