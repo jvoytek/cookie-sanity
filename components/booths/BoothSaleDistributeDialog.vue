@@ -18,18 +18,13 @@
       .filter((girl): girl is Girl => girl !== null);
   });
 
-  // Get non-virtual cookies
-  const nonVirtualCookies = computed(() => {
-    return cookiesStore.allCookies.filter((cookie) => !cookie.is_virtual);
-  });
-
   // Computed property for remaining cookies (cookies sold - total distributed)
   const remainingCookies = computed(() => {
     const remaining: Record<string, number> = {};
     const cookiesSold =
       boothsStore.activeBoothSaleForDistribution?.cookies_sold;
 
-    nonVirtualCookies.value.forEach((cookie) => {
+    cookiesStore.allCookies.forEach((cookie) => {
       const sold = cookiesSold
         ? (cookiesSold[cookie.abbreviation] as number) || 0
         : 0;
@@ -45,11 +40,18 @@
     return remaining;
   });
 
+  const remainingCookiesTotal = computed(() => {
+    return Object.values(remainingCookies.value).reduce(
+      (sum, val) => sum + val,
+      0,
+    );
+  });
+
   // Computed property for total distributed per cookie
   const totalDistributed = computed(() => {
     const totals: Record<string, number> = {};
 
-    nonVirtualCookies.value.forEach((cookie) => {
+    cookiesStore.allCookies.forEach((cookie) => {
       totals[cookie.abbreviation] = assignedGirls.value.reduce((sum, girl) => {
         return (
           sum +
@@ -64,10 +66,10 @@
   // Get row total for a girl
   const getGirlTotal = (girl: Girl) => {
     let total = 0;
-    nonVirtualCookies.value.forEach((cookie) => {
+    cookiesStore.allCookies.forEach((cookie) => {
       const quantity =
         boothsStore.distributionData[girl.id]?.[cookie.abbreviation] || 0;
-      total += quantity * cookie.price;
+      total += quantity;
     });
     return total;
   };
@@ -90,7 +92,7 @@
     @after-hide="boothsStore.closeDistributeSalesDialog"
   >
     <div class="flex flex-col gap-4">
-      <p class="text-sm text-gray-600 dark:text-gray-400">
+      <p>
         Distribute the cookies sold at this booth sale to the girls who worked
         it. Adjust quantities as needed.
       </p>
@@ -101,7 +103,46 @@
         :scrollable="true"
         scroll-height="500px"
       >
-        <Column field="name" header="Girl" :frozen="true" style="min-width: 150px">
+        <ColumnGroup type="header">
+          <Row>
+            <Column />
+            <Column
+              v-for="cookie in cookiesStore.allCookies"
+              :key="cookie.abbreviation"
+              :header="cookie.abbreviation"
+            />
+            <Column header="Total" />
+          </Row>
+          <Row>
+            <Column header="Undistributed" />
+            <Column
+              v-for="cookie in cookiesStore.allCookies"
+              :key="cookie.abbreviation"
+              ><template #header>
+                <span
+                  :class="{
+                    'text-red-600 dark:text-red-400 font-bold':
+                      remainingCookies[cookie.abbreviation] !== 0,
+                  }"
+                  >{{ remainingCookies[cookie.abbreviation] }}</span
+                >
+              </template>
+            </Column>
+            <Column header=""
+              ><template #header>
+                <span
+                  :class="{
+                    'text-red-600 dark:text-red-400 font-bold':
+                      remainingCookiesTotal !== 0,
+                  }"
+                  >{{ remainingCookiesTotal }}</span
+                >
+              </template>
+              >
+            </Column>
+          </Row>
+        </ColumnGroup>
+        <Column field="name" header="Girl" :frozen="true">
           <template #body="slotProps">
             {{ slotProps.data.first_name }} {{ slotProps.data.last_name }}
           </template>
@@ -109,11 +150,10 @@
 
         <!-- Dynamic columns for each cookie -->
         <Column
-          v-for="cookie in nonVirtualCookies"
+          v-for="cookie in cookiesStore.allCookies"
           :key="cookie.abbreviation"
           :field="cookie.abbreviation"
           :header="cookie.abbreviation"
-          style="min-width: 100px"
         >
           <template #body="slotProps">
             <InputNumber
@@ -123,59 +163,32 @@
                 ] || 0
               "
               :min="0"
-              input-class="w-20"
+              input-class="w-15"
               @update:model-value="
                 (val) =>
-                  updateDistribution(slotProps.data.id, cookie.abbreviation, val)
+                  updateDistribution(
+                    slotProps.data.id,
+                    cookie.abbreviation,
+                    val,
+                  )
               "
             />
           </template>
         </Column>
 
         <!-- Total column -->
-        <Column
-          header="Total"
-          :frozen="true"
-          align-frozen="right"
-          style="min-width: 120px"
-        >
+        <Column header="Total" :frozen="true" align-frozen="right">
           <template #body="slotProps">
-            <strong>{{ formatCurrency(getGirlTotal(slotProps.data)) }}</strong>
+            <strong>{{ getGirlTotal(slotProps.data) }}</strong>
           </template>
         </Column>
-
-        <!-- Header row for "Remaining" -->
-        <template #header>
-          <tr>
-            <th>Girl</th>
-            <th v-for="cookie in nonVirtualCookies" :key="cookie.abbreviation">
-              {{ cookie.abbreviation }}
-            </th>
-            <th>Total</th>
-          </tr>
-          <tr class="bg-yellow-50 dark:bg-yellow-900/20">
-            <td class="font-semibold">Remaining</td>
-            <td
-              v-for="cookie in nonVirtualCookies"
-              :key="`remaining-${cookie.abbreviation}`"
-              class="text-center"
-              :class="{
-                'text-red-600 dark:text-red-400 font-bold':
-                  remainingCookies[cookie.abbreviation] !== 0,
-              }"
-            >
-              {{ remainingCookies[cookie.abbreviation] }}
-            </td>
-            <td />
-          </tr>
-        </template>
 
         <!-- Footer row for "Total Distributed" -->
         <ColumnGroup type="footer">
           <Row>
             <Column footer="Total Distributed" class="font-semibold" />
             <Column
-              v-for="cookie in nonVirtualCookies"
+              v-for="cookie in cookiesStore.allCookies"
               :key="`footer-${cookie.abbreviation}`"
               :footer="totalDistributed[cookie.abbreviation]"
             />
@@ -193,8 +206,17 @@
         @click="boothsStore.closeDistributeSalesDialog"
       />
       <Button
-        label="Save"
+        :label="
+          remainingCookiesTotal > 0
+            ? 'Distribute all cookies to save'
+            : remainingCookiesTotal < 0
+              ? 'Don\'t distribute more than available to save'
+              : 'Create ' +
+                assignedGirls.length +
+                ' new &quot;Troop to Girl (Booth)&quot; transactions and archive this booth sale'
+        "
         icon="pi pi-check"
+        :disabled="remainingCookiesTotal !== 0"
         @click="boothsStore.saveDistributedSales"
       />
     </template>

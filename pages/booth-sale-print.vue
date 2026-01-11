@@ -298,9 +298,8 @@
         </div>
       </div>
 
-      <!-- Adults on Duty Section -->
       <div>
-        <div><strong>Adults Supervisor(s)</strong></div>
+        <div><strong>Adult Supervisor(s)</strong></div>
         <div>
           <div class="border-b border-gray-400 pt-3">1.</div>
           <div class="border-b border-gray-400 pt-3">2.</div>

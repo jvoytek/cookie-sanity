@@ -60,9 +60,7 @@ export const useBoothsStore = defineStore('booths', () => {
   const otherReceipts = ref(0);
   const distributeSalesDialogVisible = ref(false);
   const activeBoothSaleForDistribution = ref<BoothSale | null>(null);
-  const distributionData = ref<
-    Record<number, Record<string, number>>
-  >({});
+  const distributionData = ref<Record<number, Record<string, number>>>({});
 
   /* Computed */
 
@@ -731,17 +729,13 @@ export const useBoothsStore = defineStore('booths', () => {
     assignedGirls.forEach((girl) => {
       newDistributionData[girl.id] = {};
       cookiesStore.allCookies.forEach((cookie) => {
-        if (!cookie.is_virtual) {
-          newDistributionData[girl.id][cookie.abbreviation] = 0;
-        }
+        newDistributionData[girl.id][cookie.abbreviation] = 0;
       });
     });
 
     // Distribute cookies evenly using round-robin algorithm
     let girlIndex = 0;
     cookiesStore.allCookies.forEach((cookie) => {
-      if (cookie.is_virtual) return;
-
       const sold = cookiesSold[cookie.abbreviation] || 0;
       for (let i = 0; i < sold; i++) {
         const girl = assignedGirls[girlIndex];
@@ -788,11 +782,12 @@ export const useBoothsStore = defineStore('booths', () => {
           const girlId = Number(girlIdStr);
           return {
             type: 'T2G(B)',
-            order_date: today,
+            order_date: activeBoothSaleForDistribution.value.sale_date,
             to: girlId,
             from: null,
             cookies: cookies,
             status: 'complete',
+            notes: `Booth Sale: ${activeBoothSaleForDistribution.value.location}, ${activeBoothSaleForDistribution.value.sale_date} ${activeBoothSaleForDistribution.value.sale_time}`,
           };
         });
 
@@ -802,6 +797,18 @@ export const useBoothsStore = defineStore('booths', () => {
       );
 
       await Promise.all(transactionPromises);
+
+      // Set activeBoothSaleForDistribution to archived
+      const updatedBoothSale = {
+        ...activeBoothSaleForDistribution.value,
+        status: BOOTH_STATUS.ARCHIVED,
+      };
+      _transformDataForSave(updatedBoothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(_transformDataForBoothSale(data));
 
       notificationHelpers.addSuccess('Sales distributed successfully');
       closeDistributeSalesDialog();
