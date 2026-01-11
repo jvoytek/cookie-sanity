@@ -1,6 +1,4 @@
 <script setup lang="ts">
-  import type { BoothSale } from '@/types/types';
-
   const boothsStore = useBoothsStore();
 
   function openNew() {
@@ -77,6 +75,7 @@
         <BoothSaleDialog />
         <BoothSaleDeleteDialog />
         <BoothSaleRecordDialog />
+        <BoothSaleDistributeDialog />
       </div>
     </div>
     <NoCookiesOverlay />

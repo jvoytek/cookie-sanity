@@ -58,6 +58,9 @@ export const useBoothsStore = defineStore('booths', () => {
   const cashBreakdown = ref<CashBreakdown>(createEmptyCashBreakdown());
   const creditReceipts = ref(0);
   const otherReceipts = ref(0);
+  const distributeSalesDialogVisible = ref(false);
+  const activeBoothSaleForDistribution = ref<BoothSale | null>(null);
+  const distributionData = ref<Record<number, Record<string, number>>>({});
 
   /* Computed */
 
@@ -689,6 +692,137 @@ export const useBoothsStore = defineStore('booths', () => {
       .reduce((sum: number, val: number) => sum + val, 0);
   };
 
+  const openDistributeSalesDialog = (boothSale: BoothSale) => {
+    activeBoothSaleForDistribution.value = boothSale;
+
+    // Get girls assigned to this booth sale
+    const girlsStore = useGirlsStore();
+    const scoutsAttending = boothSale.scouts_attending;
+    if (!scoutsAttending || !Array.isArray(scoutsAttending)) {
+      notificationHelpers.addError(
+        new Error('No scouts assigned to this booth sale'),
+      );
+      return;
+    }
+
+    const assignedGirls = scoutsAttending
+      .map((girlId) => girlsStore.getGirlById(girlId))
+      .filter((girl) => girl !== null);
+
+    if (assignedGirls.length === 0) {
+      notificationHelpers.addError(
+        new Error('No valid scouts assigned to this booth sale'),
+      );
+      return;
+    }
+
+    // Initialize distributionData with evenly distributed cookies
+    const cookiesSold = boothSale.cookies_sold as Record<string, number> | null;
+    if (!cookiesSold) {
+      notificationHelpers.addError(new Error('No cookies sold data found'));
+      return;
+    }
+
+    const newDistributionData: Record<number, Record<string, number>> = {};
+
+    // Initialize each girl's cookie counts to 0
+    assignedGirls.forEach((girl) => {
+      newDistributionData[girl.id] = {};
+      cookiesStore.allCookies.forEach((cookie) => {
+        newDistributionData[girl.id][cookie.abbreviation] = 0;
+      });
+    });
+
+    // Distribute cookies evenly using round-robin algorithm
+    let girlIndex = 0;
+    cookiesStore.allCookies.forEach((cookie) => {
+      const sold = cookiesSold[cookie.abbreviation] || 0;
+      for (let i = 0; i < sold; i++) {
+        const girl = assignedGirls[girlIndex];
+        newDistributionData[girl.id][cookie.abbreviation]++;
+
+        // Move to next girl, wrapping around
+        girlIndex = (girlIndex + 1) % assignedGirls.length;
+      }
+      // Start next cookie type with the next girl in rotation
+      // (not starting over with first girl)
+    });
+
+    distributionData.value = newDistributionData;
+    distributeSalesDialogVisible.value = true;
+  };
+
+  const updateDistributionData = (
+    girlId: number,
+    cookieAbbr: string,
+    value: number,
+  ) => {
+    if (!distributionData.value[girlId]) {
+      distributionData.value[girlId] = {};
+    }
+    distributionData.value[girlId][cookieAbbr] = value;
+  };
+
+  const saveDistributedSales = async () => {
+    try {
+      if (!activeBoothSaleForDistribution.value) {
+        throw new Error('No booth sale selected');
+      }
+
+      const transactionsStore = useTransactionsStore();
+      const today = new Date().toISOString().split('T')[0];
+
+      // Create a transaction for each girl with cookies distributed
+      const transactionsToCreate = Object.entries(distributionData.value)
+        .filter(([_girlIdStr, cookies]) => {
+          // Skip girls with no cookies distributed
+          return Object.values(cookies).some((qty) => qty > 0);
+        })
+        .map(([girlIdStr, cookies]) => {
+          const girlId = Number(girlIdStr);
+          return {
+            type: 'T2G(B)',
+            order_date: activeBoothSaleForDistribution.value.sale_date,
+            to: girlId,
+            from: null,
+            cookies: cookies,
+            status: 'complete',
+            notes: `Booth Sale: ${activeBoothSaleForDistribution.value.location}, ${activeBoothSaleForDistribution.value.sale_date} ${activeBoothSaleForDistribution.value.sale_time}`,
+          };
+        });
+
+      // Insert all transactions
+      const transactionPromises = transactionsToCreate.map((transaction) =>
+        transactionsStore.insertNewTransaction(transaction, false),
+      );
+
+      await Promise.all(transactionPromises);
+
+      // Set activeBoothSaleForDistribution to archived
+      const updatedBoothSale = {
+        ...activeBoothSaleForDistribution.value,
+        status: BOOTH_STATUS.ARCHIVED,
+      };
+      _transformDataForSave(updatedBoothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(_transformDataForBoothSale(data));
+
+      notificationHelpers.addSuccess('Sales distributed successfully');
+      closeDistributeSalesDialog();
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const closeDistributeSalesDialog = () => {
+    distributeSalesDialogVisible.value = false;
+    activeBoothSaleForDistribution.value = null;
+    distributionData.value = {};
+  };
+
   return {
     allBoothSales,
     visibleBoothSales,
@@ -736,5 +870,12 @@ export const useBoothsStore = defineStore('booths', () => {
     totalCashReceipts,
     creditReceipts,
     otherReceipts,
+    distributeSalesDialogVisible,
+    activeBoothSaleForDistribution,
+    distributionData,
+    openDistributeSalesDialog,
+    updateDistributionData,
+    saveDistributedSales,
+    closeDistributeSalesDialog,
   };
 });
