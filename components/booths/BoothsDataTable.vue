@@ -8,7 +8,6 @@
 
   const boothsStore = useBoothsStore();
   const girlsStore = useGirlsStore();
-  const cookiesStore = useCookiesStore();
   const { formatCurrency } = useFormatHelpers();
 
   const dt = ref();
@@ -27,6 +26,10 @@
       scouts_attending,
       cookies_sold,
       status,
+      cash_breakdown,
+      credit_receipts,
+      cash_receipts,
+      other_receipts,
       ...saleCopy
     } = sale;
     saleCopy.status = null;
@@ -110,6 +113,14 @@
       sale.status === 'committed' &&
       sale.inventory_type === 'troop' &&
       cookiesSoldGreaterThanOne(sale.cookies_sold) === false
+    );
+  };
+
+  const showDistributeButton = (sale: BoothSale) => {
+    return (
+      sale.inventory_type === 'troop' &&
+      props.type === 'recorded' &&
+      cookiesSoldGreaterThanOne(sale.cookies_sold)
     );
   };
 </script>
@@ -218,10 +229,11 @@
         {{ slotProps.data.status == 'committed' ? 'yes' : '' }}
       </template>
     </Column>
-    <Column :exportable="false" style="min-width: 12rem" header="Actions">
+    <Column :exportable="false" style="min-width: 189px" header="Actions">
       <template #body="slotProps">
         <Button
           icon="pi pi-pencil"
+          v-if="props.type !== 'archived'"
           outlined
           class="mr-2"
           v-tooltip.bottom="'Edit Sale'"
@@ -249,11 +261,21 @@
         />
         <Button
           icon="pi pi-list-check"
+          v-if="props.type !== 'archived'"
           outlined
           severity="secondary"
           class="mr-2"
           v-tooltip.bottom="'Record Sales'"
           @click="boothsStore.openRecordSalesDialog(slotProps.data)"
+        />
+        <Button
+          v-if="showDistributeButton(slotProps.data)"
+          icon="pi pi-sparkles"
+          outlined
+          severity="secondary"
+          class="mr-2"
+          v-tooltip.bottom="'Distribute Sales to Girls'"
+          @click="boothsStore.openDistributeSalesDialog(slotProps.data)"
         />
         <NuxtLink
           :to="`/booth-sale-print?boothSaleId=${slotProps.data.id}`"
