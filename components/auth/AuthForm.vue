@@ -1,6 +1,8 @@
 <script setup>
   import Button from 'primevue/button';
   const supabase = useSupabaseClient();
+  const config = useRuntimeConfig();
+  const appHostName = config.public.appHostName || 'http://localhost:3000';
 
   const loading = ref(false);
   const email = ref('');
@@ -11,7 +13,7 @@
       const { error } = await supabase.auth.signInWithOtp({
         email: email.value,
         options: {
-          emailRedirectTo: 'http://localhost:3000/confirm',
+          emailRedirectTo: `${appHostName}/confirm`,
         },
       });
       if (error) throw error;
@@ -29,7 +31,7 @@
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: 'http://localhost:3000/confirm',
+          redirectTo: `${appHostName}/confirm`,
         },
       });
       if (error) throw error;
@@ -46,7 +48,7 @@
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'http://localhost:3000/confirm',
+          redirectTo: `${appHostName}/confirm`,
         },
       });
       if (error) throw error;
@@ -63,7 +65,7 @@
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: 'http://localhost:3000/confirm',
+          redirectTo: `${appHostName}/confirm`,
         },
       });
       if (error) throw error;

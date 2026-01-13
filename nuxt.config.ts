@@ -23,7 +23,11 @@ export default defineNuxtConfig({
     '@formkit/nuxt',
     '@nuxt/test-utils/module',
   ],
-
+  runtimeConfig: {
+    public: {
+      appHostName: process.env.HOSTNAME,
+    },
+  },
   supabase: {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_ANON_KEY,
