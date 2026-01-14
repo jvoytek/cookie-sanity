@@ -115,15 +115,6 @@
   />
   <Button
     type="button"
-    label="Sign in with Facebook"
-    :disabled="loading"
-    class="w-full mb-6"
-    icon="pi pi-facebook"
-    @click="signInWithFacebook"
-    style="background-color: #1877f2; border-color: #1877f2"
-  />
-  <Button
-    type="button"
     label="Sign in with GitHub"
     :disabled="loading"
     class="w-full"
