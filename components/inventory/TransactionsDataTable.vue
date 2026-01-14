@@ -312,7 +312,6 @@
 
     let containsAll = true;
     abbreviationsList.forEach((abbreviation: string) => {
-      console.log(value[abbreviation]);
       if (
         value[abbreviation] === undefined ||
         value[abbreviation] === null ||
