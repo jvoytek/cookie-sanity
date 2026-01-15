@@ -6,7 +6,7 @@ This app solves real, everyday problems that troop leaders, troop cookie manager
 
 By eliminating frustration and making cookie management faster and easier, Cookie Sanity gives volunteers back what they need most: time and peace of mind. It helps troops stay organized, reduces errors, and makes the cookie season less stressful and more successful—for everyone.
 
-You've found the public repository of source code for this project. If you would like to contribute to the project please read on. If you're looking for the app to use for your cookie season please check back in December 2025 when we hope to launch.
+You've found the public repository of source code for this project. If you would like to contribute to the project please read on. If you're looking for the app to use for your cookie season please email jessica.voytek@gmail.com for more information.
 
 Other things to include:
 
