@@ -36,34 +36,37 @@ export type Database = {
     Tables: {
       audit_sessions: {
         Row: {
-          id: string;
-          profile: string;
+          created_at: string;
           file_name: string;
           file_size: number;
-          created_at: string;
-          status: string;
+          id: string;
           original_file_data: Json;
           parsed_rows: Json;
+          profile: string;
+          season: number;
+          status: string;
         };
         Insert: {
-          id?: string;
-          profile: string;
+          created_at?: string;
           file_name: string;
           file_size: number;
-          created_at?: string;
-          status?: string;
+          id?: string;
           original_file_data: Json;
           parsed_rows?: Json;
+          profile: string;
+          season?: number;
+          status?: string;
         };
         Update: {
-          id?: string;
-          profile?: string;
+          created_at?: string;
           file_name?: string;
           file_size?: number;
-          created_at?: string;
-          status?: string;
+          id?: string;
           original_file_data?: Json;
           parsed_rows?: Json;
+          profile?: string;
+          season?: number;
+          status?: string;
         };
         Relationships: [
           {
@@ -71,6 +74,13 @@ export type Database = {
             columns: ['profile'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'audit_sessions_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
             referencedColumns: ['id'];
           },
         ];
@@ -153,6 +163,38 @@ export type Database = {
           },
         ];
       };
+      cookie_defaults: {
+        Row: {
+          created_at: string;
+          defaults: Json;
+          id: string;
+          name: string;
+          profile: string;
+        };
+        Insert: {
+          created_at?: string;
+          defaults?: Json;
+          id?: string;
+          name: string;
+          profile: string;
+        };
+        Update: {
+          created_at?: string;
+          defaults?: Json;
+          id?: string;
+          name?: string;
+          profile?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'cookie_defaults_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       cookies: {
         Row: {
           abbreviation: string;
@@ -192,7 +234,7 @@ export type Database = {
           order?: number | null;
           overbooking_allowed?: boolean | null;
           percent_of_sale?: number | null;
-          price?: string | null;
+          price?: number | null;
           profile?: string | null;
           season?: number;
         };
@@ -372,6 +414,20 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: 'orders_from_fkey';
+            columns: ['from'];
+            isOneToOne: false;
+            referencedRelation: 'seller_requests';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'orders_from_fkey';
+            columns: ['from'];
+            isOneToOne: false;
+            referencedRelation: 'sellers';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'orders_profile_fkey';
             columns: ['profile'];
             isOneToOne: false;
@@ -383,6 +439,13 @@ export type Database = {
             columns: ['season'];
             isOneToOne: false;
             referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'orders_to_fkey';
+            columns: ['to'];
+            isOneToOne: false;
+            referencedRelation: 'seller_requests';
             referencedColumns: ['id'];
           },
           {
@@ -447,6 +510,13 @@ export type Database = {
             foreignKeyName: 'payments_seller_id_fkey';
             columns: ['seller_id'];
             isOneToOne: false;
+            referencedRelation: 'seller_requests';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payments_seller_id_fkey';
+            columns: ['seller_id'];
+            isOneToOne: false;
             referencedRelation: 'sellers';
             referencedColumns: ['id'];
           },
@@ -456,6 +526,7 @@ export type Database = {
         Row: {
           display_name: string | null;
           id: string;
+          is_admin: boolean | null;
           season: number | null;
           state: Json | null;
           updated_at: string | null;
@@ -463,6 +534,7 @@ export type Database = {
         Insert: {
           display_name?: string | null;
           id: string;
+          is_admin?: boolean | null;
           season?: number | null;
           state?: Json | null;
           updated_at?: string | null;
@@ -470,6 +542,7 @@ export type Database = {
         Update: {
           display_name?: string | null;
           id?: string;
+          is_admin?: boolean | null;
           season?: number | null;
           state?: Json | null;
           updated_at?: string | null;
@@ -549,7 +622,7 @@ export type Database = {
           profile: string;
           publish_girl_request_form?: boolean | null;
           troop_number?: string;
-          year?: number;
+          year: number;
         };
         Update: {
           created_at?: string;
@@ -572,6 +645,7 @@ export type Database = {
       sellers: {
         Row: {
           created_at: string;
+          email: string | null;
           first_name: string;
           id: number;
           last_name: string;
@@ -581,6 +655,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          email?: string | null;
           first_name: string;
           id?: number;
           last_name: string;
@@ -590,6 +665,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          email?: string | null;
           first_name?: string;
           id?: number;
           last_name?: string;
@@ -655,10 +731,33 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      seller_requests: {
+        Row: {
+          first_name: string | null;
+          id: number | null;
+          season: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'sellers_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
-      [_ in never]: never;
+      is_admin: { Args: { p_profile_id: string }; Returns: boolean };
+      is_season_collaborator: {
+        Args: { p_profile_id: string; p_season_id: number };
+        Returns: boolean;
+      };
+      is_season_owner: {
+        Args: { p_profile_id: string; p_season_id: number };
+        Returns: boolean;
+      };
     };
     Enums: {
       [_ in never]: never;
