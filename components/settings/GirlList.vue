@@ -103,7 +103,7 @@
 
   function openNew() {
     girl.value = {
-      season: profileStore.currentProfile.season,
+      season: seasonsStore.currentSeason.id,
     };
     submitted.value = false;
     girlDialog.value = true;
