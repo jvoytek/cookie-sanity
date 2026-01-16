@@ -1,6 +1,7 @@
 <script setup>
   import { FilterMatchMode } from '@primevue/core/api';
   import { useToast } from 'primevue/usetoast';
+  import { useFormKitNodeById } from '@formkit/vue';
 
   const loading = ref(true);
   loading.value = true;
@@ -51,8 +52,11 @@
       }
 
       if (product.value.id) {
+        console.log(product.value);
         cookiesStore.upsertCookie(product.value);
       } else {
+        console.log(product.value);
+
         cookiesStore.insertCookie(product.value);
       }
 
@@ -89,6 +93,224 @@
   async function onRowReorder(event) {
     cookiesStore.reorderCookies(event.value);
   }
+
+  const cookieDialogFormSchema = [
+    {
+      $formkit: 'primeInputText',
+      name: 'name',
+      label: 'Name',
+      key: 'name',
+      placeholder: 'Enter cookie name',
+      validation: 'required',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeInputText',
+      name: 'abbreviation',
+      label: 'Abbreviation',
+      key: 'abbreviation',
+      placeholder: 'TM, CR, etc.',
+      validation: 'required',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $el: 'div',
+      attrs: {
+        class: 'grid grid-cols-5 gap-4 items-center',
+      },
+      children: [
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-2',
+          },
+        },
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-3 text-sm text-gray-500',
+          },
+          children:
+            "(abbreviation must match cooker baker's software for auditing)",
+        },
+      ],
+    },
+    {
+      $formkit: 'primeInputNumber',
+      name: 'order',
+      label: 'Order',
+      key: 'order',
+      min: 0,
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $el: 'div',
+      attrs: {
+        class: 'grid grid-cols-5 gap-4 items-center',
+      },
+      children: [
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-2',
+          },
+        },
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-3 text-sm text-gray-500',
+          },
+          children:
+            '(The order in which cookies are displayed in the app and reports)',
+        },
+      ],
+    },
+    {
+      $formkit: 'primeInputNumber',
+      name: 'percent_of_sale',
+      label: 'Percent of Sale',
+      key: 'percent_of_sale',
+      minFractionDigits: 0,
+      maxFractionDigits: 2,
+      placeholder: 'Expected % of total sale',
+      min: 0,
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $el: 'div',
+      attrs: {
+        class: 'grid grid-cols-5 gap-4 items-center',
+      },
+      children: [
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-2',
+          },
+        },
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-3 text-sm text-gray-500',
+          },
+          children: '(used for inventory projections)',
+        },
+      ],
+    },
+    {
+      $formkit: 'primeColorPicker',
+      name: 'color',
+      label: 'Color',
+      key: 'color',
+      placeholder:
+        'Hex color code for the cookie (e.g. #ff0000). Used for charts and inventory management.',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeInputNumber',
+      name: 'price',
+      label: 'Price',
+      key: 'price',
+      mode: 'currency',
+      currency: 'USD',
+      locale: 'en-US',
+      min: 0,
+      validation: 'required',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeCheckbox',
+      name: 'is_virtual',
+      label: 'Virtual (Donated)',
+      key: 'is_virtual',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $el: 'div',
+      attrs: {
+        class: 'grid grid-cols-5 gap-4 items-center',
+      },
+      children: [
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-2',
+          },
+        },
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-3 text-sm text-gray-500',
+          },
+          children: "(don't count towards on-hand inventory)",
+        },
+      ],
+    },
+    {
+      $formkit: 'primeCheckbox',
+      name: 'overbooking_allowed',
+      label: 'Allow Overbooking',
+      key: 'overbooking_allowed',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+      value: true,
+    },
+    {
+      $el: 'div',
+      attrs: {
+        class: 'grid grid-cols-5 gap-4 items-center',
+      },
+      children: [
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-2',
+          },
+        },
+        {
+          $el: 'div',
+          attrs: {
+            class: 'col-span-3 text-sm text-gray-500',
+          },
+          children:
+            '(allow requests, etc that exceed on-hand/pending inventory)',
+        },
+      ],
+    },
+  ];
+
+  const formNode = useFormKitNodeById('cookie-form');
+
+  const submitHandler = () => {
+    saveProduct();
+  };
+
+  const submitButtonClickHandler = () => {
+    if (formNode.value) formNode.value.submit();
+  };
 </script>
 
 <template>
@@ -257,6 +479,18 @@
       :modal="true"
     >
       <div class="flex flex-col gap-6">
+        <FormKit
+          id="cookie-form"
+          v-model="product"
+          type="form"
+          :actions="false"
+          @submit="submitHandler"
+        >
+          <!-- Render the dynamic form using the schema -->
+          <FormKitSchema :schema="cookieDialogFormSchema" />
+        </FormKit>
+      </div>
+      <!--<div class="flex flex-col gap-6">
         <div>
           <label for="name" class="block font-bold mb-3">Name</label>
           <InputText
@@ -377,11 +611,15 @@
             />
           </label>
         </div>
-      </div>
+      </div>-->
 
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-        <Button label="Save" icon="pi pi-check" @click="saveProduct" />
+        <Button
+          label="Save"
+          icon="pi pi-check"
+          @click="submitButtonClickHandler"
+        />
       </template>
     </Dialog>
 

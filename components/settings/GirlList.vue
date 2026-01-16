@@ -1,5 +1,6 @@
 <script setup>
   import { FilterMatchMode } from '@primevue/core/api';
+  import { useFormKitNodeById } from '@formkit/vue';
 
   const notificationHelpers = useNotificationHelpers();
 
@@ -103,7 +104,7 @@
 
   function openNew() {
     girl.value = {
-      season: profileStore.currentProfile.season,
+      season: seasonsStore.currentSeason.id,
     };
     submitted.value = false;
     girlDialog.value = true;
@@ -155,6 +156,66 @@
       });
     }
   }
+
+  const girlDialogFormSchema = [
+    {
+      $formkit: 'primeInputText',
+      name: 'first_name',
+      label: 'First Name',
+      key: 'first_name',
+      placeholder: 'Enter first name',
+      validation: 'required',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeInputText',
+      name: 'last_name',
+      label: 'Last Name',
+      key: 'last_name',
+      placeholder: 'Enter last name',
+      validation: 'required',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeInputText',
+      name: 'preferred_name',
+      label: 'Preferred Name',
+      key: 'preferred_name',
+      placeholder: 'Enter preferred name (optional)',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeInputText',
+      name: 'email',
+      label: 'Email',
+      key: 'email',
+      validation: 'email',
+      placeholder: 'Enter email (optional)',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+  ];
+
+  const formNode = useFormKitNodeById('girl-form');
+
+  const submitHandler = () => {
+    saveGirl();
+  };
+
+  const submitButtonClickHandler = () => {
+    if (formNode.value) formNode.value.submit();
+  };
 </script>
 
 <template>
@@ -295,56 +356,17 @@
           :modal="true"
         >
           <div class="flex flex-col gap-6">
-            <div>
-              <label for="first_name" class="block font-bold mb-3"
-                >First Name</label
-              >
-              <InputText
-                id="first_name"
-                v-model.trim="girl.first_name"
-                required="true"
-                autofocus
-                :invalid="submitted && !girl.first_name"
-                fluid
-              />
-              <small v-if="submitted && !girl.first_name" class="text-red-500"
-                >First Name is required.</small
-              >
-            </div>
-            <div>
-              <label for="last_name" class="block font-bold mb-3"
-                >Last Name</label
-              >
-              <InputText
-                id="last_name"
-                v-model.trim="girl.last_name"
-                required="true"
-                autofocus
-                :invalid="submitted && !girl.last_name"
-                fluid
-              />
-              <small v-if="submitted && !girl.last_name" class="text-red-500"
-                >Last Name is required.</small
-              >
-            </div>
-            <div>
-              <label for="preferred_name" class="block font-bold mb-3"
-                >Preferred Name</label
-              >
-              <InputText
-                id="preferred_name"
-                v-model.trim="girl.preferred_name"
-                autofocus
-                :invalid="submitted && !girl.preferred_name"
-                fluid
-              />
-            </div>
-            <div>
-              <label for="email" class="block font-bold mb-3">Email</label>
-              <InputText id="email" v-model.trim="girl.email" autofocus fluid />
-            </div>
+            <FormKit
+              id="girl-form"
+              v-model="girl"
+              type="form"
+              :actions="false"
+              @submit="submitHandler"
+            >
+              <!-- Render the dynamic form using the schema -->
+              <FormKitSchema :schema="girlDialogFormSchema" />
+            </FormKit>
           </div>
-
           <template #footer>
             <Button
               label="Cancel"
@@ -352,7 +374,11 @@
               text
               @click="hideDialog"
             />
-            <Button label="Save" icon="pi pi-check" @click="saveGirl" />
+            <Button
+              label="Save"
+              icon="pi pi-check"
+              @click="submitButtonClickHandler"
+            />
           </template>
         </Dialog>
 

@@ -2,6 +2,7 @@
   import { useFormKitNodeById } from '@formkit/vue';
 
   const seasonsStore = useSeasonsStore();
+  const profileStore = useProfileStore();
   const formNode = useFormKitNodeById('season-form');
 
   const submitButtonClickHandler = () => {
@@ -17,6 +18,8 @@
       seasonsStore.upsertSeason(seasonsStore.activeSeason);
     } else if (seasonsStore.activeSeason) {
       seasonsStore.insertSeason(seasonsStore.activeSeason);
+      await profileStore.saveCurrentSeasonInProfile();
+      await profileStore.fetchProfile();
     }
 
     seasonsStore.seasonDialogVisible = false;
