@@ -11,6 +11,8 @@ export type Order = Database['public']['Tables']['orders']['Row'] & {
 };
 export type Girl = Database['public']['Tables']['sellers']['Row'];
 export type Cookie = Database['public']['Tables']['cookies']['Row'];
+export type CookieDefault =
+  Database['public']['Tables']['cookie_defaults']['Row'];
 export type User = Database['public']['Tables']['profiles']['Row'];
 export type Upload = Database['public']['Tables']['uploads']['Row'];
 export type Season = Database['public']['Tables']['seasons']['Row'];

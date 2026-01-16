@@ -1,5 +1,5 @@
 import type { Database } from '@/types/supabase';
-import type { Cookie } from '@/types/types';
+import type { Cookie, CookieDefault } from '@/types/types';
 
 /*
 ref()s become state properties
@@ -18,6 +18,7 @@ export const useCookiesStore = defineStore('cookies', () => {
 
   /* State */
   const allCookies = ref<Cookie[]>([]);
+  const defaultCookieSets = ref<CookieDefault[]>([]);
 
   const customCookieValidationRules = {
     overBooking: (node) => {
@@ -319,6 +320,14 @@ export const useCookiesStore = defineStore('cookies', () => {
     return await supabaseClient.from('cookies').insert(cookies).select();
   };
 
+  const _supabaseSaveDefaultCookies = async (defaults: {
+    profile: string;
+    name: string;
+    defaults: Omit<Cookie, 'id' | 'created_at'>[];
+  }) => {
+    return await supabaseClient.from('cookie_defaults').insert(defaults);
+  };
+
   const _getCookiePercentages = (
     cookieRatioTotal?: number,
   ): Record<string, number> => {
@@ -403,6 +412,19 @@ export const useCookiesStore = defineStore('cookies', () => {
       const { data, error } = await _supabaseFetchCookies();
       if (error) throw error;
       allCookies.value = data ?? [];
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const fetchDefaultCookieSets = async () => {
+    try {
+      if (!profileStore.currentProfile?.id) return;
+      const { data, error } = await supabaseClient
+        .from('cookie_defaults')
+        .select('*');
+      if (error) throw error;
+      defaultCookieSets.value = data ?? [];
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -573,8 +595,76 @@ export const useCookiesStore = defineStore('cookies', () => {
     }
   };
 
+  const saveCurrentSeasonCookiesAsDefault = async () => {
+    if (!profileStore.currentProfile?.id) {
+      notificationHelpers.addError(new Error('No profile found'));
+      return;
+    }
+
+    try {
+      // Create new cookies for the default season, removing id and created_at
+      const cookiesToInsert: Omit<Cookie, 'id' | 'created_at'>[] =
+        allCookies.value.map((cookie) => {
+          const { id, created_at, season, profile, ...cookieData } = cookie;
+          return {
+            ...cookieData,
+          };
+        });
+
+      const defaultsToSave = {
+        profile: profileStore.currentProfile.id,
+        name: seasonsStore.getSeasonName(null) + ' Default Cookies',
+        defaults: cookiesToInsert,
+      };
+
+      // Insert new cookies for the default season
+      const { error } = await _supabaseSaveDefaultCookies(defaultsToSave);
+      if (error) throw error;
+
+      notificationHelpers.addSuccess(
+        'Current season cookies saved as default successfully',
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const copyDefaultCookiesToCurrentSeason = async (
+    defaultSet: CookieDefault,
+  ) => {
+    try {
+      if (!defaultSet || defaultSet.defaults.length === 0) {
+        throw new Error('Default cookie set not found');
+      }
+      const cookiesToInsert = defaultSet.defaults.map((cookie) => {
+        const { id, created_at, season, profile, ...cookieData } = cookie;
+        return {
+          ...cookieData,
+          season: seasonsStore.currentSeason?.id,
+          profile: profileStore.currentProfile?.id,
+        };
+      });
+      const { data, error } =
+        await _supabaseInsertMultipleCookies(cookiesToInsert);
+
+      if (error) throw error;
+
+      // Add the new cookies to the store
+      if (data) {
+        data.forEach((cookie) => _addCookie(cookie as Cookie));
+        _sortCookies();
+      }
+      notificationHelpers.addSuccess(
+        'Default cookies copied to current season',
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     allCookies,
+    defaultCookieSets,
     allCookiesNotVirtual,
     allCookiesWithInventoryTotals,
     cookieFormFields,
@@ -583,6 +673,7 @@ export const useCookiesStore = defineStore('cookies', () => {
     averageCookiePrice,
     customCookieValidationRules,
     fetchCookies,
+    fetchDefaultCookieSets,
     fetchCookiesBySeason,
     getCookieByAbbreviation,
     insertCookie,
@@ -591,5 +682,7 @@ export const useCookiesStore = defineStore('cookies', () => {
     reorderCookies,
     getPredictedCookiesFromExpectedSales,
     copyCookiesFromSeason,
+    saveCurrentSeasonCookiesAsDefault,
+    copyDefaultCookiesToCurrentSeason,
   };
 });

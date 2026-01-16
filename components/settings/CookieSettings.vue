@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
   import { FilterMatchMode } from '@primevue/core/api';
   import { useToast } from 'primevue/usetoast';
   import { useFormKitNodeById } from '@formkit/vue';
+  import type { CookieDefault } from '~/types/types';
 
   const loading = ref(true);
   loading.value = true;
@@ -9,12 +10,13 @@
   const cookiesStore = useCookiesStore();
   const seasonsStore = useSeasonsStore();
   const formatHelpers = useFormatHelpers();
+  const profilesStore = useProfileStore();
 
   loading.value = false;
 
   const toast = useToast();
-  const dt = ref();
-  const productDialog = ref(false);
+  const cookieDialogVisible = ref(false);
+  const defaultsDialogVisible = ref(false);
   const deleteProductDialog = ref(false);
   const copyCookiesDialogVisible = ref(false);
   const product = ref({});
@@ -34,11 +36,11 @@
   function openNew() {
     product.value = {};
     submitted.value = false;
-    productDialog.value = true;
+    cookieDialogVisible.value = true;
   }
 
   function hideDialog() {
-    productDialog.value = false;
+    cookieDialogVisible.value = false;
     submitted.value = false;
   }
 
@@ -60,14 +62,14 @@
         cookiesStore.insertCookie(product.value);
       }
 
-      productDialog.value = false;
+      cookieDialogVisible.value = false;
       product.value = {};
     }
   }
 
   function editProduct(prod) {
     product.value = { ...prod };
-    productDialog.value = true;
+    cookieDialogVisible.value = true;
   }
 
   function confirmDeleteProduct(prod) {
@@ -311,6 +313,25 @@
   const submitButtonClickHandler = () => {
     if (formNode.value) formNode.value.submit();
   };
+
+  const cookieSetToCopy = ref<CookieDefault | null>(null);
+
+  const saveCookiesAsDefault = async () => {
+    await cookiesStore.saveCurrentSeasonCookiesAsDefault();
+  };
+
+  const openDefaultsDialog = () => {
+    defaultsDialogVisible.value = true;
+  };
+
+  const closeDefaultsDialog = () => {
+    defaultsDialogVisible.value = false;
+  };
+
+  const confirmCopyFromDefaults = async (defaultSet: CookieDefault) => {
+    await cookiesStore.copyDefaultCookiesToCurrentSeason(defaultSet);
+    defaultsDialogVisible.value = false;
+  };
 </script>
 
 <template>
@@ -329,7 +350,6 @@
                 label="New"
                 icon="pi pi-plus"
                 severity="secondary"
-                class="mr-2"
                 @click="openNew"
               />
               <Button
@@ -338,7 +358,27 @@
                 icon="pi pi-copy"
                 severity="secondary"
                 variant="outlined"
+                class="ml-2"
                 @click="copyCookiesDialogVisible = true"
+              />
+              <Button
+                v-if="cookiesStore.defaultCookieSets.length > 0"
+                label="Add cookies from council defaults"
+                icon="pi pi-plus"
+                severity="secondary"
+                variant="outlined"
+                class="ml-2"
+                @click="openDefaultsDialog()"
+              />
+              <Button
+                v-if="
+                  profilesStore.isAdmin && cookiesStore.allCookies.length > 0
+                "
+                label="Save cookies as default"
+                severity="secondary"
+                variant="outlined"
+                class="ml-2"
+                @click="saveCookiesAsDefault"
               />
             </template>
           </Toolbar>
@@ -473,7 +513,7 @@
     </div>
 
     <Dialog
-      v-model:visible="productDialog"
+      v-model:visible="cookieDialogVisible"
       :style="{ width: '450px' }"
       header="Product Details"
       :modal="true"
@@ -490,135 +530,61 @@
           <FormKitSchema :schema="cookieDialogFormSchema" />
         </FormKit>
       </div>
-      <!--<div class="flex flex-col gap-6">
-        <div>
-          <label for="name" class="block font-bold mb-3">Name</label>
-          <InputText
-            id="name"
-            v-model.trim="product.name"
-            required="true"
-            autofocus
-            :invalid="submitted && !product.name"
-            fluid
-          />
-          <small v-if="submitted && !product.name" class="text-red-500"
-            >Name is required.</small
-          >
-        </div>
-        <div>
-          <label for="abbreviation" class="block font-bold mb-3"
-            >Abbreviation</label
-          >
-          <InputText
-            id="abbreviation"
-            v-model.trim="product.abbreviation"
-            required="true"
-            :invalid="submitted && !product.name"
-            fluid
-          />
-          <small v-if="submitted && !product.abbreviation" class="text-red-500"
-            >Abbreviation is required.</small
-          >
-        </div>
-        <div>
-          <label for="order" class="block font-bold mb-3">Order</label>
-          <InputNumber id="order" v-model.trim="product.order" fluid />
-        </div>
-        <div>
-          <label for="percent_of_sale" class="block font-bold mb-3"
-            >Percent of Sale</label
-          >
-          <InputNumber
-            id="percent_of_sale"
-            v-model.trim="product.percent_of_sale"
-            fluid
-            :max-fraction-digits="5"
-          />
-        </div>
-        <div class="grid grid-cols-12 gap-4">
-          <div class="col-span-12">
-            <label for="color" class="block font-bold mb-3">Color</label>
-          </div>
-          <div class="flex flex-col col-span-1">
-            <ColorPicker v-model="product.color" />
-          </div>
-          <div class="flex flex-col w-full col-span-11">
-            <InputMask
-              id="color"
-              v-model.trim="product.color"
-              mask="#******"
-              required="true"
-              :invalid="submitted && !product.color"
-            />
-          </div>
-          <div>
-            <small v-if="submitted && !product.color" class="text-red-500"
-              >Color is required.</small
-            >
-          </div>
-        </div>
-
-        <div class="grid grid-cols-12 gap-4">
-          <div class="col-span-6">
-            <label for="price" class="block font-bold mb-3">Price</label>
-            <InputNumber
-              id="price"
-              v-model="product.price"
-              mode="currency"
-              currency="USD"
-              locale="en-US"
-              fluid
-            />
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <Checkbox
-            v-model="product.is_virtual"
-            input-id="is_virtual"
-            :binary="true"
-          />
-          <label for="is_virtual" class="font-bold">
-            Virtual (Donated)
-            <i
-              v-tooltip.bottom="{
-                value:
-                  'Virtual packages don\'t count against your inventory. These are packages that are donated or not physically distributed to customers. Sometimes called Cookie Share or Gift of Caring.',
-                showDelay: 500,
-              }"
-              class="pi pi-info-circle ml-2"
-              style="cursor: pointer"
-            />
-          </label>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <Checkbox
-            v-model="product.overbooking_allowed"
-            input-id="overbooking_allowed"
-            :binary="true"
-          />
-          <label for="overbooking_allowed" class="font-bold">
-            Allow Overbooking
-            <i
-              v-tooltip.bottom="{
-                value:
-                  'When checked, allows selling more cookies than available in inventory. Uncheck for limited varieties.',
-                showDelay: 500,
-              }"
-              class="pi pi-info-circle ml-2"
-              style="cursor: pointer"
-            />
-          </label>
-        </div>
-      </div>-->
-
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
         <Button
           label="Save"
           icon="pi pi-check"
           @click="submitButtonClickHandler"
+        />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="defaultsDialogVisible"
+      :style="{ width: '450px' }"
+      header="Add Cookies from Council Defaults"
+      :modal="true"
+    >
+      <div class="flex flex-col gap-4">
+        <span
+          >Select a default cookie set to copy from. This will add all cookies
+          from the selected set to your current list, it will not overwrite
+          existing cookies (if there are any).</span
+        >
+        <Listbox
+          v-model="cookieSetToCopy"
+          :options="cookiesStore.defaultCookieSets"
+          filter
+          optionLabel="name"
+        />
+        <div v-for="cookie in cookieSetToCopy?.defaults" :key="cookie.id">
+          <div class="flex items-center gap-2">
+            <Badge size="small" :style="{ backgroundColor: cookie.color }" />
+            <span>{{ cookie.name }}</span>
+            <span class="text-sm text-gray-500">
+              ({{ formatHelpers.formatCurrency(cookie.price) }}
+              {{
+                cookie.percent_of_sale
+                  ? `${cookie.percent_of_sale}% of sale`
+                  : ''
+              }})
+            </span>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <Button
+          label="Cancel"
+          icon="pi pi-times"
+          text
+          @click="closeDefaultsDialog"
+        />
+        <Button
+          label="Add these cookies to current season"
+          icon="pi pi-check"
+          @click="confirmCopyFromDefaults(cookieSetToCopy)"
+          :disabled="!cookieSetToCopy"
         />
       </template>
     </Dialog>

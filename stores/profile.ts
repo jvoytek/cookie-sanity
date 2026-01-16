@@ -28,6 +28,10 @@ export const useProfileStore = defineStore('profile', () => {
 
   /* Computed */
 
+  const isAdmin = computed(() => {
+    return currentProfile.value?.is_admin ?? false;
+  });
+
   /* Private Functions */
 
   const _supabaseFetchProfile = async () => {
@@ -60,6 +64,7 @@ export const useProfileStore = defineStore('profile', () => {
         const collaboratorsStore = useCollaboratorsStore();
         await collaboratorsStore.fetchCollaborators();
         await cookiesStore.fetchCookies();
+        await cookiesStore.fetchDefaultCookieSets();
         await girlsStore.fetchGirls();
         await ordersStore.fetchTransactions();
         await accountsStore.fetchPayments();
@@ -113,6 +118,7 @@ export const useProfileStore = defineStore('profile', () => {
 
   return {
     currentProfile,
+    isAdmin,
     display_name,
     fetchProfile,
     updateProfile,

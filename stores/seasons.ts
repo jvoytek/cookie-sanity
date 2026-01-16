@@ -115,8 +115,10 @@ export const useSeasonsStore = defineStore('seasons', () => {
   };
 
   const getSeasonName = (season: Season | null) => {
-    if (!season) return 'loading...';
-    return season.troop_number + '-' + season.year;
+    if (!season && !currentSeason.value) return 'loading...';
+
+    const theSeason = season ? season : currentSeason.value;
+    return theSeason.troop_number + '-' + theSeason.year;
   };
 
   const insertSeason = async (season: Season) => {
