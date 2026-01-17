@@ -92,6 +92,7 @@ export type Database = {
           cookies_sold: Json | null;
           created_at: string;
           credit_receipts: number | null;
+          end_time: string | null;
           expected_sales: number | null;
           id: number;
           inventory_type: string;
@@ -101,9 +102,9 @@ export type Database = {
           predicted_cookies: Json | null;
           profile: string;
           sale_date: string;
-          sale_time: string | null;
           scouts_attending: Json | null;
           season: number;
+          start_time: string | null;
           status: string | null;
         };
         Insert: {
@@ -112,6 +113,7 @@ export type Database = {
           cookies_sold?: Json | null;
           created_at?: string;
           credit_receipts?: number | null;
+          end_time?: string | null;
           expected_sales?: number | null;
           id?: number;
           inventory_type: string;
@@ -121,9 +123,9 @@ export type Database = {
           predicted_cookies?: Json | null;
           profile: string;
           sale_date: string;
-          sale_time?: string | null;
           scouts_attending?: Json | null;
           season?: number;
+          start_time?: string | null;
           status?: string | null;
         };
         Update: {
@@ -132,6 +134,7 @@ export type Database = {
           cookies_sold?: Json | null;
           created_at?: string;
           credit_receipts?: number | null;
+          end_time?: string | null;
           expected_sales?: number | null;
           id?: number;
           inventory_type?: string;
@@ -141,9 +144,9 @@ export type Database = {
           predicted_cookies?: Json | null;
           profile?: string;
           sale_date?: string;
-          sale_time?: string | null;
           scouts_attending?: Json | null;
           season?: number;
+          start_time?: string | null;
           status?: string | null;
         };
         Relationships: [

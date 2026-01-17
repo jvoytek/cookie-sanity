@@ -328,6 +328,41 @@ export const useBoothsStore = defineStore('booths', () => {
       .eq('id', boothSale.id);
   };
 
+  // Convert 24-hour format time to 12-hour format
+  const _convert24to12Hour = (time24: string | null): string | null => {
+    if (!time24) return null;
+
+    const [hours, minutes] = time24.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return null;
+
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12; // Convert 0 to 12
+
+    return `${hours12}:${String(minutes).padStart(2, '0')} ${period}`;
+  };
+
+  // Convert 12-hour format time to 24-hour format
+  const _convert12to24Hour = (time12: string | null): string | null => {
+    if (!time12) return null;
+
+    const match = time12.match(
+      /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM|am|pm)$/i,
+    );
+    if (!match) return null;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const period = match[3].toUpperCase();
+
+    if (period === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hours = 0;
+    }
+
+    return `${String(hours).padStart(2, '0')}:${minutes}`;
+  };
+
   const _transformDataForBoothSale = (booth: BoothSale) => {
     // transform sale_date from yyyy-mm-dd to mm/dd/yyyy
     const dateParts = booth.sale_date.split('-');
@@ -338,6 +373,8 @@ export const useBoothsStore = defineStore('booths', () => {
     return {
       ...booth,
       sale_date: formattedDate,
+      start_time: _convert24to12Hour(booth.start_time),
+      end_time: _convert24to12Hour(booth.end_time),
       total_sales: _getTotalSales(booth.cookies_sold),
       packages_sold: _getTotalPackagesSoldForBoothSale(booth.cookies_sold),
     };
@@ -350,6 +387,9 @@ export const useBoothsStore = defineStore('booths', () => {
           booth.expected_sales ?? 0,
         );
     }
+    // Convert times from 12-hour to 24-hour format for database storage
+    booth.start_time = _convert12to24Hour(booth.start_time);
+    booth.end_time = _convert12to24Hour(booth.end_time);
     delete booth.total_sales;
     delete booth.packages_sold;
     delete booth.auto_calculate_predicted_cookies;
@@ -787,7 +827,7 @@ export const useBoothsStore = defineStore('booths', () => {
             from: null,
             cookies: cookies,
             status: 'complete',
-            notes: `Booth Sale: ${activeBoothSaleForDistribution.value.location}, ${activeBoothSaleForDistribution.value.sale_date} ${activeBoothSaleForDistribution.value.sale_time}`,
+            notes: `Booth Sale: ${activeBoothSaleForDistribution.value.location}, ${activeBoothSaleForDistribution.value.sale_date} ${activeBoothSaleForDistribution.value.start_time || ''} - ${activeBoothSaleForDistribution.value.end_time || ''}`,
           };
         });
 

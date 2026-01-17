@@ -18,45 +18,45 @@
     return dateString;
   };
 
-  const formatTimeForCalendar = (timeString: string | null) => {
-    // Time is already in HH:MM format or similar, just ensure it's valid
-    if (!timeString) return '09:00'; // Default to 9 AM if no time specified
-    return timeString;
+  // Convert 12-hour format time to 24-hour format
+  const convert12to24Hour = (time12: string | null): string => {
+    if (!time12) return '09:00'; // Default to 9 AM if no time specified
+
+    const match = time12.match(
+      /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM|am|pm)$/i,
+    );
+    if (!match) return '09:00'; // Default if format is invalid
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const period = match[3].toUpperCase();
+
+    if (period === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hours = 0;
+    }
+
+    return `${String(hours).padStart(2, '0')}:${minutes}`;
   };
 
-  // Calculate end time and date (add 2 hours to start time as default)
-  const calculateEndDateTime = (
+  // Calculate end date if event spans midnight
+  const calculateEndDate = (
     startDate: string,
-    startTime: string | null,
-  ): { endDate: string; endTime: string } => {
-    if (!startTime) {
-      return { endDate: startDate, endTime: '11:00' };
+    startTime: string,
+    endTime: string,
+  ): string => {
+    const [startHours] = startTime.split(':').map(Number);
+    const [endHours] = endTime.split(':').map(Number);
+
+    // If end time is earlier than start time, it spans into the next day
+    if (endHours < startHours) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + 1);
+      return date.toISOString().split('T')[0];
     }
-    try {
-      const [hours, minutes] = startTime.split(':').map(Number);
-      const endHours = hours + 2;
 
-      // Check if event spans into next day
-      if (endHours >= 24) {
-        const actualEndHours = endHours % 24;
-        // Calculate next day
-        const date = new Date(startDate);
-        date.setDate(date.getDate() + 1);
-        const nextDay = date.toISOString().split('T')[0];
-
-        return {
-          endDate: nextDay,
-          endTime: `${String(actualEndHours).padStart(2, '0')}:${String(minutes || 0).padStart(2, '0')}`,
-        };
-      }
-
-      return {
-        endDate: startDate,
-        endTime: `${String(endHours).padStart(2, '0')}:${String(minutes || 0).padStart(2, '0')}`,
-      };
-    } catch {
-      return { endDate: startDate, endTime: '11:00' };
-    }
+    return startDate;
   };
 
   const eventName = computed(
@@ -66,15 +66,23 @@
   const eventStartDate = computed(() =>
     formatDateForCalendar(props.boothSale.sale_date),
   );
+
+  // Convert start and end times from 12-hour to 24-hour format
   const eventStartTime = computed(() =>
-    formatTimeForCalendar(props.boothSale.sale_time),
+    convert12to24Hour(props.boothSale.start_time),
+  );
+  const eventEndTime = computed(() =>
+    convert12to24Hour(props.boothSale.end_time),
   );
 
-  const endDateTime = computed(() =>
-    calculateEndDateTime(eventStartDate.value, eventStartTime.value),
+  const eventEndDate = computed(() =>
+    calculateEndDate(
+      eventStartDate.value,
+      eventStartTime.value,
+      eventEndTime.value,
+    ),
   );
-  const eventEndDate = computed(() => endDateTime.value.endDate);
-  const eventEndTime = computed(() => endDateTime.value.endTime);
+
   const eventDescription = computed(() => {
     const parts = ['Cookie Booth Sale'];
     if (props.boothSale.notes) {

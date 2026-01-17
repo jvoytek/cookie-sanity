@@ -36,7 +36,12 @@
               day="numeric"
               time-zone="UTC"
             />
-            - {{ nextBoothSale.sale_time }}
+            <span v-if="nextBoothSale.start_time">
+              - {{ nextBoothSale.start_time }}
+              <span v-if="nextBoothSale.end_time">
+                to {{ nextBoothSale.end_time }}
+              </span>
+            </span>
             <br />
             <strong>Scouts Attending:</strong>
             <br />
