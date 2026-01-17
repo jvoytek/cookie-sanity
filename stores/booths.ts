@@ -174,7 +174,7 @@ export const useBoothsStore = defineStore('booths', () => {
         booth.inventory_type === 'troop' &&
         booth.status !== BOOTH_STATUS.COMMITTED &&
         booth.status !== BOOTH_STATUS.ARCHIVED &&
-        booth.in_projections === true,
+        booth.in_projections,
     );
   });
 
@@ -873,8 +873,10 @@ export const useBoothsStore = defineStore('booths', () => {
         in_projections: !boothSale.in_projections,
       };
 
-      _transformDataForSave(updatedBoothSale);
-      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+      // Clone the object before transformation to avoid modifying the original
+      const boothSaleToSave = { ...updatedBoothSale };
+      _transformDataForSave(boothSaleToSave);
+      const { data, error } = await _supabaseUpsertBoothSale(boothSaleToSave);
 
       if (error) throw error;
 
