@@ -30,20 +30,31 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return;
   }
 
-  // fetch seasons for the profile
-  const { data: seasonsData, error: seasonsError } = await supabase
+  // Fetch both owned seasons and collaborated seasons
+  const ownedSeasonsPromise = supabase
     .from('seasons')
-    .select('*')
+    .select(`*`)
     .eq('profile', profileData.id);
 
-  if (seasonsError) {
-    // If there's an error fetching seasons, skip the middleware
-    return;
-  }
+  const collaboratedSeasonsPromise = supabase.from('seasons').select(
+    `*, 
+        season_collaborators!inner(profile_id)`,
+  );
+
+  const [ownedResult, collaboratedResult] = await Promise.all([
+    ownedSeasonsPromise,
+    collaboratedSeasonsPromise,
+  ]);
+  if (ownedResult.error) return;
+  if (collaboratedResult.error) return;
 
   // Only redirect if profile is loaded and we know there are no seasons
   // This prevents redirecting during initial load
-  if (seasonsData.length === 0 && to.path !== '/settings') {
+  if (
+    ownedResult.data?.length === 0 &&
+    collaboratedResult.data?.length === 0 &&
+    to.path !== '/settings'
+  ) {
     return navigateTo('/settings');
   }
 });
