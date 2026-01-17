@@ -168,12 +168,13 @@ export const useBoothsStore = defineStore('booths', () => {
     );
   });
 
-  const unCommittedBoothSalesUsingTroopInventory = computed(() => {
+  const unCommittedBoothSalesInProjectionsUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
         booth.inventory_type === 'troop' &&
         booth.status !== BOOTH_STATUS.COMMITTED &&
-        booth.status !== BOOTH_STATUS.ARCHIVED,
+        booth.status !== BOOTH_STATUS.ARCHIVED &&
+        booth.in_projections,
     );
   });
 
@@ -236,18 +237,20 @@ export const useBoothsStore = defineStore('booths', () => {
 
   const unCommittedTroopBoothSaleEstimatesMap = computed(() => {
     const estimatesMap: Record<string, number> = {};
-    unCommittedBoothSalesUsingTroopInventory.value.forEach((booth) => {
-      if (booth.predicted_cookies) {
-        Object.entries(booth.predicted_cookies).forEach(
-          ([cookieAbbr, quantity]) => {
-            if (!estimatesMap[cookieAbbr]) {
-              estimatesMap[cookieAbbr] = 0;
-            }
-            estimatesMap[cookieAbbr] -= Number(quantity) || 0;
-          },
-        );
-      }
-    });
+    unCommittedBoothSalesInProjectionsUsingTroopInventory.value.forEach(
+      (booth) => {
+        if (booth.predicted_cookies) {
+          Object.entries(booth.predicted_cookies).forEach(
+            ([cookieAbbr, quantity]) => {
+              if (!estimatesMap[cookieAbbr]) {
+                estimatesMap[cookieAbbr] = 0;
+              }
+              estimatesMap[cookieAbbr] -= Number(quantity) || 0;
+            },
+          );
+        }
+      },
+    );
     return estimatesMap;
   });
 
@@ -889,6 +892,7 @@ export const useBoothsStore = defineStore('booths', () => {
     pastBoothSalesUsingTroopInventory,
     recordedBoothSalesUsingTroopInventory,
     unArchivedBoothSalesUsingTroopInventory,
+    unCommittedBoothSalesInProjectionsUsingTroopInventory,
     fetchBoothSales,
     insertBoothSale,
     upsertBoothSale,

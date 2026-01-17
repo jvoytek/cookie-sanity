@@ -7,9 +7,12 @@
   }>();
 
   // Format the date and time for the calendar button
-  const formatDateForCalendar = (dateString: string) => {
+  const formatDateForCalendar = (date: string | Date) => {
     // dateString comes in as MM/DD/YYYY from the store's _transformDataForBoothSale
     // We need to convert it to YYYY-MM-DD for the calendar button
+    // If it's already a Date object, convert it to the correct string format
+    const dateString =
+      date instanceof Date ? date.toISOString().split('T')[0] : date;
     const parts = dateString.split('/');
     if (parts.length === 3) {
       const [month, day, year] = parts;
@@ -108,7 +111,6 @@
       :startTime="eventStartTime"
       :endTime="eventEndTime"
       timeZone="currentBrowser"
-      debug
       :description="eventDescription"
       size="2"
       lightMode="system"

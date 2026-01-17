@@ -234,6 +234,29 @@
         {{ slotProps.data.status == 'committed' ? 'yes' : '' }}
       </template>
     </Column>
+    <Column
+      field="in_projections"
+      v-if="props.type === 'upcoming' || props.type === 'past'"
+      sortable
+    >
+      <template #header>
+        <strong>In Projections</strong>
+        <i
+          v-tooltip.bottom="{
+            value:
+              'Include this booth sale in inventory projections. Use this to focus on near-term needs (e.g., next week) by excluding booths further out.',
+          }"
+          class="pi pi-info-circle ml-2 text-sm text-gray-500 cursor-pointer"
+        />
+      </template>
+      <template #body="slotProps">
+        <Checkbox
+          v-model="slotProps.data.in_projections"
+          binary
+          @change="boothsStore.upsertBoothSale(slotProps.data)"
+        />
+      </template>
+    </Column>
     <Column :exportable="false" style="min-width: 189px" header="Actions">
       <template #body="slotProps">
         <Button
