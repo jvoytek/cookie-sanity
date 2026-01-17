@@ -87,37 +87,30 @@
     }
     return parts.join('');
   });
-
-  // Configure calendar options
-  const calendarOptions = [
-    'Apple',
-    'Google',
-    'iCal',
-    'Microsoft365',
-    'Outlook.com',
-    'Yahoo',
-  ];
 </script>
 
 <template>
-  <add-to-calendar-button
-    :name="eventName"
-    :description="eventDescription"
-    :start-date="eventStartDate"
-    :start-time="eventStartTime"
-    :end-date="eventEndDate"
-    :end-time="eventEndTime"
-    :location="eventLocation"
-    :options="calendarOptions"
-    time-zone="currentBrowser"
-    button-style="round"
-    size="2"
-    light-mode="system"
-    hide-checkmark
-    label="+ Add to Calendar"
-    trigger="click"
-    list-style="overlay"
-  />
+  <ClientOnly>
+    <add-to-calendar-button
+      :name="eventName"
+      options="'Apple','Google','iCal','Microsoft365','Outlook.com','Yahoo'"
+      :location="eventLocation"
+      :startDate="eventStartDate"
+      :endDate="eventEndDate"
+      :startTime="eventStartTime"
+      :endTime="eventEndTime"
+      timeZone="currentBrowser"
+      debug
+      :description="eventDescription"
+      size="2"
+      lightMode="system"
+      hideCheckmark
+      hideBackground="true"
+      buttonStyle="text"
+      trigger="click"
+      listStyle="overlay"
+    />
+  </ClientOnly>
 </template>
 
 <style scoped>

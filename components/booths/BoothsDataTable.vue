@@ -290,13 +290,7 @@
             v-tooltip.bottom="'Print Worksheet'"
           />
         </NuxtLink>
-        <div
-          class="inline-block mr-2"
-          v-if="props.type !== 'archived'"
-          v-tooltip.bottom="'Add booth sale to your calendar'"
-        >
-          <BoothSaleAddToCalendarButton :booth-sale="slotProps.data" />
-        </div>
+
         <Button
           type="button"
           icon="pi pi-ellipsis-v"
@@ -312,6 +306,9 @@
           :model="moreActions(slotProps.data)"
           :popup="true"
         />
+        <div class="inline-block mr-2" v-if="props.type !== 'archived'">
+          <BoothSaleAddToCalendarButton :booth-sale="slotProps.data" />
+        </div>
       </template>
     </Column>
   </DataTable>
