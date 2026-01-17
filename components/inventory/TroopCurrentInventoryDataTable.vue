@@ -101,7 +101,8 @@
               <strong>Upcoming Booths</strong>
               <i
                 v-tooltip.bottom="{
-                  value: 'Estimated sales for upcoming booth sales.',
+                  value:
+                    'Estimated sales for upcoming booth sales (only from booth sales where In Projections is checked).',
                   showDelay: 500,
                 }"
                 class="pi pi-question-circle"

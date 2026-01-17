@@ -866,33 +866,6 @@ export const useBoothsStore = defineStore('booths', () => {
     distributionData.value = {};
   };
 
-<<<<<<< HEAD
-=======
-  const toggleInProjections = async (boothSale: BoothSale) => {
-    try {
-      const updatedBoothSale = {
-        ...boothSale,
-        in_projections: !boothSale.in_projections,
-      };
-
-      // Clone the object before transformation to avoid modifying the original
-      const boothSaleToSave = { ...updatedBoothSale };
-      _transformDataForSave(boothSaleToSave);
-      const { data, error } = await _supabaseUpsertBoothSale(boothSaleToSave);
-
-      if (error) throw error;
-
-      _updateBoothSale(_transformDataForBoothSale(data));
-      const status = data.in_projections ? 'included in' : 'excluded from';
-      notificationHelpers.addSuccess(
-        `Booth Sale ${status} inventory projections`,
-      );
-    } catch (error) {
-      notificationHelpers.addError(error as Error);
-    }
-  };
-
->>>>>>> 612207ce6f592e9f1a9cf9898b7620680478705f
   return {
     allBoothSales,
     visibleBoothSales,
