@@ -45,9 +45,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     ownedSeasonsPromise,
     collaboratedSeasonsPromise,
   ]);
-  if (ownedResult.error) return { data: [], error: ownedResult.error };
-  if (collaboratedResult.error)
-    return { data: ownedResult.data ?? [], error: null };
+  if (ownedResult.error) return;
+  if (collaboratedResult.error) return;
 
   // Only redirect if profile is loaded and we know there are no seasons
   // This prevents redirecting during initial load
