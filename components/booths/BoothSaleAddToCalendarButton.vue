@@ -24,15 +24,38 @@
     return timeString;
   };
 
-  // Calculate end time (add 2 hours to start time as default)
-  const calculateEndTime = (startTime: string | null) => {
-    if (!startTime) return '11:00';
+  // Calculate end time and date (add 2 hours to start time as default)
+  const calculateEndDateTime = (
+    startDate: string,
+    startTime: string | null,
+  ): { endDate: string; endTime: string } => {
+    if (!startTime) {
+      return { endDate: startDate, endTime: '11:00' };
+    }
     try {
       const [hours, minutes] = startTime.split(':').map(Number);
-      const endHours = (hours + 2) % 24; // Add 2 hours, wrap around at midnight
-      return `${String(endHours).padStart(2, '0')}:${String(minutes || 0).padStart(2, '0')}`;
+      const endHours = hours + 2;
+
+      // Check if event spans into next day
+      if (endHours >= 24) {
+        const actualEndHours = endHours % 24;
+        // Calculate next day
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + 1);
+        const nextDay = date.toISOString().split('T')[0];
+
+        return {
+          endDate: nextDay,
+          endTime: `${String(actualEndHours).padStart(2, '0')}:${String(minutes || 0).padStart(2, '0')}`,
+        };
+      }
+
+      return {
+        endDate: startDate,
+        endTime: `${String(endHours).padStart(2, '0')}:${String(minutes || 0).padStart(2, '0')}`,
+      };
     } catch {
-      return '11:00';
+      return { endDate: startDate, endTime: '11:00' };
     }
   };
 
@@ -46,9 +69,12 @@
   const eventStartTime = computed(() =>
     formatTimeForCalendar(props.boothSale.sale_time),
   );
-  const eventEndTime = computed(() =>
-    calculateEndTime(props.boothSale.sale_time),
+
+  const endDateTime = computed(() =>
+    calculateEndDateTime(eventStartDate.value, eventStartTime.value),
   );
+  const eventEndDate = computed(() => endDateTime.value.endDate);
+  const eventEndTime = computed(() => endDateTime.value.endTime);
   const eventDescription = computed(() => {
     const parts = ['Cookie Booth Sale'];
     if (props.boothSale.notes) {
@@ -79,7 +105,7 @@
     :description="eventDescription"
     :start-date="eventStartDate"
     :start-time="eventStartTime"
-    :end-date="eventStartDate"
+    :end-date="eventEndDate"
     :end-time="eventEndTime"
     :location="eventLocation"
     :options="calendarOptions"
