@@ -130,7 +130,17 @@
             data-key="id"
             :paginator="false"
           >
-            <Column field="profile_id" header="Email">
+            <Column field="profile_id">
+              <template #header>
+                <strong>Name/Profile ID</strong>
+                <i
+                  v-tooltip.bottom="{
+                    value:
+                      'The user\'s display name from their profile, or their Profile ID if no display name is set.',
+                  }"
+                  class="pi pi-info-circle ml-2 text-sm text-gray-500 cursor-pointer"
+                />
+              </template>
               <template #body="slotProps">
                 <span>{{
                   (slotProps.data as any).profiles?.display_name ||
