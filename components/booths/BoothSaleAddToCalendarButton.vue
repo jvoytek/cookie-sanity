@@ -77,20 +77,20 @@
   <add-to-calendar-button
     :name="eventName"
     :description="eventDescription"
-    :startDate="eventStartDate"
-    :startTime="eventStartTime"
-    :endDate="eventStartDate"
-    :endTime="eventEndTime"
+    :start-date="eventStartDate"
+    :start-time="eventStartTime"
+    :end-date="eventStartDate"
+    :end-time="eventEndTime"
     :location="eventLocation"
     :options="calendarOptions"
-    timeZone="currentBrowser"
-    buttonStyle="round"
+    time-zone="currentBrowser"
+    button-style="round"
     size="2"
-    lightMode="system"
-    hideCheckmark
+    light-mode="system"
+    hide-checkmark
     label="+ Add to Calendar"
     trigger="click"
-    listStyle="overlay"
+    list-style="overlay"
   />
 </template>
 
