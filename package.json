@@ -25,6 +25,7 @@
     "@sfxcode/formkit-primevue-nuxt": "^1.5.3",
     "@tailwindcss/vite": "^4.0.6",
     "@vueuse/core": "^14.0.0",
+    "add-to-calendar-button": "^2.13.5",
     "chart.js": "^4.5.0",
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-annotation": "^3.1.0",

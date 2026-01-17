@@ -5,7 +5,8 @@ create table booth_sales (
   profile uuid references profiles(id) on delete cascade not null,
   season bigint references seasons(id) on delete cascade not null default 1,
   sale_date date not null,
-  sale_time text,
+  start_time time without time zone,
+  end_time time without time zone,
   location text not null,
   scouts_attending jsonb, -- Array of scout names/IDs attending
   inventory_type text not null check (inventory_type in ('troop', 'scout')),

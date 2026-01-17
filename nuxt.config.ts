@@ -60,4 +60,9 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag) => tag.startsWith('add-'),
+    },
+  },
 });

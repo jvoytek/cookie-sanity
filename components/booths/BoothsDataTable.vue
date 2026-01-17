@@ -137,9 +137,14 @@
         <NuxtTime :datetime="slotProps.data.sale_date" time-zone="UTC" />
       </template>
     </Column>
-    <Column field="sale_time" header="Time" sortable>
+    <Column field="start_time" header="Time" sortable>
       <template #body="slotProps">
-        {{ slotProps.data.sale_time }}
+        <span v-if="slotProps.data.start_time">
+          {{ slotProps.data.start_time }}
+          <span v-if="slotProps.data.end_time">
+            - {{ slotProps.data.end_time }}
+          </span>
+        </span>
       </template>
     </Column>
     <Column field="location" header="Location" sortable />
@@ -290,6 +295,7 @@
             v-tooltip.bottom="'Print Worksheet'"
           />
         </NuxtLink>
+
         <Button
           type="button"
           icon="pi pi-ellipsis-v"
@@ -305,6 +311,9 @@
           :model="moreActions(slotProps.data)"
           :popup="true"
         />
+        <div class="inline-block mr-2" v-if="props.type !== 'archived'">
+          <BoothSaleAddToCalendarButton :booth-sale="slotProps.data" />
+        </div>
       </template>
     </Column>
   </DataTable>
