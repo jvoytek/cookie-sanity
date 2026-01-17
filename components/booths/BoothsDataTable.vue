@@ -252,8 +252,8 @@
       <template #body="slotProps">
         <Checkbox
           v-model="slotProps.data.in_projections"
-          :binary="true"
-          @change="boothsStore.toggleInProjections(slotProps.data)"
+          binary
+          @change="boothsStore.upsertBoothSale(slotProps.data)"
         />
       </template>
     </Column>

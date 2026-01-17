@@ -19,6 +19,7 @@ create table booth_sales (
   cash_breakdown jsonb, -- Breakdown of bills and coins received
   credit_receipts double precision, -- Total credit card receipts received at booth sale
   other_receipts double precision -- Total other receipts received at booth sale
+  in_projections boolean NOT NULL DEFAULT true, -- Flag to determine if this booth sale should be included in inventory projections. Defaults to true.
 );
 
 -- Enable RLS

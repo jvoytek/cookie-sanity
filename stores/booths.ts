@@ -866,28 +866,6 @@ export const useBoothsStore = defineStore('booths', () => {
     distributionData.value = {};
   };
 
-  const toggleInProjections = async (boothSale: BoothSale) => {
-    try {
-      const updatedBoothSale = {
-        ...boothSale,
-        in_projections: !boothSale.in_projections,
-      };
-
-      _transformDataForSave(updatedBoothSale);
-      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
-
-      if (error) throw error;
-
-      _updateBoothSale(_transformDataForBoothSale(data));
-      const status = data.in_projections ? 'included in' : 'excluded from';
-      notificationHelpers.addSuccess(
-        `Booth Sale ${status} inventory projections`,
-      );
-    } catch (error) {
-      notificationHelpers.addError(error as Error);
-    }
-  };
-
   return {
     allBoothSales,
     visibleBoothSales,
@@ -923,7 +901,6 @@ export const useBoothsStore = defineStore('booths', () => {
     unarchiveBoothSale,
     markCommittedBoothSale,
     unmarkCommittedBoothSale,
-    toggleInProjections,
     recordSalesDialogVisible,
     activeBoothSaleForRecording,
     orderedActiveBoothSalesRecordData,

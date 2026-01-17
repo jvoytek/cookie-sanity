@@ -108,7 +108,6 @@
       :startTime="eventStartTime"
       :endTime="eventEndTime"
       timeZone="currentBrowser"
-      debug
       :description="eventDescription"
       size="2"
       lightMode="system"
