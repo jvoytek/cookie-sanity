@@ -168,15 +168,6 @@ export const useBoothsStore = defineStore('booths', () => {
     );
   });
 
-  const unCommittedBoothSalesUsingTroopInventory = computed(() => {
-    return allBoothSales.value.filter(
-      (booth: BoothSale) =>
-        booth.inventory_type === 'troop' &&
-        booth.status !== BOOTH_STATUS.COMMITTED &&
-        booth.status !== BOOTH_STATUS.ARCHIVED,
-    );
-  });
-
   const unCommittedBoothSalesInProjectionsUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
