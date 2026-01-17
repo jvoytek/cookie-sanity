@@ -81,6 +81,7 @@
         .from('cookies')
         .select('*')
         .eq('season', sellerInfo.value.season)
+        .eq('is_virtual', false)
         .order('order');
 
       if (cookiesError) {
