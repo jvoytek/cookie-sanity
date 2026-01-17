@@ -177,6 +177,16 @@ export const useBoothsStore = defineStore('booths', () => {
     );
   });
 
+  const unCommittedBoothSalesInProjectionsUsingTroopInventory = computed(() => {
+    return allBoothSales.value.filter(
+      (booth: BoothSale) =>
+        booth.inventory_type === 'troop' &&
+        booth.status !== BOOTH_STATUS.COMMITTED &&
+        booth.status !== BOOTH_STATUS.ARCHIVED &&
+        booth.in_projections === true,
+    );
+  });
+
   const recordedBoothSalesUsingTroopInventory = computed(() => {
     return recordedBoothSales.value.filter(
       (booth: BoothSale) => booth.inventory_type === 'troop',
@@ -236,18 +246,20 @@ export const useBoothsStore = defineStore('booths', () => {
 
   const unCommittedTroopBoothSaleEstimatesMap = computed(() => {
     const estimatesMap: Record<string, number> = {};
-    unCommittedBoothSalesUsingTroopInventory.value.forEach((booth) => {
-      if (booth.predicted_cookies) {
-        Object.entries(booth.predicted_cookies).forEach(
-          ([cookieAbbr, quantity]) => {
-            if (!estimatesMap[cookieAbbr]) {
-              estimatesMap[cookieAbbr] = 0;
-            }
-            estimatesMap[cookieAbbr] -= Number(quantity) || 0;
-          },
-        );
-      }
-    });
+    unCommittedBoothSalesInProjectionsUsingTroopInventory.value.forEach(
+      (booth) => {
+        if (booth.predicted_cookies) {
+          Object.entries(booth.predicted_cookies).forEach(
+            ([cookieAbbr, quantity]) => {
+              if (!estimatesMap[cookieAbbr]) {
+                estimatesMap[cookieAbbr] = 0;
+              }
+              estimatesMap[cookieAbbr] -= Number(quantity) || 0;
+            },
+          );
+        }
+      },
+    );
     return estimatesMap;
   });
 
@@ -863,6 +875,28 @@ export const useBoothsStore = defineStore('booths', () => {
     distributionData.value = {};
   };
 
+  const toggleInProjections = async (boothSale: BoothSale) => {
+    try {
+      const updatedBoothSale = {
+        ...boothSale,
+        in_projections: !boothSale.in_projections,
+      };
+
+      _transformDataForSave(updatedBoothSale);
+      const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
+
+      if (error) throw error;
+
+      _updateBoothSale(_transformDataForBoothSale(data));
+      const status = data.in_projections ? 'included in' : 'excluded from';
+      notificationHelpers.addSuccess(
+        `Booth Sale ${status} inventory projections`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     allBoothSales,
     visibleBoothSales,
@@ -889,6 +923,7 @@ export const useBoothsStore = defineStore('booths', () => {
     pastBoothSalesUsingTroopInventory,
     recordedBoothSalesUsingTroopInventory,
     unArchivedBoothSalesUsingTroopInventory,
+    unCommittedBoothSalesInProjectionsUsingTroopInventory,
     fetchBoothSales,
     insertBoothSale,
     upsertBoothSale,
@@ -897,6 +932,7 @@ export const useBoothsStore = defineStore('booths', () => {
     unarchiveBoothSale,
     markCommittedBoothSale,
     unmarkCommittedBoothSale,
+    toggleInProjections,
     recordSalesDialogVisible,
     activeBoothSaleForRecording,
     orderedActiveBoothSalesRecordData,

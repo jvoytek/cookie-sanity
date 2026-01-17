@@ -95,6 +95,7 @@ export type Database = {
           end_time: string | null;
           expected_sales: number | null;
           id: number;
+          in_projections: boolean;
           inventory_type: string;
           location: string;
           notes: string | null;
@@ -116,6 +117,7 @@ export type Database = {
           end_time?: string | null;
           expected_sales?: number | null;
           id?: number;
+          in_projections?: boolean;
           inventory_type: string;
           location: string;
           notes?: string | null;
@@ -137,6 +139,7 @@ export type Database = {
           end_time?: string | null;
           expected_sales?: number | null;
           id?: number;
+          in_projections?: boolean;
           inventory_type?: string;
           location?: string;
           notes?: string | null;
