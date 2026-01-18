@@ -938,7 +938,7 @@ export const useBoothsStore = defineStore('booths', () => {
       // Archive all booth sales in parallel
       const archivePromises = boothSales.map((boothSale) => {
         // Create a deep copy to avoid mutating the original
-        const updatedBoothSale = JSON.parse(JSON.stringify(boothSale));
+        const updatedBoothSale = structuredClone(boothSale);
         updatedBoothSale.status = BOOTH_STATUS.ARCHIVED;
         _transformDataForSave(updatedBoothSale);
         return _supabaseUpsertBoothSale(updatedBoothSale);
@@ -978,7 +978,7 @@ export const useBoothsStore = defineStore('booths', () => {
       // Mark all booth sales as committed in parallel
       const commitPromises = boothSales.map((boothSale) => {
         // Create a deep copy to avoid mutating the original
-        const updatedBoothSale = JSON.parse(JSON.stringify(boothSale));
+        const updatedBoothSale = structuredClone(boothSale);
         updatedBoothSale.status = BOOTH_STATUS.COMMITTED;
         _transformDataForSave(updatedBoothSale);
         return _supabaseUpsertBoothSale(updatedBoothSale);
@@ -1018,7 +1018,7 @@ export const useBoothsStore = defineStore('booths', () => {
       // Toggle in_projections for all booth sales in parallel
       const togglePromises = boothSales.map((boothSale) => {
         // Create a deep copy to avoid mutating the original
-        const updatedBoothSale = JSON.parse(JSON.stringify(boothSale));
+        const updatedBoothSale = structuredClone(boothSale);
         updatedBoothSale.in_projections = !boothSale.in_projections;
         _transformDataForSave(updatedBoothSale);
         return _supabaseUpsertBoothSale(updatedBoothSale);
