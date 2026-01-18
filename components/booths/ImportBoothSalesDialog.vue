@@ -93,7 +93,7 @@
     const existingBoothSales = new Set(
       boothsStore.allBoothSales.map(
         (bs) =>
-          `${bs.sale_date}|${bs.location}|${bs.start_time}|${bs.end_time}`,
+          `${convertDateToYYYYMMDD(bs.sale_date)}|${bs.location}|${convertTimeTo24Hour(bs.start_time)}|${convertTimeTo24Hour(bs.end_time)}`,
       ),
     );
 
@@ -103,7 +103,9 @@
         const saleDate = String(row[headerIndexMap['SaleDate']] || '').trim();
         const startTime = String(row[headerIndexMap['StartTime']] || '').trim();
         const endTime = String(row[headerIndexMap['EndTime']] || '').trim();
-        const chain = String(row[headerIndexMap['Chain']] || '').trim();
+        const chain = String(row[headerIndexMap['Chain']] || '')
+          .trim()
+          .replace(/\/$/, ''); // trim white space and remove trailing / if present
         const address1 = String(row[headerIndexMap['address1']] || '').trim();
 
         // Skip rows without required data
@@ -148,6 +150,8 @@
           inventory_type: 'troop', // Default to troop inventory
           profile: profileStore.currentProfile?.id,
           season: seasonsStore.currentSeason?.id,
+          expected_sales: 0,
+          predicted_cookies: {},
         });
       } catch (error) {
         console.warn('Error processing row:', error);
