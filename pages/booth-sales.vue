@@ -1,9 +1,14 @@
 <script setup lang="ts">
   const boothsStore = useBoothsStore();
+  const importDialogVisible = ref(false);
 
   function openNew() {
     boothsStore.setActiveBoothSale(null);
     boothsStore.boothDialogVisible = true;
+  }
+
+  function openImport() {
+    importDialogVisible.value = true;
   }
 </script>
 
@@ -24,6 +29,13 @@
               severity="secondary"
               class="mr-2"
               @click="openNew"
+            />
+            <Button
+              label="Import"
+              icon="pi pi-upload"
+              severity="secondary"
+              outlined
+              @click="openImport"
             />
           </template>
         </Toolbar>
@@ -76,6 +88,7 @@
         <BoothSaleDeleteDialog />
         <BoothSaleRecordDialog />
         <BoothSaleDistributeDialog />
+        <ImportBoothSalesDialog v-model:visible="importDialogVisible" />
       </div>
     </div>
     <NoCookiesOverlay />

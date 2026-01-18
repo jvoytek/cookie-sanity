@@ -316,6 +316,12 @@ export const useBoothsStore = defineStore('booths', () => {
       .single();
   };
 
+  const _supabaseInsertBoothSales = async (
+    boothSales: Partial<BoothSale>[],
+  ) => {
+    return await supabaseClient.from('booth_sales').insert(boothSales).select();
+  };
+
   const _supabaseUpsertBoothSale = async (boothSale: BoothSale) => {
     return await supabaseClient
       .from('booth_sales')
@@ -813,7 +819,6 @@ export const useBoothsStore = defineStore('booths', () => {
       }
 
       const transactionsStore = useTransactionsStore();
-      const today = new Date().toISOString().split('T')[0];
 
       // Create a transaction for each girl with cookies distributed
       const transactionsToCreate = Object.entries(distributionData.value)
@@ -864,6 +869,31 @@ export const useBoothsStore = defineStore('booths', () => {
     distributeSalesDialogVisible.value = false;
     activeBoothSaleForDistribution.value = null;
     distributionData.value = {};
+  };
+
+  const importBoothSales = async (boothSales: Partial<BoothSale>[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales to import');
+      }
+
+      const { data, error } = await _supabaseInsertBoothSales(boothSales);
+
+      if (error) throw error;
+
+      // Add imported booth sales to the store
+      data.forEach((boothSale) => {
+        _addBoothSale(_transformDataForBoothSale(boothSale as BoothSale));
+      });
+
+      _sortBoothSales();
+      notificationHelpers.addSuccess(
+        `Successfully imported ${data.length} booth sale${data.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+      throw error;
+    }
   };
 
   return {
@@ -921,5 +951,6 @@ export const useBoothsStore = defineStore('booths', () => {
     updateDistributionData,
     saveDistributedSales,
     closeDistributeSalesDialog,
+    importBoothSales,
   };
 });
