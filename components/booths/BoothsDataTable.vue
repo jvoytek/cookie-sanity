@@ -11,6 +11,7 @@
   const { formatCurrency } = useFormatHelpers();
 
   const dt = ref();
+  const selectedBoothSales = ref<BoothSale[]>([]);
 
   function editBoothSale(sale: BoothSale | null) {
     boothsStore.setActiveBoothSale(sale);
@@ -123,15 +124,111 @@
       cookiesSoldGreaterThanOne(sale.cookies_sold)
     );
   };
+
+  // Bulk action methods
+  const hasSelection = computed(() => selectedBoothSales.value.length > 0);
+
+  const bulkDeleteBoothSales = async () => {
+    await boothsStore.bulkDeleteBoothSales(selectedBoothSales.value);
+    selectedBoothSales.value = [];
+  };
+
+  const bulkArchiveBoothSales = async () => {
+    await boothsStore.bulkArchiveBoothSales(selectedBoothSales.value);
+    selectedBoothSales.value = [];
+  };
+
+  const bulkMarkCommittedBoothSales = async () => {
+    await boothsStore.bulkMarkCommittedBoothSales(selectedBoothSales.value);
+    selectedBoothSales.value = [];
+  };
+
+  const bulkToggleInProjections = async () => {
+    await boothsStore.bulkToggleInProjections(selectedBoothSales.value);
+    selectedBoothSales.value = [];
+  };
+
+  // Reset selection when type changes
+  watch(
+    () => props.type,
+    () => {
+      selectedBoothSales.value = [];
+    },
+  );
 </script>
 
 <template>
+  <!-- Bulk Actions Toolbar -->
+  <Toolbar class="mb-4">
+    <template #start>
+      <span class="mr-4 text-sm text-muted-color">
+        {{ selectedBoothSales.length }} selected
+      </span>
+      <Button
+        v-tooltip.bottom="{
+          value: 'Delete selected booth sales',
+          showDelay: 500,
+        }"
+        :disabled="!hasSelection"
+        label="Delete"
+        icon="pi pi-trash"
+        severity="warn"
+        variant="outlined"
+        class="mr-2"
+        @click="bulkDeleteBoothSales"
+      />
+      <Button
+        v-if="props.type !== 'archived'"
+        v-tooltip.bottom="{
+          value: 'Archive selected booth sales',
+          showDelay: 500,
+        }"
+        :disabled="!hasSelection"
+        label="Archive"
+        icon="pi pi-inbox"
+        variant="outlined"
+        class="mr-2"
+        @click="bulkArchiveBoothSales"
+      />
+      <Button
+        v-tooltip.bottom="{
+          value:
+            'Mark selected booth sales as committed to remove starting inventory from calculations',
+          showDelay: 500,
+        }"
+        :disabled="!hasSelection"
+        label="Commit"
+        icon="pi pi-truck"
+        variant="outlined"
+        severity="secondary"
+        class="mr-2"
+        @click="bulkMarkCommittedBoothSales"
+      />
+      <Button
+        v-if="props.type === 'upcoming' || props.type === 'past'"
+        v-tooltip.bottom="{
+          value: 'Toggle In Projections for selected booth sales',
+          showDelay: 500,
+        }"
+        :disabled="!hasSelection"
+        label="Toggle In Projections"
+        icon="pi pi-calculator"
+        variant="outlined"
+        severity="secondary"
+        class="mr-2"
+        @click="bulkToggleInProjections"
+      />
+    </template>
+  </Toolbar>
+
   <DataTable
     ref="dt"
+    v-model:selection="selectedBoothSales"
     :value="boothsStore.visibleBoothSales"
     data-key="id"
     sort-field="sale_date"
   >
+    <Column selection-mode="multiple" header-style="width: 3rem" />
     <Column field="sale_date" header="Date" sortable>
       <template #body="slotProps">
         <NuxtTime :datetime="slotProps.data.sale_date" time-zone="UTC" />

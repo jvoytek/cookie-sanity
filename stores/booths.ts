@@ -896,6 +896,162 @@ export const useBoothsStore = defineStore('booths', () => {
     }
   };
 
+  const bulkDeleteBoothSales = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      // Delete all booth sales in parallel
+      const deletePromises = boothSales.map((boothSale) =>
+        _supabaseDeleteBoothSale(boothSale),
+      );
+      const results = await Promise.all(deletePromises);
+
+      // Check for errors
+      const errors = results.filter((result) => result.error);
+      if (errors.length > 0) {
+        throw new Error(
+          `Failed to delete ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
+        );
+      }
+
+      // Remove deleted booth sales from store
+      boothSales.forEach((boothSale) => {
+        _removeBoothSale(boothSale);
+      });
+
+      notificationHelpers.addSuccess(
+        `Successfully deleted ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const bulkArchiveBoothSales = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      // Archive all booth sales in parallel
+      const archivePromises = boothSales.map((boothSale) => {
+        const updatedBoothSale = {
+          ...boothSale,
+          status: BOOTH_STATUS.ARCHIVED,
+        };
+        _transformDataForSave(updatedBoothSale);
+        return _supabaseUpsertBoothSale(updatedBoothSale);
+      });
+
+      const results = await Promise.all(archivePromises);
+
+      // Check for errors
+      const errors = results.filter((result) => result.error);
+      if (errors.length > 0) {
+        throw new Error(
+          `Failed to archive ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
+        );
+      }
+
+      // Update booth sales in store
+      results.forEach((result) => {
+        if (result.data) {
+          _updateBoothSale(_transformDataForBoothSale(result.data));
+        }
+      });
+
+      notificationHelpers.addSuccess(
+        `Successfully archived ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const bulkMarkCommittedBoothSales = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      // Mark all booth sales as committed in parallel
+      const commitPromises = boothSales.map((boothSale) => {
+        const updatedBoothSale = {
+          ...boothSale,
+          status: BOOTH_STATUS.COMMITTED,
+        };
+        _transformDataForSave(updatedBoothSale);
+        return _supabaseUpsertBoothSale(updatedBoothSale);
+      });
+
+      const results = await Promise.all(commitPromises);
+
+      // Check for errors
+      const errors = results.filter((result) => result.error);
+      if (errors.length > 0) {
+        throw new Error(
+          `Failed to commit ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
+        );
+      }
+
+      // Update booth sales in store
+      results.forEach((result) => {
+        if (result.data) {
+          _updateBoothSale(_transformDataForBoothSale(result.data));
+        }
+      });
+
+      notificationHelpers.addSuccess(
+        `Successfully committed ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const bulkToggleInProjections = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      // Toggle in_projections for all booth sales in parallel
+      const togglePromises = boothSales.map((boothSale) => {
+        const updatedBoothSale = {
+          ...boothSale,
+          in_projections: !boothSale.in_projections,
+        };
+        _transformDataForSave(updatedBoothSale);
+        return _supabaseUpsertBoothSale(updatedBoothSale);
+      });
+
+      const results = await Promise.all(togglePromises);
+
+      // Check for errors
+      const errors = results.filter((result) => result.error);
+      if (errors.length > 0) {
+        throw new Error(
+          `Failed to toggle ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
+        );
+      }
+
+      // Update booth sales in store
+      results.forEach((result) => {
+        if (result.data) {
+          _updateBoothSale(_transformDataForBoothSale(result.data));
+        }
+      });
+
+      notificationHelpers.addSuccess(
+        `Successfully toggled in projections for ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     allBoothSales,
     visibleBoothSales,
@@ -952,5 +1108,9 @@ export const useBoothsStore = defineStore('booths', () => {
     saveDistributedSales,
     closeDistributeSalesDialog,
     importBoothSales,
+    bulkDeleteBoothSales,
+    bulkArchiveBoothSales,
+    bulkMarkCommittedBoothSales,
+    bulkToggleInProjections,
   };
 });
