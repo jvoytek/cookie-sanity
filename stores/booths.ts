@@ -904,25 +904,30 @@ export const useBoothsStore = defineStore('booths', () => {
 
       // Delete all booth sales in parallel
       const deletePromises = boothSales.map((boothSale) =>
-        _supabaseDeleteBoothSale(boothSale),
+        _supabaseDeleteBoothSale(boothSale).then((result) => ({
+          boothSale,
+          result,
+        })),
       );
       const results = await Promise.all(deletePromises);
 
       // Check for errors
-      const errors = results.filter((result) => result.error);
+      const errors = results.filter((r) => r.result.error);
       if (errors.length > 0) {
         throw new Error(
           `Failed to delete ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
         );
       }
 
-      // Remove deleted booth sales from store
-      boothSales.forEach((boothSale) => {
-        _removeBoothSale(boothSale);
+      // Remove only successfully deleted booth sales from store
+      results.forEach((r) => {
+        if (!r.result.error) {
+          _removeBoothSale(r.boothSale);
+        }
       });
 
       notificationHelpers.addSuccess(
-        `Successfully deleted ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+        `Successfully deleted ${results.length - errors.length} booth sale${results.length - errors.length !== 1 ? 's' : ''}`,
       );
     } catch (error) {
       notificationHelpers.addError(error as Error);
