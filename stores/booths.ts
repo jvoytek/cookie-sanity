@@ -168,12 +168,13 @@ export const useBoothsStore = defineStore('booths', () => {
     );
   });
 
-  const unCommittedBoothSalesUsingTroopInventory = computed(() => {
+  const unCommittedBoothSalesInProjectionsUsingTroopInventory = computed(() => {
     return allBoothSales.value.filter(
       (booth: BoothSale) =>
         booth.inventory_type === 'troop' &&
         booth.status !== BOOTH_STATUS.COMMITTED &&
-        booth.status !== BOOTH_STATUS.ARCHIVED,
+        booth.status !== BOOTH_STATUS.ARCHIVED &&
+        booth.in_projections,
     );
   });
 
@@ -236,18 +237,20 @@ export const useBoothsStore = defineStore('booths', () => {
 
   const unCommittedTroopBoothSaleEstimatesMap = computed(() => {
     const estimatesMap: Record<string, number> = {};
-    unCommittedBoothSalesUsingTroopInventory.value.forEach((booth) => {
-      if (booth.predicted_cookies) {
-        Object.entries(booth.predicted_cookies).forEach(
-          ([cookieAbbr, quantity]) => {
-            if (!estimatesMap[cookieAbbr]) {
-              estimatesMap[cookieAbbr] = 0;
-            }
-            estimatesMap[cookieAbbr] -= Number(quantity) || 0;
-          },
-        );
-      }
-    });
+    unCommittedBoothSalesInProjectionsUsingTroopInventory.value.forEach(
+      (booth) => {
+        if (booth.predicted_cookies) {
+          Object.entries(booth.predicted_cookies).forEach(
+            ([cookieAbbr, quantity]) => {
+              if (!estimatesMap[cookieAbbr]) {
+                estimatesMap[cookieAbbr] = 0;
+              }
+              estimatesMap[cookieAbbr] -= Number(quantity) || 0;
+            },
+          );
+        }
+      },
+    );
     return estimatesMap;
   });
 
@@ -313,6 +316,12 @@ export const useBoothsStore = defineStore('booths', () => {
       .single();
   };
 
+  const _supabaseInsertBoothSales = async (
+    boothSales: Partial<BoothSale>[],
+  ) => {
+    return await supabaseClient.from('booth_sales').insert(boothSales).select();
+  };
+
   const _supabaseUpsertBoothSale = async (boothSale: BoothSale) => {
     return await supabaseClient
       .from('booth_sales')
@@ -328,6 +337,41 @@ export const useBoothsStore = defineStore('booths', () => {
       .eq('id', boothSale.id);
   };
 
+  // Convert 24-hour format time to 12-hour format
+  const _convert24to12Hour = (time24: string | null): string | null => {
+    if (!time24) return null;
+
+    const [hours, minutes] = time24.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return null;
+
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12; // Convert 0 to 12
+
+    return `${hours12}:${String(minutes).padStart(2, '0')} ${period}`;
+  };
+
+  // Convert 12-hour format time to 24-hour format
+  const _convert12to24Hour = (time12: string | null): string | null => {
+    if (!time12) return null;
+
+    const match = time12.match(
+      /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM|am|pm)$/i,
+    );
+    if (!match) return null;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const period = match[3].toUpperCase();
+
+    if (period === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hours = 0;
+    }
+
+    return `${String(hours).padStart(2, '0')}:${minutes}`;
+  };
+
   const _transformDataForBoothSale = (booth: BoothSale) => {
     // transform sale_date from yyyy-mm-dd to mm/dd/yyyy
     const dateParts = booth.sale_date.split('-');
@@ -338,6 +382,8 @@ export const useBoothsStore = defineStore('booths', () => {
     return {
       ...booth,
       sale_date: formattedDate,
+      start_time: _convert24to12Hour(booth.start_time),
+      end_time: _convert24to12Hour(booth.end_time),
       total_sales: _getTotalSales(booth.cookies_sold),
       packages_sold: _getTotalPackagesSoldForBoothSale(booth.cookies_sold),
     };
@@ -350,6 +396,9 @@ export const useBoothsStore = defineStore('booths', () => {
           booth.expected_sales ?? 0,
         );
     }
+    // Convert times from 12-hour to 24-hour format for database storage
+    booth.start_time = _convert12to24Hour(booth.start_time);
+    booth.end_time = _convert12to24Hour(booth.end_time);
     delete booth.total_sales;
     delete booth.packages_sold;
     delete booth.auto_calculate_predicted_cookies;
@@ -770,7 +819,6 @@ export const useBoothsStore = defineStore('booths', () => {
       }
 
       const transactionsStore = useTransactionsStore();
-      const today = new Date().toISOString().split('T')[0];
 
       // Create a transaction for each girl with cookies distributed
       const transactionsToCreate = Object.entries(distributionData.value)
@@ -787,7 +835,7 @@ export const useBoothsStore = defineStore('booths', () => {
             from: null,
             cookies: cookies,
             status: 'complete',
-            notes: `Booth Sale: ${activeBoothSaleForDistribution.value.location}, ${activeBoothSaleForDistribution.value.sale_date} ${activeBoothSaleForDistribution.value.sale_time}`,
+            notes: `Booth Sale: ${activeBoothSaleForDistribution.value.location}, ${activeBoothSaleForDistribution.value.sale_date} ${activeBoothSaleForDistribution.value.start_time || ''} - ${activeBoothSaleForDistribution.value.end_time || ''}`,
           };
         });
 
@@ -823,6 +871,178 @@ export const useBoothsStore = defineStore('booths', () => {
     distributionData.value = {};
   };
 
+  const importBoothSales = async (boothSales: Partial<BoothSale>[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales to import');
+      }
+
+      const { data, error } = await _supabaseInsertBoothSales(boothSales);
+
+      if (error) throw error;
+
+      // Add imported booth sales to the store
+      data.forEach((boothSale) => {
+        _addBoothSale(_transformDataForBoothSale(boothSale as BoothSale));
+      });
+
+      _sortBoothSales();
+      notificationHelpers.addSuccess(
+        `Successfully imported ${data.length} booth sale${data.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+      throw error;
+    }
+  };
+
+  const bulkDeleteBoothSales = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      // Delete all booth sales in parallel
+      const deletePromises = boothSales.map((boothSale) =>
+        _supabaseDeleteBoothSale(boothSale).then((result) => ({
+          boothSale,
+          result,
+        })),
+      );
+      const results = await Promise.all(deletePromises);
+
+      // Check for errors
+      const errors = results.filter((r) => r.result.error);
+      if (errors.length > 0) {
+        throw new Error(
+          `Failed to delete ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
+        );
+      }
+
+      // Remove only successfully deleted booth sales from store
+      results.forEach((r) => {
+        if (!r.result.error) {
+          _removeBoothSale(r.boothSale);
+        }
+      });
+
+      notificationHelpers.addSuccess(
+        `Successfully deleted ${results.length - errors.length} booth sale${results.length - errors.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const bulkArchiveBoothSales = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      const { error } = await _supabaseUpdateStatusBulk(
+        boothSales.map((booth) => booth.id as number),
+        BOOTH_STATUS.ARCHIVED,
+      );
+
+      if (error) throw error;
+      // Update booth sales in store
+      fetchBoothSales();
+
+      notificationHelpers.addSuccess(
+        `Successfully archived ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const bulkUnArchiveBoothSales = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      const { error } = await _supabaseUpdateStatusBulk(
+        boothSales.map((booth) => booth.id as number),
+        null,
+      );
+
+      if (error) throw error;
+      // Update booth sales in store
+      fetchBoothSales();
+
+      notificationHelpers.addSuccess(
+        `Successfully unarchived ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const _supabaseUpdateStatusBulk = async (
+    boothIds: number[],
+    status: string | null,
+  ) => {
+    return await supabaseClient
+      .from('booth_sales')
+      .update({ status: status })
+      .in('id', boothIds);
+  };
+
+  const bulkMarkCommittedBoothSales = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      const { error } = await _supabaseUpdateStatusBulk(
+        boothSales.map((booth) => booth.id as number),
+        BOOTH_STATUS.COMMITTED,
+      );
+
+      if (error) throw error;
+      // Update booth sales in store
+      fetchBoothSales();
+
+      notificationHelpers.addSuccess(
+        `Successfully committed ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const bulkChangeInProjections = async (
+    boothSales: BoothSale[],
+    value: boolean,
+  ) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      const { error } = await supabaseClient
+        .from('booth_sales')
+        .update({ in_projections: value })
+        .in(
+          'id',
+          boothSales.map((booth) => booth.id as number),
+        );
+
+      if (error) throw error;
+
+      // Update booth sales in store
+      fetchBoothSales();
+
+      notificationHelpers.addSuccess(
+        `Successfully included ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''} in projections`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
   return {
     allBoothSales,
     visibleBoothSales,
@@ -849,6 +1069,7 @@ export const useBoothsStore = defineStore('booths', () => {
     pastBoothSalesUsingTroopInventory,
     recordedBoothSalesUsingTroopInventory,
     unArchivedBoothSalesUsingTroopInventory,
+    unCommittedBoothSalesInProjectionsUsingTroopInventory,
     fetchBoothSales,
     insertBoothSale,
     upsertBoothSale,
@@ -877,5 +1098,11 @@ export const useBoothsStore = defineStore('booths', () => {
     updateDistributionData,
     saveDistributedSales,
     closeDistributeSalesDialog,
+    importBoothSales,
+    bulkDeleteBoothSales,
+    bulkArchiveBoothSales,
+    bulkUnArchiveBoothSales,
+    bulkMarkCommittedBoothSales,
+    bulkChangeInProjections,
   };
 });

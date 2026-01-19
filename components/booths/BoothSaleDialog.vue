@@ -77,7 +77,19 @@
   );
 
   const data = {
-    validationRules: cookiesStore.customCookieValidationRules, // Add the 'overBooking' function to the validationRules
+    validationRules: {
+      ...cookiesStore.customCookieValidationRules,
+      time12hour: (node) => {
+        const value = node.value;
+        if (!value) return true; // Allow empty values (handled by required validation)
+
+        // Regular expression to match 12-hour time format
+        // Matches: 9:00 AM, 09:00 AM, 9:00am, 12:30 PM, etc.
+        const time12hourRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$/;
+
+        return time12hourRegex.test(value);
+      },
+    },
   };
 
   const boothSaleDialogFormSchema = computed(() => {
@@ -98,15 +110,39 @@
       },
       {
         $formkit: 'primeInputText',
-        name: 'sale_time',
-        label: 'Time',
-        key: 'sale_time',
-        placeholder: 'Set time',
-        validation: 'required|time',
+        name: 'start_time',
+        label: 'Start Time',
+        key: 'start_time',
+        placeholder: '9:00 AM',
+        validation: 'required|time12hour',
+        validationLabel: 'Start time',
+        validationRules: '$validationRules',
+        validationMessages: {
+          time12hour: 'Please enter time in 12-hour format (e.g., 9:00 AM)',
+        },
         wrapperClass: 'grid grid-cols-4 gap-4 items-center',
         labelClass: 'col-span-1',
         innerClass: 'col-span-3 mt-1 mb-1',
         class: 'w-full',
+        help: 'Enter time in 12-hour format (e.g., 9:00 AM, 2:30 PM)',
+      },
+      {
+        $formkit: 'primeInputText',
+        name: 'end_time',
+        label: 'End Time',
+        key: 'end_time',
+        placeholder: '11:00 AM',
+        validation: 'required|time12hour',
+        validationLabel: 'End time',
+        validationRules: '$validationRules',
+        validationMessages: {
+          time12hour: 'Please enter time in 12-hour format (e.g., 9:00 AM)',
+        },
+        wrapperClass: 'grid grid-cols-4 gap-4 items-center',
+        labelClass: 'col-span-1',
+        innerClass: 'col-span-3 mt-1 mb-1',
+        class: 'w-full',
+        help: 'Enter time in 12-hour format (e.g., 9:00 AM, 2:30 PM)',
       },
       {
         $formkit: 'primeInputText',

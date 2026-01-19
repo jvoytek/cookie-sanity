@@ -30,7 +30,8 @@
         id: 0,
         location: '',
         sale_date: '',
-        sale_time: '',
+        start_time: '',
+        end_time: '',
         scouts_attending: null,
         predicted_cookies: null,
         expected_sales: 0,
@@ -86,7 +87,12 @@
         <NuxtTime :datetime="boothSale.sale_date" time-zone="UTC" />
       </div>
       <div class="border-b-1 border-gray-400 pb-2">
-        <strong>Time:</strong> {{ boothSale.sale_time || 'N/A' }}
+        <strong>Time:</strong>
+        <span v-if="boothSale.start_time">
+          {{ boothSale.start_time }}
+          <span v-if="boothSale.end_time"> - {{ boothSale.end_time }}</span>
+        </span>
+        <span v-else>N/A</span>
       </div>
     </div>
 

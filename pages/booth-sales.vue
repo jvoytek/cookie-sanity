@@ -1,9 +1,14 @@
 <script setup lang="ts">
   const boothsStore = useBoothsStore();
+  const importDialogVisible = ref(false);
 
   function openNew() {
     boothsStore.setActiveBoothSale(null);
     boothsStore.boothDialogVisible = true;
+  }
+
+  function openImport() {
+    importDialogVisible.value = true;
   }
 </script>
 
@@ -24,6 +29,13 @@
               severity="secondary"
               class="mr-2"
               @click="openNew"
+            />
+            <Button
+              label="Import"
+              icon="pi pi-upload"
+              severity="secondary"
+              outlined
+              @click="openImport"
             />
           </template>
         </Toolbar>
@@ -53,20 +65,22 @@
           <TabPanels>
             <TabPanel value="0"
               ><BoothsDataTable
-                :value="boothsStore.upcomingBoothSales"
+                :booths="boothsStore.upcomingBoothSales"
                 type="upcoming"
             /></TabPanel>
             <TabPanel value="2"
-              ><BoothsDataTable :value="boothsStore.pastBoothSales" type="past"
+              ><BoothsDataTable
+                :booths="boothsStore.pastBoothSales"
+                type="past"
             /></TabPanel>
             <TabPanel value="3"
               ><BoothsDataTable
-                :value="boothsStore.recordedBoothSales"
+                :booths="boothsStore.recordedBoothSales"
                 type="recorded"
             /></TabPanel>
             <TabPanel value="4"
               ><BoothsDataTable
-                :value="boothsStore.archivedBoothSales"
+                :booths="boothsStore.archivedBoothSales"
                 type="archived"
             /></TabPanel>
           </TabPanels>
@@ -76,6 +90,7 @@
         <BoothSaleDeleteDialog />
         <BoothSaleRecordDialog />
         <BoothSaleDistributeDialog />
+        <ImportBoothSalesDialog v-model:visible="importDialogVisible" />
       </div>
     </div>
     <NoCookiesOverlay />

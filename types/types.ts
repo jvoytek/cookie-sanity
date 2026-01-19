@@ -137,3 +137,15 @@ export interface SmartCookiesPayment {
   Amount: number | string;
   'Ref #'?: string;
 }
+
+export interface SmartCookiesBoothSale {
+  SaleDate: string;
+  StartTime: string;
+  EndTime: string;
+  Chain: string;
+  address1: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  zipcode?: string;
+}
