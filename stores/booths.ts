@@ -940,31 +940,14 @@ export const useBoothsStore = defineStore('booths', () => {
         throw new Error('No booth sales selected');
       }
 
-      // Archive all booth sales in parallel
-      const archivePromises = boothSales.map((boothSale) => {
-        // Create a deep copy to avoid mutating the original
-        const updatedBoothSale = structuredClone(boothSale);
-        updatedBoothSale.status = BOOTH_STATUS.ARCHIVED;
-        _transformDataForSave(updatedBoothSale);
-        return _supabaseUpsertBoothSale(updatedBoothSale);
-      });
+      const { error } = await _supabaseUpdateStatusBulk(
+        boothSales.map((booth) => booth.id as number),
+        BOOTH_STATUS.ARCHIVED,
+      );
 
-      const results = await Promise.all(archivePromises);
-
-      // Check for errors
-      const errors = results.filter((result) => result.error);
-      if (errors.length > 0) {
-        throw new Error(
-          `Failed to archive ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
-        );
-      }
-
+      if (error) throw error;
       // Update booth sales in store
-      results.forEach((result) => {
-        if (result.data) {
-          _updateBoothSale(_transformDataForBoothSale(result.data));
-        }
-      });
+      fetchBoothSales();
 
       notificationHelpers.addSuccess(
         `Successfully archived ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
@@ -974,37 +957,53 @@ export const useBoothsStore = defineStore('booths', () => {
     }
   };
 
+  const bulkUnArchiveBoothSales = async (boothSales: BoothSale[]) => {
+    try {
+      if (boothSales.length === 0) {
+        throw new Error('No booth sales selected');
+      }
+
+      const { error } = await _supabaseUpdateStatusBulk(
+        boothSales.map((booth) => booth.id as number),
+        null,
+      );
+
+      if (error) throw error;
+      // Update booth sales in store
+      fetchBoothSales();
+
+      notificationHelpers.addSuccess(
+        `Successfully unarchived ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+      );
+    } catch (error) {
+      notificationHelpers.addError(error as Error);
+    }
+  };
+
+  const _supabaseUpdateStatusBulk = async (
+    boothIds: number[],
+    status: string | null,
+  ) => {
+    return await supabaseClient
+      .from('booth_sales')
+      .update({ status: status })
+      .in('id', boothIds);
+  };
+
   const bulkMarkCommittedBoothSales = async (boothSales: BoothSale[]) => {
     try {
       if (boothSales.length === 0) {
         throw new Error('No booth sales selected');
       }
 
-      // Mark all booth sales as committed in parallel
-      const commitPromises = boothSales.map((boothSale) => {
-        // Create a deep copy to avoid mutating the original
-        const updatedBoothSale = structuredClone(boothSale);
-        updatedBoothSale.status = BOOTH_STATUS.COMMITTED;
-        _transformDataForSave(updatedBoothSale);
-        return _supabaseUpsertBoothSale(updatedBoothSale);
-      });
+      const { error } = await _supabaseUpdateStatusBulk(
+        boothSales.map((booth) => booth.id as number),
+        BOOTH_STATUS.COMMITTED,
+      );
 
-      const results = await Promise.all(commitPromises);
-
-      // Check for errors
-      const errors = results.filter((result) => result.error);
-      if (errors.length > 0) {
-        throw new Error(
-          `Failed to commit ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
-        );
-      }
-
+      if (error) throw error;
       // Update booth sales in store
-      results.forEach((result) => {
-        if (result.data) {
-          _updateBoothSale(_transformDataForBoothSale(result.data));
-        }
-      });
+      fetchBoothSales();
 
       notificationHelpers.addSuccess(
         `Successfully committed ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
@@ -1014,40 +1013,30 @@ export const useBoothsStore = defineStore('booths', () => {
     }
   };
 
-  const bulkToggleInProjections = async (boothSales: BoothSale[]) => {
+  const bulkChangeInProjections = async (
+    boothSales: BoothSale[],
+    value: boolean,
+  ) => {
     try {
       if (boothSales.length === 0) {
         throw new Error('No booth sales selected');
       }
 
-      // Toggle in_projections for all booth sales in parallel
-      const togglePromises = boothSales.map((boothSale) => {
-        // Create a deep copy to avoid mutating the original
-        const updatedBoothSale = structuredClone(boothSale);
-        updatedBoothSale.in_projections = !boothSale.in_projections;
-        _transformDataForSave(updatedBoothSale);
-        return _supabaseUpsertBoothSale(updatedBoothSale);
-      });
-
-      const results = await Promise.all(togglePromises);
-
-      // Check for errors
-      const errors = results.filter((result) => result.error);
-      if (errors.length > 0) {
-        throw new Error(
-          `Failed to toggle ${errors.length} booth sale${errors.length !== 1 ? 's' : ''}`,
+      const { error } = await supabaseClient
+        .from('booth_sales')
+        .update({ in_projections: value })
+        .in(
+          'id',
+          boothSales.map((booth) => booth.id as number),
         );
-      }
+
+      if (error) throw error;
 
       // Update booth sales in store
-      results.forEach((result) => {
-        if (result.data) {
-          _updateBoothSale(_transformDataForBoothSale(result.data));
-        }
-      });
+      fetchBoothSales();
 
       notificationHelpers.addSuccess(
-        `Successfully toggled in projections for ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''}`,
+        `Successfully included ${boothSales.length} booth sale${boothSales.length !== 1 ? 's' : ''} in projections`,
       );
     } catch (error) {
       notificationHelpers.addError(error as Error);
@@ -1112,7 +1101,8 @@ export const useBoothsStore = defineStore('booths', () => {
     importBoothSales,
     bulkDeleteBoothSales,
     bulkArchiveBoothSales,
+    bulkUnArchiveBoothSales,
     bulkMarkCommittedBoothSales,
-    bulkToggleInProjections,
+    bulkChangeInProjections,
   };
 });

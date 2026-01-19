@@ -4,6 +4,7 @@
 
   const props = defineProps<{
     type: 'upcoming' | 'past' | 'recorded' | 'archived';
+    booths: BoothSale[];
   }>();
 
   const boothsStore = useBoothsStore();
@@ -138,13 +139,17 @@
     selectedBoothSales.value = [];
   };
 
+  const bulkUnArchiveBoothSales = async () => {
+    await boothsStore.bulkUnArchiveBoothSales(selectedBoothSales.value);
+    selectedBoothSales.value = [];
+  };
   const bulkMarkCommittedBoothSales = async () => {
     await boothsStore.bulkMarkCommittedBoothSales(selectedBoothSales.value);
     selectedBoothSales.value = [];
   };
 
-  const bulkToggleInProjections = async () => {
-    await boothsStore.bulkToggleInProjections(selectedBoothSales.value);
+  const bulkChangeInProjections = async (value) => {
+    await boothsStore.bulkChangeInProjections(selectedBoothSales.value, value);
     selectedBoothSales.value = [];
   };
 
@@ -191,6 +196,19 @@
         @click="bulkArchiveBoothSales"
       />
       <Button
+        v-if="props.type === 'archived'"
+        v-tooltip.bottom="{
+          value: 'Unarchive selected booth sales',
+          showDelay: 500,
+        }"
+        :disabled="!hasSelection"
+        label="Unarchive"
+        icon="pi pi-inbox"
+        variant="outlined"
+        class="mr-2"
+        @click="bulkUnArchiveBoothSales"
+      />
+      <Button
         v-tooltip.bottom="{
           value:
             'Mark selected booth sales as committed to remove starting inventory from calculations',
@@ -207,16 +225,30 @@
       <Button
         v-if="props.type === 'upcoming' || props.type === 'past'"
         v-tooltip.bottom="{
-          value: 'Toggle In Projections for selected booth sales',
+          value: 'Include these booth sales in inventory projections.',
           showDelay: 500,
         }"
         :disabled="!hasSelection"
-        label="Toggle In Projections"
+        label="Include in Projections"
         icon="pi pi-calculator"
         variant="outlined"
         severity="secondary"
         class="mr-2"
-        @click="bulkToggleInProjections"
+        @click="bulkChangeInProjections(true)"
+      />
+      <Button
+        v-if="props.type === 'upcoming' || props.type === 'past'"
+        v-tooltip.bottom="{
+          value: 'Don\'t include these booth sales in inventory projections.',
+          showDelay: 500,
+        }"
+        :disabled="!hasSelection"
+        label="Exclude from Projections"
+        icon="pi pi-times"
+        variant="outlined"
+        severity="secondary"
+        class="mr-2"
+        @click="bulkChangeInProjections(false)"
       />
     </template>
   </Toolbar>
@@ -224,7 +256,7 @@
   <DataTable
     ref="dt"
     v-model:selection="selectedBoothSales"
-    :value="boothsStore.visibleBoothSales"
+    :value="booths"
     data-key="id"
     sort-field="sale_date"
   >
@@ -322,7 +354,7 @@
         <i
           v-tooltip.bottom="{
             value:
-              'Starting inventory committed to this sale will not be included in on-hand inventory calculations. This is useful when checking out troop inventory for a booth sale (i.e. removing it from physical troop inventory) but actual sales are not yet known.',
+              'Starting inventory from committed booth sales will be removed from on-hand inventory until you record actual sales. This is useful when checking out troop inventory for a booth sale. When you remove the packages from physical troop inventory before a sale it\'s useful to know how many should be left even though actual sales are not yet known.',
           }"
           class="pi pi-info-circle ml-2 text-sm text-gray-500 cursor-pointer"
         />
@@ -341,7 +373,7 @@
         <i
           v-tooltip.bottom="{
             value:
-              'Include this booth sale in inventory projections. Use this to focus on near-term needs (e.g., next week) by excluding booths further out.',
+              'Include this booth sale in future inventory projections. Use this to focus on near-term needs (e.g., next week) by excluding booths further out.',
           }"
           class="pi pi-info-circle ml-2 text-sm text-gray-500 cursor-pointer"
         />
