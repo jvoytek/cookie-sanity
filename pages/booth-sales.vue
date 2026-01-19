@@ -65,20 +65,22 @@
           <TabPanels>
             <TabPanel value="0"
               ><BoothsDataTable
-                :value="boothsStore.upcomingBoothSales"
+                :booths="boothsStore.upcomingBoothSales"
                 type="upcoming"
             /></TabPanel>
             <TabPanel value="2"
-              ><BoothsDataTable :value="boothsStore.pastBoothSales" type="past"
+              ><BoothsDataTable
+                :booths="boothsStore.pastBoothSales"
+                type="past"
             /></TabPanel>
             <TabPanel value="3"
               ><BoothsDataTable
-                :value="boothsStore.recordedBoothSales"
+                :booths="boothsStore.recordedBoothSales"
                 type="recorded"
             /></TabPanel>
             <TabPanel value="4"
               ><BoothsDataTable
-                :value="boothsStore.archivedBoothSales"
+                :booths="boothsStore.archivedBoothSales"
                 type="archived"
             /></TabPanel>
           </TabPanels>
