@@ -16,6 +16,36 @@
       0,
     );
   });
+
+  // Watch boothsStore.computedTotalCashReceiptsActiveSale to update cashReceiptsActiveSale when not entering breakdown
+  watch(
+    () => boothsStore.computedTotalCashReceiptsActiveSale,
+    (newVal) => {
+      boothsStore.cashReceiptsActiveSale =
+        boothsStore.computedTotalCashReceiptsActiveSale;
+    },
+  );
+
+  watch(
+    () => boothsStore.cashReceiptsActiveSale,
+    (newVal, oldVal) => {
+      if (enterCashBreakdown.value === false && newVal !== oldVal) {
+        //sync cashbreakdown with ones and cents to equal cashReceiptsActiveSale
+        const totalCents = Math.round(newVal * 100);
+        const ones = Math.floor(totalCents / 100);
+        const cents = (totalCents - ones * 100) / 100; // remainder of cents after removing ones in fractions of a dollar
+        boothsStore.cashBreakdownActiveSale = {
+          ones: ones,
+          fives: 0,
+          tens: 0,
+          twenties: 0,
+          fifties: 0,
+          hundreds: 0,
+          cents: cents,
+        };
+      }
+    },
+  );
 </script>
 <template>
   <Dialog
@@ -147,7 +177,7 @@
                 <label for="ones" class="text-sm mb-1">$1</label>
                 <InputNumber
                   id="ones"
-                  v-model="boothsStore.cashBreakdown.ones"
+                  v-model="boothsStore.cashBreakdownActiveSale.ones"
                   :min="0"
                   :use-grouping="false"
                   input-class="w-full"
@@ -158,7 +188,7 @@
                 <label for="fives" class="text-sm mb-1">$5</label>
                 <InputNumber
                   id="fives"
-                  v-model="boothsStore.cashBreakdown.fives"
+                  v-model="boothsStore.cashBreakdownActiveSale.fives"
                   :min="0"
                   :use-grouping="false"
                   input-class="w-full"
@@ -169,7 +199,7 @@
                 <label for="tens" class="text-sm mb-1">$10</label>
                 <InputNumber
                   id="tens"
-                  v-model="boothsStore.cashBreakdown.tens"
+                  v-model="boothsStore.cashBreakdownActiveSale.tens"
                   :min="0"
                   :use-grouping="false"
                   input-class="w-full"
@@ -180,7 +210,7 @@
                 <label for="twenties" class="text-sm mb-1">$20</label>
                 <InputNumber
                   id="twenties"
-                  v-model="boothsStore.cashBreakdown.twenties"
+                  v-model="boothsStore.cashBreakdownActiveSale.twenties"
                   :min="0"
                   :use-grouping="false"
                   input-class="w-full"
@@ -191,7 +221,7 @@
                 <label for="fifties" class="text-sm mb-1">$50</label>
                 <InputNumber
                   id="fifties"
-                  v-model="boothsStore.cashBreakdown.fifties"
+                  v-model="boothsStore.cashBreakdownActiveSale.fifties"
                   :min="0"
                   :use-grouping="false"
                   input-class="w-full"
@@ -202,7 +232,7 @@
                 <label for="hundreds" class="text-sm mb-1">$100</label>
                 <InputNumber
                   id="hundreds"
-                  v-model="boothsStore.cashBreakdown.hundreds"
+                  v-model="boothsStore.cashBreakdownActiveSale.hundreds"
                   :min="0"
                   :use-grouping="false"
                   input-class="w-full"
@@ -213,7 +243,7 @@
                 <label for="cents" class="text-sm mb-1">Cents</label>
                 <InputNumber
                   id="cents"
-                  v-model="boothsStore.cashBreakdown.cents"
+                  v-model="boothsStore.cashBreakdownActiveSale.cents"
                   :min="0"
                   :max-fraction-digits="2"
                   :use-grouping="false"
@@ -229,7 +259,7 @@
             <InputNumber
               v-if="!enterCashBreakdown"
               id="cash-receipts"
-              v-model="boothsStore.totalCashReceipts"
+              v-model="boothsStore.cashReceiptsActiveSale"
               style="width: 100px"
               :min="0"
               :max-fraction-digits="2"
@@ -240,14 +270,16 @@
               placeholder="0.00"
             />
             <span v-else>
-              {{ formatCurrency(boothsStore.totalCashReceipts) }}
+              {{
+                formatCurrency(boothsStore.computedTotalCashReceiptsActiveSale)
+              }}
             </span>
           </div>
           <div class="flex justify-between items-center">
             <span class="font-semibold">Credit Receipts</span>
             <InputNumber
               id="credit-receipts"
-              v-model="boothsStore.creditReceipts"
+              v-model="boothsStore.creditReceiptsActiveSale"
               style="width: 100px"
               :min="0"
               :max-fraction-digits="2"
@@ -262,7 +294,7 @@
             <span class="font-semibold">Other Receipts</span>
             <InputNumber
               id="other-receipts"
-              v-model="boothsStore.otherReceipts"
+              v-model="boothsStore.otherReceiptsActiveSale"
               style="width: 100px"
               :min="0"
               :max-fraction-digits="2"
@@ -286,9 +318,9 @@
             <span>
               {{
                 formatCurrency(
-                  boothsStore.totalCashReceipts +
-                    boothsStore.creditReceipts +
-                    boothsStore.otherReceipts,
+                  boothsStore.cashReceiptsActiveSale +
+                    boothsStore.creditReceiptsActiveSale +
+                    boothsStore.otherReceiptsActiveSale,
                 )
               }}
             </span>
@@ -300,9 +332,9 @@
               {{
                 formatCurrency(
                   totalSales -
-                    boothsStore.totalCashReceipts -
-                    boothsStore.creditReceipts -
-                    boothsStore.otherReceipts,
+                    boothsStore.cashReceiptsActiveSale -
+                    boothsStore.creditReceiptsActiveSale -
+                    boothsStore.otherReceiptsActiveSale,
                 )
               }}
             </span>
