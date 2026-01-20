@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import type { InventoryCheck } from '@/types/types';
   import NoCookiesOverlay from '~/components/other/NoCookiesOverlay.vue';
+  import type { Json } from '~/types/supabase';
 
   const loading = ref(true);
   loading.value = true;
@@ -86,13 +87,12 @@
     if (editingCheckId.value !== null) {
       return snapshotExpectedInventory.value;
     }
-    return cookiesStore.allCookiesWithInventoryTotals(false).reduce(
-      (acc, item) => {
+    return cookiesStore
+      .allCookiesWithInventoryTotals(false)
+      .reduce((acc, item) => {
         acc[item.abbreviation] = item.onHand || 0;
         return acc;
-      },
-      {} as Record<string, number>,
-    );
+      }, {} as Json);
   });
 
   const cancelCheck = () => {
@@ -119,7 +119,7 @@
 
     const checkData = {
       physical_inventory: physicalInventoryPackages,
-      expected_inventory: expectedInventory,
+      expected_inventory: expectedInventory.value,
       discrepancies,
       total_discrepancies: totalDiscrepancies,
       conducted_by: conductedBy.value,
