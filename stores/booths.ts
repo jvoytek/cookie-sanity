@@ -55,24 +55,33 @@ export const useBoothsStore = defineStore('booths', () => {
     Record<string, { predicted: number; remaining: number; sales: number }>
   >({});
   const deleteBoothSaleDialogVisible = ref(false);
-  const cashBreakdown = ref<CashBreakdown>(createEmptyCashBreakdown());
-  const creditReceipts = ref(0);
-  const otherReceipts = ref(0);
+  const cashBreakdownActiveSale = ref<CashBreakdown>(
+    createEmptyCashBreakdown(),
+  );
+  const cashReceiptsActiveSale = ref(0);
+  const creditReceiptsActiveSale = ref(0);
+  const otherReceiptsActiveSale = ref(0);
   const distributeSalesDialogVisible = ref(false);
   const activeBoothSaleForDistribution = ref<BoothSale | null>(null);
   const distributionData = ref<Record<number, Record<string, number>>>({});
 
   /* Computed */
 
-  const totalCashReceipts = computed(() => {
+  const cashReceiptsAllBoothSales = computed(() => {
+    return allBoothSales.value.reduce((total, booth) => {
+      return total + (booth.cash_receipts || 0);
+    }, 0);
+  });
+
+  const computedTotalCashReceiptsActiveSale = computed(() => {
     const billsTotal =
-      cashBreakdown.value.ones * 1 +
-      cashBreakdown.value.fives * 5 +
-      cashBreakdown.value.tens * 10 +
-      cashBreakdown.value.twenties * 20 +
-      cashBreakdown.value.fifties * 50 +
-      cashBreakdown.value.hundreds * 100;
-    const total = billsTotal + cashBreakdown.value.cents;
+      cashBreakdownActiveSale.value.ones * 1 +
+      cashBreakdownActiveSale.value.fives * 5 +
+      cashBreakdownActiveSale.value.tens * 10 +
+      cashBreakdownActiveSale.value.twenties * 20 +
+      cashBreakdownActiveSale.value.fifties * 50 +
+      cashBreakdownActiveSale.value.hundreds * 100;
+    const total = billsTotal + cashBreakdownActiveSale.value.cents;
     return Math.round(total * 100) / 100; // Round to 2 decimal places
   });
 
@@ -631,7 +640,7 @@ export const useBoothsStore = defineStore('booths', () => {
     // Initialize cash breakdown from booth sale or reset to zero
     if (boothSale.cash_breakdown) {
       const breakdown = boothSale.cash_breakdown as Record<string, number>;
-      cashBreakdown.value = {
+      cashBreakdownActiveSale.value = {
         ones: breakdown.ones || 0,
         fives: breakdown.fives || 0,
         tens: breakdown.tens || 0,
@@ -641,12 +650,13 @@ export const useBoothsStore = defineStore('booths', () => {
         cents: breakdown.cents || 0,
       };
     } else {
-      cashBreakdown.value = createEmptyCashBreakdown();
+      cashBreakdownActiveSale.value = createEmptyCashBreakdown();
     }
 
     // Initialize credit and other receipts from booth sale or reset to zero
-    creditReceipts.value = boothSale.credit_receipts ?? 0;
-    otherReceipts.value = boothSale.other_receipts ?? 0;
+    cashReceiptsActiveSale.value = boothSale.cash_receipts ?? 0;
+    creditReceiptsActiveSale.value = boothSale.credit_receipts ?? 0;
+    otherReceiptsActiveSale.value = boothSale.other_receipts ?? 0;
 
     recordSalesDialogVisible.value = true;
   };
@@ -706,10 +716,10 @@ export const useBoothsStore = defineStore('booths', () => {
         cookies_sold: cookiesSold,
         predicted_cookies: updatedPredictedCookies,
         expected_sales: totalExpectedSales,
-        cash_receipts: totalCashReceipts.value,
-        cash_breakdown: Object.assign({}, cashBreakdown.value),
-        credit_receipts: creditReceipts.value,
-        other_receipts: otherReceipts.value,
+        cash_receipts: cashReceiptsActiveSale.value,
+        cash_breakdown: Object.assign({}, cashBreakdownActiveSale.value),
+        credit_receipts: creditReceiptsActiveSale.value,
+        other_receipts: otherReceiptsActiveSale.value,
       };
       _transformDataForSave(updatedBoothSale);
       const { data, error } = await _supabaseUpsertBoothSale(updatedBoothSale);
@@ -729,9 +739,10 @@ export const useBoothsStore = defineStore('booths', () => {
     recordSalesDialogVisible.value = false;
     activeBoothSaleForRecording.value = null;
     activeBoothSalesRecordData.value = {};
-    cashBreakdown.value = createEmptyCashBreakdown();
-    creditReceipts.value = 0;
-    otherReceipts.value = 0;
+    cashBreakdownActiveSale.value = createEmptyCashBreakdown();
+    cashReceiptsActiveSale.value = 0;
+    creditReceiptsActiveSale.value = 0;
+    otherReceiptsActiveSale.value = 0;
   };
 
   const _getTotalPackagesSoldForBoothSale = (cookies: Json | null): number => {
@@ -1045,6 +1056,7 @@ export const useBoothsStore = defineStore('booths', () => {
 
   return {
     allBoothSales,
+    cashReceiptsAllBoothSales,
     visibleBoothSales,
     showArchivedBoothSales,
     boothDialogFormSchema,
@@ -1087,10 +1099,11 @@ export const useBoothsStore = defineStore('booths', () => {
     updateSalesRecordSales,
     saveRecordedSales,
     closeRecordSalesDialog,
-    cashBreakdown,
-    totalCashReceipts,
-    creditReceipts,
-    otherReceipts,
+    cashBreakdownActiveSale,
+    computedTotalCashReceiptsActiveSale,
+    cashReceiptsActiveSale,
+    creditReceiptsActiveSale,
+    otherReceiptsActiveSale,
     distributeSalesDialogVisible,
     activeBoothSaleForDistribution,
     distributionData,

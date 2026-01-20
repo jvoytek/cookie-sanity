@@ -870,11 +870,11 @@ describe('useBoothsStore', () => {
     });
 
     beforeEach(() => {
-      boothsStore.cashBreakdown = createEmptyCashBreakdown();
+      boothsStore.cashBreakdownActiveSale = createEmptyCashBreakdown();
     });
 
     it('calculates total cash receipts correctly with bills only', () => {
-      boothsStore.cashBreakdown = {
+      boothsStore.cashBreakdownActiveSale = {
         ones: 5, // $5
         fives: 3, // $15
         tens: 2, // $20
@@ -884,11 +884,11 @@ describe('useBoothsStore', () => {
         cents: 0,
       };
 
-      expect(boothsStore.totalCashReceipts).toBe(210);
+      expect(boothsStore.computedTotalCashReceiptsActiveSale).toBe(210);
     });
 
     it('calculates total cash receipts correctly with coins only', () => {
-      boothsStore.cashBreakdown = {
+      boothsStore.cashBreakdownActiveSale = {
         ones: 0,
         fives: 0,
         tens: 0,
@@ -898,11 +898,11 @@ describe('useBoothsStore', () => {
         cents: 1.75,
       };
 
-      expect(boothsStore.totalCashReceipts).toBe(1.75);
+      expect(boothsStore.computedTotalCashReceiptsActiveSale).toBe(1.75);
     });
 
     it('calculates total cash receipts correctly with bills and coins', () => {
-      boothsStore.cashBreakdown = {
+      boothsStore.cashBreakdownActiveSale = {
         ones: 3, // $3
         fives: 1, // $5
         tens: 2, // $20
@@ -912,11 +912,11 @@ describe('useBoothsStore', () => {
         cents: 0.5,
       };
 
-      expect(boothsStore.totalCashReceipts).toBe(28.5);
+      expect(boothsStore.computedTotalCashReceiptsActiveSale).toBe(28.5);
     });
 
     it('rounds total cash receipts to 2 decimal places', () => {
-      boothsStore.cashBreakdown = {
+      boothsStore.cashBreakdownActiveSale = {
         ones: 0,
         fives: 0,
         tens: 0,
@@ -926,7 +926,7 @@ describe('useBoothsStore', () => {
         cents: 1.999,
       };
 
-      expect(boothsStore.totalCashReceipts).toBe(2);
+      expect(boothsStore.computedTotalCashReceiptsActiveSale).toBe(2);
     });
 
     it('initializes cash breakdown when opening record sales dialog', () => {
@@ -960,11 +960,11 @@ describe('useBoothsStore', () => {
 
       newBoothsStore.openRecordSalesDialog(mockBoothSale);
 
-      expect(newBoothsStore.cashBreakdown.ones).toBe(2);
-      expect(newBoothsStore.cashBreakdown.fives).toBe(1);
-      expect(newBoothsStore.cashBreakdown.tens).toBe(3);
-      expect(newBoothsStore.cashBreakdown.hundreds).toBe(1);
-      expect(newBoothsStore.cashBreakdown.cents).toBe(0.25);
+      expect(newboothsStore.cashBreakdownActiveSale.ones).toBe(2);
+      expect(newboothsStore.cashBreakdownActiveSale.fives).toBe(1);
+      expect(newboothsStore.cashBreakdownActiveSale.tens).toBe(3);
+      expect(newboothsStore.cashBreakdownActiveSale.hundreds).toBe(1);
+      expect(newboothsStore.cashBreakdownActiveSale.cents).toBe(0.25);
     });
 
     it('resets cash breakdown to zero when booth sale has no cash_breakdown', () => {
@@ -979,7 +979,7 @@ describe('useBoothsStore', () => {
       const newBoothsStore = useBoothsStore();
 
       // First set some values
-      newBoothsStore.cashBreakdown = {
+      newboothsStore.cashBreakdownActiveSale = {
         ones: 5,
         fives: 3,
         tens: 2,
@@ -1000,13 +1000,13 @@ describe('useBoothsStore', () => {
 
       newBoothsStore.openRecordSalesDialog(mockBoothSale);
 
-      expect(newBoothsStore.cashBreakdown.ones).toBe(0);
-      expect(newBoothsStore.cashBreakdown.fives).toBe(0);
-      expect(newBoothsStore.cashBreakdown.tens).toBe(0);
-      expect(newBoothsStore.cashBreakdown.twenties).toBe(0);
-      expect(newBoothsStore.cashBreakdown.fifties).toBe(0);
-      expect(newBoothsStore.cashBreakdown.hundreds).toBe(0);
-      expect(newBoothsStore.cashBreakdown.cents).toBe(0);
+      expect(newboothsStore.cashBreakdownActiveSale.ones).toBe(0);
+      expect(newboothsStore.cashBreakdownActiveSale.fives).toBe(0);
+      expect(newboothsStore.cashBreakdownActiveSale.tens).toBe(0);
+      expect(newboothsStore.cashBreakdownActiveSale.twenties).toBe(0);
+      expect(newboothsStore.cashBreakdownActiveSale.fifties).toBe(0);
+      expect(newboothsStore.cashBreakdownActiveSale.hundreds).toBe(0);
+      expect(newboothsStore.cashBreakdownActiveSale.cents).toBe(0);
     });
 
     it('saves cash receipts data when recording sales', async () => {
@@ -1049,7 +1049,7 @@ describe('useBoothsStore', () => {
 
       // Open dialog and set cash breakdown
       newBoothsStore.openRecordSalesDialog(mockBoothSale);
-      newBoothsStore.cashBreakdown = {
+      newboothsStore.cashBreakdownActiveSale = {
         ones: 10,
         fives: 5,
         tens: 3,
@@ -1075,7 +1075,7 @@ describe('useBoothsStore', () => {
     });
 
     it('resets cash breakdown when closing record sales dialog', () => {
-      boothsStore.cashBreakdown = {
+      boothsStore.cashBreakdownActiveSale = {
         ones: 5,
         fives: 3,
         tens: 2,
@@ -1087,13 +1087,13 @@ describe('useBoothsStore', () => {
 
       boothsStore.closeRecordSalesDialog();
 
-      expect(boothsStore.cashBreakdown.ones).toBe(0);
-      expect(boothsStore.cashBreakdown.fives).toBe(0);
-      expect(boothsStore.cashBreakdown.tens).toBe(0);
-      expect(boothsStore.cashBreakdown.twenties).toBe(0);
-      expect(boothsStore.cashBreakdown.fifties).toBe(0);
-      expect(boothsStore.cashBreakdown.hundreds).toBe(0);
-      expect(boothsStore.cashBreakdown.cents).toBe(0);
+      expect(boothsStore.cashBreakdownActiveSale.ones).toBe(0);
+      expect(boothsStore.cashBreakdownActiveSale.fives).toBe(0);
+      expect(boothsStore.cashBreakdownActiveSale.tens).toBe(0);
+      expect(boothsStore.cashBreakdownActiveSale.twenties).toBe(0);
+      expect(boothsStore.cashBreakdownActiveSale.fifties).toBe(0);
+      expect(boothsStore.cashBreakdownActiveSale.hundreds).toBe(0);
+      expect(boothsStore.cashBreakdownActiveSale.cents).toBe(0);
     });
   });
 });
