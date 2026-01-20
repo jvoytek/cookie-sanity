@@ -290,7 +290,7 @@
       v-model:visible="checkDialogVisible"
       modal
       :style="{ width: '90vw', maxWidth: '800px' }"
-      header="Transaction Details"
+      header="Physical Inventory Check"
       :dismissable-mask="true"
     >
       <div class="space-y-4">
