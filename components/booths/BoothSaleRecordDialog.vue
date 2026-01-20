@@ -75,6 +75,7 @@
               "
               v-model="slotProps.data.data.remaining"
               :min="0"
+              :max="slotProps.data.data.predicted"
               @update:model-value="
                 (val) =>
                   boothsStore.updateSalesRecordRemaining(
@@ -97,6 +98,7 @@
               "
               v-model="slotProps.data.data.sales"
               :min="0"
+              :max="slotProps.data.data.predicted"
               @update:model-value="
                 (val) =>
                   boothsStore.updateSalesRecordSales(
