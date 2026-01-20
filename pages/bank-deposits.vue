@@ -3,8 +3,8 @@
 
   const depositsStore = useDepositsStore();
   const accountsStore = useAccountsStore();
-  const transactionsStore = useTransactionsStore();
   const cookiesStore = useCookiesStore();
+  const boothsStore = useBoothsStore();
   const notificationHelpers = useNotificationHelpers();
 
   const dt = ref();
@@ -12,9 +12,12 @@
 
   // Calculate total cash/checks collected (excluding Digital Cookie payments)
   const totalCashChecks = computed(() => {
-    return accountsStore.allPayments
-      .filter((p) => p.type !== 'digital_cookie')
-      .reduce((sum, payment) => sum + payment.amount, 0);
+    return (
+      accountsStore.allPayments
+        .filter((p) => p.type !== 'digital_cookie')
+        .reduce((sum, payment) => sum + payment.amount, 0) +
+      boothsStore.cashReceiptsAllBoothSales
+    );
   });
 
   // Calculate difference between cash/checks and total deposits
