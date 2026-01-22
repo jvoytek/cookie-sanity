@@ -31,7 +31,7 @@
 </script>
 
 <template>
-  <div class="card grid grid-cols-12 gap-8 mb-8">
+  <div class="card grid grid-cols-12 gap-0 md:gap-8 mb-8">
     <div class="col-span-12 lg:col-span-6 xl:col-span-3">
       <Fieldset>
         <template #legend>
