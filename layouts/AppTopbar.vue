@@ -6,7 +6,6 @@
 
   const { width } = useWindowSize();
   const screenWidth = width;
-  console.log('Screen width:', screenWidth);
 
   const supabase = useSupabaseClient();
 
@@ -119,21 +118,22 @@
           />
         </button>
         <div class="relative">
-          <button
-            v-if="screenWidth > 640"
-            v-styleclass="{
-              selector: '@next',
-              enterFromClass: 'hidden',
-              enterActiveClass: 'animate-scalein',
-              leaveToClass: 'hidden',
-              leaveActiveClass: 'animate-fadeout',
-              hideOnOutsideClick: true,
-            }"
-            type="button"
-            class="layout-topbar-action"
-          >
-            <i class="pi pi-palette" />
-          </button>
+          <ClientOnly
+            ><button
+              v-if="screenWidth > 991"
+              v-styleclass="{
+                selector: '@next',
+                enterFromClass: 'hidden',
+                enterActiveClass: 'animate-scalein',
+                leaveToClass: 'hidden',
+                leaveActiveClass: 'animate-fadeout',
+                hideOnOutsideClick: true,
+              }"
+              type="button"
+              class="layout-topbar-action"
+            >
+              <i class="pi pi-palette" /></button
+          ></ClientOnly>
           <AppConfigurator />
         </div>
 
