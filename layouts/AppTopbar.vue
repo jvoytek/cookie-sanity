@@ -2,6 +2,11 @@
   import { useLayout } from '@/composables/useLayout';
   import AppConfigurator from './AppConfigurator.vue';
   import SeasonSelect from '~/components/settings/SeasonSelect.vue';
+  import { useWindowSize } from '@vueuse/core';
+
+  const { width } = useWindowSize();
+  const screenWidth = width;
+
   const supabase = useSupabaseClient();
 
   const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
@@ -61,6 +66,7 @@
           width="54"
           height="40"
           fill="none"
+          class="hidden md:block"
         >
           <g clip-path="url(#eb7b912c21)">
             <path
@@ -95,7 +101,8 @@
             fill-rule="nonzero"
           />
         </svg>
-        <span>Cookie Sanity</span>
+        <span class="hidden md:block">Cookie Sanity</span>
+        <strong class="block md:hidden text-primary">CS</strong>
       </router-link>
     </div>
 
@@ -111,28 +118,31 @@
           />
         </button>
         <div class="relative">
-          <button
-            v-styleclass="{
-              selector: '@next',
-              enterFromClass: 'hidden',
-              enterActiveClass: 'animate-scalein',
-              leaveToClass: 'hidden',
-              leaveActiveClass: 'animate-fadeout',
-              hideOnOutsideClick: true,
-            }"
-            type="button"
-            class="layout-topbar-action"
-          >
-            <i class="pi pi-palette" />
-          </button>
+          <ClientOnly
+            ><button
+              v-if="screenWidth > 991"
+              v-styleclass="{
+                selector: '@next',
+                enterFromClass: 'hidden',
+                enterActiveClass: 'animate-scalein',
+                leaveToClass: 'hidden',
+                leaveActiveClass: 'animate-fadeout',
+                hideOnOutsideClick: true,
+              }"
+              type="button"
+              class="layout-topbar-action"
+            >
+              <i class="pi pi-palette" /></button
+          ></ClientOnly>
           <AppConfigurator />
         </div>
+
         <div class="relative">
           <Menu ref="menu" :model="userMenuItems" :popup="true" />
           <Button
             @click="toggleOverlayMenu"
             icon="pi pi-user"
-            :label="profileStore.display_name"
+            :label="screenWidth < 640 ? '' : profileStore.display_name"
             rounded
             text
             severity="contrast"
@@ -141,20 +151,6 @@
       </div>
 
       <SeasonSelect />
-
-      <button
-        v-styleclass="{
-          selector: '@next',
-          enterFromClass: 'hidden',
-          enterActiveClass: 'animate-scalein',
-          leaveToClass: 'hidden',
-          leaveActiveClass: 'animate-fadeout',
-          hideOnOutsideClick: true,
-        }"
-        class="layout-topbar-menu-button layout-topbar-action"
-      >
-        <i class="pi pi-ellipsis-v" />
-      </button>
     </div>
   </div>
 </template>
