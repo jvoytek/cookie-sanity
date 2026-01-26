@@ -6,7 +6,6 @@ export const transactionTypesToInvertAudit = [
   'T2G',
   'T2G(B)',
   'T2G(VB)',
-  'DIRECT_SHIP',
   'G2G',
 ];
 
