@@ -397,14 +397,14 @@ export const useTransactionHelpers = () => {
         $formkit: 'group',
         name: 'cookies',
         children: cookiesStore.cookieFormFields,
-        if: "$get('transaction-type').value && ($get('transaction-type').value === 'T2G' || $get('transaction-type').value === 'T2G(B)' || $get('transaction-type').value === 'T2G(VB)')",
+        if: "$get('transaction-type').value && ($get('transaction-type').value === 'T2G' || $get('transaction-type').value === 'T2G(B)' || $get('transaction-type').value === 'T2G(VB)' || $get('transaction-type').value === 'DIRECT_SHIP')",
         disabled: "$get('auto_calculate_cookies').value === true",
       },
       {
         $formkit: 'group',
         name: 'cookies',
         children: cookiesStore.cookieFormFieldsNotVirtual,
-        if: "$get('transaction-type').value && ($get('transaction-type').value !== 'T2G' && $get('transaction-type').value !== 'T2G(B)' && $get('transaction-type').value !== 'T2G(VB)')",
+        if: "$get('transaction-type').value && ($get('transaction-type').value !== 'T2G' && $get('transaction-type').value !== 'T2G(B)' && $get('transaction-type').value !== 'T2G(VB)' && $get('transaction-type').value !== 'DIRECT_SHIP')",
         disabled: "$get('auto_calculate_cookies').value === true",
       },
     ];
