@@ -159,7 +159,7 @@
         continue;
       }
 
-      payments.push({
+      const newPayment = {
         seller_id: sellerId,
         payment_date: paymentDate,
         type: type,
@@ -167,7 +167,13 @@
         notes: row['Ref #'] ? String(row['Ref #']) : null,
         profile: profileStore.currentProfile?.id,
         season: seasonsStore.currentSeason?.id,
-      });
+      };
+
+      // determine whether the payment is a duplicate
+      const duplicate = accountsStore.checkDuplicatePayment(newPayment);
+      if (duplicate === false) {
+        payments.push(newPayment);
+      }
     }
 
     return payments;
@@ -227,7 +233,7 @@
     payments: Partial<Payment>[],
   ): Promise<void> => {
     if (payments.length === 0) {
-      throw new Error('No valid payments found in the file.');
+      throw new Error('No valid payments found in the file or all duplicates.');
     }
 
     // Use batch insert instead of inserting one by one
