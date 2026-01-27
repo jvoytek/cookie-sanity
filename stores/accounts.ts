@@ -420,15 +420,21 @@ export const useAccountsStore = defineStore('accounts', () => {
     });
   };
 
+  const _transformDateForPayment = (payment_date: string) => {
+    const dateParts = payment_date.split('-');
+    const year = dateParts[0];
+    const month = dateParts[1].padStart(2, '0');
+    const day = dateParts[2].padStart(2, '0');
+    return `${month}/${day}/${year}`;
+  };
+
   const _transformDataForPayment = (payment: Payment) => {
     const transformedPayment = { ...payment };
     // Convert payment_date from yyyy-mm-dd to mm/dd/yyyy
     if (payment.payment_date) {
-      const dateParts = payment.payment_date.split('-');
-      const year = dateParts[0];
-      const month = dateParts[1].padStart(2, '0');
-      const day = dateParts[2].padStart(2, '0');
-      transformedPayment.payment_date = `${month}/${day}/${year}`;
+      transformedPayment.payment_date = _transformDateForPayment(
+        payment.payment_date,
+      );
     }
     return transformedPayment;
   };
@@ -619,6 +625,23 @@ export const useAccountsStore = defineStore('accounts', () => {
     };
   };
 
+  const checkDuplicatePayment = (newPayment: Partial<Payment>): boolean => {
+    const is_duplicate = allPayments.value.some((payment) => {
+      const duplicatesThisPayment =
+        payment.seller_id === newPayment.seller_id &&
+        payment.payment_date ===
+          _transformDateForPayment(newPayment.payment_date || '') &&
+        payment.type === newPayment.type &&
+        payment.amount === newPayment.amount &&
+        payment.notes === newPayment.notes &&
+        payment.profile === newPayment.profile &&
+        payment.season === newPayment.season;
+
+      return duplicatesThisPayment;
+    });
+    return is_duplicate;
+  };
+
   return {
     allPayments,
     girlGirlAccountSummarys,
@@ -633,5 +656,6 @@ export const useAccountsStore = defineStore('accounts', () => {
     upsertPayment,
     deletePayment,
     getGirlAccountById,
+    checkDuplicatePayment,
   };
 });
