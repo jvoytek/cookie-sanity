@@ -114,10 +114,12 @@ export const processAuditRowForMatching = (
   const date = normalizeDate(auditRowObj.DATE as string);
   const order_num = normalizeOrderNum(auditRowObj['ORDER #']);
 
-  let type = (auditRowObj.TYPE as string).trim();
+  const originalType = (auditRowObj.TYPE as string).trim();
+  let type = originalType;
 
   // convert COOKIE_SHARE to T2G for matching purposes (COOKIE_SHARE is not a useful type in orders)
   if (type === 'COOKIE_SHARE') type = 'T2G';
+  if (type === 'COOKIE_SHARE(D)') type = 'T2G';
   if (type === 'COOKIE_SHARE(B)') type = 'T2G(B)';
   if (type === 'COOKIE_SHARE(VB)') type = 'T2G(VB)';
 
@@ -135,7 +137,11 @@ export const processAuditRowForMatching = (
       : (auditRowObj.TO as string);
 
   // invert cookie quantities if necessary
-  if (type && transactionTypesToInvertAudit.includes(type)) {
+  if (
+    type &&
+    transactionTypesToInvertAudit.includes(type) &&
+    originalType !== 'COOKIE_SHARE(D)'
+  ) {
     auditRowObj = invertCookieQuantitiesAuditRow(auditRowObj, cookies);
   }
   return {

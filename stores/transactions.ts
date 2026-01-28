@@ -522,7 +522,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const fromGirlId = girlsStore.getGirlIdByName(obj.FROM);
     // Convert COOKIE_SHARE types to T2G
     let type = obj.TYPE.trim();
-    if (type === 'COOKIE_SHARE') {
+    if (type === 'COOKIE_SHARE' || type === 'COOKIE_SHARE(D)') {
       type = 'T2G';
     } else if (type === 'COOKIE_SHARE(B)') {
       type = 'T2G(B)';
