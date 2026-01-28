@@ -140,7 +140,7 @@ export const processAuditRowForMatching = (
   if (
     type &&
     transactionTypesToInvertAudit.includes(type) &&
-    originalType !== 'COOKIE_SHARE(D)'
+    originalType.slice(0, 12) !== 'COOKIE_SHARE'
   ) {
     auditRowObj = invertCookieQuantitiesAuditRow(auditRowObj, cookies);
   }
