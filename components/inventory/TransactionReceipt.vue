@@ -202,7 +202,7 @@
           },
           {
             descripton: 'TOTAL PAID',
-            amount: girlAccount?.paymentsReceived || 0,
+            amount: girlAccount?.paymentsReceived * -1 || 0,
           },
         ]"
         size="small"

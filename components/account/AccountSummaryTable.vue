@@ -248,7 +248,7 @@
                 formatHelpers.formatCurrency(
                   (props.cookieSummary as CookieSummary).girlDeliveryTotals?.[
                     cookie.abbreviation
-                  ] || 0,
+                  ] * -1 || 0,
                 )
               }}
             </td>

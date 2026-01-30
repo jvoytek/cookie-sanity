@@ -137,7 +137,7 @@ export const useAccountsStore = defineStore('accounts', () => {
   /* Private Functions */
 
   const _getTotalofPayments = (payments: Payment[]) => {
-    return payments.reduce((sum, payment) => sum + payment.amount, 0);
+    return payments.reduce((sum, payment) => sum - payment.amount, 0);
   };
 
   const _getPaymentsForGirl = (
@@ -323,7 +323,7 @@ export const useAccountsStore = defineStore('accounts', () => {
 
           // Girl owes money for girlDelivery transactions
           if (mappedType === 'girlDelivery') {
-            totals.totalDue -= quantity * (cookie.price || 0);
+            totals.totalDue += quantity * (cookie.price || 0);
             totals.girlDeliveryTotals[abbreviation] =
               (totals.girlDeliveryTotals[abbreviation] || 0) -
               quantity * (cookie.price || 0);
@@ -346,9 +346,9 @@ export const useAccountsStore = defineStore('accounts', () => {
   };
 
   const _getStatus = (balance: number): string => {
-    if (balance < 0) {
+    if (balance > 0) {
       return `Balance Due`;
-    } else if (balance > 0) {
+    } else if (balance < 0) {
       return 'Overpaid';
     } else {
       return 'Paid in Full';
