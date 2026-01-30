@@ -607,9 +607,11 @@ export const useAccountsStore = defineStore('accounts', () => {
     const status = _getStatus(balance);
 
     const estimatedSales =
-      balance >= 0
+      balance <= 0
         ? cookieSummary.countAllPackages
-        : Math.round(paymentsReceived / cookiesStore.averageCookiePrice) +
+        : Math.round(
+            (paymentsReceived * -1) / cookiesStore.averageCookiePrice,
+          ) +
           cookieSummary.countDirectShipped +
           cookieSummary.countBoothSales +
           cookieSummary.countVirtualBoothSales;
