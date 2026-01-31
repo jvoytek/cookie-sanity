@@ -9,10 +9,10 @@
   );
 
   const girlDashboardItems = computed(() => {
-    return girlsStore.allGirls.map((girl) => ({
-      label: `${girl.first_name} ${girl.last_name[0]}.`,
+    return girlsStore.girlOptions.map((option) => ({
+      label: option.label,
       icon: 'pi pi-fw pi-user',
-      to: `/girl-dashboard/${girl.id}`,
+      to: `/girl-dashboard/${option.value}`,
     }));
   });
 

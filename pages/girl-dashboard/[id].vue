@@ -15,6 +15,12 @@
     return girlsStore.getGirlById(girlId.value);
   });
 
+  // Get the girl's display name
+  const girlName = computed(() => {
+    if (girlId.value === null) return '';
+    return girlsStore.getGirlNameById(girlId.value);
+  });
+
   // Get the girl's account summary
   const girlAccount = computed(() => {
     if (girlId.value === null) return null;
@@ -27,20 +33,15 @@
     <!-- Page Header -->
     <div class="col-span-12 lg:col-span-12 xl:col-span-12">
       <div class="card">
-        <h5 v-if="girl">
-          {{ girl.first_name }} {{ girl.last_name[0] }}. Dashboard
-        </h5>
+        <h5 v-if="girl">{{ girlName }} Dashboard</h5>
         <p>View account details and cookie summary</p>
       </div>
     </div>
 
     <!-- Account Details and Summary -->
-    <div v-if="girlAccount && girl" class="card">
+    <div v-if="girlAccount && girl && girlId !== null" class="card">
       <div class="grid grid-cols-12 gap-6">
-        <AccountDetailWidget
-          :girl-id="girlId!"
-          :girl-account="girlAccount"
-        />
+        <AccountDetailWidget :girl-id="girlId" :girl-account="girlAccount" />
 
         <div style="max-width: 1000px" class="col-span-12">
           <AccountSummaryTable
