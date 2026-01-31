@@ -88,7 +88,14 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
     children?: number[] | null,
   ) => {
     try {
-      const updateData: any = permissions;
+      const updateData: {
+        can_view_booths: boolean;
+        can_edit_booths: boolean;
+        can_view_inventory_checks: boolean;
+        can_edit_inventory_checks: boolean;
+        all_access?: boolean;
+        children?: number[] | null;
+      } = { ...permissions };
       if (allAccess !== undefined) updateData.all_access = allAccess;
       if (children !== undefined) updateData.children = children;
 

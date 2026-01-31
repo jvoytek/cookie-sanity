@@ -20,7 +20,7 @@
     return isParent.value && childOptions.value.length > 1;
   });
 
-  const onChildChange = (event: any) => {
+  const onChildChange = (event: { value: number }) => {
     setSelectedChild(event.value);
   };
 </script>
@@ -28,7 +28,10 @@
 <template>
   <div class="layout-sidebar relative">
     <!-- Child Selector for Parents -->
-    <div v-if="showChildSelector" class="p-4 border-b border-surface-200 dark:border-surface-700">
+    <div
+      v-if="showChildSelector"
+      class="p-4 border-b border-surface-200 dark:border-surface-700"
+    >
       <label class="block mb-2 text-sm font-semibold">Select Child</label>
       <Select
         v-model="selectedChildId"

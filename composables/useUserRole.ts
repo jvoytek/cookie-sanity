@@ -8,7 +8,6 @@ import type { Ref } from 'vue';
  * - A parent (collaborator without all_access but with children)
  */
 export const useUserRole = () => {
-  const supabaseClient = useSupabaseClient();
   const user = useSupabaseUser();
   const seasonsStore = useSeasonsStore();
   const collaboratorsStore = useCollaboratorsStore();

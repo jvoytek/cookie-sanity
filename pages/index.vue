@@ -31,7 +31,10 @@
       <!-- Account Details and Summary -->
       <div v-if="girlAccount && selectedChildId" class="card">
         <div class="grid grid-cols-12 gap-6">
-          <AccountDetailWidget :girl-id="selectedChildId" :girl-account="girlAccount" />
+          <AccountDetailWidget
+            :girl-id="selectedChildId"
+            :girl-account="girlAccount"
+          />
 
           <div style="max-width: 1000px" class="col-span-12">
             <AccountSummaryTable

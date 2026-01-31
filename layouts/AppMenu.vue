@@ -3,7 +3,7 @@
 
   const transactionsStore = useTransactionsStore();
   const girlsStore = useGirlsStore();
-  const { isParent, isSeasonOwner, isSeasonCollaborator, parentChildren, selectedChildId } = useUserRole();
+  const { isParent } = useUserRole();
 
   const requestedCount = computed(
     () => transactionsStore.requestedGirlTransactionrListCount,

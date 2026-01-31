@@ -76,25 +76,29 @@
   const openEditDialog = (collaborator: SeasonCollaborator) => {
     selectedCollaborator.value = collaborator;
     editAllAccess.value = collaborator.all_access;
-    editChildren.value = collaborator.children ? [...collaborator.children] : [];
+    editChildren.value = collaborator.children
+      ? [...collaborator.children]
+      : [];
     editDialogVisible.value = true;
   };
 
   const saveCollaborator = async () => {
     if (!selectedCollaborator.value) return;
-    
+
     await collaboratorsStore.updateCollaborator(
       selectedCollaborator.value.id,
       {
         can_view_booths: selectedCollaborator.value.can_view_booths,
         can_edit_booths: selectedCollaborator.value.can_edit_booths,
-        can_view_inventory_checks: selectedCollaborator.value.can_view_inventory_checks,
-        can_edit_inventory_checks: selectedCollaborator.value.can_edit_inventory_checks,
+        can_view_inventory_checks:
+          selectedCollaborator.value.can_view_inventory_checks,
+        can_edit_inventory_checks:
+          selectedCollaborator.value.can_edit_inventory_checks,
       },
       editAllAccess.value,
       editChildren.value.length > 0 ? editChildren.value : null,
     );
-    
+
     editDialogVisible.value = false;
     selectedCollaborator.value = null;
   };
@@ -302,8 +306,8 @@
             display="chip"
           />
           <small class="text-surface-500 dark:text-surface-400 mt-1 block"
-            >Select which girls this parent can view. Parents can only see
-            their assigned girls' dashboards and inventory.</small
+            >Select which girls this parent can view. Parents can only see their
+            assigned girls' dashboards and inventory.</small
           >
         </div>
       </div>
