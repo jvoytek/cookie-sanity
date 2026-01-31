@@ -20,13 +20,6 @@
     if (girlId.value === null) return null;
     return accountsStore.getGirlAccountById(girlId.value);
   });
-
-  // Redirect if girl not found
-  watchEffect(() => {
-    if (girlId.value !== null && !girl.value) {
-      navigateTo('/');
-    }
-  });
 </script>
 
 <template>
