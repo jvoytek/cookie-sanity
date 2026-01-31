@@ -1,6 +1,7 @@
 <script setup>
   import AppMenu from './AppMenu.vue';
-  const { isParent, parentChildren, selectedChildId, setSelectedChild } = useUserRole();
+  const { isParent, parentChildren, selectedChildId, setSelectedChild } =
+    useUserRole();
   const girlsStore = useGirlsStore();
 
   // Compute options for child selector
@@ -20,8 +21,10 @@
     return isParent.value && childOptions.value.length > 1;
   });
 
-  const onChildChange = (event: { value: number }) => {
-    setSelectedChild(event.value);
+  const onChildChange = (event) => {
+    if (event?.value !== undefined) {
+      setSelectedChild(event.value);
+    }
   };
 </script>
 

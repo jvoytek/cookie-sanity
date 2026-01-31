@@ -26,7 +26,7 @@
     'Season Settings',
   ];
 
-  const shouldShowItem = (label: string) => {
+  const shouldShowItem = (label) => {
     if (isParent.value && restrictedForParents.includes(label)) {
       return false;
     }
