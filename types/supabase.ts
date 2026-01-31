@@ -566,6 +566,8 @@ export type Database = {
           invited_by: string;
           profile_id: string;
           season_id: number;
+          all_access: boolean;
+          children: number[] | null;
         };
         Insert: {
           can_edit_booths?: boolean;
@@ -577,6 +579,8 @@ export type Database = {
           invited_by: string;
           profile_id: string;
           season_id: number;
+          all_access?: boolean;
+          children?: number[] | null;
         };
         Update: {
           can_edit_booths?: boolean;
@@ -588,6 +592,8 @@ export type Database = {
           invited_by?: string;
           profile_id?: string;
           season_id?: number;
+          all_access?: boolean;
+          children?: number[] | null;
         };
         Relationships: [
           {

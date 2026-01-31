@@ -3,6 +3,7 @@
 
   const transactionsStore = useTransactionsStore();
   const girlsStore = useGirlsStore();
+  const { isParent } = useUserRole();
 
   const requestedCount = computed(
     () => transactionsStore.requestedGirlTransactionrListCount,
@@ -15,6 +16,22 @@
       to: `/girl-dashboard/${option.value}`,
     }));
   });
+
+  // Items that should be hidden for parents
+  const restrictedForParents = [
+    'Physical Inventory Check',
+    'Booth Sales',
+    'Bank Deposits',
+    'Audit',
+    'Season Settings',
+  ];
+
+  const shouldShowItem = (label) => {
+    if (isParent.value && restrictedForParents.includes(label)) {
+      return false;
+    }
+    return true;
+  };
 
   const model = ref([
     {
@@ -79,11 +96,19 @@
       ],
     },
   ]);
+
+  // Filter menu items based on parent status
+  const filteredModel = computed(() => {
+    return model.value.map((section) => ({
+      ...section,
+      items: section.items.filter((item) => shouldShowItem(item.label)),
+    }));
+  });
 </script>
 
 <template>
   <ul class="layout-menu">
-    <template v-for="(item, i) in model" :key="item">
+    <template v-for="(item, i) in filteredModel" :key="item">
       <app-menu-item v-if="!item.separator" :item="item" :index="i" />
       <li v-if="item.separator" class="menu-separator" />
     </template>
