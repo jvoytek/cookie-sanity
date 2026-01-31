@@ -44,6 +44,8 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
       can_view_inventory_checks: boolean;
       can_edit_inventory_checks: boolean;
     },
+    allAccess: boolean = true,
+    children: number[] | null = null,
   ) => {
     try {
       if (!user.value?.id) return;
@@ -58,6 +60,8 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
           can_edit_booths: permissions.can_edit_booths,
           can_view_inventory_checks: permissions.can_view_inventory_checks,
           can_edit_inventory_checks: permissions.can_edit_inventory_checks,
+          all_access: allAccess,
+          children: children,
         })
         .select()
         .single();
@@ -80,11 +84,17 @@ export const useCollaboratorsStore = defineStore('collaborators', () => {
       can_view_inventory_checks: boolean;
       can_edit_inventory_checks: boolean;
     },
+    allAccess?: boolean,
+    children?: number[] | null,
   ) => {
     try {
+      const updateData: any = permissions;
+      if (allAccess !== undefined) updateData.all_access = allAccess;
+      if (children !== undefined) updateData.children = children;
+
       const { error } = await supabaseClient
         .from('season_collaborators')
-        .update(permissions)
+        .update(updateData)
         .eq('id', collaboratorId);
 
       if (error) throw error;

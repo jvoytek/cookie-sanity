@@ -16,7 +16,10 @@
   });
   const showInviteDialog = ref(false);
   const deleteDialogVisible = ref(false);
+  const editDialogVisible = ref(false);
   const selectedCollaborator = ref<SeasonCollaborator | null>(null);
+  const editAllAccess = ref(true);
+  const editChildren = ref<number[]>([]);
 
   // Fetch collaborators when component mounts
   onMounted(async () => {
@@ -68,6 +71,32 @@
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
+  };
+
+  const openEditDialog = (collaborator: SeasonCollaborator) => {
+    selectedCollaborator.value = collaborator;
+    editAllAccess.value = collaborator.all_access;
+    editChildren.value = collaborator.children ? [...collaborator.children] : [];
+    editDialogVisible.value = true;
+  };
+
+  const saveCollaborator = async () => {
+    if (!selectedCollaborator.value) return;
+    
+    await collaboratorsStore.updateCollaborator(
+      selectedCollaborator.value.id,
+      {
+        can_view_booths: selectedCollaborator.value.can_view_booths,
+        can_edit_booths: selectedCollaborator.value.can_edit_booths,
+        can_view_inventory_checks: selectedCollaborator.value.can_view_inventory_checks,
+        can_edit_inventory_checks: selectedCollaborator.value.can_edit_inventory_checks,
+      },
+      editAllAccess.value,
+      editChildren.value.length > 0 ? editChildren.value : null,
+    );
+    
+    editDialogVisible.value = false;
+    selectedCollaborator.value = null;
   };
 
   const confirmDeleteCollaborator = (collaborator: SeasonCollaborator) => {
@@ -156,6 +185,14 @@
             <Column header="Actions">
               <template #body="slotProps">
                 <Button
+                  v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                  icon="pi pi-pencil"
+                  variant="outlined"
+                  severity="secondary"
+                  class="mr-2"
+                  @click="openEditDialog(slotProps.data)"
+                />
+                <Button
                   v-tooltip.bottom="{ value: 'Remove', showDelay: 500 }"
                   icon="pi pi-trash"
                   variant="outlined"
@@ -226,6 +263,58 @@
           @click="deleteDialogVisible = false"
         />
         <Button label="Yes" icon="pi pi-check" @click="deleteCollaborator" />
+      </template>
+    </Dialog>
+
+    <!-- Edit Collaborator Dialog -->
+    <Dialog
+      v-model:visible="editDialogVisible"
+      :style="{ width: '600px' }"
+      header="Edit Collaborator"
+      :modal="true"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-2">
+          <Checkbox
+            v-model="editAllAccess"
+            input-id="all_access"
+            :binary="true"
+          />
+          <label for="all_access" class="font-semibold">Full Access</label>
+          <i
+            v-tooltip.right="{
+              value:
+                'Full access collaborators can view and edit all season data. Uncheck to create a parent account with limited access to specific girls.',
+            }"
+            class="pi pi-info-circle text-sm text-gray-500 cursor-pointer"
+          />
+        </div>
+
+        <div v-if="!editAllAccess">
+          <label class="block mb-2 font-semibold">Children (Girls)</label>
+          <MultiSelect
+            v-model="editChildren"
+            :options="girlsStore.girlOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="Select girls"
+            class="w-full"
+            display="chip"
+          />
+          <small class="text-surface-500 dark:text-surface-400 mt-1 block"
+            >Select which girls this parent can view. Parents can only see
+            their assigned girls' dashboards and inventory.</small
+          >
+        </div>
+      </div>
+      <template #footer>
+        <Button
+          label="Cancel"
+          icon="pi pi-times"
+          text
+          @click="editDialogVisible = false"
+        />
+        <Button label="Save" icon="pi pi-check" @click="saveCollaborator" />
       </template>
     </Dialog>
   </div>

@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS "public"."season_collaborators" (
     "can_view_booths" boolean DEFAULT false NOT NULL,
     "can_edit_inventory_checks" boolean DEFAULT false NOT NULL,
     "can_view_inventory_checks" boolean DEFAULT false NOT NULL,
+    "all_access" boolean DEFAULT false NOT NULL,
+    "children" bigint[],
     CONSTRAINT "season_collaborators_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "season_collaborators_unique" UNIQUE ("season_id", "profile_id")
 );
@@ -99,6 +101,7 @@ AS $$
     SELECT 1 FROM public.season_collaborators
     WHERE season_collaborators.season_id = p_season_id
       AND season_collaborators.profile_id = p_profile_id
+      AND season_collaborators.all_access = true
   );
 $$;
 
@@ -114,7 +117,23 @@ AS $$
     );
 $$;
 
+CREATE OR REPLACE FUNCTION public.is_parent(p_season_id bigint, p_profile_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.season_collaborators
+    WHERE season_collaborators.season_id = p_season_id
+      AND season_collaborators.profile_id = p_profile_id
+      AND season_collaborators.all_access = false
+      AND season_collaborators.children IS NOT NULL
+      AND array_length(season_collaborators.children, 1) > 0
+  );
+$$;
+
 ALTER FUNCTION "public"."is_season_collaborator" OWNER TO "postgres";
+ALTER FUNCTION "public"."is_parent" OWNER TO "postgres";
 
 CREATE POLICY "Allow owners/collaborators to view their own seasons" ON public.seasons FOR SELECT TO authenticated USING ( public.is_season_owner(id, (SELECT auth.uid())) OR public.is_season_collaborator(id, (SELECT auth.uid())) );
 CREATE POLICY "Allow owners/collaborators to delete their own seasons" ON public.seasons FOR DELETE TO authenticated USING ( public.is_season_owner(id, (SELECT auth.uid())) OR public.is_season_collaborator(id, (SELECT auth.uid())) );
