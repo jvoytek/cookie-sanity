@@ -2,10 +2,19 @@
   import AppMenuItem from './AppMenuItem.vue';
 
   const transactionsStore = useTransactionsStore();
+  const girlsStore = useGirlsStore();
 
   const requestedCount = computed(
     () => transactionsStore.requestedGirlTransactionrListCount,
   );
+
+  const girlDashboardItems = computed(() => {
+    return girlsStore.allGirls.map((girl) => ({
+      label: `${girl.first_name} ${girl.last_name[0]}.`,
+      icon: 'pi pi-fw pi-user',
+      to: `/girl-dashboard/${girl.id}`,
+    }));
+  });
 
   const model = ref([
     {
@@ -48,6 +57,11 @@
           label: 'Audit',
           icon: 'pi pi-fw pi-file-check',
           to: '/audit',
+        },
+        {
+          label: 'Girl Dashboards',
+          icon: 'pi pi-fw pi-chart-line',
+          items: girlDashboardItems,
         },
         {
           label: 'Season Settings',
