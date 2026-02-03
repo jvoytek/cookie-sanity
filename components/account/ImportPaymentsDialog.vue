@@ -19,6 +19,7 @@
     cash: 'cash',
     check: 'check',
     creditcard: 'digital_cookie',
+    boothcredit: 'digital_cookie',
   };
 
   // Handle file upload event
@@ -274,7 +275,7 @@
         <ul class="list-disc list-inside space-y-1">
           <li>Girl - Name of the scout</li>
           <li>Date - Payment date</li>
-          <li>Payment Method - Cash, Check, or Credit Card</li>
+          <li>Payment Method - Cash, Check, CreditCard, BoothCredit</li>
           <li>Amount - Payment amount</li>
           <li>Ref # - Reference number (optional)</li>
         </ul>
