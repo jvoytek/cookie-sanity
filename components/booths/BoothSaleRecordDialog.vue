@@ -128,7 +128,9 @@
               "
               v-model="slotProps.data.data.sales"
               :min="0"
-              :max="slotProps.data.data.predicted"
+              :max="
+                slotProps.data.is_virtual ? null : slotProps.data.data.predicted
+              "
               @update:model-value="
                 (val) =>
                   boothsStore.updateSalesRecordSales(
