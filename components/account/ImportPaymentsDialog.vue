@@ -104,7 +104,18 @@
               row.eachCell((cell, colNumber) => {
                 const header = headers[colNumber - 1];
                 if (header) {
-                  rowData[header] = cell.value;
+                  const cellValue = cell.value;
+                  if (cellValue instanceof Date) {
+                    // Extract UTC parts to ignore the local timezone offset
+                    const dateAsWritten = new Date(
+                      cellValue.getUTCFullYear(),
+                      cellValue.getUTCMonth(),
+                      cellValue.getUTCDate(),
+                    );
+                    rowData[header] = dateAsWritten;
+                  } else {
+                    rowData[header] = cell.value;
+                  }
                 }
               });
               jsonData.push(rowData as SmartCookiesPayment);
