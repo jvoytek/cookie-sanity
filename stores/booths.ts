@@ -831,31 +831,81 @@ export const useBoothsStore = defineStore('booths', () => {
 
       const transactionsStore = useTransactionsStore();
 
+      //Create separate transaction for virtual cookies if there are any
+      const virtualTransactionsToCreate = Object.entries(distributionData.value)
+        .filter(([_girlIdStr, cookies]) => {
+          // Skip girls with no cookies distributed
+          return Object.values(cookies).some((qty) => qty > 0);
+        })
+        .filter(([girlIdStr, cookies]) => {
+          return Object.entries(cookies).some(([cookieAbbr, qty]) => {
+            const cookie = cookiesStore.getCookieByAbbreviation(cookieAbbr);
+            // only include girls with virtual cookies in this step
+            return cookie?.is_virtual && qty > 0;
+          });
+        })
+        .map(([girlIdStr, cookies]) => {
+          const girlId = Number(girlIdStr);
+          const virtualCookies: Record<string, number> = {};
+
+          // Only include virtual cookies in this transaction
+          Object.entries(cookies).forEach(([cookieAbbr, qty]) => {
+            const cookie = cookiesStore.getCookieByAbbreviation(cookieAbbr);
+            if (cookie?.is_virtual && qty > 0) {
+              virtualCookies[cookieAbbr] = qty;
+            }
+          });
+
+          return {
+            type: 'T2G(B)',
+            order_date: activeBoothSaleForDistribution.value.sale_date,
+            to: girlId,
+            from: null,
+            cookies: virtualCookies,
+            status: 'complete',
+            notes: `Booth Sale: ${activeBoothSaleForDistribution.value.location}, ${activeBoothSaleForDistribution.value.sale_date} ${activeBoothSaleForDistribution.value.start_time || ''} - ${activeBoothSaleForDistribution.value.end_time || ''}`,
+          };
+        });
+
       // Create a transaction for each girl with cookies distributed
       const transactionsToCreate = Object.entries(distributionData.value)
         .filter(([_girlIdStr, cookies]) => {
           // Skip girls with no cookies distributed
           return Object.values(cookies).some((qty) => qty > 0);
         })
+        .filter(([girlIdStr, cookies]) => {
+          return Object.entries(cookies).some(([cookieAbbr, qty]) => {
+            const cookie = cookiesStore.getCookieByAbbreviation(cookieAbbr);
+            // only include girls with real cookies in this step
+            return !cookie?.is_virtual && qty > 0;
+          });
+        })
         .map(([girlIdStr, cookies]) => {
           const girlId = Number(girlIdStr);
+          const realCookies: Record<string, number> = {};
+
+          // Only include real cookies in this transaction
+          Object.entries(cookies).forEach(([cookieAbbr, qty]) => {
+            const cookie = cookiesStore.getCookieByAbbreviation(cookieAbbr);
+            if (!cookie?.is_virtual && qty > 0) {
+              realCookies[cookieAbbr] = qty;
+            }
+          });
           return {
             type: 'T2G(B)',
             order_date: activeBoothSaleForDistribution.value.sale_date,
             to: girlId,
             from: null,
-            cookies: cookies,
+            cookies: realCookies,
             status: 'complete',
             notes: `Booth Sale: ${activeBoothSaleForDistribution.value.location}, ${activeBoothSaleForDistribution.value.sale_date} ${activeBoothSaleForDistribution.value.start_time || ''} - ${activeBoothSaleForDistribution.value.end_time || ''}`,
           };
         });
 
-      // Insert all transactions
-      const transactionPromises = transactionsToCreate.map((transaction) =>
-        transactionsStore.insertNewTransaction(transaction, false),
+      // Insert all transactions in parallel
+      transactionsStore.bulkInsertNewTransactions(
+        virtualTransactionsToCreate.concat(transactionsToCreate),
       );
-
-      await Promise.all(transactionPromises);
 
       // Set activeBoothSaleForDistribution to archived
       const updatedBoothSale = {

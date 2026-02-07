@@ -211,9 +211,7 @@
             ? 'Distribute all cookies to save'
             : remainingCookiesTotal < 0
               ? 'Don\'t distribute more than available to save'
-              : 'Create ' +
-                assignedGirls.length +
-                ' new &quot;Troop to Girl (Booth)&quot; transactions and archive this booth sale'
+              : 'Create new &quot;Troop to Girl (Booth)&quot; transactions and archive this booth sale'
         "
         icon="pi pi-check"
         :disabled="remainingCookiesTotal !== 0"
