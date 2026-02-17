@@ -90,7 +90,13 @@
         <tbody>
           <tr v-for="(entry, idx) in timeline" :key="idx">
             <td class="date-col">
-              <NuxtTime :datetime="entry.date" time-zone="UTC" day="numeric" month="numeric" year="2-digit" />
+              <NuxtTime
+                :datetime="entry.date"
+                time-zone="UTC"
+                day="numeric"
+                month="numeric"
+                year="2-digit"
+              />
             </td>
             <td class="type-col">
               {{ timelineHelpers.formatTransactionType(entry.type) }}
@@ -117,9 +123,19 @@
           <tr v-if="timeline.length > 0" class="notes-row">
             <td colspan="100%" class="notes-header">Notes:</td>
           </tr>
-          <tr v-for="(entry, idx) in timeline.filter((e) => e.notes)" :key="`note-${idx}`" class="notes-row">
+          <tr
+            v-for="(entry, idx) in timeline.filter((e) => e.notes)"
+            :key="`note-${idx}`"
+            class="notes-row"
+          >
             <td class="notes-date">
-              <NuxtTime :datetime="entry.date" time-zone="UTC" day="numeric" month="numeric" year="2-digit" />
+              <NuxtTime
+                :datetime="entry.date"
+                time-zone="UTC"
+                day="numeric"
+                month="numeric"
+                year="2-digit"
+              />
             </td>
             <td colspan="100%" class="notes-content">
               {{ entry.notes }}

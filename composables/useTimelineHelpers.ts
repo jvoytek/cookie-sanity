@@ -1,10 +1,4 @@
-import type {
-  TimelineEntry,
-  TimelineTransactionType,
-  Order,
-  Payment,
-  Girl,
-} from '@/types/types';
+import type { TimelineEntry, TimelineTransactionType } from '@/types/types';
 
 export const useTimelineHelpers = () => {
   const accountsStore = useAccountsStore();
@@ -41,7 +35,7 @@ export const useTimelineHelpers = () => {
 
       // Determine transaction direction and calculate subtotal
       let subtotal = 0;
-      let cookieQuantities: Record<string, number> = {};
+      const cookieQuantities: Record<string, number> = {};
 
       const isReceiving = order.to === girlId;
       const isSending = order.from === girlId;
@@ -106,7 +100,8 @@ export const useTimelineHelpers = () => {
         type: transactionType,
         from: fromName,
         to: toName,
-        cookies: Object.keys(cookieQuantities).length > 0 ? cookieQuantities : null,
+        cookies:
+          Object.keys(cookieQuantities).length > 0 ? cookieQuantities : null,
         subtotal,
         runningTotal: 0, // Will be calculated later
         notes: order.notes,
