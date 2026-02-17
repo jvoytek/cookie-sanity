@@ -48,6 +48,13 @@
     if (timeline.value.length === 0) return 0;
     return timeline.value[timeline.value.length - 1].runningTotal;
   });
+
+  // Calculate total columns for colspan
+  const totalColumns = computed(() => {
+    // Date, Type, From, To, Subtotal, Running Total = 6
+    // Plus one column per cookie variety
+    return 6 + cookieAbbreviations.value.length;
+  });
 </script>
 
 <template>
@@ -121,7 +128,7 @@
             </td>
           </tr>
           <tr v-if="timeline.length > 0" class="notes-row">
-            <td colspan="100%" class="notes-header">Notes:</td>
+            <td :colspan="totalColumns" class="notes-header">Notes:</td>
           </tr>
           <tr
             v-for="(entry, idx) in timeline.filter((e) => e.notes)"
@@ -137,7 +144,7 @@
                 year="2-digit"
               />
             </td>
-            <td colspan="100%" class="notes-content">
+            <td :colspan="totalColumns - 1" class="notes-content">
               {{ entry.notes }}
             </td>
           </tr>

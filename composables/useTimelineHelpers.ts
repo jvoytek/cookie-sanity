@@ -41,27 +41,23 @@ export const useTimelineHelpers = () => {
       const isSending = order.from === girlId;
 
       // Calculate the value of cookies transferred
-      if (cookies) {
-        cookiesStore.allCookies.forEach((cookie) => {
-          const abbr = cookie.abbreviation;
-          const qty = cookies[abbr] || 0;
+      cookiesStore.allCookies.forEach((cookie) => {
+        const abbr = cookie.abbreviation;
+        const qty = cookies[abbr] || 0;
 
-          if (qty !== 0) {
-            // If girl is receiving cookies (T2G, G2G), add to their account (positive)
-            // If girl is sending cookies (G2T, G2G), subtract from their account (negative)
-            if (isReceiving && !isSending) {
-              cookieQuantities[abbr] = qty;
-              subtotal += qty * cookie.price;
-            } else if (isSending && !isReceiving) {
-              cookieQuantities[abbr] = -qty;
-              subtotal -= qty * cookie.price;
-            } else if (isReceiving && isSending) {
-              // G2G where both from and to are this girl - shouldn't happen but handle it
-              cookieQuantities[abbr] = 0;
-            }
+        if (qty !== 0) {
+          // If girl is receiving cookies (T2G, G2G), add to their account (positive)
+          // If girl is sending cookies (G2T, G2G), subtract from their account (negative)
+          if (isReceiving && !isSending) {
+            cookieQuantities[abbr] = qty;
+            subtotal += qty * cookie.price;
+          } else if (isSending && !isReceiving) {
+            cookieQuantities[abbr] = -qty;
+            subtotal -= qty * cookie.price;
           }
-        });
-      }
+          // Note: If both from and to are the same girl (shouldn't happen), skip this entry
+        }
+      });
 
       // Get from/to girl names
       const fromGirl = order.from

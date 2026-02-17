@@ -164,7 +164,7 @@ export interface TimelineEntry {
   type: TimelineTransactionType;
   from: string | null;
   to: string | null;
-  cookies: Record<string, number> | null; // Cookie abbreviation -> quantity
+  cookies: Record<string, number> | null; // Cookie abbreviation -> quantity (positive when receiving, negative when sending)
   subtotal: number; // Positive adds to what girl owes, negative subtracts
   runningTotal: number;
   notes: string | null;
