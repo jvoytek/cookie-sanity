@@ -107,7 +107,24 @@ export const useTimelineHelpers = () => {
     });
 
     // Process payments into timeline entries
+    // Group digital payments by date for consolidation
+    const digitalPaymentsByDate = new Map<string, typeof payments>();
+    const nonDigitalPayments: typeof payments = [];
+
     payments.forEach((payment) => {
+      if (payment.type === 'digital_cookie') {
+        const dateKey = payment.payment_date;
+        if (!digitalPaymentsByDate.has(dateKey)) {
+          digitalPaymentsByDate.set(dateKey, []);
+        }
+        digitalPaymentsByDate.get(dateKey)!.push(payment);
+      } else {
+        nonDigitalPayments.push(payment);
+      }
+    });
+
+    // Add non-digital payments as separate entries
+    nonDigitalPayments.forEach((payment) => {
       let paymentType: TimelineTransactionType;
       switch (payment.type) {
         case 'cash':
@@ -115,9 +132,6 @@ export const useTimelineHelpers = () => {
           break;
         case 'check':
           paymentType = 'payment_check';
-          break;
-        case 'digital_cookie':
-          paymentType = 'payment_digital';
           break;
         default:
           paymentType = 'payment_other';
@@ -129,10 +143,38 @@ export const useTimelineHelpers = () => {
         from: `${girl.first_name} ${girl.last_name}`,
         to: 'Troop',
         cookies: null,
+        cookiesTotal: null,
         subtotal: -payment.amount, // Payment reduces what girl owes
         runningTotal: 0, // Will be calculated later
         notes: payment.notes,
         paymentId: payment.id,
+      });
+    });
+
+    // Add consolidated digital payments (one entry per date)
+    digitalPaymentsByDate.forEach((paymentsOnDate, date) => {
+      const totalAmount = paymentsOnDate.reduce(
+        (sum, p) => sum + p.amount,
+        0,
+      );
+      // Collect all notes from digital payments on this date
+      const allNotes = paymentsOnDate
+        .map((p) => p.notes)
+        .filter((n) => n)
+        .join('; ');
+
+      timelineEntries.push({
+        date: date,
+        type: 'payment_digital',
+        from: `${girl.first_name} ${girl.last_name}`,
+        to: 'Troop',
+        cookies: null,
+        cookiesTotal: null,
+        subtotal: -totalAmount, // Payment reduces what girl owes
+        runningTotal: 0, // Will be calculated later
+        notes: allNotes || null,
+        // Store all payment IDs as a comma-separated string in notes for reference
+        paymentId: undefined, // Don't set a single payment ID for consolidated entries
       });
     });
 
