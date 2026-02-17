@@ -69,7 +69,9 @@ export const useBoothsStore = defineStore('booths', () => {
 
   const cashReceiptsAllBoothSales = computed(() => {
     return allBoothSales.value.reduce((total, booth) => {
-      return total + (booth.cash_receipts || 0);
+      const cashReceipts =
+        booth.inventory_type != 'scout' ? booth.cash_receipts || 0 : 0;
+      return total + cashReceipts;
     }, 0);
   });
 
