@@ -70,7 +70,11 @@
     if (!transaction) return 0;
     let subTotal = 0;
     cookiesStore.allCookies.forEach((cookie) => {
-      const price = noCostTypes.includes(transaction.type) ? 0 : cookie.price;
+      const price = noCostTypes.includes(transaction.type)
+        ? 0
+        : transaction.type == 'G2T'
+          ? (cookie.price || 0) * -1
+          : cookie.price || 0;
       const count = transaction?.cookies[cookie.abbreviation] ?? 0;
       subTotal += count * price;
     });
@@ -147,7 +151,11 @@
       </div>
     </div>
 
-    <CookieReceiptTable :cookies="transaction.cookies" class="mb-4" />
+    <CookieReceiptTable
+      :cookies="transaction.cookies"
+      :type="transaction.type"
+      class="mb-4"
+    />
     <div
       v-if="
         transaction.type === 'G2T' ||
