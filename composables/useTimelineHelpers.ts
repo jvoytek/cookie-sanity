@@ -39,8 +39,13 @@ export const useTimelineHelpers = () => {
 
       const isReceiving = order.to === girlId;
       const isSending = order.from === girlId;
+      const isBoothOrDirectShip =
+        order.type === 'T2G(B)' ||
+        order.type === 'T2G(VB)' ||
+        order.type === 'DIRECT_SHIP';
 
       // Calculate the value of cookies transferred
+
       cookiesStore.allCookies.forEach((cookie) => {
         const abbr = cookie.abbreviation;
         const qty = cookies[abbr] || 0;
@@ -48,7 +53,11 @@ export const useTimelineHelpers = () => {
         if (qty !== 0) {
           // If girl is receiving cookies (T2G, G2G), add to their account (positive)
           // If girl is sending cookies (G2T, G2G), subtract from their account (negative)
-          if (isReceiving && !isSending) {
+          // If it's a booth type transaction, no change
+          if (isBoothOrDirectShip) {
+            cookieQuantities[abbr] = qty;
+            subtotal = 0;
+          } else if (isReceiving && !isSending) {
             cookieQuantities[abbr] = qty;
             subtotal += qty * cookie.price;
           } else if (isSending && !isReceiving) {
@@ -78,29 +87,21 @@ export const useTimelineHelpers = () => {
           : 'Troop'
         : 'Troop';
 
-      // Determine transaction type label
-      let transactionType: TimelineTransactionType;
-      const orderType = order.type || '';
-
-      if (orderType === 'G2G') {
-        transactionType = 'G2G';
-      } else if (orderType === 'G2T') {
-        transactionType = 'G2T';
-      } else {
-        // T2G, T2G(B), T2G(VB), etc.
-        transactionType = 'T2G';
-      }
-
       timelineEntries.push({
         date: orderDate,
-        type: transactionType,
+        type: order.type as TimelineTransactionType,
         from: fromName,
         to: toName,
         cookies:
           Object.keys(cookieQuantities).length > 0 ? cookieQuantities : null,
+        cookiesTotal: Object.values(cookieQuantities).reduce(
+          (sum, qty) => sum + qty,
+          0,
+        ),
         subtotal,
         runningTotal: 0, // Will be calculated later
         notes: order.notes,
+        order_num: order.order_num,
         orderId: order.id,
       });
     });
@@ -159,6 +160,10 @@ export const useTimelineHelpers = () => {
     switch (type) {
       case 'T2G':
         return 'Troop to Girl';
+      case 'T2G(B)':
+        return 'Troop to Girl (Booth)';
+      case 'T2G(VB)':
+        return 'Troop to Girl (Virtual Booth)';
       case 'G2T':
         return 'Girl to Troop';
       case 'G2G':
@@ -171,6 +176,8 @@ export const useTimelineHelpers = () => {
         return 'Payment (Digital)';
       case 'payment_other':
         return 'Payment (Other)';
+      case 'DIRECT_SHIP':
+        return 'Direct Ship';
       default:
         return type;
     }
