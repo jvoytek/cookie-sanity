@@ -6,6 +6,8 @@
   const transactionsStore = useTransactionsStore();
   const girlsStore = useGirlsStore();
 
+  const expandedPartialMatchTxn = ref<string | null | undefined>(null);
+
   type PartialMatchRow = NewOrder & {
     id?: number;
     isAuditRow: boolean;
@@ -54,6 +56,14 @@
       });
     });
     return result;
+  });
+
+  const filteredPartialMatches = computed(() => {
+    return formattedPartialMatches.value.filter(
+      (item) =>
+        item.isAuditRow ||
+        expandedPartialMatchTxn.value === item.auditRow?.order_num,
+    );
   });
 
   // Get cookie columns from the store
@@ -115,7 +125,7 @@
 
       <!-- DataTable -->
       <DataTable
-        :value="formattedPartialMatches"
+        :value="filteredPartialMatches"
         paginator
         :rows="10"
         :rows-per-page-options="[10, 25, 50]"
@@ -127,7 +137,18 @@
       >
         <Column header="Confirm Match" style="min-width: 99px">
           <template #body="slotProps">
-            <span v-if="slotProps.data.isAuditRow">--</span>
+            <span v-if="slotProps.data.isAuditRow">
+              <i
+                v-if="expandedPartialMatchTxn !== slotProps.data.order_num"
+                @click="expandedPartialMatchTxn = slotProps.data.order_num"
+                class="pi pi-chevron-right"
+              ></i>
+              <i
+                v-if="expandedPartialMatchTxn === slotProps.data.order_num"
+                @click="expandedPartialMatchTxn = null"
+                class="pi pi-chevron-down"
+              ></i>
+            </span>
             <span v-else>
               <Button
                 size="small"
