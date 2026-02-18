@@ -528,6 +528,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       type = 'T2G(B)';
     } else if (type === 'COOKIE_SHARE(VB)') {
       type = 'T2G(VB)';
+    } else if (type === 'C2T(P)') {
+      type = 'C2T';
     } else if (type === 'INITIAL') {
       type = 'C2T';
     }

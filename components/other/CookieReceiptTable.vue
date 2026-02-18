@@ -6,11 +6,15 @@
 
   const props = defineProps<{
     cookies: Record<string, number>;
+    type: string;
   }>();
 
   const totalCookies = (cookies: Record<string, number>) => {
     return cookiesStore.allCookies.reduce((total, cookie) => {
-      const count = cookies[cookie.abbreviation] ?? 0;
+      const count =
+        props.type === 'G2T'
+          ? (cookies[cookie.abbreviation] ?? 0) * -1
+          : (cookies[cookie.abbreviation] ?? 0);
       return count ? total + count : total;
     }, 0);
   };
@@ -21,7 +25,10 @@
     return cookiesStore.allCookies.reduce<
       Record<string, { cases: number | null; packages: number | null }>
     >((acc, cookie) => {
-      const count = counts[cookie.abbreviation] ?? 0;
+      const count =
+        props.type === 'G2T'
+          ? (counts[cookie.abbreviation] ?? 0) * -1
+          : (counts[cookie.abbreviation] ?? 0);
       if (count === 0) return acc;
       const cases =
         Math.abs(count) >= packagesPerCase

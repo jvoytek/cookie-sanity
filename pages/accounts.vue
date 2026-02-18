@@ -81,6 +81,13 @@
       window.open(printUrl, '_blank');
     }
   }
+
+  function openTimelineReport() {
+    if (selectedAccount.value !== null) {
+      const printUrl = `/girl-timeline-print?account=${selectedAccount.value}`;
+      window.open(printUrl, '_blank');
+    }
+  }
 </script>
 
 <template>
@@ -113,6 +120,14 @@
               severity="secondary"
               class="mr-2"
               @click="openPrintReport"
+            />
+            <Button
+              v-if="isGirlView"
+              label="Timeline"
+              icon="pi pi-clock"
+              severity="secondary"
+              class="mr-2"
+              @click="openTimelineReport"
             />
             <Select
               v-model="selectedAccount"
