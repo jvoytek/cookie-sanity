@@ -149,3 +149,30 @@ export interface SmartCookiesBoothSale {
   state?: string;
   zipcode?: string;
 }
+
+export type TimelineTransactionType =
+  | 'T2G'
+  | 'T2G(B)'
+  | 'T2G(VB)'
+  | 'G2T'
+  | 'G2G'
+  | 'payment_cash'
+  | 'payment_check'
+  | 'payment_digital'
+  | 'payment_other'
+  | 'DIRECT_SHIP';
+
+export interface TimelineEntry {
+  date: string;
+  type: TimelineTransactionType;
+  from: string | null;
+  to: string | null;
+  cookies: Record<string, number> | null; // Cookie abbreviation -> quantity (positive when receiving, negative when sending)
+  cookiesTotal: number | null;
+  subtotal: number; // Positive adds to what girl owes, negative subtracts
+  runningTotal: number;
+  notes: string | null;
+  order_num: string | null;
+  orderId?: number;
+  paymentId?: number;
+}

@@ -6,6 +6,14 @@ export const useFormatHelpers = () => {
     }).format(amount);
   };
 
+  const formatCurrencyAccounting = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      currencySign: 'accounting',
+    }).format(amount);
+  };
+
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -28,6 +36,7 @@ export const useFormatHelpers = () => {
 
   return {
     formatCurrency,
+    formatCurrencyAccounting,
     formatDate,
     formatTime,
   };
