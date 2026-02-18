@@ -123,6 +123,9 @@ export const processAuditRowForMatching = (
   if (type === 'COOKIE_SHARE(B)') type = 'T2G(B)';
   if (type === 'COOKIE_SHARE(VB)') type = 'T2G(VB)';
 
+  //convert C2T(P) to just C2T
+  if (type === 'C2T(P)') type = 'C2T';
+
   if (type === 'INITIAL') {
     type = 'C2T';
   }
