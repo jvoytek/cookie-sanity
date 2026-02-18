@@ -49,11 +49,35 @@
     return timeline.value[timeline.value.length - 1].runningTotal;
   });
 
-  // Calculate total columns for colspan
-  const totalColumns = computed(() => {
-    // Date, Type, From, To, Subtotal, Running Total = 6
-    // Plus one column per cookie variety
-    return 6 + cookieAbbreviations.value.length;
+  const cookieTotals = computed(() => {
+    const totals: Record<string, number> = {};
+    cookieAbbreviations.value.forEach((abbr) => {
+      totals[abbr] = 0;
+      timeline.value.forEach((entry) => {
+        if (entry.cookies && entry.cookies[abbr]) {
+          totals[abbr] += entry.cookies[abbr];
+        }
+      });
+    });
+    return totals;
+  });
+
+  const grandTotal = computed(() => {
+    return Object.values(cookieTotals.value).reduce((sum, val) => sum + val, 0);
+  });
+
+  const totalCredits = computed(() => {
+    return timeline.value.reduce(
+      (sum, entry) => sum + (entry.subtotal < 0 ? entry.subtotal : 0),
+      0,
+    );
+  });
+
+  const totalDebits = computed(() => {
+    return timeline.value.reduce(
+      (sum, entry) => sum + (entry.subtotal > 0 ? entry.subtotal : 0),
+      0,
+    );
   });
 </script>
 
@@ -62,7 +86,7 @@
     <!-- Header with Girl Name and Date -->
     <div class="report-header">
       <h4 v-if="girl">
-        Detailed Timeline Report - {{ girl.first_name }} {{ girl.last_name }}
+        Timeline Report - {{ girl.first_name }} {{ girl.last_name }}
       </h4>
       <h4 v-else>Detailed Timeline Report</h4>
       <p class="text-sm text-gray-600">{{ currentDate }}</p>
@@ -70,7 +94,7 @@
 
     <!-- Summary Information -->
     <div class="mb-4 text-sm">
-      <strong>Final Balance:</strong>
+      <strong>Balance:</strong>
       {{ formatHelpers.formatCurrency(finalBalance) }}
     </div>
 
@@ -79,23 +103,90 @@
       <div class="p-datatable-table-container" style="overflow: auto">
         <table role="table" class="p-datatable-table">
           <thead class="p-datatable-thead">
-            <tr role="row" class="p-datatable-row">
-              <th class="date-col">Date</th>
-              <th class="type-col">Transaction Type</th>
+            <tr
+              role="row"
+              class="p-datatable-row"
+              style="border-bottom: 2px solid #333"
+            >
+              <th
+                :style="{
+                  'border-top': 'none',
+                  'border-left': 'none',
+                  'border-bottom': '2px solid #333',
+                }"
+              >
+                Date
+              </th>
+              <th
+                :style="{
+                  'border-top': 'none',
+                  'border-left': 'none',
+                  'border-bottom': '2px solid #333',
+                }"
+              >
+                Transaction Type
+              </th>
               <th
                 v-for="abbr in cookieAbbreviations"
                 :key="abbr"
-                class="cookie-col"
+                :style="{
+                  'border-top': 'none',
+                  'border-left': 'none',
+                  'border-bottom': '2px solid #333',
+                }"
               >
                 {{ abbr }}
               </th>
-              <th class="cookies-total-col">Total #</th>
-              <th class="subtotal-col">Subtotal</th>
-              <th class="running-col">Running Total</th>
-              <th>Notes</th>
+              <th
+                :style="{
+                  'border-top': 'none',
+                  'border-left': 'none',
+                  'border-bottom': '2px solid #333',
+                }"
+              >
+                Total #
+              </th>
+              <th
+                :style="{
+                  'border-top': 'none',
+                  'border-left': 'none',
+                  'border-bottom': '2px solid #333',
+                }"
+              >
+                Debits
+              </th>
+              <th
+                :style="{
+                  'border-top': 'none',
+                  'border-left': 'none',
+                  'border-bottom': '2px solid #333',
+                }"
+              >
+                Credits
+              </th>
+
+              <th
+                :style="{
+                  'border-top': 'none',
+                  'border-left': 'none',
+                  'border-bottom': '2px solid #333',
+                }"
+              >
+                Running Total
+              </th>
+              <th
+                :style="{
+                  'border-top': 'none',
+                  'border-right': 'none',
+                  'border-left': 'none',
+                  'border-bottom': '2px solid #333',
+                }"
+              >
+                Notes
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="p-datatable-tbody">
             <tr v-for="(entry, idx) in timeline" :key="idx">
               <td class="date-col">
                 <NuxtTime
@@ -112,19 +203,27 @@
               <td
                 v-for="abbr in cookieAbbreviations"
                 :key="abbr"
-                class="cookie-col text-right"
+                class="text-right"
               >
                 <template v-if="entry.cookies && entry.cookies[abbr]">
                   {{ entry.cookies[abbr] }}
                 </template>
-                <template v-else>-</template>
+                <template v-else-if="entry.cookiesTotal">-</template>
               </td>
               <td class="text-right">{{ entry.cookiesTotal }}</td>
               <td class="subtotal-col text-right">
-                {{ formatHelpers.formatCurrency(entry.subtotal) }}
+                <span v-if="entry.subtotal >= 0">{{
+                  formatHelpers.formatCurrencyAccounting(entry.subtotal)
+                }}</span>
               </td>
+              <td class="subtotal-col text-right">
+                <span v-if="entry.subtotal < 0">{{
+                  formatHelpers.formatCurrencyAccounting(entry.subtotal)
+                }}</span>
+              </td>
+
               <td class="running-col text-right">
-                {{ formatHelpers.formatCurrency(entry.runningTotal) }}
+                {{ formatHelpers.formatCurrencyAccounting(entry.runningTotal) }}
               </td>
               <td class="text-right">
                 {{ entry.order_num }} {{ entry.notes }}
@@ -134,6 +233,37 @@
               </td>
             </tr>
           </tbody>
+          <tfoot class="p-datatable-tfoot">
+            <tr>
+              <td colspan="2" class="text-right"><strong>Total</strong></td>
+              <td
+                v-for="abbr in cookieAbbreviations"
+                :key="abbr"
+                class="text-right"
+              >
+                <strong>{{ cookieTotals[abbr] }}</strong>
+              </td>
+              <td>
+                <strong>{{ grandTotal }}</strong>
+              </td>
+              <td>
+                <strong>{{
+                  formatHelpers.formatCurrencyAccounting(totalDebits)
+                }}</strong>
+              </td>
+              <td>
+                <strong>{{
+                  formatHelpers.formatCurrencyAccounting(totalCredits)
+                }}</strong>
+              </td>
+              <td>
+                <strong>{{
+                  formatHelpers.formatCurrencyAccounting(finalBalance)
+                }}</strong>
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>

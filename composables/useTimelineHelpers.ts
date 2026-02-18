@@ -153,15 +153,7 @@ export const useTimelineHelpers = () => {
 
     // Add consolidated digital payments (one entry per date)
     digitalPaymentsByDate.forEach((paymentsOnDate, date) => {
-      const totalAmount = paymentsOnDate.reduce(
-        (sum, p) => sum + p.amount,
-        0,
-      );
-      // Collect all notes from digital payments on this date
-      const allNotes = paymentsOnDate
-        .map((p) => p.notes)
-        .filter((n) => n)
-        .join('; ');
+      const totalAmount = paymentsOnDate.reduce((sum, p) => sum + p.amount, 0);
 
       timelineEntries.push({
         date: date,
@@ -172,7 +164,7 @@ export const useTimelineHelpers = () => {
         cookiesTotal: null,
         subtotal: -totalAmount, // Payment reduces what girl owes
         runningTotal: 0, // Will be calculated later
-        notes: allNotes || null,
+        notes: 'All digital payments from ' + date,
         // Store all payment IDs as a comma-separated string in notes for reference
         paymentId: undefined, // Don't set a single payment ID for consolidated entries
       });
@@ -215,7 +207,7 @@ export const useTimelineHelpers = () => {
       case 'payment_check':
         return 'Payment (Check)';
       case 'payment_digital':
-        return 'Payment (Digital)';
+        return 'Digital Payments';
       case 'payment_other':
         return 'Payment (Other)';
       case 'DIRECT_SHIP':
