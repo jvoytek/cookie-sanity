@@ -157,8 +157,16 @@
   const girlsTransactionTypeOptions = computed(() => {
     return transactionsStore.girlTransactionTypeOptions;
   });
+
   const troopTransactionTypeOptions = computed(() => {
     return transactionsStore.troopTransactionTypeOptions;
+  });
+
+  const allTransactionTypeOptions = computed(() => {
+    return [
+      ...transactionsStore.girlTransactionTypeOptions,
+      ...transactionsStore.troopTransactionTypeOptions,
+    ];
   });
 
   // Bulk action handlers
@@ -638,10 +646,20 @@
             :showClear="true"
           />
           <Select
-            v-if="props.transactionTypes === 'girl'"
+            v-else-if="props.transactionTypes === 'girl'"
             v-model="filterModel.value"
             @change="filterCallback()"
             :options="girlsTransactionTypeOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Select One"
+            :showClear="true"
+          />
+          <Select
+            v-else
+            v-model="filterModel.value"
+            @change="filterCallback()"
+            :options="allTransactionTypeOptions"
             optionLabel="label"
             optionValue="value"
             placeholder="Select One"

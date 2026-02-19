@@ -166,8 +166,8 @@ export const checkForCookieMatch = (
   const orderCookies = (order.cookies as Record<string, number>) || {};
 
   for (const abbr of cookieAbbreviations) {
-    const auditQty = Number(auditRowObj[abbr]) || 0;
-    const orderQty = Number(orderCookies[abbr]) || 0;
+    const auditQty = Math.abs(Number(auditRowObj[abbr])) || 0;
+    const orderQty = Math.abs(Number(orderCookies[abbr])) || 0;
 
     if (auditQty !== orderQty) {
       cookiesMatch = false;
