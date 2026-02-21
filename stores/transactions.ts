@@ -533,6 +533,32 @@ export const useTransactionsStore = defineStore('transactions', () => {
     } else if (type === 'INITIAL') {
       type = 'C2T';
     }
+
+    // Make cookie quantities positive or negative depending on the type
+    // To girl are positive T2G, T2G(B), T2G(VB), G2G, DIRECT_SHIP
+    // To troop are negative T2T, C2T, G2T
+    // If there are unknown types leave them as they are
+
+    if (
+      type === 'T2G' ||
+      type === 'T2G(B)' ||
+      type === 'T2G(VB)' ||
+      type === 'G2G' ||
+      type === 'DIRECT_SHIP'
+    ) {
+      Object.keys(obj).forEach((key) => {
+        if (cookiesStore.allCookieAbbreviations.includes(key)) {
+          obj[key] = Math.abs(obj[key]);
+        }
+      });
+    } else if (type === 'T2T' || type === 'C2T' || type === 'G2T') {
+      Object.keys(obj).forEach((key) => {
+        if (cookiesStore.allCookieAbbreviations.includes(key)) {
+          obj[key] = -Math.abs(obj[key]);
+        }
+      });
+    }
+
     return {
       profile: profileStore.currentProfile?.id,
       order_date: _returnDateStringOrNull(obj.DATE),

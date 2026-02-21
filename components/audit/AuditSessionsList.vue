@@ -33,11 +33,6 @@
     }
   };
 
-  const selectSession = async (session: AuditSession): Promise<void> => {
-    auditSessionsStore.mostRecentAuditSession = session;
-    await auditSessionsStore.fetchMatches();
-  };
-
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -61,6 +56,11 @@
 
   watch(showArchived, async () => {
     await loadSessions();
+  });
+
+  watch(auditSessionsStore.selectedAuditSessionIds, async () => {
+    console.log('fetching matches');
+    await auditSessionsStore.fetchMatches();
   });
 </script>
 
@@ -134,19 +134,18 @@
           />
         </template>
       </Column>
+      <Column header="Included in matches">
+        <template #body="{ data }">
+          <Checkbox
+            v-model="auditSessionsStore.selectedAuditSessionIds"
+            :value="data.id"
+          />
+        </template>
+      </Column>
 
       <Column header="Actions">
         <template #body="{ data }">
           <div class="flex gap-2">
-            <Button
-              v-if="data.status !== 'archived'"
-              label="Select"
-              size="small"
-              :disabled="
-                auditSessionsStore.mostRecentAuditSession?.id === data.id
-              "
-              @click="selectSession(data)"
-            />
             <Button
               v-if="data.status !== 'archived'"
               label="Archive"

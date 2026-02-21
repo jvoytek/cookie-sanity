@@ -1,5 +1,11 @@
 <script setup lang="ts">
+  import type { AuditSession } from '~/types/types';
+
   const auditSessionsStore = useAuditSessionsStore();
+
+  const props = defineProps<{
+    auditSession: AuditSession;
+  }>();
 
   // Helper function to validate data structure
   const isValidFileData = (data: unknown): data is { headers?: string[] } => {
@@ -16,7 +22,7 @@
 
   // Computed property to extract headers from original_file_data
   const headers = computed(() => {
-    const session = auditSessionsStore.mostRecentAuditSession;
+    const session = props.auditSession;
     if (!session?.original_file_data) return [];
 
     if (!isValidFileData(session.original_file_data)) {
@@ -43,7 +49,7 @@
 
   // Computed property to format parsed_rows for the DataTable
   const formattedRows = computed(() => {
-    const session = auditSessionsStore.mostRecentAuditSession;
+    const session = props.auditSession;
     if (!session?.parsed_rows) return [];
 
     const rows = session.parsed_rows;
@@ -82,7 +88,7 @@
 
   // Computed property for file metadata
   const fileMetadata = computed(() => {
-    const session = auditSessionsStore.mostRecentAuditSession;
+    const session = props.auditSession;
     if (!session) return null;
 
     return {
@@ -95,11 +101,8 @@
 </script>
 
 <template>
-  <div v-if="auditSessionsStore.mostRecentAuditSession" class="card">
-    <div
-      v-if="!auditSessionsStore.mostRecentAuditSession"
-      class="text-center py-8"
-    >
+  <div v-if="props.auditSession" class="card">
+    <div v-if="!props.auditSession" class="text-center py-8">
       <p class="text-muted-color">
         No audit data uploaded yet. Upload a file above to see the parsed data
         here.

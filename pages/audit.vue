@@ -38,19 +38,21 @@
     <div class="col-span-12">
       <AuditSessionsList />
     </div>
-    <div class="col-span-12" v-if="auditSessionsStore.mostRecentAuditSession">
+    <div
+      class="col-span-12"
+      v-if="auditSessionsStore.selectedAuditSessionIds.length > 0"
+    >
       <Button @click="auditSessionsStore.fetchMatches()"
         >Refresh Matches</Button
       >
     </div>
-    <div v-if="auditSessionsStore.mostRecentAuditSession" class="col-span-12">
+    <div
+      v-if="auditSessionsStore.selectedAuditSessionIds.length > 0"
+      class="col-span-12"
+    >
       <Tabs value="0">
         <TabList>
-          <Tab value="0"
-            >Raw Data ({{
-              auditSessionsStore.mostRecentAuditSession.parsed_rows.length
-            }})</Tab
-          >
+          <Tab value="0">Raw Data ({{ auditSessionsStore.numParsedRows }})</Tab>
           <Tab value="1"
             >Matching Transactions ({{
               auditSessionsStore.perfectMatches.length
@@ -74,7 +76,11 @@
         </TabList>
         <TabPanels>
           <TabPanel value="0">
-            <AuditRowsDataTable />
+            <AuditRowsDataTable
+              v-for="auditSession in auditSessionsStore.selectedAuditSessions"
+              :key="auditSession.id"
+              :auditSession="auditSession"
+            />
           </TabPanel>
           <TabPanel value="1">
             <p>
@@ -120,7 +126,11 @@
       </Tabs>
     </div>
     <div v-else class="col-span-12">
-      <AuditRowsDataTable />
+      <AuditRowsDataTable
+        v-for="auditSession in auditSessionsStore.selectedAuditSessions"
+        :key="auditSession.id"
+        :auditSession="auditSession"
+      />
     </div>
   </div>
 </template>
