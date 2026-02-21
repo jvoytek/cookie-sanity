@@ -85,7 +85,9 @@ export const getCookieAbbreviations = (
   return new Set<string>(cookies?.map((cookie) => cookie.abbreviation) || []);
 };
 
-export const hasValidHeaders = (headers: string[]): boolean => {
+export const hasValidHeaders = (
+  originalFileData: { headers?: string[] }[],
+): boolean => {
   const expectedHeaders = [
     'DATE',
     'ORDER #',
@@ -97,7 +99,17 @@ export const hasValidHeaders = (headers: string[]): boolean => {
     'TOTAL $',
     // Cookie abbreviations will vary; assume any other headers are cookie types
   ];
-  return expectedHeaders.every((h) => headers.includes(h));
+  originalFileData.forEach((fileData) => {
+    if (!fileData.headers) return false;
+    const headers = fileData.headers;
+    const hasAllExpectedHeaders = expectedHeaders.every((h) =>
+      headers.includes(h),
+    );
+    if (!hasAllExpectedHeaders) {
+      return false;
+    }
+  });
+  return true;
 };
 
 export const processAuditRowForMatching = (
