@@ -28,6 +28,10 @@ export const useCookiesStore = defineStore('cookies', () => {
   };
   /* Computed */
 
+  const allCookieAbbreviations = computed(() => {
+    return allCookies.value.map((cookie) => cookie.abbreviation);
+  });
+
   const allCookiesNotVirtual = computed(() => {
     return allCookies.value.filter((cookie) => !cookie.is_virtual);
   });
@@ -664,6 +668,7 @@ export const useCookiesStore = defineStore('cookies', () => {
 
   return {
     allCookies,
+    allCookieAbbreviations,
     defaultCookieSets,
     allCookiesNotVirtual,
     allCookiesWithInventoryTotals,

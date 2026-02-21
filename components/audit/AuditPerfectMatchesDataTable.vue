@@ -41,7 +41,7 @@
 <template>
   <div class="card">
     <div
-      v-if="!auditSessionsStore.mostRecentAuditSession"
+      v-if="auditSessionsStore.selectedAuditSessionIds.length === 0"
       class="text-center py-8"
     >
       <p class="text-muted-color">
@@ -79,15 +79,10 @@
             <p class="text-sm text-muted-color">Match Rate</p>
             <p class="font-semibold">
               {{
-                auditSessionsStore.mostRecentAuditSession?.parsed_rows
+                auditSessionsStore.numParsedRows
                   ? (
                       (formattedMatches.length /
-                        (Array.isArray(
-                          auditSessionsStore.mostRecentAuditSession.parsed_rows,
-                        )
-                          ? auditSessionsStore.mostRecentAuditSession
-                              .parsed_rows.length
-                          : 0)) *
+                        auditSessionsStore.numParsedRows) *
                       100
                     ).toFixed(1)
                   : 0
@@ -101,69 +96,6 @@
         transaction-types="audit"
         :paginated="true"
       />
-      <!-- DataTable -->
-      <!---<DataTable
-        :value="formattedMatches"
-        paginator
-        :rows="10"
-        :rows-per-page-options="[10, 25, 50]"
-        scrollable
-        scroll-height="500px"
-        data-key="rowNumber"
-        :pt="{
-          wrapper: { class: 'overflow-auto' },
-        }"
-      >
-        <Column
-          field="rowNumber"
-          header="Row #"
-          :sortable="true"
-          frozen
-          style="min-width: 80px"
-        />
-        <Column
-          field="date"
-          header="Date"
-          :sortable="true"
-          style="min-width: 120px"
-        />
-        <Column
-          field="type"
-          header="Type"
-          :sortable="true"
-          style="min-width: 100px"
-        />
-        <Column
-          field="toFrom"
-          header="Seller"
-          :sortable="true"
-          style="min-width: 150px"
-        />
-        <Column
-          field="orderNum"
-          header="Order #"
-          :sortable="true"
-          style="min-width: 100px"
-        />
-        <Column
-          v-for="abbr in cookieColumns"
-          :key="abbr"
-          :field="abbr"
-          :header="abbr"
-          :sortable="true"
-          style="min-width: 80px"
-        />
-        <Column
-          v-for="col in standardColumns.filter(
-            (c) => !['DATE', 'TYPE', 'TO', 'FROM', 'ORDER #'].includes(c),
-          )"
-          :key="col"
-          :field="col"
-          :header="col"
-          :sortable="true"
-          style="min-width: 100px"
-        />
-      </DataTable>-->
     </div>
   </div>
 </template>

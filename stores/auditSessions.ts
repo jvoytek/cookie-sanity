@@ -22,14 +22,23 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   const notificationHelpers = useNotificationHelpers();
 
   /* State */
-  const mostRecentAuditSession = ref<AuditSession | null>(null);
+  const selectedAuditSessionIds = ref<number[] | []>([]);
+  const selectedAuditSessions = ref<AuditSession[] | []>([]);
   const allAuditSessions = ref<AuditSession[]>([]);
   const perfectMatches = ref<PerfectMatch[]>([]);
   const partialMatches = ref<PartialMatch[]>([]);
   const unmatchedOrders = ref<Order[]>([]);
   const auditExtraRows = ref<Record<string, unknown>[]>([]);
+  const numParsedRows = ref<number>(0);
   const auditSessionError = ref<string | null>(null);
   const matchesLoading = ref(false);
+
+  watch(selectedAuditSessionIds, async (sessionIds) => {
+    if (sessionIds.length > 0) {
+      _syncSelectedAuditSessions();
+      await fetchMatches();
+    }
+  });
 
   /* Computed */
 
@@ -53,6 +62,37 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
     // Last-resort fallback using timestamp + Math.random
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function _addSelectedAuditSessionNoDupes(sessionId: string): void {
+    if (!selectedAuditSessionIds.value.includes(sessionId)) {
+      selectedAuditSessionIds.value.push(sessionId);
+      selectedAuditSessions.value.push(
+        allAuditSessions.value.find(
+          (session) => session.id === sessionId,
+        ) as AuditSession,
+      );
+    }
+  }
+
+  function _removeSelectedAuditSession(sessionId: string): void {
+    selectedAuditSessionIds.value = selectedAuditSessionIds.value.filter(
+      (id) => id !== sessionId,
+    );
+    selectedAuditSessions.value = selectedAuditSessions.value.filter(
+      (session) => session.id !== sessionId,
+    );
+  }
+
+  function _syncSelectedAuditSessions(): void {
+    selectedAuditSessions.value = allAuditSessions.value.filter((session) =>
+      selectedAuditSessionIds.value.includes(session.id),
+    );
+
+    numParsedRows.value = selectedAuditSessions.value.reduce(
+      (total, session) => total + (session.parsed_rows?.length || 0),
+      0,
+    );
   }
 
   /* Actions */
@@ -84,8 +124,10 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
     if (error) throw new Error(error.message);
 
+    allAuditSessions.value.push(data);
+
     // Update the most recent session after insert
-    mostRecentAuditSession.value = data;
+    _addSelectedAuditSessionNoDupes(data.id);
 
     return data;
   };
@@ -107,8 +149,10 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
       // PGRST116 is "no rows returned", which is not an error in this case
       throw new Error(error.message);
     }
-
-    mostRecentAuditSession.value = (data && data[0]) || null;
+    if (data.length > 0) {
+      selectedAuditSessionIds.value = [data[0].id];
+      selectedAuditSessions.value = [data[0]];
+    }
   };
 
   const fetchAllAuditSessions = async (
@@ -137,6 +181,9 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
     }
 
     allAuditSessions.value = data || [];
+    if (selectedAuditSessionIds.value.length > 0) {
+      _syncSelectedAuditSessions();
+    }
   };
 
   const archiveAuditSession = async (sessionId: string): Promise<void> => {
@@ -150,13 +197,15 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
 
     if (error) throw new Error(error.message);
 
+    _removeSelectedAuditSession(sessionId);
+
     // Refresh the audit sessions list
     await fetchAllAuditSessions();
     await fetchMostRecentAuditSession();
   };
 
   const fetchMatches = async (): Promise<void> => {
-    if (!mostRecentAuditSession.value?.id) {
+    if (selectedAuditSessionIds.value.length === 0) {
       perfectMatches.value = [];
       partialMatches.value = [];
       return;
@@ -171,7 +220,7 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
       const response = await $fetch('/api/audit/matches', {
         method: 'POST',
         body: {
-          auditSessionId: mostRecentAuditSession.value.id,
+          auditSessionIds: selectedAuditSessionIds.value,
           seasonId: seasonsStore.currentSeason.id,
         },
       });
@@ -248,7 +297,9 @@ export const useAuditSessionsStore = defineStore('auditSessions', () => {
   };
 
   return {
-    mostRecentAuditSession,
+    selectedAuditSessionIds,
+    selectedAuditSessions,
+    numParsedRows,
     allAuditSessions,
     perfectMatches,
     partialMatches,

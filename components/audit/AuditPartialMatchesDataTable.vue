@@ -75,7 +75,7 @@
 <template>
   <div class="card">
     <div
-      v-if="!auditSessionsStore.mostRecentAuditSession"
+      v-if="auditSessionsStore.selectedAuditSessionIds.length === 0"
       class="text-center py-8"
     >
       <p class="text-muted-color">
