@@ -1,25 +1,25 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { User } from '~/types/types';
 
-export const fetchAuditSession = async (
+export const fetchAuditSessions = async (
   supabase: SupabaseClient,
-  auditSessionId: string,
+  auditSessionIds: string[],
   user: User | null,
 ) => {
-  const { data: auditSession, error: auditError } = await supabase
+  const { data: auditSessions, error: auditError } = await supabase
     .from('audit_sessions')
     .select('*')
-    .eq('id', auditSessionId)
-    .eq('profile', user?.id)
-    .single();
+    .in('id', auditSessionIds)
+    .eq('profile', user?.id);
 
-  if (auditError || !auditSession) {
+  if (auditError || !auditSessions) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Audit session not found',
     });
   }
-  return auditSession;
+
+  return auditSessions;
 };
 
 export const fetchOrders = async (

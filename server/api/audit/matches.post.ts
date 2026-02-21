@@ -8,7 +8,7 @@ import type {
 } from '~/types/types';
 import { fuzzyMatch } from '~/server/utils/stringMatching';
 import {
-  fetchAuditSession,
+  fetchAuditSessions,
   fetchCookies,
   fetchOrders,
   fetchSellers,
@@ -32,16 +32,20 @@ export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
 
   const body = await readBody(event);
-  const { auditSessionId, seasonId } = body;
+  const { auditSessionIds, seasonId } = body;
 
-  if (!auditSessionId || !seasonId) {
+  if (!auditSessionIds || !seasonId) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Missing required parameters',
     });
   }
 
-  const auditSession = await fetchAuditSession(supabase, auditSessionId, user);
+  const auditSessions = await fetchAuditSessions(
+    supabase,
+    auditSessionIds,
+    user,
+  );
   const orders = (await fetchOrders(supabase, seasonId)).map(
     transformDataForTransaction,
   );
@@ -54,14 +58,17 @@ export default defineEventHandler(async (event) => {
   const unmatchedOrders = orders || [];
   const auditExtraRows: Record<string, unknown>[] = [];
 
-  // Extract parsed rows from audit session
-  const parsedRows = Array.isArray(auditSession.parsed_rows)
-    ? auditSession.parsed_rows
-    : [];
-  const originalFileData = auditSession.original_file_data as {
-    headers?: string[];
-  };
-  const headers = originalFileData?.headers || [];
+  // Extract parsed rows from all returned audit sessions
+  const parsedRows = auditSessions.flatMap((auditSession) =>
+    Array.isArray(auditSession.parsed_rows) ? auditSession.parsed_rows : [],
+  );
+  // Get originalFileData from all returned audit sessions
+  const originalFileData = auditSessions.flatMap(
+    (auditSession) =>
+      (auditSession.original_file_data = auditSession.original_file_data as {
+        headers?: string[];
+      }),
+  );
 
   const _hasPositiveCookieQuantities = (auditRow: SCOrder2025): boolean => {
     // Check if any cookie has a quantity greater than 0
@@ -112,7 +119,7 @@ export default defineEventHandler(async (event) => {
   };
 
   // If headers don't match expected format, return empty matches
-  if (!hasValidHeaders(headers)) {
+  if (!hasValidHeaders(originalFileData)) {
     return {
       matches: [] as PerfectMatch[],
       unmatchedOrders: unmatchedOrders,
@@ -129,7 +136,11 @@ export default defineEventHandler(async (event) => {
   // Normalized audit rows for matching
   const auditRowsForMatching = dedupeGirlToGirlTransactions(
     parsedRows.map((row) =>
-      processAuditRowForMatching(rowToObject(row, headers) || {}, cookies, row),
+      processAuditRowForMatching(
+        rowToObject(row, originalFileData[0].headers) || {},
+        cookies,
+        row,
+      ),
     ),
   );
 
