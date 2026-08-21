@@ -12,6 +12,7 @@ export const useGirlsStore = defineStore('girls', () => {
   const user = useSupabaseUser();
   const profileStore = useProfileStore();
   const seasonsStore = useSeasonsStore();
+  const adultsStore = useAdultsStore();
   const notificationHelpers = useNotificationHelpers();
 
   /* State */
@@ -159,6 +160,7 @@ export const useGirlsStore = defineStore('girls', () => {
       if (error) throw error;
 
       _removeGirl(girl);
+      await adultsStore.removeGirlFromAdults(girl.id);
       notificationHelpers.addSuccess('Girl Deleted');
     } catch (error) {
       notificationHelpers.addError(error as Error);

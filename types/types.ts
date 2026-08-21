@@ -10,6 +10,7 @@ export type Order = Database['public']['Tables']['orders']['Row'] & {
   sortDate?: Date;
 };
 export type Girl = Database['public']['Tables']['sellers']['Row'];
+export type Adult = Database['public']['Tables']['adults']['Row'];
 export type Cookie = Database['public']['Tables']['cookies']['Row'];
 export type CookieDefault =
   Database['public']['Tables']['cookie_defaults']['Row'];

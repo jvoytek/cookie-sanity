@@ -182,6 +182,13 @@ const useGirlsStoreMock = vi.fn(() => ({
 
 vi.stubGlobal('useGirlsStore', useGirlsStoreMock);
 
+const useAdultsStoreMock = vi.fn(() => ({
+  allAdults: [],
+  fetchAdults: vi.fn(),
+  removeGirlFromAdults: vi.fn(),
+}));
+vi.stubGlobal('useAdultsStore', useAdultsStoreMock);
+
 const useCookiesStoreMock = vi.fn(() => ({
   allCookies: [
     { abbreviation: 'ABC', price: 5, percent_of_sale: 20 },
