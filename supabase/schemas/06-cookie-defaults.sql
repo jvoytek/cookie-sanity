@@ -1,3 +1,17 @@
+CREATE OR REPLACE FUNCTION public.is_admin(p_profile_id uuid)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+    SELECT EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE profiles.id = p_profile_id
+          AND profiles.is_admin = true
+    );
+$function$
+;
+
 CREATE TABLE IF NOT EXISTS "public"."cookie_defaults" (
     "id" uuid DEFAULT gen_random_uuid() NOT NULL,
     "profile" uuid NOT NULL,

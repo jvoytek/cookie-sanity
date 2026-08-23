@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "display_name" "text",
     "state" "jsonb",
     "season" bigint,
+    "is_admin" boolean default false,
     CONSTRAINT "display_name" CHECK (("char_length"("display_name") >= 1))
 );
 

@@ -54,6 +54,7 @@
           icon: 'pi pi-fw pi-cog',
           items: [
             { label: 'Girls', icon: 'pi pi-fw pi-face-smile', to: '/girls' },
+            { label: 'Adults', icon: 'pi pi-fw pi-users', to: '/adults' },
             { label: 'Cookies', icon: 'pi pi-fw pi-box', to: '/cookies' },
             {
               label: 'Collaborators',

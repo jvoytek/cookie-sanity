@@ -34,6 +34,60 @@ export type Database = {
   };
   public: {
     Tables: {
+      adults: {
+        Row: {
+          created_at: string;
+          email: string | null;
+          first_name: string;
+          id: number;
+          last_name: string;
+          phone: string | null;
+          preferred_name: string | null;
+          profile: string | null;
+          season: number;
+          sellers: number[];
+        };
+        Insert: {
+          created_at?: string;
+          email?: string | null;
+          first_name: string;
+          id?: number;
+          last_name: string;
+          phone?: string | null;
+          preferred_name?: string | null;
+          profile?: string | null;
+          season?: number;
+          sellers?: number[];
+        };
+        Update: {
+          created_at?: string;
+          email?: string | null;
+          first_name?: string;
+          id?: number;
+          last_name?: string;
+          phone?: string | null;
+          preferred_name?: string | null;
+          profile?: string | null;
+          season?: number;
+          sellers?: number[];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'adults_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'adults_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       audit_sessions: {
         Row: {
           created_at: string;

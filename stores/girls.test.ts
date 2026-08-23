@@ -474,6 +474,41 @@ describe('stores/girls', () => {
         message: 'Delete failed',
       });
     });
+
+    it('removes deleted girl from adults relations', async () => {
+      const removeGirlFromAdultsMock = vi.fn();
+      vi.stubGlobal(
+        'useAdultsStore',
+        vi.fn(() => ({
+          removeGirlFromAdults: removeGirlFromAdultsMock,
+        })),
+      );
+
+      const useSupabaseClientMock = vi.fn(() => ({
+        from: vi.fn(() => ({
+          delete: vi.fn(() => ({
+            eq: vi.fn(() => Promise.resolve({ error: null })),
+          })),
+        })),
+      }));
+      vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
+
+      setActivePinia(createPinia());
+      const newGirlsStore = useGirlsStore();
+      newGirlsStore.allGirls = [
+        {
+          id: 1,
+          first_name: 'Alice',
+          last_name: 'Smith',
+          profile: 'test-profile-id',
+          season: 1,
+        },
+      ] as Girl[];
+
+      await newGirlsStore.deleteGirl(newGirlsStore.allGirls[0]);
+
+      expect(removeGirlFromAdultsMock).toHaveBeenCalledWith(1);
+    });
   });
 
   describe('utility functions', () => {

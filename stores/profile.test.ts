@@ -36,6 +36,13 @@ describe('stores/profile', () => {
     );
 
     vi.stubGlobal(
+      'useAdultsStore',
+      vi.fn(() => ({
+        fetchAdults: vi.fn(),
+      })),
+    );
+
+    vi.stubGlobal(
       'useTransactionsStore',
       vi.fn(() => ({
         fetchTransactions: vi.fn(),
