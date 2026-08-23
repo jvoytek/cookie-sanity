@@ -9,6 +9,8 @@
   const adultsStore = useAdultsStore();
   const girlsStore = useGirlsStore();
   const seasonsStore = useSeasonsStore();
+  const route = useRoute();
+  const router = useRouter();
 
   loading.value = false;
 
@@ -55,6 +57,27 @@
     adult.value = { ...a };
     adultDialog.value = true;
   }
+
+  const getAdultIdFromQuery = () => {
+    const rawAdultId = route.query?.adult;
+    const first = Array.isArray(rawAdultId) ? rawAdultId[0] : rawAdultId;
+    if (typeof first !== 'string') return null;
+    const parsed = parseInt(first, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  };
+
+  const openAdultFromQuery = async () => {
+    const adultId = getAdultIdFromQuery();
+    if (adultId === null) return;
+
+    const relatedAdult = adultsStore.allAdults.find((a) => a.id === adultId);
+    if (!relatedAdult) return;
+
+    editAdult(relatedAdult);
+    const query = { ...route.query };
+    delete query.adult;
+    await router.replace({ query });
+  };
 
   function confirmDeleteAdult(a) {
     adult.value = a;
@@ -161,6 +184,14 @@
   const submitButtonClickHandler = () => {
     if (formNode.value) formNode.value.submit();
   };
+
+  watch(
+    () => [route.query.adult, adultsStore.allAdults.length],
+    () => {
+      openAdultFromQuery();
+    },
+    { immediate: true },
+  );
 </script>
 
 <template>
