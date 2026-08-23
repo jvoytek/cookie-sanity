@@ -25,7 +25,6 @@
 
   loading.value = true;
 
-  const profileStore = useProfileStore();
   const girlsStore = useGirlsStore();
   const adultsStore = useAdultsStore();
   const seasonsStore = useSeasonsStore();
@@ -146,8 +145,21 @@
     deleteGirlDialog.value = true;
   }
 
+  const adultsBySellerId = computed(() => {
+    const bySeller = {};
+    adultsStore.allAdults.forEach((adult) => {
+      (adult.sellers ?? []).forEach((sellerId) => {
+        if (!bySeller[sellerId]) {
+          bySeller[sellerId] = [];
+        }
+        bySeller[sellerId].push(adult);
+      });
+    });
+    return bySeller;
+  });
+
   const getAdultsForGirl = (girlId) => {
-    return adultsStore.getAdultsBySellerId(girlId);
+    return adultsBySellerId.value[girlId] ?? [];
   };
 
   const getAdultDisplayName = (adult) => {
