@@ -163,7 +163,7 @@
   };
 
   const getAdultDisplayName = (adult) => {
-    return `${adult.first_name}, ${adult.last_name}`;
+    return `${adult.preferred_name || adult.first_name} ${adult.last_name}`;
   };
 
   function openRelatedAdultDialog(adult) {
@@ -329,15 +329,18 @@
                   v-if="getAdultsForGirl(slotProps.data.id).length > 0"
                   class="flex flex-wrap gap-2"
                 >
-                  <button
+                  <span
                     v-for="relatedAdult in getAdultsForGirl(slotProps.data.id)"
                     :key="relatedAdult.id"
-                    type="button"
-                    class="text-primary hover:underline"
-                    @click="openRelatedAdultDialog(relatedAdult)"
+                    ><Button
+                      variant="outlined"
+                      severity="info"
+                      size="small"
+                      @click="openRelatedAdultDialog(relatedAdult)"
+                    >
+                      {{ getAdultDisplayName(relatedAdult) }}
+                    </Button></span
                   >
-                    {{ getAdultDisplayName(relatedAdult) }}
-                  </button>
                 </div>
                 <span v-else>—</span>
               </template>
@@ -422,12 +425,6 @@
         >
           <div v-if="selectedRelatedAdult" class="flex flex-col gap-3">
             <div>
-              <span class="font-semibold">Preferred Name:</span>
-              <span class="ml-2">{{
-                selectedRelatedAdult.preferred_name || '—'
-              }}</span>
-            </div>
-            <div>
               <span class="font-semibold">Email:</span>
               <a
                 v-if="selectedRelatedAdult.email"
@@ -449,22 +446,18 @@
               </a>
               <span v-else class="ml-2">—</span>
             </div>
-            <div class="pt-2">
-              <button
-                type="button"
-                class="text-sm text-primary/80 hover:underline"
-                @click="editRelatedAdult(selectedRelatedAdult)"
-              >
-                Edit adult details
-              </button>
-            </div>
           </div>
           <template #footer>
             <Button
-              label="Close"
+              label="Cancel"
               icon="pi pi-times"
               text
               @click="hideRelatedAdultDialog"
+            />
+            <Button
+              label="Edit"
+              icon="pi pi-pencil"
+              @click="editRelatedAdult(selectedRelatedAdult)"
             />
           </template>
         </Dialog>
