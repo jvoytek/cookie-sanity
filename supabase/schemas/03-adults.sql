@@ -39,8 +39,6 @@ ALTER TABLE ONLY "public"."adults"
 
 ALTER TABLE "public"."adults" ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read of adults" ON "public"."adults"
-FOR SELECT USING (id > 0);
 
 CREATE OR REPLACE FUNCTION public.remove_deleted_seller_from_adults()
 RETURNS trigger
