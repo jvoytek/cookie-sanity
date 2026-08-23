@@ -156,4 +156,36 @@ describe('stores/adults', () => {
     expect(newAdultsStore.allAdults[0].sellers).toEqual([1]);
     expect(newAdultsStore.allAdults[1].sellers).toEqual([]);
   });
+
+  it('gets related adults by seller id', () => {
+    setActivePinia(createPinia());
+    const newAdultsStore = useAdultsStore();
+    newAdultsStore.allAdults = [
+      {
+        id: 1,
+        first_name: 'Amy',
+        last_name: 'Adams',
+        profile: 'test-profile-id',
+        season: 1,
+        sellers: [1, 2],
+      },
+      {
+        id: 2,
+        first_name: 'Ben',
+        last_name: 'Baker',
+        profile: 'test-profile-id',
+        season: 1,
+        sellers: [2],
+      },
+    ] as Adult[];
+
+    expect(newAdultsStore.getAdultsBySellerId(1)).toEqual([
+      newAdultsStore.allAdults[0],
+    ]);
+    expect(newAdultsStore.getAdultsBySellerId(2)).toEqual([
+      newAdultsStore.allAdults[0],
+      newAdultsStore.allAdults[1],
+    ]);
+    expect(newAdultsStore.getAdultsBySellerId(999)).toEqual([]);
+  });
 });

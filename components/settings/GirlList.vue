@@ -25,9 +25,10 @@
 
   loading.value = true;
 
-  const profileStore = useProfileStore();
   const girlsStore = useGirlsStore();
+  const adultsStore = useAdultsStore();
   const seasonsStore = useSeasonsStore();
+  const router = useRouter();
 
   loading.value = false;
 
@@ -35,6 +36,8 @@
   const dt = ref();
   const girlDialog = ref(false);
   const deleteGirlDialog = ref(false);
+  const relatedAdultDialog = ref(false);
+  const selectedRelatedAdult = ref(null);
   const copyGirlsDialogVisible = ref(false);
   const girl = ref({});
   const selectedGirls = ref();
@@ -140,6 +143,45 @@
   function confirmDeleteGirl(g) {
     girl.value = g;
     deleteGirlDialog.value = true;
+  }
+
+  const adultsBySellerId = computed(() => {
+    const bySeller = {};
+    adultsStore.allAdults.forEach((adult) => {
+      (adult.sellers ?? []).forEach((sellerId) => {
+        if (!bySeller[sellerId]) {
+          bySeller[sellerId] = [];
+        }
+        bySeller[sellerId].push(adult);
+      });
+    });
+    return bySeller;
+  });
+
+  const getAdultsForGirl = (girlId) => {
+    return adultsBySellerId.value[girlId] ?? [];
+  };
+
+  const getAdultDisplayName = (adult) => {
+    return `${adult.preferred_name || adult.first_name} ${adult.last_name}`;
+  };
+
+  function openRelatedAdultDialog(adult) {
+    selectedRelatedAdult.value = adult;
+    relatedAdultDialog.value = true;
+  }
+
+  function hideRelatedAdultDialog() {
+    relatedAdultDialog.value = false;
+    selectedRelatedAdult.value = null;
+  }
+
+  function editRelatedAdult(adult) {
+    hideRelatedAdultDialog();
+    router.push({
+      path: '/adults',
+      query: { adult: adult.id.toString() },
+    });
   }
 
   async function deleteGirl() {
@@ -281,6 +323,28 @@
             <Column field="last_name" header="Last Name" sortable />
             <Column field="preferred_name" header="Preferred Name" sortable />
             <Column field="email" header="Email" sortable />
+            <Column header="Related Adults">
+              <template #body="slotProps">
+                <div
+                  v-if="getAdultsForGirl(slotProps.data.id).length > 0"
+                  class="flex flex-wrap gap-2"
+                >
+                  <span
+                    v-for="relatedAdult in getAdultsForGirl(slotProps.data.id)"
+                    :key="relatedAdult.id"
+                    ><Button
+                      variant="outlined"
+                      severity="info"
+                      size="small"
+                      @click="openRelatedAdultDialog(relatedAdult)"
+                    >
+                      {{ getAdultDisplayName(relatedAdult) }}
+                    </Button></span
+                  >
+                </div>
+                <span v-else>—</span>
+              </template>
+            </Column>
             <Column
               v-if="publishGirlRequestForm"
               header="Request Link"
@@ -348,6 +412,55 @@
             </Column>
           </DataTable>
         </div>
+
+        <Dialog
+          v-model:visible="relatedAdultDialog"
+          :style="{ width: '450px' }"
+          :header="
+            selectedRelatedAdult
+              ? getAdultDisplayName(selectedRelatedAdult)
+              : 'Adult Details'
+          "
+          :modal="true"
+        >
+          <div v-if="selectedRelatedAdult" class="flex flex-col gap-3">
+            <div>
+              <span class="font-semibold">Email:</span>
+              <a
+                v-if="selectedRelatedAdult.email"
+                class="ml-2 text-primary hover:underline"
+                :href="`mailto:${selectedRelatedAdult.email}`"
+              >
+                {{ selectedRelatedAdult.email }}
+              </a>
+              <span v-else class="ml-2">—</span>
+            </div>
+            <div>
+              <span class="font-semibold">Phone:</span>
+              <a
+                v-if="selectedRelatedAdult.phone"
+                class="ml-2 text-primary hover:underline"
+                :href="`tel:${selectedRelatedAdult.phone}`"
+              >
+                {{ selectedRelatedAdult.phone }}
+              </a>
+              <span v-else class="ml-2">—</span>
+            </div>
+          </div>
+          <template #footer>
+            <Button
+              label="Cancel"
+              icon="pi pi-times"
+              text
+              @click="hideRelatedAdultDialog"
+            />
+            <Button
+              label="Edit"
+              icon="pi pi-pencil"
+              @click="editRelatedAdult(selectedRelatedAdult)"
+            />
+          </template>
+        </Dialog>
 
         <Dialog
           v-model:visible="girlDialog"

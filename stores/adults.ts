@@ -141,6 +141,12 @@ export const useAdultsStore = defineStore('adults', () => {
     }
   };
 
+  const getAdultsBySellerId = (sellerId: number) => {
+    return allAdults.value.filter((adult) =>
+      (adult.sellers ?? []).includes(sellerId),
+    );
+  };
+
   return {
     fetchAdults,
     allAdults,
@@ -148,5 +154,6 @@ export const useAdultsStore = defineStore('adults', () => {
     upsertAdult,
     deleteAdult,
     removeGirlFromAdults,
+    getAdultsBySellerId,
   };
 });
