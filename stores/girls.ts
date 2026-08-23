@@ -277,7 +277,9 @@ export const useGirlsStore = defineStore('girls', () => {
 
           const girlIdMap = new Map<number, number>();
           girls.forEach((sourceGirl) => {
-            const matchingGirls = copiedGirlsByKey.get(getGirlMatchKey(sourceGirl));
+            const matchingGirls = copiedGirlsByKey.get(
+              getGirlMatchKey(sourceGirl),
+            );
             const copiedGirl = matchingGirls?.shift();
             if (copiedGirl?.id) {
               girlIdMap.set(sourceGirl.id, copiedGirl.id);
@@ -299,7 +301,6 @@ export const useGirlsStore = defineStore('girls', () => {
                 ),
               )
               .map((adult) => {
-                const { id, created_at, ...adultData } = adult;
                 const mappedSellers = (adult.sellers ?? [])
                   .map((sellerId) => girlIdMap.get(sellerId))
                   .filter(
@@ -307,7 +308,11 @@ export const useGirlsStore = defineStore('girls', () => {
                   );
 
                 return {
-                  ...adultData,
+                  first_name: adult.first_name,
+                  last_name: adult.last_name,
+                  preferred_name: adult.preferred_name,
+                  email: adult.email,
+                  phone: adult.phone,
                   season: targetSeasonId,
                   profile: user.value!.id,
                   sellers: mappedSellers,

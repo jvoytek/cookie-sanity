@@ -869,15 +869,22 @@ describe('stores/girls', () => {
       expect(newGirlsStore.allGirls).toHaveLength(2);
       expect(newGirlsStore.allGirls[0].season).toBe(2);
       expect(newGirlsStore.allGirls[0].profile).toBe('test-user-id');
-      expect(insertAdultsMock).toHaveBeenCalledWith([
-        expect.objectContaining({
+      expect(insertAdultsMock).toHaveBeenCalledTimes(1);
+      const insertedAdultsPayload = insertAdultsMock.mock.calls[0][0];
+      expect(insertedAdultsPayload).toEqual([
+        {
           first_name: 'Alex',
           last_name: 'Parent',
+          preferred_name: null,
+          email: null,
+          phone: null,
           season: 2,
           profile: 'test-user-id',
           sellers: [3],
-        }),
+        },
       ]);
+      expect(insertedAdultsPayload[0]).not.toHaveProperty('id');
+      expect(insertedAdultsPayload[0]).not.toHaveProperty('created_at');
       expect(toastSpy).toHaveBeenCalledWith('2 girls copied successfully');
     });
 
