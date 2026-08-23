@@ -301,6 +301,7 @@ export const useGirlsStore = defineStore('girls', () => {
                 ),
               )
               .map((adult) => {
+                const { id: _id, created_at: _createdAt, ...adultData } = adult;
                 const mappedSellers = (adult.sellers ?? [])
                   .map((sellerId) => girlIdMap.get(sellerId))
                   .filter(
@@ -308,11 +309,7 @@ export const useGirlsStore = defineStore('girls', () => {
                   );
 
                 return {
-                  first_name: adult.first_name,
-                  last_name: adult.last_name,
-                  preferred_name: adult.preferred_name,
-                  email: adult.email,
-                  phone: adult.phone,
+                  ...adultData,
                   season: targetSeasonId,
                   profile: user.value!.id,
                   sellers: mappedSellers,
