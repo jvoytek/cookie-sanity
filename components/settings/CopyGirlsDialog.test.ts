@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import CopyGirlsDialog from '@/components/settings/CopyGirlsDialog.vue';
@@ -54,5 +54,30 @@ describe('CopyGirlsDialog', () => {
     });
 
     expect(wrapper.exists()).toBe(true);
+  });
+
+  it('shows note about copying related adults', () => {
+    const wrapper = mount(CopyGirlsDialog, {
+      props: {
+        visible: true,
+      },
+      global: {
+        plugins: [createTestingPinia()],
+        stubs: {
+          Dialog: {
+            template: '<div><slot /></div>',
+          },
+          Select: true,
+          Button: true,
+          DataTable: true,
+          Column: true,
+          ProgressSpinner: true,
+        },
+      },
+    });
+
+    expect(wrapper.text()).toContain(
+      'Adults related to girls that are copied will also be copied to this season',
+    );
   });
 });

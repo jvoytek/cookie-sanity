@@ -91,8 +91,12 @@
           fluid
         />
       </div>
+      <p class="text-surface-600 dark:text-surface-400">
+        Adults related to girls that are copied will also be copied to this
+        season
+      </p>
     </div>
-    <div class="flex flex-col gap-4 py-6" v-if="selectedSeason">
+    <div v-if="selectedSeason" class="flex flex-col gap-4 py-6">
       <div class="text-center mb-4">
         <p class="text-surface-600 dark:text-surface-400">
           Select the girls you want to copy to the current season
