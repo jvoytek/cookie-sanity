@@ -93,7 +93,7 @@
       </div>
       <p class="text-surface-600 dark:text-surface-400">
         Adults related to girls that are copied will also be copied to this
-        season
+        season.
       </p>
     </div>
     <div v-if="selectedSeason" class="flex flex-col gap-4 py-6">

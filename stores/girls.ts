@@ -257,9 +257,28 @@ export const useGirlsStore = defineStore('girls', () => {
 
         const sourceSeasonId = girls[0]?.season;
         if (sourceSeasonId) {
+          const getGirlMatchKey = (girl: Girl) => {
+            return [
+              girl.first_name,
+              girl.last_name,
+              girl.preferred_name ?? '',
+              girl.email ?? '',
+            ].join('::');
+          };
+
+          const copiedGirlsByKey = new Map<string, Girl[]>();
+          (data as Girl[]).forEach((copiedGirl) => {
+            const key = getGirlMatchKey(copiedGirl);
+            if (!copiedGirlsByKey.has(key)) {
+              copiedGirlsByKey.set(key, []);
+            }
+            copiedGirlsByKey.get(key)!.push(copiedGirl);
+          });
+
           const girlIdMap = new Map<number, number>();
-          girls.forEach((sourceGirl, index) => {
-            const copiedGirl = data[index] as Girl | undefined;
+          girls.forEach((sourceGirl) => {
+            const matchingGirls = copiedGirlsByKey.get(getGirlMatchKey(sourceGirl));
+            const copiedGirl = matchingGirls?.shift();
             if (copiedGirl?.id) {
               girlIdMap.set(sourceGirl.id, copiedGirl.id);
             }
@@ -294,6 +313,8 @@ export const useGirlsStore = defineStore('girls', () => {
                   sellers: mappedSellers,
                 };
               })
+              // Keep only adults that still relate to at least one copied girl in
+              // the target season.
               .filter((adult) => adult.sellers && adult.sellers.length > 0);
 
           if (adultsToCopy.length > 0) {

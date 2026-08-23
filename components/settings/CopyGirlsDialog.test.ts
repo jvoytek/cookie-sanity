@@ -77,7 +77,7 @@ describe('CopyGirlsDialog', () => {
     });
 
     expect(wrapper.text()).toContain(
-      'Adults related to girls that are copied will also be copied to this season',
+      'Adults related to girls that are copied will also be copied to this season.',
     );
   });
 });
