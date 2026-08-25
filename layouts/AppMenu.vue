@@ -61,6 +61,7 @@
               icon: 'pi pi-fw pi-users',
               to: '/collaborators',
             },
+            { label: 'Forms', icon: 'pi pi-fw pi-file', to: '/forms' },
           ],
         },
       ],

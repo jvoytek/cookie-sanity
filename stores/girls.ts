@@ -242,6 +242,7 @@ export const useGirlsStore = defineStore('girls', () => {
             ...girlData,
             season: targetSeasonId,
             profile: user.value!.id,
+            forms: [],
           };
         },
       );
@@ -313,6 +314,7 @@ export const useGirlsStore = defineStore('girls', () => {
                   season: targetSeasonId,
                   profile: user.value!.id,
                   sellers: mappedSellers,
+                  forms: [],
                 };
               })
               // Keep only adults that still relate to at least one copied girl in

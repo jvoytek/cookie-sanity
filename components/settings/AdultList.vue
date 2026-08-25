@@ -8,6 +8,7 @@
 
   const adultsStore = useAdultsStore();
   const girlsStore = useGirlsStore();
+  const formsStore = useFormsStore();
   const seasonsStore = useSeasonsStore();
   const route = useRoute();
   const router = useRouter();
@@ -171,6 +172,21 @@
       class: 'w-full',
       label: 'Related Girls',
       key: 'sellers',
+      showToggleAll: false,
+    },
+    {
+      $formkit: 'primeMultiSelect',
+      name: 'forms',
+      options: formsStore.adultFormOptions,
+      'option-label': 'label',
+      'option-value': 'value',
+      placeholder: 'Select submitted forms',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+      label: 'Submitted Forms',
+      key: 'forms',
       showToggleAll: false,
     },
   ];

@@ -46,6 +46,7 @@ export type Database = {
           profile: string | null;
           season: number;
           sellers: number[];
+          forms: number[];
         };
         Insert: {
           created_at?: string;
@@ -58,6 +59,7 @@ export type Database = {
           profile?: string | null;
           season?: number;
           sellers?: number[];
+          forms?: number[];
         };
         Update: {
           created_at?: string;
@@ -70,6 +72,7 @@ export type Database = {
           profile?: string | null;
           season?: number;
           sellers?: number[];
+          forms?: number[];
         };
         Relationships: [
           {
@@ -356,6 +359,57 @@ export type Database = {
           },
           {
             foreignKeyName: 'deposits_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      forms: {
+        Row: {
+          abbreviation: string;
+          created_at: string;
+          id: number;
+          name: string;
+          profile: string | null;
+          required: boolean;
+          season: number;
+          url: string | null;
+          who: string;
+        };
+        Insert: {
+          abbreviation: string;
+          created_at?: string;
+          id?: number;
+          name: string;
+          profile?: string | null;
+          required?: boolean;
+          season: number;
+          url?: string | null;
+          who?: string;
+        };
+        Update: {
+          abbreviation?: string;
+          created_at?: string;
+          id?: number;
+          name?: string;
+          profile?: string | null;
+          required?: boolean;
+          season?: number;
+          url?: string | null;
+          who?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'forms_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'forms_season_fkey';
             columns: ['season'];
             isOneToOne: false;
             referencedRelation: 'seasons';
@@ -707,6 +761,7 @@ export type Database = {
           created_at: string;
           email: string | null;
           first_name: string;
+          forms: number[];
           id: number;
           last_name: string;
           preferred_name: string | null;
@@ -717,6 +772,7 @@ export type Database = {
           created_at?: string;
           email?: string | null;
           first_name: string;
+          forms?: number[];
           id?: number;
           last_name: string;
           preferred_name?: string | null;
@@ -727,6 +783,7 @@ export type Database = {
           created_at?: string;
           email?: string | null;
           first_name?: string;
+          forms?: number[];
           id?: number;
           last_name?: string;
           preferred_name?: string | null;
