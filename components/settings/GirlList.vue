@@ -27,6 +27,7 @@
 
   const girlsStore = useGirlsStore();
   const adultsStore = useAdultsStore();
+  const formsStore = useFormsStore();
   const seasonsStore = useSeasonsStore();
   const router = useRouter();
 
@@ -246,6 +247,21 @@
       labelClass: 'col-span-2',
       innerClass: 'col-span-3 mt-1 mb-1',
       class: 'w-full',
+    },
+    {
+      $formkit: 'primeMultiSelect',
+      name: 'forms',
+      options: formsStore.girlFormOptions,
+      'option-label': 'label',
+      'option-value': 'value',
+      placeholder: 'Select submitted forms',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+      label: 'Submitted Forms',
+      key: 'forms',
+      showToggleAll: false,
     },
   ];
 

@@ -43,6 +43,13 @@ describe('stores/profile', () => {
     );
 
     vi.stubGlobal(
+      'useFormsStore',
+      vi.fn(() => ({
+        fetchForms: vi.fn(),
+      })),
+    );
+
+    vi.stubGlobal(
       'useTransactionsStore',
       vi.fn(() => ({
         fetchTransactions: vi.fn(),

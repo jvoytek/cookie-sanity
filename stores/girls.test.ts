@@ -881,6 +881,7 @@ describe('stores/girls', () => {
           season: 2,
           profile: 'test-user-id',
           sellers: [3],
+          forms: [],
         },
       ]);
       expect(insertedAdultsPayload[0]).not.toHaveProperty('id');
