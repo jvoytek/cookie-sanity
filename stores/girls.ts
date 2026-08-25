@@ -1,5 +1,5 @@
 import type { Database } from '@/types/supabase';
-import type { Girl } from '@/types/types';
+import type { Adult, Girl } from '@/types/types';
 
 /*
 ref()s become state properties
@@ -86,6 +86,19 @@ export const useGirlsStore = defineStore('girls', () => {
 
   const _supabaseInsertMultipleGirls = async (girls: Girl[]) => {
     return await supabaseClient.from('sellers').insert(girls).select();
+  };
+
+  const _supabaseFetchAdultsBySeason = async (seasonId: number) => {
+    return await supabaseClient
+      .from('adults')
+      .select(`*`)
+      .eq('season', seasonId);
+  };
+
+  const _supabaseInsertMultipleAdults = async (
+    adults: Database['public']['Tables']['adults']['Insert'][],
+  ) => {
+    return await supabaseClient.from('adults').insert(adults).select();
   };
 
   const _supabaseDeleteGirl = async (girl: Girl) => {
@@ -241,6 +254,80 @@ export const useGirlsStore = defineStore('girls', () => {
       if (data) {
         data.forEach((girl) => _addGirl(girl as Girl));
         _sortGirls();
+
+        const sourceSeasonId = girls[0]?.season;
+        if (sourceSeasonId) {
+          const getGirlMatchKey = (girl: Girl) => {
+            return [
+              girl.first_name,
+              girl.last_name,
+              girl.preferred_name ?? '',
+              girl.email ?? '',
+            ].join('::');
+          };
+
+          const copiedGirlsByKey = new Map<string, Girl[]>();
+          (data as Girl[]).forEach((copiedGirl) => {
+            const key = getGirlMatchKey(copiedGirl);
+            if (!copiedGirlsByKey.has(key)) {
+              copiedGirlsByKey.set(key, []);
+            }
+            copiedGirlsByKey.get(key)!.push(copiedGirl);
+          });
+
+          const girlIdMap = new Map<number, number>();
+          girls.forEach((sourceGirl) => {
+            const matchingGirls = copiedGirlsByKey.get(
+              getGirlMatchKey(sourceGirl),
+            );
+            const copiedGirl = matchingGirls?.shift();
+            if (copiedGirl?.id) {
+              girlIdMap.set(sourceGirl.id, copiedGirl.id);
+            }
+          });
+
+          const sourceGirlIds = new Set(
+            girls.map((sourceGirl) => sourceGirl.id),
+          );
+          const { data: sourceAdults, error: sourceAdultsError } =
+            await _supabaseFetchAdultsBySeason(sourceSeasonId);
+          if (sourceAdultsError) throw sourceAdultsError;
+
+          const adultsToCopy: Database['public']['Tables']['adults']['Insert'][] =
+            (sourceAdults as Adult[])
+              .filter((adult) =>
+                (adult.sellers ?? []).some((sellerId) =>
+                  sourceGirlIds.has(sellerId),
+                ),
+              )
+              .map((adult) => {
+                const { id: _id, created_at: _createdAt, ...adultData } = adult;
+                const mappedSellers = (adult.sellers ?? [])
+                  .map((sellerId) => girlIdMap.get(sellerId))
+                  .filter(
+                    (sellerId): sellerId is number => sellerId !== undefined,
+                  );
+
+                return {
+                  ...adultData,
+                  season: targetSeasonId,
+                  profile: user.value!.id,
+                  sellers: mappedSellers,
+                };
+              })
+              // Keep only adults that still relate to at least one copied girl in
+              // the target season.
+              .filter((adult) => adult.sellers && adult.sellers.length > 0);
+
+          if (adultsToCopy.length > 0) {
+            const { error: copiedAdultsError } =
+              await _supabaseInsertMultipleAdults(adultsToCopy);
+            if (copiedAdultsError) throw copiedAdultsError;
+            if (typeof adultsStore.fetchAdults === 'function') {
+              await adultsStore.fetchAdults();
+            }
+          }
+        }
       }
 
       notificationHelpers.addSuccess(

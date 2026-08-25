@@ -195,6 +195,7 @@ describe('stores/girls', () => {
       const toastSpy = vi.fn();
       const useNotificationHelpersMock = vi.fn(() => ({
         addSuccess: toastSpy,
+        addError: vi.fn(),
       }));
       vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
@@ -297,6 +298,7 @@ describe('stores/girls', () => {
       const toastSpy = vi.fn();
       const useNotificationHelpersMock = vi.fn(() => ({
         addSuccess: toastSpy,
+        addError: vi.fn(),
       }));
       vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
@@ -771,6 +773,7 @@ describe('stores/girls', () => {
       const toastSpy = vi.fn();
       const useNotificationHelpersMock = vi.fn(() => ({
         addSuccess: toastSpy,
+        addError: vi.fn(),
       }));
       vi.stubGlobal('useNotificationHelpers', useNotificationHelpersMock);
 
@@ -810,14 +813,46 @@ describe('stores/girls', () => {
         },
       ] as Girl[];
 
+      const sourceAdults = [
+        {
+          id: 11,
+          first_name: 'Alex',
+          last_name: 'Parent',
+          profile: 'old-profile-id',
+          season: 1,
+          sellers: [1],
+          email: null,
+          phone: null,
+          preferred_name: null,
+          created_at: '2023-01-01',
+        },
+      ];
+
+      const insertAdultsMock = vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      }));
+
       const useSupabaseClientMock = vi.fn(() => ({
-        from: vi.fn(() => ({
-          insert: vi.fn(() => ({
-            select: vi.fn(() =>
-              Promise.resolve({ data: copiedGirls, error: null }),
-            ),
-          })),
-        })),
+        from: vi.fn((table: string) => {
+          if (table === 'sellers') {
+            return {
+              insert: vi.fn(() => ({
+                select: vi.fn(() =>
+                  Promise.resolve({ data: copiedGirls, error: null }),
+                ),
+              })),
+            };
+          }
+
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() =>
+                Promise.resolve({ data: sourceAdults, error: null }),
+              ),
+            })),
+            insert: insertAdultsMock,
+          };
+        }),
       }));
       vi.stubGlobal('useSupabaseClient', useSupabaseClientMock);
 
@@ -834,6 +869,22 @@ describe('stores/girls', () => {
       expect(newGirlsStore.allGirls).toHaveLength(2);
       expect(newGirlsStore.allGirls[0].season).toBe(2);
       expect(newGirlsStore.allGirls[0].profile).toBe('test-user-id');
+      expect(insertAdultsMock).toHaveBeenCalledTimes(1);
+      const insertedAdultsPayload = insertAdultsMock.mock.calls[0][0];
+      expect(insertedAdultsPayload).toEqual([
+        {
+          first_name: 'Alex',
+          last_name: 'Parent',
+          preferred_name: null,
+          email: null,
+          phone: null,
+          season: 2,
+          profile: 'test-user-id',
+          sellers: [3],
+        },
+      ]);
+      expect(insertedAdultsPayload[0]).not.toHaveProperty('id');
+      expect(insertedAdultsPayload[0]).not.toHaveProperty('created_at');
       expect(toastSpy).toHaveBeenCalledWith('2 girls copied successfully');
     });
 
