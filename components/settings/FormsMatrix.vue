@@ -4,6 +4,7 @@
   const formsStore = useFormsStore();
   const girlsStore = useGirlsStore();
   const adultsStore = useAdultsStore();
+  const eventsStore = useEventsStore();
   const notificationHelpers = useNotificationHelpers();
   const supabaseClient = useSupabaseClient();
 
@@ -18,6 +19,32 @@
 
   function adultHasForm(adult: Adult, formId: number): boolean {
     return (adult.forms ?? []).includes(formId);
+  }
+
+  function isFormRequiredForGirl(girl: Girl, formId: number): boolean {
+    return (
+      eventsStore.getEventsRequiringFormForGirl(formId, girl.id).length > 0
+    );
+  }
+
+  function isFormRequiredForAdult(adult: Adult, formId: number): boolean {
+    return (
+      eventsStore.getEventsRequiringFormForAdult(formId, adult.id).length > 0
+    );
+  }
+
+  function getRequiredEventsForGirl(girl: Girl, formId: number): string {
+    return eventsStore
+      .getEventsRequiringFormForGirl(formId, girl.id)
+      .map((e) => e.name)
+      .join(', ');
+  }
+
+  function getRequiredEventsForAdult(adult: Adult, formId: number): string {
+    return eventsStore
+      .getEventsRequiringFormForAdult(formId, adult.id)
+      .map((e) => e.name)
+      .join(', ');
   }
 
   async function toggleGirlForm(girl: Girl, formId: number) {
@@ -101,12 +128,28 @@
                 v-for="form in girlForms"
                 :key="form.id"
                 class="text-center p-2 border border-surface-200"
+                :class="{
+                  'bg-yellow-50': isFormRequiredForGirl(girl, form.id),
+                }"
               >
-                <Checkbox
-                  :model-value="girlHasForm(girl, form.id)"
-                  :binary="true"
-                  @update:model-value="toggleGirlForm(girl, form.id)"
-                />
+                <div class="flex flex-col items-center gap-1">
+                  <Checkbox
+                    :model-value="girlHasForm(girl, form.id)"
+                    :binary="true"
+                    @update:model-value="toggleGirlForm(girl, form.id)"
+                  />
+                  <span
+                    v-if="isFormRequiredForGirl(girl, form.id)"
+                    v-tooltip.bottom="{
+                      value:
+                        'Required for: ' +
+                        getRequiredEventsForGirl(girl, form.id),
+                      showDelay: 300,
+                    }"
+                    class="text-xs text-orange-600 font-semibold cursor-help"
+                    >Required</span
+                  >
+                </div>
               </td>
             </tr>
           </tbody>
@@ -148,12 +191,28 @@
                 v-for="form in adultForms"
                 :key="form.id"
                 class="text-center p-2 border border-surface-200"
+                :class="{
+                  'bg-yellow-50': isFormRequiredForAdult(adult, form.id),
+                }"
               >
-                <Checkbox
-                  :model-value="adultHasForm(adult, form.id)"
-                  :binary="true"
-                  @update:model-value="toggleAdultForm(adult, form.id)"
-                />
+                <div class="flex flex-col items-center gap-1">
+                  <Checkbox
+                    :model-value="adultHasForm(adult, form.id)"
+                    :binary="true"
+                    @update:model-value="toggleAdultForm(adult, form.id)"
+                  />
+                  <span
+                    v-if="isFormRequiredForAdult(adult, form.id)"
+                    v-tooltip.bottom="{
+                      value:
+                        'Required for: ' +
+                        getRequiredEventsForAdult(adult, form.id),
+                      showDelay: 300,
+                    }"
+                    class="text-xs text-orange-600 font-semibold cursor-help"
+                    >Required</span
+                  >
+                </div>
               </td>
             </tr>
           </tbody>

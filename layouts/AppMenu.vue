@@ -62,6 +62,11 @@
               to: '/collaborators',
             },
             { label: 'Forms', icon: 'pi pi-fw pi-file', to: '/forms' },
+            {
+              label: 'Events',
+              icon: 'pi pi-fw pi-calendar',
+              to: '/events',
+            },
           ],
         },
       ],

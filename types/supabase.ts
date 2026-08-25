@@ -34,6 +34,66 @@ export type Database = {
   };
   public: {
     Tables: {
+      events: {
+        Row: {
+          adults: number[];
+          created_at: string;
+          end_date: string;
+          end_time: string | null;
+          forms: number[];
+          girls: number[];
+          id: number;
+          name: string;
+          profile: string | null;
+          season: number;
+          start_date: string;
+          start_time: string | null;
+        };
+        Insert: {
+          adults?: number[];
+          created_at?: string;
+          end_date: string;
+          end_time?: string | null;
+          forms?: number[];
+          girls?: number[];
+          id?: number;
+          name: string;
+          profile?: string | null;
+          season?: number;
+          start_date: string;
+          start_time?: string | null;
+        };
+        Update: {
+          adults?: number[];
+          created_at?: string;
+          end_date?: string;
+          end_time?: string | null;
+          forms?: number[];
+          girls?: number[];
+          id?: number;
+          name?: string;
+          profile?: string | null;
+          season?: number;
+          start_date?: string;
+          start_time?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'events_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'events_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       adults: {
         Row: {
           created_at: string;
