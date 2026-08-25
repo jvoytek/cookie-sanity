@@ -45,3 +45,8 @@ ALTER TABLE "public"."sellers"
 
 ALTER TABLE "public"."adults"
     ADD COLUMN IF NOT EXISTS "forms" bigint[] DEFAULT '{}'::bigint[] NOT NULL;
+
+CREATE POLICY "Allow owners/collaborators to view their own forms" ON public.forms FOR SELECT TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
+CREATE POLICY "Allow owners/collaborators to delete their own forms" ON public.forms FOR DELETE TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
+CREATE POLICY "Allow owners/collaborators to insert their own forms" ON public.forms FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
+CREATE POLICY "Allow owners/collaborators to update their own forms" ON public.forms FOR UPDATE TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
