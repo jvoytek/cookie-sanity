@@ -3,9 +3,9 @@
  * Redirects to /settings if no season is available
  */
 export default defineNuxtRouteMiddleware(async (to) => {
-  // Skip middleware for login, settings, and other excluded routes
+  // Skip middleware for login, settings, troop-sanity, and other excluded routes
   const excludedRoutes = ['/login', '/confirm', '/request', '/settings'];
-  if (excludedRoutes.includes(to.path)) {
+  if (excludedRoutes.includes(to.path) || to.path.startsWith('/troop-sanity')) {
     return;
   }
 
