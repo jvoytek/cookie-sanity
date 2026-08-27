@@ -18,6 +18,14 @@ export const useFormsStore = defineStore('forms', () => {
     allForms.value.filter((f) => f.who === 'adult' || f.who === 'all'),
   );
 
+  const requiredGirlForms = computed(() =>
+    girlForms.value.filter((f) => f.required === true),
+  );
+
+  const requiredAdultForms = computed(() =>
+    adultForms.value.filter((f) => f.required === true),
+  );
+
   const formOptions = computed(() =>
     allForms.value.map((f) => ({
       label: `${f.name} (${f.abbreviation})`,
@@ -149,6 +157,8 @@ export const useFormsStore = defineStore('forms', () => {
     allForms,
     girlForms,
     adultForms,
+    requiredGirlForms,
+    requiredAdultForms,
     formOptions,
     girlFormOptions,
     adultFormOptions,

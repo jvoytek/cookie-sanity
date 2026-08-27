@@ -1,9 +1,11 @@
 <script setup lang="ts">
   import type { Adult, Girl } from '@/types/types';
+  import { forms } from 'happy-dom/lib/PropertySymbol';
 
   const formsStore = useFormsStore();
   const girlsStore = useGirlsStore();
   const adultsStore = useAdultsStore();
+  const eventsStore = useEventsStore();
   const notificationHelpers = useNotificationHelpers();
   const supabaseClient = useSupabaseClient();
 
@@ -18,6 +20,34 @@
 
   function adultHasForm(adult: Adult, formId: number): boolean {
     return (adult.forms ?? []).includes(formId);
+  }
+
+  function isFormRequiredForGirl(girl: Girl, formId: number): boolean {
+    return (
+      eventsStore.getEventsRequiringFormForGirl(formId, girl.id).length > 0 ||
+      formsStore.requiredGirlForms.some((f) => f.id === formId)
+    );
+  }
+
+  function isFormRequiredForAdult(adult: Adult, formId: number): boolean {
+    return (
+      eventsStore.getEventsRequiringFormForAdult(formId, adult.id).length > 0 ||
+      formsStore.requiredAdultForms.some((f) => f.id === formId)
+    );
+  }
+
+  function getRequiredEventsForGirl(girl: Girl, formId: number): string {
+    return eventsStore
+      .getEventsRequiringFormForGirl(formId, girl.id)
+      .map((e) => e.name)
+      .join(', ');
+  }
+
+  function getRequiredEventsForAdult(adult: Adult, formId: number): string {
+    return eventsStore
+      .getEventsRequiringFormForAdult(formId, adult.id)
+      .map((e) => e.name)
+      .join(', ');
   }
 
   async function toggleGirlForm(girl: Girl, formId: number) {
@@ -68,7 +98,7 @@
 <template>
   <div class="col-span-12">
     <div v-if="girlForms.length > 0 && allGirls.length > 0" class="card mb-6">
-      <h2 class="text-xl font-semibold mb-4">Girl Forms</h2>
+      <h5>Girl Forms</h5>
       <div class="overflow-x-auto">
         <table class="w-full border-collapse">
           <thead>
@@ -85,6 +115,13 @@
                 :title="form.name"
               >
                 {{ form.abbreviation }}
+                <i
+                  class="pi pi-question-circle"
+                  v-tooltip.bottom="{
+                    value: form.name,
+                    showDelay: 500,
+                  }"
+                ></i>
               </th>
             </tr>
           </thead>
@@ -101,12 +138,22 @@
                 v-for="form in girlForms"
                 :key="form.id"
                 class="text-center p-2 border border-surface-200"
+                :class="{
+                  'bg-red-50':
+                    isFormRequiredForGirl(girl, form.id) &&
+                    !girlHasForm(girl, form.id),
+                  'bg-green-50':
+                    isFormRequiredForGirl(girl, form.id) &&
+                    girlHasForm(girl, form.id),
+                }"
               >
-                <Checkbox
-                  :model-value="girlHasForm(girl, form.id)"
-                  :binary="true"
-                  @update:model-value="toggleGirlForm(girl, form.id)"
-                />
+                <div class="flex flex-col items-center gap-1">
+                  <Checkbox
+                    :model-value="girlHasForm(girl, form.id)"
+                    :binary="true"
+                    @update:model-value="toggleGirlForm(girl, form.id)"
+                  />
+                </div>
               </td>
             </tr>
           </tbody>
@@ -115,7 +162,7 @@
     </div>
 
     <div v-if="adultForms.length > 0 && allAdults.length > 0" class="card">
-      <h2 class="text-xl font-semibold mb-4">Adult Forms</h2>
+      <h5>Adult Forms</h5>
       <div class="overflow-x-auto">
         <table class="w-full border-collapse">
           <thead>
@@ -132,6 +179,13 @@
                 :title="form.name"
               >
                 {{ form.abbreviation }}
+                <i
+                  class="pi pi-question-circle"
+                  v-tooltip.bottom="{
+                    value: form.name,
+                    showDelay: 500,
+                  }"
+                ></i>
               </th>
             </tr>
           </thead>
@@ -148,12 +202,22 @@
                 v-for="form in adultForms"
                 :key="form.id"
                 class="text-center p-2 border border-surface-200"
+                :class="{
+                  'bg-red-50':
+                    isFormRequiredForAdult(adult, form.id) &&
+                    !adultHasForm(adult, form.id),
+                  'bg-green-50':
+                    isFormRequiredForAdult(adult, form.id) &&
+                    adultHasForm(adult, form.id),
+                }"
               >
-                <Checkbox
-                  :model-value="adultHasForm(adult, form.id)"
-                  :binary="true"
-                  @update:model-value="toggleAdultForm(adult, form.id)"
-                />
+                <div class="flex flex-col items-center gap-1">
+                  <Checkbox
+                    :model-value="adultHasForm(adult, form.id)"
+                    :binary="true"
+                    @update:model-value="toggleAdultForm(adult, form.id)"
+                  />
+                </div>
               </td>
             </tr>
           </tbody>

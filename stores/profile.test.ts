@@ -50,6 +50,13 @@ describe('stores/profile', () => {
     );
 
     vi.stubGlobal(
+      'useEventsStore',
+      vi.fn(() => ({
+        fetchEvents: vi.fn(),
+      })),
+    );
+
+    vi.stubGlobal(
       'useTransactionsStore',
       vi.fn(() => ({
         fetchTransactions: vi.fn(),
