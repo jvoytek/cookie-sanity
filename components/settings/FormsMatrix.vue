@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import type { Adult, Girl } from '@/types/types';
+  import { forms } from 'happy-dom/lib/PropertySymbol';
 
   const formsStore = useFormsStore();
   const girlsStore = useGirlsStore();
@@ -23,13 +24,15 @@
 
   function isFormRequiredForGirl(girl: Girl, formId: number): boolean {
     return (
-      eventsStore.getEventsRequiringFormForGirl(formId, girl.id).length > 0
+      eventsStore.getEventsRequiringFormForGirl(formId, girl.id).length > 0 ||
+      formsStore.requiredGirlForms.some((f) => f.id === formId)
     );
   }
 
   function isFormRequiredForAdult(adult: Adult, formId: number): boolean {
     return (
-      eventsStore.getEventsRequiringFormForAdult(formId, adult.id).length > 0
+      eventsStore.getEventsRequiringFormForAdult(formId, adult.id).length > 0 ||
+      formsStore.requiredAdultForms.some((f) => f.id === formId)
     );
   }
 
@@ -95,7 +98,7 @@
 <template>
   <div class="col-span-12">
     <div v-if="girlForms.length > 0 && allGirls.length > 0" class="card mb-6">
-      <h2 class="text-xl font-semibold mb-4">Girl Forms</h2>
+      <h5>Girl Forms</h5>
       <div class="overflow-x-auto">
         <table class="w-full border-collapse">
           <thead>
@@ -112,6 +115,13 @@
                 :title="form.name"
               >
                 {{ form.abbreviation }}
+                <i
+                  class="pi pi-question-circle"
+                  v-tooltip.bottom="{
+                    value: form.name,
+                    showDelay: 500,
+                  }"
+                ></i>
               </th>
             </tr>
           </thead>
@@ -129,7 +139,12 @@
                 :key="form.id"
                 class="text-center p-2 border border-surface-200"
                 :class="{
-                  'bg-yellow-50': isFormRequiredForGirl(girl, form.id),
+                  'bg-red-50':
+                    isFormRequiredForGirl(girl, form.id) &&
+                    !girlHasForm(girl, form.id),
+                  'bg-green-50':
+                    isFormRequiredForGirl(girl, form.id) &&
+                    girlHasForm(girl, form.id),
                 }"
               >
                 <div class="flex flex-col items-center gap-1">
@@ -138,17 +153,6 @@
                     :binary="true"
                     @update:model-value="toggleGirlForm(girl, form.id)"
                   />
-                  <span
-                    v-if="isFormRequiredForGirl(girl, form.id)"
-                    v-tooltip.bottom="{
-                      value:
-                        'Required for: ' +
-                        getRequiredEventsForGirl(girl, form.id),
-                      showDelay: 300,
-                    }"
-                    class="text-xs text-orange-600 font-semibold cursor-help"
-                    >Required</span
-                  >
                 </div>
               </td>
             </tr>
@@ -158,7 +162,7 @@
     </div>
 
     <div v-if="adultForms.length > 0 && allAdults.length > 0" class="card">
-      <h2 class="text-xl font-semibold mb-4">Adult Forms</h2>
+      <h5>Adult Forms</h5>
       <div class="overflow-x-auto">
         <table class="w-full border-collapse">
           <thead>
@@ -175,6 +179,13 @@
                 :title="form.name"
               >
                 {{ form.abbreviation }}
+                <i
+                  class="pi pi-question-circle"
+                  v-tooltip.bottom="{
+                    value: form.name,
+                    showDelay: 500,
+                  }"
+                ></i>
               </th>
             </tr>
           </thead>
@@ -192,7 +203,12 @@
                 :key="form.id"
                 class="text-center p-2 border border-surface-200"
                 :class="{
-                  'bg-yellow-50': isFormRequiredForAdult(adult, form.id),
+                  'bg-red-50':
+                    isFormRequiredForAdult(adult, form.id) &&
+                    !adultHasForm(adult, form.id),
+                  'bg-green-50':
+                    isFormRequiredForAdult(adult, form.id) &&
+                    adultHasForm(adult, form.id),
                 }"
               >
                 <div class="flex flex-col items-center gap-1">
@@ -201,17 +217,6 @@
                     :binary="true"
                     @update:model-value="toggleAdultForm(adult, form.id)"
                   />
-                  <span
-                    v-if="isFormRequiredForAdult(adult, form.id)"
-                    v-tooltip.bottom="{
-                      value:
-                        'Required for: ' +
-                        getRequiredEventsForAdult(adult, form.id),
-                      showDelay: 300,
-                    }"
-                    class="text-xs text-orange-600 font-semibold cursor-help"
-                    >Required</span
-                  >
                 </div>
               </td>
             </tr>

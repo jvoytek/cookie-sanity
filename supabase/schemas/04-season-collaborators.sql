@@ -130,6 +130,11 @@ CREATE POLICY "Allow owners/collaborators to delete their own sellers" ON public
 CREATE POLICY "Allow owners/collaborators to insert their own sellers" ON public.sellers FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
 CREATE POLICY "Allow owners/collaborators to update their own sellers" ON public.sellers FOR UPDATE TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
 
+CREATE POLICY "Allow owners/collaborators to view their own adults" ON public.adults FOR SELECT TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
+CREATE POLICY "Allow owners/collaborators to delete their own adults" ON public.adults FOR DELETE TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
+CREATE POLICY "Allow owners/collaborators to insert their own adults" ON public.adults FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
+CREATE POLICY "Allow owners/collaborators to update their own adults" ON public.adults FOR UPDATE TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
+
 CREATE POLICY "Allow owners/collaborators to view their own payments" ON public.payments FOR SELECT TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
 CREATE POLICY "Allow owners/collaborators to delete their own payments" ON public.payments FOR DELETE TO authenticated USING ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
 CREATE POLICY "Allow owners/collaborators to insert their own payments" ON public.payments FOR INSERT TO authenticated WITH CHECK ( public.is_season_owner(season, (SELECT auth.uid())) OR public.is_season_collaborator(season, (SELECT auth.uid())) );
