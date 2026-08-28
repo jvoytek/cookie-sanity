@@ -158,6 +158,7 @@
             </template>
           </Toolbar>
 
+          <div class="hidden lg:block">
           <DataTable
             :value="formsStore.allForms"
             data-key="id"
@@ -246,6 +247,72 @@
               </template>
             </Column>
           </DataTable>
+          </div>
+        </div>
+      </div>
+
+      <div class="block lg:hidden">
+        <Toolbar class="mb-4">
+          <template #start>
+            <Button
+              label="New"
+              icon="pi pi-plus"
+              severity="secondary"
+              class="mr-2"
+              @click="openNew"
+            />
+          </template>
+        </Toolbar>
+        <div
+          v-for="f in formsStore.allForms"
+          :key="f.id"
+          class="card mb-3"
+        >
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <div class="font-bold">{{ f.name }}</div>
+              <div class="text-sm text-surface-500">{{ f.abbreviation }}</div>
+            </div>
+            <div class="flex gap-2">
+              <Button
+                label="Edit"
+                icon="pi pi-pencil"
+                severity="secondary"
+                aria-label="Edit"
+                outlined
+                @click="editForm(f)"
+              />
+              <Button
+                icon="pi pi-trash"
+                severity="warn"
+                aria-label="Delete"
+                outlined
+                @click="confirmDeleteForm(f)"
+              />
+            </div>
+          </div>
+          <div class="flex flex-col gap-1 text-sm">
+            <div v-if="f.url">
+              <span class="font-semibold">URL: </span>
+              <a
+                :href="f.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary hover:underline"
+              >{{ f.url }}</a>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold">Who: </span>
+              <Tag
+                :value="f.who === 'girl' ? 'Girl' : f.who === 'adult' ? 'Adult' : 'All'"
+                :severity="f.who === 'girl' ? 'info' : f.who === 'adult' ? 'warn' : 'success'"
+              />
+            </div>
+            <div v-if="f.required" class="flex items-center gap-1">
+              <i class="pi pi-check text-green-500" />
+              <span>Required</span>
+            </div>
+          </div>
         </div>
       </div>
 
