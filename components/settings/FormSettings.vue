@@ -138,234 +138,217 @@
 <template>
   <div class="col-span-12">
     <div class="card">
-      <h5>Form Settings</h5>
+      <h5>Forms</h5>
       <p>
         Manage forms that girls and adults are required to submit. Forms can be
         specific to girls, adults, or both.
       </p>
 
-      <div>
-        <div class="card">
-          <Toolbar class="mb-6">
-            <template #start>
-              <Button
-                label="New"
-                icon="pi pi-plus"
-                severity="secondary"
-                class="mr-2"
-                @click="openNew"
-              />
-            </template>
-          </Toolbar>
+      <Toolbar class="mb-6">
+        <template #start>
+          <Button
+            label="New"
+            icon="pi pi-plus"
+            severity="secondary"
+            class="mr-2"
+            @click="openNew"
+          />
+        </template>
+      </Toolbar>
 
-          <div class="hidden lg:block">
-          <DataTable
-            :value="formsStore.allForms"
-            data-key="id"
-            :filters="filters"
-            sort-field="name"
-          >
-            <template #header>
-              <div class="flex flex-wrap gap-2 items-center justify-between">
-                <h4 class="m-0">Manage Forms</h4>
-                <IconField>
-                  <InputIcon>
-                    <i class="pi pi-search" />
-                  </InputIcon>
-                  <InputText
-                    v-model="filters['global'].value"
-                    placeholder="Search..."
-                  />
-                </IconField>
-              </div>
-            </template>
-
-            <Column field="name" header="Name" sortable />
-            <Column field="abbreviation" header="Abbreviation" sortable />
-            <Column field="url" header="URL" sortable>
-              <template #body="slotProps">
-                <a
-                  v-if="slotProps.data.url"
-                  :href="slotProps.data.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-primary hover:underline"
-                >
-                  {{ slotProps.data.url }}
-                </a>
-                <span v-else>—</span>
-              </template>
-            </Column>
-            <Column field="who" header="Who" sortable>
-              <template #body="slotProps">
-                <Tag
-                  :value="
-                    slotProps.data.who === 'girl'
-                      ? 'Girl'
-                      : slotProps.data.who === 'adult'
-                        ? 'Adult'
-                        : 'All'
-                  "
-                  :severity="
-                    slotProps.data.who === 'girl'
-                      ? 'info'
-                      : slotProps.data.who === 'adult'
-                        ? 'warn'
-                        : 'success'
-                  "
-                />
-              </template>
-            </Column>
-            <Column field="required" header="Required" sortable>
-              <template #body="slotProps">
-                <i
-                  v-if="slotProps.data.required"
-                  class="pi pi-check text-green-500"
-                />
-              </template>
-            </Column>
-            <Column :exportable="false" header="Actions" nowrap>
-              <template #body="slotProps">
-                <Button
-                  v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
-                  aria-label="Edit"
-                  icon="pi pi-pencil"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="secondary"
-                  @click="editForm(slotProps.data)"
-                />
-                <Button
-                  v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
-                  aria-label="Delete"
-                  icon="pi pi-trash"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="warn"
-                  @click="confirmDeleteForm(slotProps.data)"
-                />
-              </template>
-            </Column>
-          </DataTable>
-          </div>
-        </div>
-      </div>
-
-      <div class="block lg:hidden">
-        <Toolbar class="mb-4">
-          <template #start>
-            <Button
-              label="New"
-              icon="pi pi-plus"
-              severity="secondary"
-              class="mr-2"
-              @click="openNew"
-            />
-          </template>
-        </Toolbar>
-        <div
-          v-for="f in formsStore.allForms"
-          :key="f.id"
-          class="card mb-3"
+      <div class="hidden lg:block">
+        <DataTable
+          :value="formsStore.allForms"
+          data-key="id"
+          :filters="filters"
+          sort-field="name"
         >
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <div class="font-bold">{{ f.name }}</div>
-              <div class="text-sm text-surface-500">{{ f.abbreviation }}</div>
+          <template #header>
+            <div class="flex flex-wrap gap-2 items-center justify-between">
+              <h4 class="m-0">Manage Forms</h4>
+              <IconField>
+                <InputIcon>
+                  <i class="pi pi-search" />
+                </InputIcon>
+                <InputText
+                  v-model="filters['global'].value"
+                  placeholder="Search..."
+                />
+              </IconField>
             </div>
-            <div class="flex gap-2">
-              <Button
-                label="Edit"
-                icon="pi pi-pencil"
-                severity="secondary"
-                aria-label="Edit"
-                outlined
-                @click="editForm(f)"
-              />
-              <Button
-                icon="pi pi-trash"
-                severity="warn"
-                aria-label="Delete"
-                outlined
-                @click="confirmDeleteForm(f)"
-              />
-            </div>
-          </div>
-          <div class="flex flex-col gap-1 text-sm">
-            <div v-if="f.url">
-              <span class="font-semibold">URL: </span>
+          </template>
+
+          <Column field="name" header="Name" sortable />
+          <Column field="abbreviation" header="Abbreviation" sortable />
+          <Column field="url" header="URL" sortable>
+            <template #body="slotProps">
               <a
-                :href="f.url"
+                v-if="slotProps.data.url"
+                :href="slotProps.data.url"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-primary hover:underline"
-              >{{ f.url }}</a>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="font-semibold">Who: </span>
+              >
+                {{ slotProps.data.url }}
+              </a>
+              <span v-else>—</span>
+            </template>
+          </Column>
+          <Column field="who" header="Who" sortable>
+            <template #body="slotProps">
               <Tag
-                :value="f.who === 'girl' ? 'Girl' : f.who === 'adult' ? 'Adult' : 'All'"
-                :severity="f.who === 'girl' ? 'info' : f.who === 'adult' ? 'warn' : 'success'"
+                :value="
+                  slotProps.data.who === 'girl'
+                    ? 'Girl'
+                    : slotProps.data.who === 'adult'
+                      ? 'Adult'
+                      : 'All'
+                "
+                :severity="
+                  slotProps.data.who === 'girl'
+                    ? 'info'
+                    : slotProps.data.who === 'adult'
+                      ? 'warn'
+                      : 'success'
+                "
               />
-            </div>
-            <div v-if="f.required" class="flex items-center gap-1">
-              <i class="pi pi-check text-green-500" />
-              <span>Required</span>
-            </div>
+            </template>
+          </Column>
+          <Column field="required" header="Required" sortable>
+            <template #body="slotProps">
+              <i
+                v-if="slotProps.data.required"
+                class="pi pi-check text-green-500"
+              />
+            </template>
+          </Column>
+          <Column :exportable="false" header="Actions" nowrap>
+            <template #body="slotProps">
+              <Button
+                v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                aria-label="Edit"
+                icon="pi pi-pencil"
+                class="mr-2"
+                variant="outlined"
+                severity="secondary"
+                @click="editForm(slotProps.data)"
+              />
+              <Button
+                v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
+                aria-label="Delete"
+                icon="pi pi-trash"
+                class="mr-2"
+                variant="outlined"
+                severity="warn"
+                @click="confirmDeleteForm(slotProps.data)"
+              />
+            </template>
+          </Column>
+        </DataTable>
+      </div>
+    </div>
+    <div class="block lg:hidden">
+      <div v-for="f in formsStore.allForms" :key="f.id" class="card mb-3">
+        <div class="flex justify-between items-center mb-2">
+          <div>
+            <Tag
+              :value="f.who === 'girl' ? 'G' : f.who === 'adult' ? 'A' : 'G/A'"
+              :severity="
+                f.who === 'girl'
+                  ? 'info'
+                  : f.who === 'adult'
+                    ? 'warn'
+                    : 'success'
+              "
+              class="mr-2"
+            />
+            <span class="font-bold">{{ f.name }}</span> ({{ f.abbreviation }})
+          </div>
+          <div class="flex gap-2">
+            <Button
+              label="Edit"
+              icon="pi pi-pencil"
+              severity="secondary"
+              aria-label="Edit"
+              outlined
+              @click="editForm(f)"
+            />
+            <Button
+              icon="pi pi-trash"
+              severity="warn"
+              aria-label="Delete"
+              outlined
+              @click="confirmDeleteForm(f)"
+            />
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <div v-if="f.url">
+            <a
+              :href="f.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-primary hover:underline"
+              >{{ f.url }}</a
+            >
+          </div>
+          <div v-if="f.required" class="flex items-center gap-1">
+            <i class="pi pi-check text-green-500" />
+            <span>Required (independent of RSVP)</span>
           </div>
         </div>
       </div>
-
-      <Dialog
-        v-model:visible="formDialogVisible"
-        :style="{ width: '450px' }"
-        header="Form Details"
-        :modal="true"
-      >
-        <div class="flex flex-col gap-6">
-          <FormKit
-            id="form-settings-form"
-            v-model="form"
-            type="form"
-            :actions="false"
-            @submit="submitHandler"
-          >
-            <FormKitSchema :schema="formDialogFormSchema" />
-          </FormKit>
-        </div>
-        <template #footer>
-          <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-          <Button
-            label="Save"
-            icon="pi pi-check"
-            @click="submitButtonClickHandler"
-          />
-        </template>
-      </Dialog>
-
-      <Dialog
-        v-model:visible="deleteFormDialog"
-        :style="{ width: '450px' }"
-        header="Confirm"
-        :modal="true"
-      >
-        <div class="flex items-center gap-4">
-          <i class="pi pi-exclamation-triangle !text-3xl" />
-          <span v-if="form"
-            >Are you sure you want to delete <b>{{ form.name }}</b
-            >?</span
-          >
-        </div>
-        <template #footer>
-          <Button
-            label="No"
-            icon="pi pi-times"
-            text
-            @click="deleteFormDialog = false"
-          />
-          <Button label="Yes" icon="pi pi-check" @click="deleteForm" />
-        </template>
-      </Dialog>
     </div>
+
+    <Dialog
+      v-model:visible="formDialogVisible"
+      :style="{ width: '450px' }"
+      header="Form Details"
+      :modal="true"
+    >
+      <div class="flex flex-col gap-6">
+        <FormKit
+          id="form-settings-form"
+          v-model="form"
+          type="form"
+          :actions="false"
+          @submit="submitHandler"
+        >
+          <FormKitSchema :schema="formDialogFormSchema" />
+        </FormKit>
+      </div>
+      <template #footer>
+        <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
+        <Button
+          label="Save"
+          icon="pi pi-check"
+          @click="submitButtonClickHandler"
+        />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="deleteFormDialog"
+      :style="{ width: '450px' }"
+      header="Confirm"
+      :modal="true"
+    >
+      <div class="flex items-center gap-4">
+        <i class="pi pi-exclamation-triangle !text-3xl" />
+        <span v-if="form"
+          >Are you sure you want to delete <b>{{ form.name }}</b
+          >?</span
+        >
+      </div>
+      <template #footer>
+        <Button
+          label="No"
+          icon="pi pi-times"
+          text
+          @click="deleteFormDialog = false"
+        />
+        <Button label="Yes" icon="pi pi-check" @click="deleteForm" />
+      </template>
+    </Dialog>
   </div>
 </template>

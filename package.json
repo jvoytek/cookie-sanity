@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
-    "dev-local": "nuxt dev --dotenv .env.local",
+    "dev-local": "nuxt dev --dotenv .env.local --host 0.0.0.0",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
