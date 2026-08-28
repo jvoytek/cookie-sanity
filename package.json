@@ -1,14 +1,14 @@
 {
   "name": "cookie-sanity",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "license": "GPL-3.0-or-later",
-  "description": "Cookie season is insane. Bring a little sanity to your cookie season.",
+  "description": "Cookie season is bananas. Bring a little sanity to your sale.",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
-    "dev-local": "nuxt dev --dotenv .env.local",
+    "dev-local": "nuxt dev --dotenv .env.local --host 0.0.0.0",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",

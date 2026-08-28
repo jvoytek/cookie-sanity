@@ -28,8 +28,10 @@
   const girlsStore = useGirlsStore();
   const adultsStore = useAdultsStore();
   const formsStore = useFormsStore();
+  const eventsStore = useEventsStore();
   const seasonsStore = useSeasonsStore();
   const router = useRouter();
+  const route = useRoute();
 
   loading.value = false;
 
@@ -167,6 +169,41 @@
     return `${adult.preferred_name || adult.first_name} ${adult.last_name}`;
   };
 
+  const getFormNames = (formIds) => {
+    return formIds
+      .map((id) => formsStore.allForms.find((form) => form.id === id))
+      .filter(Boolean)
+      .map((form) => form.name)
+      .join(', ');
+  };
+
+  const hasMissingForms = (girl) => {
+    const requiredEventFormIds = eventsStore.getRequiredFormsForEventsForGirl(
+      girl.id,
+    );
+    const requiredGirlFormIds = formsStore.requiredGirlForms.map((f) => f.id);
+    const allRequiredFormIds = [
+      ...requiredEventFormIds,
+      ...requiredGirlFormIds,
+    ];
+    return !allRequiredFormIds.every((formId) => girl.forms.includes(formId));
+  };
+
+  const getMissingFormNames = (girl) => {
+    const requiredEventFormIds = eventsStore.getRequiredFormsForEventsForGirl(
+      girl.id,
+    );
+    const requiredGirlFormIds = formsStore.requiredGirlForms.map((f) => f.id);
+    const allRequiredFormIds = [
+      ...requiredEventFormIds,
+      ...requiredGirlFormIds,
+    ];
+    const missingFormIds = allRequiredFormIds.filter(
+      (formId) => !girl.forms.includes(formId),
+    );
+    return getFormNames(missingFormIds);
+  };
+
   function openRelatedAdultDialog(adult) {
     selectedRelatedAdult.value = adult;
     relatedAdultDialog.value = true;
@@ -179,11 +216,73 @@
 
   function editRelatedAdult(adult) {
     hideRelatedAdultDialog();
+    const path =
+      route.path === '/troop-sanity/girls' ? '/troop-sanity/adults' : '/adults';
     router.push({
-      path: '/adults',
+      path: path,
       query: { adult: adult.id.toString() },
     });
   }
+
+  function callRelatedAdult(adult) {
+    if (adult.phone) {
+      window.location.href = `tel:${adult.phone}`;
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: 'No Phone Number',
+        detail: 'This adult does not have a phone number listed.',
+        life: 3000,
+      });
+    }
+  }
+
+  function textRelatedAdult(adult) {
+    if (adult.phone) {
+      window.location.href = `sms:${adult.phone}`;
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: 'No Phone Number',
+        detail: 'This adult does not have a phone number listed.',
+        life: 3000,
+      });
+    }
+  }
+
+  function emailRelatedAdult(adult) {
+    if (adult.email) {
+      window.location.href = `mailto:${adult.email}`;
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: 'No Email Address',
+        detail: 'This adult does not have an email address listed.',
+        life: 3000,
+      });
+    }
+  }
+
+  const getGirlIdFromQuery = () => {
+    const rawGirlId = route.query?.girl;
+    const first = Array.isArray(rawGirlId) ? rawGirlId[0] : rawGirlId;
+    if (typeof first !== 'string') return null;
+    const parsed = parseInt(first, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  };
+
+  const openGirlFromQuery = async () => {
+    const girlId = getGirlIdFromQuery();
+    if (girlId === null) return;
+
+    const relatedGirl = girlsStore.allGirls.find((g) => g.id === girlId);
+    if (!relatedGirl) return;
+
+    editGirl(relatedGirl);
+    const query = { ...route.query };
+    delete query.girl;
+    await router.replace({ query });
+  };
 
   async function deleteGirl() {
     try {
@@ -274,44 +373,55 @@
   const submitButtonClickHandler = () => {
     if (formNode.value) formNode.value.submit();
   };
+
+  watch(
+    () => [route.query.girl, girlsStore.allGirls.length],
+    () => {
+      openGirlFromQuery();
+    },
+    { immediate: true },
+  );
 </script>
 
 <template>
   <div class="col-span-12">
     <div class="card">
-      <h5>Girl Settings</h5>
+      <h5>Girls</h5>
 
       <div>
-        <div class="card">
-          <Toolbar class="mb-6">
-            <template #start>
-              <Button
-                label="New"
-                icon="pi pi-plus"
-                severity="secondary"
-                class="mr-2"
-                @click="openNew"
+        <Toolbar class="mb-6">
+          <template #start>
+            <Button
+              label="New"
+              icon="pi pi-plus"
+              severity="secondary"
+              class="mr-2"
+              @click="openNew"
+            />
+            <Button
+              v-if="hasOtherSeasons"
+              label="Copy from previous season"
+              icon="pi pi-copy"
+              severity="secondary"
+              variant="outlined"
+              @click="openCopyFromSeason"
+            />
+            <div
+              class="flex items-center ml-6"
+              v-if="$route.path !== '/troop-sanity/girls'"
+            >
+              <label for="publish-girl-request-form" class="mr-2"
+                >Publish Girl Request Form</label
+              >
+              <ToggleSwitch
+                v-model="publishGirlRequestForm"
+                input-id="publish-girl-request-form"
               />
-              <Button
-                v-if="hasOtherSeasons"
-                label="Copy from previous season"
-                icon="pi pi-copy"
-                severity="secondary"
-                variant="outlined"
-                @click="openCopyFromSeason"
-              />
-              <div class="flex items-center ml-6">
-                <label for="publish-girl-request-form" class="mr-2"
-                  >Publish Girl Request Form</label
-                >
-                <ToggleSwitch
-                  v-model="publishGirlRequestForm"
-                  input-id="publish-girl-request-form"
-                />
-              </div>
-            </template>
-          </Toolbar>
+            </div>
+          </template>
+        </Toolbar>
 
+        <div class="hidden lg:block">
           <DataTable
             ref="dt"
             v-model:selection="selectedGirls"
@@ -428,115 +538,221 @@
             </Column>
           </DataTable>
         </div>
-
-        <Dialog
-          v-model:visible="relatedAdultDialog"
-          :style="{ width: '450px' }"
-          :header="
-            selectedRelatedAdult
-              ? getAdultDisplayName(selectedRelatedAdult)
-              : 'Adult Details'
-          "
-          :modal="true"
-        >
-          <div v-if="selectedRelatedAdult" class="flex flex-col gap-3">
-            <div>
-              <span class="font-semibold">Email:</span>
-              <a
-                v-if="selectedRelatedAdult.email"
-                class="ml-2 text-primary hover:underline"
-                :href="`mailto:${selectedRelatedAdult.email}`"
+      </div>
+    </div>
+    <div class="block lg:hidden">
+      <div class="card" v-for="girl in girlsStore.allGirls" :key="girl.id">
+        <div class="flex justify-between items-center mb-2">
+          <div>
+            <div class="font-bold">
+              {{ girl.first_name }}
+              <span v-if="girl.preferred_name"
+                >({{ girl.preferred_name }})</span
               >
-                {{ selectedRelatedAdult.email }}
-              </a>
-              <span v-else class="ml-2">—</span>
+              {{ girl.last_name }}
             </div>
-            <div>
-              <span class="font-semibold">Phone:</span>
-              <a
-                v-if="selectedRelatedAdult.phone"
-                class="ml-2 text-primary hover:underline"
-                :href="`tel:${selectedRelatedAdult.phone}`"
-              >
-                {{ selectedRelatedAdult.phone }}
-              </a>
-              <span v-else class="ml-2">—</span>
-            </div>
+            <a
+              v-if="girl.email"
+              :href="`mailto:${girl.email}`"
+              class="text-primary hover:underline"
+            >
+              {{ girl.email }}
+            </a>
           </div>
-          <template #footer>
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              text
-              @click="hideRelatedAdultDialog"
-            />
+          <div class="flex gap-2">
             <Button
               label="Edit"
               icon="pi pi-pencil"
-              @click="editRelatedAdult(selectedRelatedAdult)"
+              severity="secondary"
+              aria-label="Edit"
+              outlined
+              class="float-right"
+              @click="editGirl(girl)"
             />
-          </template>
-        </Dialog>
-
-        <Dialog
-          v-model:visible="girlDialog"
-          :style="{ width: '450px' }"
-          header="Girl Details"
-          :modal="true"
-        >
-          <div class="flex flex-col gap-6">
-            <FormKit
-              id="girl-form"
-              v-model="girl"
-              type="form"
-              :actions="false"
-              @submit="submitHandler"
-            >
-              <!-- Render the dynamic form using the schema -->
-              <FormKitSchema :schema="girlDialogFormSchema" />
-            </FormKit>
+            <Button
+              icon="pi pi-trash"
+              severity="warn"
+              aria-label="Delete"
+              outlined
+              class="float-right"
+              @click="confirmDeleteGirl(girl)"
+            />
           </div>
-          <template #footer>
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              text
-              @click="hideDialog"
-            />
-            <Button
-              label="Save"
-              icon="pi pi-check"
-              @click="submitButtonClickHandler"
-            />
-          </template>
-        </Dialog>
+        </div>
 
-        <Dialog
-          v-model:visible="deleteGirlDialog"
-          :style="{ width: '450px' }"
-          header="Confirm"
-          :modal="true"
-        >
-          <div class="flex items-center gap-4">
-            <i class="pi pi-exclamation-triangle !text-3xl" />
-            <span v-if="girl"
-              >Are you sure you want to delete <b>{{ girl.first_name }}</b
-              >?</span
+        <div class="flex flex-col gap-2">
+          <div v-if="getAdultsForGirl(girl.id).length > 0">
+            <div
+              class="border border-gray-200 flex justify-between items-center p-2 rounded-md mb-1"
+              v-for="relatedAdult in getAdultsForGirl(girl.id)"
+              :key="relatedAdult.id"
             >
+              <span>
+                {{ getAdultDisplayName(relatedAdult) }}
+              </span>
+              <div class="flex gap-2">
+                <Button
+                  v-if="relatedAdult.phone"
+                  aria-label="Call"
+                  icon="pi pi-phone"
+                  label="Call"
+                  size="small"
+                  @click="callRelatedAdult(relatedAdult)"
+                />
+                <Button
+                  v-if="relatedAdult.phone"
+                  v-tooltip.bottom="{ value: 'Text', showDelay: 500 }"
+                  aria-label="Text"
+                  icon="pi pi-comment"
+                  size="small"
+                  severity="info"
+                  @click="textRelatedAdult(relatedAdult)"
+                />
+                <Button
+                  v-if="relatedAdult.email"
+                  v-tooltip.bottom="{ value: 'Email', showDelay: 500 }"
+                  aria-label="Email"
+                  icon="pi pi-envelope"
+                  size="small"
+                  severity="secondary"
+                  @click="emailRelatedAdult(relatedAdult)"
+                />
+                <Button
+                  v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                  aria-label="Edit"
+                  icon="pi pi-pencil"
+                  size="small"
+                  variant="outlined"
+                  severity="success"
+                  lable="Edit"
+                  @click="editRelatedAdult(relatedAdult)"
+                />
+                <Button
+                  v-tooltip.bottom="{ value: 'View Details', showDelay: 500 }"
+                  aria-label="View Details"
+                  icon="pi pi-info-circle"
+                  size="small"
+                  variant="outlined"
+                  severity="secondary"
+                  @click="openRelatedAdultDialog(relatedAdult)"
+                />
+              </div>
+            </div>
           </div>
-          <template #footer>
-            <Button
-              label="No"
-              icon="pi pi-times"
-              text
-              @click="deleteGirlDialog = false"
-            />
-            <Button label="Yes" icon="pi pi-check" @click="deleteGirl" />
-          </template>
-        </Dialog>
-
-        <CopyGirlsDialog v-model:visible="copyGirlsDialogVisible" />
+        </div>
+        <Message
+          v-if="hasMissingForms(girl)"
+          severity="warn"
+          icon="pi pi-exclamation-triangle"
+          class="mb-2"
+          :closable="true"
+          >Missing Forms: {{ getMissingFormNames(girl) }}</Message
+        >
+        <!--<span v-if="girl.forms">{{ getFormNames(girl.forms) }}</span>-->
       </div>
     </div>
+
+    <Dialog
+      v-model:visible="relatedAdultDialog"
+      :style="{ width: '450px' }"
+      :header="
+        selectedRelatedAdult
+          ? getAdultDisplayName(selectedRelatedAdult)
+          : 'Adult Details'
+      "
+      :modal="true"
+    >
+      <div v-if="selectedRelatedAdult" class="flex flex-col gap-3">
+        <div>
+          <span class="font-semibold">Email:</span>
+          <a
+            v-if="selectedRelatedAdult.email"
+            class="ml-2 text-primary hover:underline"
+            :href="`mailto:${selectedRelatedAdult.email}`"
+          >
+            {{ selectedRelatedAdult.email }}
+          </a>
+          <span v-else class="ml-2">—</span>
+        </div>
+        <div>
+          <span class="font-semibold">Phone:</span>
+          <a
+            v-if="selectedRelatedAdult.phone"
+            class="ml-2 text-primary hover:underline"
+            :href="`tel:${selectedRelatedAdult.phone}`"
+          >
+            {{ selectedRelatedAdult.phone }}
+          </a>
+          <span v-else class="ml-2">—</span>
+        </div>
+      </div>
+      <template #footer>
+        <Button
+          label="Cancel"
+          icon="pi pi-times"
+          text
+          @click="hideRelatedAdultDialog"
+        />
+        <Button
+          label="Edit"
+          icon="pi pi-pencil"
+          @click="editRelatedAdult(selectedRelatedAdult)"
+        />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="girlDialog"
+      :style="{ width: '450px' }"
+      header="Girl Details"
+      :modal="true"
+    >
+      <div class="flex flex-col gap-6">
+        <FormKit
+          id="girl-form"
+          v-model="girl"
+          type="form"
+          :actions="false"
+          @submit="submitHandler"
+        >
+          <!-- Render the dynamic form using the schema -->
+          <FormKitSchema :schema="girlDialogFormSchema" />
+        </FormKit>
+      </div>
+      <template #footer>
+        <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
+        <Button
+          label="Save"
+          icon="pi pi-check"
+          @click="submitButtonClickHandler"
+        />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="deleteGirlDialog"
+      :style="{ width: '450px' }"
+      header="Confirm"
+      :modal="true"
+    >
+      <div class="flex items-center gap-4">
+        <i class="pi pi-exclamation-triangle !text-3xl" />
+        <span v-if="girl"
+          >Are you sure you want to delete <b>{{ girl.first_name }}</b
+          >?</span
+        >
+      </div>
+      <template #footer>
+        <Button
+          label="No"
+          icon="pi pi-times"
+          text
+          @click="deleteGirlDialog = false"
+        />
+        <Button label="Yes" icon="pi pi-check" @click="deleteGirl" />
+      </template>
+    </Dialog>
+
+    <CopyGirlsDialog v-model:visible="copyGirlsDialogVisible" />
   </div>
 </template>

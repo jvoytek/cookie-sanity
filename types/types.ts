@@ -1,6 +1,7 @@
 import type { Database } from './supabase';
 
 export type Form = Database['public']['Tables']['forms']['Row'];
+export type Event = Database['public']['Tables']['events']['Row'];
 export type PermissionLevel = 'none' | 'view' | 'request' | 'edit';
 
 export type AuditSession =
