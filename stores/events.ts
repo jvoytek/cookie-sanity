@@ -5,8 +5,10 @@ export const useEventsStore = defineStore('events', () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useSupabaseUser();
   const profileStore = useProfileStore();
+  const formsStore = useFormsStore();
   const seasonsStore = useSeasonsStore();
   const notificationHelpers = useNotificationHelpers();
+  const formatHelpers = useFormatHelpers();
 
   const allEvents = ref<Event[]>([]);
 
@@ -42,6 +44,33 @@ export const useEventsStore = defineStore('events', () => {
     );
   };
 
+  const _transformDataForEvent = (event: Event) => {
+    // transform start_date from yyyy-mm-dd to mm/dd/yyyy
+    const startDateParts = event.start_date.split('-');
+    const formattedDate =
+      startDateParts.length > 1
+        ? `${startDateParts[1]}/${startDateParts[2]}/${startDateParts[0]}`
+        : event.start_date;
+    const endDateParts = event.end_date.split('-');
+    const formattedEndDate =
+      endDateParts.length > 1
+        ? `${endDateParts[1]}/${endDateParts[2]}/${endDateParts[0]}`
+        : event.end_date;
+    return {
+      ...event,
+      start_date: formattedDate,
+      end_date: formattedEndDate,
+      start_time: formatHelpers.convert24to12Hour(event.start_time),
+      end_time: formatHelpers.convert24to12Hour(event.end_time),
+    };
+  };
+
+  const _transformDataForSave = (event: Event) => {
+    // Convert times from 12-hour to 24-hour format for database storage
+    event.start_time = formatHelpers.convert12to24Hour(event.start_time);
+    event.end_time = formatHelpers.convert12to24Hour(event.end_time);
+  };
+
   const fetchEvents = async () => {
     try {
       if (!profileStore.currentProfile?.id || !seasonsStore.currentSeason?.id)
@@ -54,7 +83,7 @@ export const useEventsStore = defineStore('events', () => {
         .order('start_date');
 
       if (error) throw error;
-      allEvents.value = data ?? [];
+      allEvents.value = data.map(_transformDataForEvent) ?? [];
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -66,6 +95,7 @@ export const useEventsStore = defineStore('events', () => {
       return;
     }
 
+    _transformDataForSave(event as Event);
     try {
       const { data, error } = await supabaseClient
         .from('events')
@@ -75,7 +105,7 @@ export const useEventsStore = defineStore('events', () => {
 
       if (error) throw error;
 
-      _addEvent(data as Event);
+      _addEvent(_transformDataForEvent(data) as Event);
       _sortEvents();
       notificationHelpers.addSuccess('Event Created');
     } catch (error) {
@@ -84,6 +114,7 @@ export const useEventsStore = defineStore('events', () => {
   };
 
   const upsertEvent = async (event: Event) => {
+    _transformDataForSave(event);
     try {
       const { data, error } = await supabaseClient
         .from('events')
@@ -93,7 +124,7 @@ export const useEventsStore = defineStore('events', () => {
 
       if (error) throw error;
 
-      _updateEvent(data as Event);
+      _updateEvent(_transformDataForEvent(data) as Event);
       _sortEvents();
       notificationHelpers.addSuccess('Event Updated');
     } catch (error) {
@@ -127,6 +158,42 @@ export const useEventsStore = defineStore('events', () => {
     );
   };
 
+  const getRequiredFormsForEventsForGirl = (girlId: number): number[] => {
+    const eventsForGirl = allEvents.value.filter((e) =>
+      (e.girls ?? []).includes(girlId),
+    );
+    const requiredForms = new Set<number>();
+    eventsForGirl.forEach((event) => {
+      (event.forms ?? []).forEach((formId) => {
+        const formIsForGirls =
+          formsStore.allForms.find((f) => f.id === formId)?.who === 'girl' ||
+          formsStore.allForms.find((f) => f.id === formId)?.who === 'all';
+        if (formIsForGirls) {
+          requiredForms.add(formId);
+        }
+      });
+    });
+    return Array.from(requiredForms);
+  };
+
+  const getRequiredFormsForEventsForAdult = (adultId: number): number[] => {
+    const eventsForAdult = allEvents.value.filter((e) =>
+      (e.adults ?? []).includes(adultId),
+    );
+    const requiredForms = new Set<number>();
+    eventsForAdult.forEach((event) => {
+      (event.forms ?? []).forEach((formId) => {
+        const formIsForAdults =
+          formsStore.allForms.find((f) => f.id === formId)?.who === 'adult' ||
+          formsStore.allForms.find((f) => f.id === formId)?.who === 'all';
+        if (formIsForAdults) {
+          requiredForms.add(formId);
+        }
+      });
+    });
+    return Array.from(requiredForms);
+  };
+
   const getEventsRequiringFormForAdult = (
     formId: number,
     adultId: number,
@@ -137,6 +204,44 @@ export const useEventsStore = defineStore('events', () => {
     );
   };
 
+  const formatEventDateTimeForDisplay = (event: Event): string => {
+    // transform start_date from yyyy-mm-dd to mmm dd, yyyy
+    const formattedStartDate = formatHelpers.formatDate(event.start_date);
+    const formattedEndDate = formatHelpers.formatDate(event.end_date);
+    // If there is a start and end date and a start and end time, return the full range. If there is only a start and end date, return that. If there is only a start date, return that.
+    if (
+      event.start_date &&
+      event.end_date &&
+      event.start_time &&
+      event.end_time &&
+      event.start_date !== event.end_date
+    ) {
+      return `${formattedStartDate} ${event.start_time} - ${formattedEndDate} ${event.end_time}`;
+    }
+    if (
+      event.start_date &&
+      event.end_date &&
+      event.start_time &&
+      event.end_time &&
+      event.start_date === event.end_date
+    ) {
+      return `${formattedStartDate} ${event.start_time} - ${event.end_time}`;
+    }
+    if (
+      event.start_date &&
+      event.end_date &&
+      event.start_time &&
+      !event.end_time &&
+      event.start_date === event.end_date
+    ) {
+      return `${formattedStartDate} ${event.start_time}`;
+    }
+    if (event.start_date && event.start_date !== event.end_date) {
+      return `${formattedStartDate} - ${formattedEndDate}`;
+    }
+    return formattedStartDate;
+  };
+
   return {
     allEvents,
     fetchEvents,
@@ -145,5 +250,8 @@ export const useEventsStore = defineStore('events', () => {
     deleteEvent,
     getEventsRequiringFormForGirl,
     getEventsRequiringFormForAdult,
+    getRequiredFormsForEventsForGirl,
+    getRequiredFormsForEventsForAdult,
+    formatEventDateTimeForDisplay,
   };
 });

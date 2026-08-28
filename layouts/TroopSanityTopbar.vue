@@ -57,38 +57,6 @@
         <i class="pi pi-bars" />
       </button>
       <router-link to="/troop-sanity" class="layout-topbar-logo">
-        <!-- Troop Sanity logo: a simple star/tent shape -->
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 100 100"
-          width="40"
-          height="40"
-          fill="none"
-          class="hidden md:block"
-        >
-          <!-- Tent shape -->
-          <polygon
-            points="50,10 90,85 10,85"
-            fill="var(--primary-color)"
-            fill-opacity="0.85"
-          />
-          <!-- Door/opening -->
-          <rect
-            x="38"
-            y="60"
-            width="24"
-            height="25"
-            rx="3"
-            fill="var(--p-surface-0, #fff)"
-            fill-opacity="0.7"
-          />
-          <!-- Star at top -->
-          <polygon
-            points="50,2 53,9 61,9 55,14 57,22 50,17 43,22 45,14 39,9 47,9"
-            fill="var(--primary-color)"
-            fill-opacity="1"
-          />
-        </svg>
         <span class="hidden md:block font-semibold">Troop Sanity</span>
         <strong class="block md:hidden text-primary">TS</strong>
       </router-link>

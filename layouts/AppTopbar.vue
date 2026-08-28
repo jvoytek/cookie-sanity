@@ -117,25 +117,6 @@
             :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"
           />
         </button>
-        <div class="relative">
-          <ClientOnly
-            ><button
-              v-if="screenWidth > 991"
-              v-styleclass="{
-                selector: '@next',
-                enterFromClass: 'hidden',
-                enterActiveClass: 'animate-scalein',
-                leaveToClass: 'hidden',
-                leaveActiveClass: 'animate-fadeout',
-                hideOnOutsideClick: true,
-              }"
-              type="button"
-              class="layout-topbar-action"
-            >
-              <i class="pi pi-palette" /></button
-          ></ClientOnly>
-          <AppConfigurator />
-        </div>
 
         <div class="relative">
           <Menu ref="menu" :model="userMenuItems" :popup="true" />

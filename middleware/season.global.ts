@@ -5,7 +5,7 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   // Skip middleware for login, settings, troop-sanity, and other excluded routes
   const excludedRoutes = ['/login', '/confirm', '/request', '/settings'];
-  if (excludedRoutes.includes(to.path) || to.path.startsWith('/troop-sanity')) {
+  if (excludedRoutes.includes(to.path)) {
     return;
   }
 

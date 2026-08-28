@@ -19,11 +19,6 @@
               to: '/troop-sanity/adults',
             },
             {
-              label: 'Collaborators',
-              icon: 'pi pi-fw pi-share-alt',
-              to: '/troop-sanity/collaborators',
-            },
-            {
               label: 'Forms',
               icon: 'pi pi-fw pi-file',
               to: '/troop-sanity/forms',
@@ -34,9 +29,15 @@
               to: '/troop-sanity/events',
             },
             {
+              label: 'Collaborators',
+              icon: 'pi pi-fw pi-share-alt',
+              to: '/troop-sanity/collaborators',
+            },
+            {
               label: 'Cookie Sanity',
               icon: 'pi pi-fw pi-external-link',
               url: '/',
+              tooltip: 'Cookie Sanity: More features for cookie season',
             },
           ],
         },
