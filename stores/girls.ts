@@ -199,6 +199,15 @@ export const useGirlsStore = defineStore('girls', () => {
     return idList.map((id) => getGirlNameById(id)).join(', ');
   };
 
+  const getGirlsByIdList = (idList: number[] | null | undefined) => {
+    if (!idList || !Array.isArray(idList)) {
+      return [];
+    }
+    return idList
+      .map((id) => getGirlById(id))
+      .filter((girl): girl is Girl => girl !== null);
+  };
+
   const getGirlIdByName = (name: string) => {
     try {
       if (typeof name !== 'string') return null;
@@ -349,6 +358,7 @@ export const useGirlsStore = defineStore('girls', () => {
     deleteGirl,
     getGirlNameById,
     getGirlNamesByIdList,
+    getGirlsByIdList,
     getGirlById,
     getGirlIdByName,
     fetchGirlsBySeason,

@@ -98,6 +98,10 @@
       :target="item.target"
       tabindex="0"
       @click="itemClick($event, item, index)"
+      v-tooltip.bottom="{
+        value: item.tooltip,
+        showDelay: 500,
+      }"
     >
       <i :class="item.icon" class="layout-menuitem-icon" />
       <span class="layout-menuitem-text">{{ item.label }}</span>

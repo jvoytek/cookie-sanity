@@ -104,14 +104,14 @@
           <thead>
             <tr>
               <th
-                class="text-left p-2 border border-surface-200 bg-surface-100 min-w-[150px]"
+                class="text-left p-2 border border-surface-200 bg-surface-100"
               >
                 Girl
               </th>
               <th
                 v-for="form in girlForms"
                 :key="form.id"
-                class="text-center p-2 border border-surface-200 bg-surface-100 min-w-[80px]"
+                class="text-center p-2 border border-surface-200 bg-surface-100"
                 :title="form.name"
               >
                 {{ form.abbreviation }}
@@ -132,7 +132,7 @@
               class="hover:bg-surface-50"
             >
               <td class="p-2 border border-surface-200">
-                {{ girl.first_name }} {{ girl.last_name }}
+                {{ girlsStore.getGirlNameById(girl.id) }}
               </td>
               <td
                 v-for="form in girlForms"
@@ -168,7 +168,7 @@
           <thead>
             <tr>
               <th
-                class="text-left p-2 border border-surface-200 bg-surface-100 min-w-[150px]"
+                class="text-left p-2 border border-surface-200 bg-surface-100"
               >
                 Adult
               </th>
@@ -196,7 +196,7 @@
               class="hover:bg-surface-50"
             >
               <td class="p-2 border border-surface-200">
-                {{ adult.first_name }} {{ adult.last_name }}
+                {{ adult.first_name }} {{ adult.last_name[0] }}.
               </td>
               <td
                 v-for="form in adultForms"

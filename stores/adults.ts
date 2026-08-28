@@ -147,6 +147,13 @@ export const useAdultsStore = defineStore('adults', () => {
     );
   };
 
+  const getAdultNamesByIdList = (adultIds: number[]): string => {
+    const names = allAdults.value
+      .filter((adult) => adultIds.includes(adult.id))
+      .map((adult) => `${adult.first_name} ${adult.last_name}`);
+    return names.join(', ');
+  };
+
   return {
     fetchAdults,
     allAdults,
@@ -155,5 +162,6 @@ export const useAdultsStore = defineStore('adults', () => {
     deleteAdult,
     removeGirlFromAdults,
     getAdultsBySellerId,
+    getAdultNamesByIdList,
   };
 });
