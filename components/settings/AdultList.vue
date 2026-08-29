@@ -236,6 +236,15 @@
       class: 'w-full',
     },
     {
+      $formkit: 'primeCheckbox',
+      name: 'member',
+      label: 'Member',
+      key: 'member',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+    },
+    {
       $formkit: 'primeMultiSelect',
       name: 'sellers',
       options: girlsStore.girlOptions,
@@ -331,6 +340,15 @@
             <Column field="preferred_name" header="Preferred Name" sortable />
             <Column field="email" header="Email" sortable />
             <Column field="phone" header="Phone" sortable />
+            <Column field="member" header="Member" sortable>
+              <template #body="slotProps">
+                <i
+                  :class="
+                    slotProps.data.member ? 'pi pi-check' : 'pi pi-times'
+                  "
+                />
+              </template>
+            </Column>
             <Column header="Related Girls" sortable>
               <template #body="slotProps">
                 {{ girlsStore.getGirlNamesByIdList(slotProps.data.sellers) }}
@@ -404,6 +422,10 @@
         </div>
 
         <div class="flex flex-col gap-2">
+          <div>
+            <span class="font-semibold">Member:</span>
+            <span class="ml-2">{{ adult.member ? 'Yes' : 'No' }}</span>
+          </div>
           <div v-if="girlsStore.getGirlsByIdList(adult.sellers).length > 0">
             <div
               class="border border-gray-200 flex justify-between items-center p-2 rounded-md mb-1"

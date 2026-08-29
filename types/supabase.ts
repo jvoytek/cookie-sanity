@@ -101,6 +101,7 @@ export type Database = {
           first_name: string;
           id: number;
           last_name: string;
+          member: boolean;
           phone: string | null;
           preferred_name: string | null;
           profile: string | null;
@@ -114,6 +115,7 @@ export type Database = {
           first_name: string;
           id?: number;
           last_name: string;
+          member?: boolean;
           phone?: string | null;
           preferred_name?: string | null;
           profile?: string | null;
@@ -127,6 +129,7 @@ export type Database = {
           first_name?: string;
           id?: number;
           last_name?: string;
+          member?: boolean;
           phone?: string | null;
           preferred_name?: string | null;
           profile?: string | null;
