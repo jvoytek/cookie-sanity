@@ -7,7 +7,7 @@
 
   const ordersStore = useTransactionsStore();
   const girlsStore = useGirlsStore();
-  const transactionsStore = useTransactionsStore();
+  const { isMobile } = useDevice();
 
   loading.value = false;
 
@@ -116,211 +116,218 @@
         on your council). Rejected transactions are those that were denied for
         any reason.
       </p>
-      <div class="hidden lg:block">
-        <Toolbar class="mb-6">
-          <template #start>
-            <Button
-              label="New Girl Transaction"
-              icon="pi pi-plus"
-              severity="secondary"
-              class="mr-2"
-              @click="openNew"
-            />
-            <Select
-              v-model="selectedGirlFilter"
-              :options="filterOptions"
-              option-label="label"
-              option-value="value"
-              placeholder="Filter by girl"
-              class="w-64"
-            />
-          </template>
-        </Toolbar>
-      </div>
-      <div class="lock lg:hidden">
-        <Toolbar>
-          <template #start>
-            <Button
-              label="New"
-              icon="pi pi-plus"
-              severity="secondary"
-              class="mr-2"
-              @click="openNew"
-            />
-            <Select
-              v-model="selectedGirlFilter"
-              :options="filterOptions"
-              option-label="label"
-              option-value="value"
-              placeholder="Filter by girl"
-            />
-          </template>
-        </Toolbar>
-      </div>
+      <ClientOnly>
+        <div v-if="!isMobile">
+          <Toolbar class="mb-6">
+            <template #start>
+              <Button
+                label="New Girl Transaction"
+                icon="pi pi-plus"
+                severity="secondary"
+                class="mr-2"
+                @click="openNew"
+              />
+              <Select
+                v-model="selectedGirlFilter"
+                :options="filterOptions"
+                option-label="label"
+                option-value="value"
+                placeholder="Filter by girl"
+                class="w-64"
+              />
+            </template>
+          </Toolbar>
+        </div>
+
+        <div v-if="isMobile">
+          <Toolbar>
+            <template #start>
+              <Button
+                label="New"
+                icon="pi pi-plus"
+                severity="secondary"
+                class="mr-2"
+                @click="openNew"
+              />
+              <Select
+                v-model="selectedGirlFilter"
+                :options="filterOptions"
+                option-label="label"
+                option-value="value"
+                placeholder="Filter by girl"
+              />
+            </template>
+          </Toolbar>
+        </div>
+      </ClientOnly>
 
       <!--<h6 class="mb-4 text-muted-color">{{ subheaderText }}</h6>-->
-      <div class="hidden lg:block">
-        <Tabs value="0">
-          <TabList>
-            <Tab value="0" class="flex items-center gap-2"
-              ><i class="pi pi-envelope" />Requests ({{
-                filteredRequestedCount
-              }})</Tab
+      <ClientOnly>
+        <div v-if="!isMobile">
+          <Tabs value="0">
+            <TabList>
+              <Tab value="0" class="flex items-center gap-2"
+                ><i class="pi pi-envelope" />Requests ({{
+                  filteredRequestedCount
+                }})</Tab
+              >
+              <Tab value="1" class="flex items-center gap-2"
+                ><i class="pi pi-exclamation-triangle" />Pending ({{
+                  filteredPendingCount
+                }})</Tab
+              >
+              <Tab value="2" class="flex items-center gap-2"
+                ><i class="pi pi-check" />Completed ({{
+                  filteredCompletedCount
+                }})</Tab
+              >
+              <Tab value="3" class="flex items-center gap-2"
+                ><i class="pi pi-check-circle" />Recorded ({{
+                  filteredRecordedCount
+                }})</Tab
+              >
+              <Tab value="4" class="flex items-center gap-2"
+                ><i class="pi pi-times" />Rejected ({{
+                  filteredRejectedCount
+                }})</Tab
+              >
+            </TabList>
+            <TabPanels>
+              <TabPanel value="0">
+                <TransactionsDataTable
+                  :orders="filteredRequestedTransactions"
+                  transaction-types="girl"
+                  no-transactions-message="No requests found."
+                />
+              </TabPanel>
+              <TabPanel value="1">
+                <TransactionsDataTable
+                  :orders="filteredPendingTransactions"
+                  transaction-types="girl"
+                  no-transactions-message="No pending transactions found."
+                />
+              </TabPanel>
+              <TabPanel value="2">
+                <TransactionsDataTable
+                  :orders="filteredCompletedTransactions"
+                  transaction-types="girl"
+                  :paginated="true"
+                  no-transactions-message="No completed transactions found."
+                />
+              </TabPanel>
+              <TabPanel value="3">
+                <TransactionsDataTable
+                  :orders="filteredRecordedTransactions"
+                  transaction-types="girl"
+                  :paginated="true"
+                  no-transactions-message="No recorded transactions found."
+                />
+              </TabPanel>
+              <TabPanel value="4">
+                <TransactionsDataTable
+                  :orders="filteredRejectedTransactions"
+                  transaction-types="girl"
+                  no-transactions-message="No rejected transactions found."
+                />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </div>
+      </ClientOnly>
+    </div>
+
+    <ClientOnly>
+      <div v-if="isMobile">
+        <Accordion value="0">
+          <AccordionPanel value="0">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-envelope" />
+                <span>Requests</span>
+                <Badge
+                  :value="filteredRequestedCount"
+                  severity="danger"
+                  class="ml-auto mr-2"
+                />
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
             >
-            <Tab value="1" class="flex items-center gap-2"
-              ><i class="pi pi-exclamation-triangle" />Pending ({{
-                filteredPendingCount
-              }})</Tab
-            >
-            <Tab value="2" class="flex items-center gap-2"
-              ><i class="pi pi-check" />Completed ({{
-                filteredCompletedCount
-              }})</Tab
-            >
-            <Tab value="3" class="flex items-center gap-2"
-              ><i class="pi pi-check-circle" />Recorded ({{
-                filteredRecordedCount
-              }})</Tab
-            >
-            <Tab value="4" class="flex items-center gap-2"
-              ><i class="pi pi-times" />Rejected ({{
-                filteredRejectedCount
-              }})</Tab
-            >
-          </TabList>
-          <TabPanels>
-            <TabPanel value="0">
               <TransactionsDataTable
                 :orders="filteredRequestedTransactions"
                 transaction-types="girl"
-                no-transactions-message="No requests found."
-              />
-            </TabPanel>
-            <TabPanel value="1">
+            /></AccordionContent>
+          </AccordionPanel>
+          <AccordionPanel value="1">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-exclamation-triangle" />
+                <span>Pending</span>
+                <Badge :value="filteredPendingCount" class="ml-auto mr-2" />
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+            >
               <TransactionsDataTable
                 :orders="filteredPendingTransactions"
                 transaction-types="girl"
-                no-transactions-message="No pending transactions found."
-              />
-            </TabPanel>
-            <TabPanel value="2">
+            /></AccordionContent>
+          </AccordionPanel>
+          <AccordionPanel value="2">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-check" />
+                <span>Completed</span>
+                <Badge :value="filteredCompletedCount" class="ml-auto mr-2" />
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+            >
               <TransactionsDataTable
                 :orders="filteredCompletedTransactions"
                 transaction-types="girl"
-                :paginated="true"
-                no-transactions-message="No completed transactions found."
               />
-            </TabPanel>
-            <TabPanel value="3">
+            </AccordionContent>
+          </AccordionPanel>
+          <AccordionPanel value="3">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-check-circle" />
+                <span>Recorded</span>
+                <Badge :value="filteredRecordedCount" class="ml-auto mr-2" />
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+            >
               <TransactionsDataTable
                 :orders="filteredRecordedTransactions"
                 transaction-types="girl"
-                :paginated="true"
-                no-transactions-message="No recorded transactions found."
               />
-            </TabPanel>
-            <TabPanel value="4">
+            </AccordionContent>
+          </AccordionPanel>
+          <AccordionPanel value="4">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-times" />
+                <span>Rejected</span>
+                <Badge :value="filteredRejectedCount" class="ml-auto mr-2" />
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+            >
               <TransactionsDataTable
                 :orders="filteredRejectedTransactions"
                 transaction-types="girl"
-                no-transactions-message="No rejected transactions found."
               />
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+            </AccordionContent>
+          </AccordionPanel>
+        </Accordion>
       </div>
-    </div>
-
-    <div class="block lg:hidden">
-      <Accordion value="0">
-        <AccordionPanel value="0">
-          <AccordionHeader>
-            <span class="flex items-center gap-2 w-full">
-              <i class="pi pi-envelope" />
-              <span>Requests</span>
-              <Badge
-                :value="filteredRequestedCount"
-                severity="danger"
-                class="ml-auto mr-2"
-              />
-            </span>
-          </AccordionHeader>
-          <AccordionContent
-            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
-          >
-            <TransactionsDataTable
-              :orders="filteredRequestedTransactions"
-              transaction-types="girl"
-          /></AccordionContent>
-        </AccordionPanel>
-        <AccordionPanel value="1">
-          <AccordionHeader>
-            <span class="flex items-center gap-2 w-full">
-              <i class="pi pi-exclamation-triangle" />
-              <span>Pending</span>
-              <Badge :value="filteredPendingCount" class="ml-auto mr-2" />
-            </span>
-          </AccordionHeader>
-          <AccordionContent
-            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
-          >
-            <TransactionsDataTable
-              :orders="filteredPendingTransactions"
-              transaction-types="girl"
-          /></AccordionContent>
-        </AccordionPanel>
-        <AccordionPanel value="2">
-          <AccordionHeader>
-            <span class="flex items-center gap-2 w-full">
-              <i class="pi pi-check" />
-              <span>Completed</span>
-              <Badge :value="filteredCompletedCount" class="ml-auto mr-2" />
-            </span>
-          </AccordionHeader>
-          <AccordionContent
-            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
-          >
-            <TransactionsDataTable
-              :orders="filteredCompletedTransactions"
-              transaction-types="girl"
-            />
-          </AccordionContent>
-        </AccordionPanel>
-        <AccordionPanel value="3">
-          <AccordionHeader>
-            <span class="flex items-center gap-2 w-full">
-              <i class="pi pi-check-circle" />
-              <span>Recorded</span>
-              <Badge :value="filteredRecordedCount" class="ml-auto mr-2" />
-            </span>
-          </AccordionHeader>
-          <AccordionContent
-            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
-          >
-            <TransactionsDataTable
-              :orders="filteredRecordedTransactions"
-              transaction-types="girl"
-            />
-          </AccordionContent>
-        </AccordionPanel>
-        <AccordionPanel value="4">
-          <AccordionHeader>
-            <span class="flex items-center gap-2 w-full">
-              <i class="pi pi-times" />
-              <span>Rejected</span>
-              <Badge :value="filteredRejectedCount" class="ml-auto mr-2" />
-            </span>
-          </AccordionHeader>
-          <AccordionContent
-            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
-          >
-            <TransactionsDataTable
-              :orders="filteredRejectedTransactions"
-              transaction-types="girl"
-            />
-          </AccordionContent>
-        </AccordionPanel>
-      </Accordion>
-    </div>
+    </ClientOnly>
   </div>
 </template>

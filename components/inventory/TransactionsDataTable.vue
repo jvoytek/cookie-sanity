@@ -3,6 +3,8 @@
   import { Button } from 'primevue';
   import { FilterMatchMode, FilterService } from '@primevue/core/api';
 
+  const { isMobile } = useDevice();
+
   const props = defineProps<{
     orders: Order[];
     transactionTypes: 'troop' | 'girl' | 'all' | 'audit' | 'audit-extra';
@@ -465,789 +467,799 @@
     {{ props.noTransactionsMessage || 'No transactions found.' }}
   </div>
   <div v-else>
-    <div class="hidden lg:block">
-      <Toolbar v-if="props.transactionTypes !== 'all'" class="mb-4">
-        <template #start>
-          <span class="mr-4 text-sm text-muted-color">
-            {{ selectedTransactions.length }} selected
-          </span>
-          <Button
-            v-if="canAddExtraAuditRows"
-            v-tooltip.bottom="{
-              value: 'Add selected rows to database as new transactions',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection"
-            label="Add Transactions to Database"
-            icon="pi pi-plus"
-            class="mr-2"
-            variant="outlined"
-            @click="bulkAddAuditRows"
-          />
-          <Button
-            v-if="canMarkComplete"
-            v-tooltip.bottom="{
-              value:
-                'Mark all selected transactions as complete. Click this when physical inventory has changed hands',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection"
-            label="Mark Complete"
-            icon="pi pi-check"
-            class="mr-2"
-            variant="outlined"
-            @click="bulkMarkComplete"
-          />
-          <Button
-            v-if="canUndoRecorded"
-            v-tooltip.bottom="{
-              value:
-                'Undo marking selected transactions as recorded and mark them as complete again.',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection"
-            label="Undo Mark Recorded"
-            icon="pi pi-undo"
-            class="mr-2"
-            variant="outlined"
-            @click="bulkMarkComplete"
-          />
-          <Button
-            v-if="canMarkRecorded"
-            v-tooltip.bottom="{
-              value:
-                'Click this when you have recorded these transactions in your council\'s cookie management system (Smart Cookies or eBudde)',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection"
-            label="Mark Recorded"
-            icon="pi pi-check-circle"
-            class="mr-2"
-            variant="outlined"
-            @click="bulkMarkRecorded"
-          />
-          <Button
-            v-if="canApprove"
-            v-tooltip.bottom="{
-              value: 'Approve selected requests and mark as pending',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection"
-            label="Approve"
-            icon="pi pi-check"
-            class="mr-2"
-            variant="outlined"
-            @click="bulkApprove"
-          />
-          <Button
-            v-if="canMarkPending"
-            v-tooltip.bottom="{
-              value: 'Mark selected transactions as pending again',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection"
-            label="Mark Pending"
-            icon="pi pi-undo"
-            variant="outlined"
-            severity="secondary"
-            class="mr-2"
-            @click="bulkMarkPending"
-          />
-          <Button
-            v-if="canReject"
-            v-tooltip.bottom="{
-              value: 'Reject selected transaction requests',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection"
-            label="Reject"
-            icon="pi pi-times"
-            severity="warn"
-            class="mr-2"
-            variant="outlined"
-            @click="bulkReject"
-          />
-          <Button
-            v-if="canDelete"
-            v-tooltip.bottom="{
-              value: 'Delete selected transactions',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection"
-            label="Delete"
-            icon="pi pi-trash"
-            severity="warn"
-            variant="outlined"
-            @click="deleteBulkTransactionsDialogVisible = true"
-          />
-          <Button
-            v-if="anyReceiptsAvailable"
-            v-tooltip.bottom="{
-              value: 'View receipt for selected transaction(s)',
-              showDelay: 500,
-            }"
-            :disabled="!hasSelection || !canShowReceipt"
-            label="View Receipt"
-            icon="pi pi-file"
-            class="ml-2"
-            variant="outlined"
-            severity="secondary"
-            @click="bulkShowReceipt"
-          />
-        </template>
-      </Toolbar>
-    </div>
-
-    <div class="hidden lg:block">
-      <DataTable
-        v-model:selection="selectedTransactions"
-        v-model:filters="filters"
-        filterDisplay="row"
-        :globalFilterFields="globalFilterFields"
-        :value="orders"
-        data-key="id"
-        sort-field="sortDate"
-        :sort-order="-1"
-        :paginator="props.paginated !== false"
-        :rows="20"
-        :rows-per-page-options="[20, 50, 100]"
-        size="small"
-      >
-        <Column
-          v-if="props.transactionTypes !== 'all'"
-          selection-mode="multiple"
-          header-style="width: 3rem"
-        />
-        <Column
-          v-if="
-            props.transactionTypes === 'troop' ||
-            props.transactionTypes === 'all' ||
-            props.transactionTypes === 'audit' ||
-            props.transactionTypes === 'audit-extra'
-          "
-          field="supplier"
-          header="Supplier"
-          sortable
-        >
-          <template #body="slotProps">
-            <span>{{ slotProps.data.supplier }}</span>
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText
-              v-model="filterModel.value"
-              type="text"
-              @input="filterCallback()"
-              placeholder="Search Supplier"
-            />
-          </template>
-        </Column>
-        <Column field="order_num" header="TXN #" sortable>
-          <template #body="slotProps">
-            <span>{{ slotProps.data.order_num }}</span>
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText
-              v-model="filterModel.value"
-              type="text"
-              @input="filterCallback()"
-              placeholder="Search TXN #"
-            />
-          </template>
-        </Column>
-        <Column
-          v-if="
-            props.transactionTypes === 'girl' ||
-            props.transactionTypes === 'all' ||
-            props.transactionTypes === 'audit' ||
-            props.transactionTypes === 'audit-extra'
-          "
-          field="from"
-          header="From"
-          sortable
-          sortField="fromName"
-          :showFilterMenu="false"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.fromName }}
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <Select
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="girlsSelect"
-              optionLabel="name"
-              optionValue="id"
-              placeholder="Select One"
-              :showClear="true"
-            />
-          </template>
-        </Column>
-        <Column
-          v-if="
-            props.transactionTypes === 'girl' ||
-            props.transactionTypes === 'all' ||
-            props.transactionTypes === 'audit' ||
-            props.transactionTypes === 'audit-extra'
-          "
-          field="to"
-          header="To"
-          sortable
-          sortField="toName"
-          :showFilterMenu="false"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data.toName }}
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <Select
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="girlsSelect"
-              optionLabel="name"
-              optionValue="id"
-              placeholder="Select One"
-              :showClear="true"
-            />
-          </template>
-        </Column>
-
-        <Column
-          field="type"
-          header="Type"
-          filterField="type"
-          :showFilterMenu="false"
-          style="min-width: 120px"
-          sortable
-        >
-          <template #body="slotProps">
-            <TransactionTypeBadge :type="slotProps.data.type" />
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <Select
-              v-if="props.transactionTypes === 'troop'"
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="troopTransactionTypeOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Select One"
-              :showClear="true"
-            />
-            <Select
-              v-else-if="props.transactionTypes === 'girl'"
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="girlsTransactionTypeOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Select One"
-              :showClear="true"
-            />
-            <Select
-              v-else
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="allTransactionTypeOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Select One"
-              :showClear="true"
-            />
-          </template>
-        </Column>
-        <Column field="cookies" filterField="cookies" :showFilterMenu="false">
-          <template #header>
-            <span class="p-datatable-column-title">Cookies </span>
-          </template>
-          <template #body="slotProps">
-            <CookieList :cookies="slotProps.data.cookies" />
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <MultiSelect
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="cookiesStore.allCookies"
-              optionLabel="name"
-              optionValue="abbreviation"
-              placeholder="Any"
-              :maxSelectedLabels="1"
-            />
-          </template>
-        </Column>
-        <Column field="order_date" header="Date" sort-field="sortDate" sortable>
-          <template #body="slotProps">
-            <NuxtTime :datetime="slotProps.data.order_date" time-zone="UTC" />
-          </template>
-        </Column>
-        <Column
-          v-if="props.transactionTypes === 'audit'"
-          field="status"
-          header="Status"
-          sortable
-        >
-          <template #body="slotProps">
-            <Badge :severity="getStatusBadgeSeverity(slotProps.data.status)">{{
-              slotProps.data.status
-            }}</Badge>
-          </template>
-        </Column>
-        <Column field="notes" header="Notes" />
-        <Column field="actions" header="Actions" style="min-width: 224px">
-          <template #body="slotProps">
+    <ClientOnly>
+      <div v-if="!isMobile">
+        <Toolbar v-if="props.transactionTypes !== 'all'" class="mb-4">
+          <template #start>
+            <span class="mr-4 text-sm text-muted-color">
+              {{ selectedTransactions.length }} selected
+            </span>
             <Button
-              v-if="props.transactionTypes === 'audit-extra'"
+              v-if="canAddExtraAuditRows"
               v-tooltip.bottom="{
-                value: 'Add this row to the database as a new transaction',
+                value: 'Add selected rows to database as new transactions',
                 showDelay: 500,
               }"
-              aria-label="Extra Audit Row"
+              :disabled="!hasSelection"
+              label="Add Transactions to Database"
               icon="pi pi-plus"
               class="mr-2"
               variant="outlined"
-              @click="addAuditRow(slotProps.data)"
+              @click="bulkAddAuditRows"
             />
             <Button
-              v-if="
-                props.transactionTypes !== 'all' &&
-                props.transactionTypes !== 'audit-extra' &&
-                slotProps.data.status === 'pending'
-              "
+              v-if="canMarkComplete"
               v-tooltip.bottom="{
-                value: 'Click this when physical inventory has changed hands',
+                value:
+                  'Mark all selected transactions as complete. Click this when physical inventory has changed hands',
                 showDelay: 500,
               }"
-              aria-label="Mark Complete"
+              :disabled="!hasSelection"
+              label="Mark Complete"
               icon="pi pi-check"
               class="mr-2"
               variant="outlined"
-              @click="
-                transactionsStore.updateTransactionStatus(
-                  slotProps.data.id,
-                  'complete',
-                )
-              "
+              @click="bulkMarkComplete"
             />
             <Button
-              v-if="
-                props.transactionTypes !== 'all' &&
-                props.transactionTypes !== 'audit-extra' &&
-                slotProps.data.status === 'complete'
-              "
+              v-if="canUndoRecorded"
               v-tooltip.bottom="{
                 value:
-                  'Click this when you have recorded this transaction in your council\'s cookie management system (Smart Cookies or eBudde)',
+                  'Undo marking selected transactions as recorded and mark them as complete again.',
                 showDelay: 500,
               }"
-              aria-label="Mark Recorded"
+              :disabled="!hasSelection"
+              label="Undo Mark Recorded"
+              icon="pi pi-undo"
+              class="mr-2"
+              variant="outlined"
+              @click="bulkMarkComplete"
+            />
+            <Button
+              v-if="canMarkRecorded"
+              v-tooltip.bottom="{
+                value:
+                  'Click this when you have recorded these transactions in your council\'s cookie management system (Smart Cookies or eBudde)',
+                showDelay: 500,
+              }"
+              :disabled="!hasSelection"
+              label="Mark Recorded"
               icon="pi pi-check-circle"
               class="mr-2"
               variant="outlined"
-              @click="
-                transactionsStore.updateTransactionStatus(
-                  slotProps.data.id,
-                  'recorded',
-                )
-              "
+              @click="bulkMarkRecorded"
             />
             <Button
-              v-if="
-                props.transactionTypes !== 'all' &&
-                props.transactionTypes !== 'audit-extra' &&
-                slotProps.data.status === 'requested'
-              "
+              v-if="canApprove"
               v-tooltip.bottom="{
-                value: 'Click this to approve this request and mark as pending',
+                value: 'Approve selected requests and mark as pending',
                 showDelay: 500,
               }"
-              aria-label="Approve Request"
+              :disabled="!hasSelection"
+              label="Approve"
               icon="pi pi-check"
               class="mr-2"
               variant="outlined"
-              @click="
-                transactionsStore.updateTransactionStatus(
-                  slotProps.data.id,
-                  'pending',
-                )
-              "
+              @click="bulkApprove"
             />
             <Button
-              v-if="
-                props.transactionTypes !== 'audit' &&
-                props.transactionTypes !== 'audit-extra' &&
-                (slotProps.data.status === 'rejected' ||
-                  (props.transactionTypes !== 'all' &&
-                    slotProps.data.status === 'complete'))
-              "
+              v-if="canMarkPending"
               v-tooltip.bottom="{
-                value: 'Click this to mark this transaction as pending again',
+                value: 'Mark selected transactions as pending again',
                 showDelay: 500,
               }"
-              aria-label="Mark Pending"
+              :disabled="!hasSelection"
+              label="Mark Pending"
               icon="pi pi-undo"
-              class="mr-2"
               variant="outlined"
               severity="secondary"
-              @click="
-                transactionsStore.updateTransactionStatus(
-                  slotProps.data.id,
-                  'pending',
-                )
-              "
+              class="mr-2"
+              @click="bulkMarkPending"
             />
             <Button
-              v-if="
-                props.transactionTypes !== 'all' &&
-                props.transactionTypes !== 'audit-extra' &&
-                slotProps.data.status === 'recorded'
-              "
+              v-if="canReject"
               v-tooltip.bottom="{
-                value:
-                  'Click this to undo marking as recorded and mark as completed again',
+                value: 'Reject selected transaction requests',
                 showDelay: 500,
               }"
-              aria-label="Undo Mark Recorded"
-              icon="pi pi-undo"
-              class="mr-2"
-              variant="outlined"
-              severity="secondary"
-              @click="
-                transactionsStore.updateTransactionStatus(
-                  slotProps.data.id,
-                  'complete',
-                )
-              "
-            />
-            <Button
-              v-if="
-                props.transactionTypes !== 'audit' &&
-                props.transactionTypes !== 'audit-extra'
-              "
-              v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
-              aria-label="Edit"
-              icon="pi pi-pencil"
-              class="mr-2"
-              variant="outlined"
-              severity="secondary"
-              @click="
-                transactionHelpers.editTransaction(
-                  slotProps.data,
-                  props.transactionTypes,
-                )
-              "
-            />
-            <Button
-              v-if="
-                props.transactionTypes !== 'audit' &&
-                props.transactionTypes !== 'audit-extra' &&
-                props.transactionTypes !== 'all' &&
-                props.transactionTypes === 'girl' &&
-                (slotProps.data.status === 'requested' ||
-                  slotProps.data.status === 'pending')
-              "
-              v-tooltip.bottom="{
-                value: 'Reject Transaction Request',
-                showDelay: 500,
-              }"
-              aria-label="Reject Transaction Request"
+              :disabled="!hasSelection"
+              label="Reject"
               icon="pi pi-times"
-              class="mr-2"
-              variant="outlined"
               severity="warn"
-              @click="
-                transactionsStore.updateTransactionStatus(
-                  slotProps.data.id,
-                  'rejected',
-                )
-              "
-            />
-            <Button
-              v-if="
-                props.transactionTypes !== 'audit' &&
-                props.transactionTypes !== 'audit-extra' &&
-                transactionsStore.transactionRequiresReceipt(slotProps.data)
-              "
-              v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
-              aria-label="View Receipt"
-              icon="pi pi-file"
               class="mr-2"
               variant="outlined"
-              severity="secondary"
-              @click="showReceipt(slotProps.data)"
+              @click="bulkReject"
             />
             <Button
-              type="button"
-              icon="pi pi-ellipsis-v"
-              outlined
-              severity="secondary"
-              @click="toggleMenu($event, slotProps.data.id)"
-              aria-haspopup="true"
-              :aria-controls="'overlay_menu_' + slotProps.data.id"
+              v-if="canDelete"
+              v-tooltip.bottom="{
+                value: 'Delete selected transactions',
+                showDelay: 500,
+              }"
+              :disabled="!hasSelection"
+              label="Delete"
+              icon="pi pi-trash"
+              severity="warn"
+              variant="outlined"
+              @click="deleteBulkTransactionsDialogVisible = true"
             />
-            <Menu
-              :ref="(el) => setMenuRef(el, slotProps.data.id)"
-              :id="'overlay_menu_' + slotProps.data.id"
-              :model="moreActions(slotProps.data)"
-              :popup="true"
+            <Button
+              v-if="anyReceiptsAvailable"
+              v-tooltip.bottom="{
+                value: 'View receipt for selected transaction(s)',
+                showDelay: 500,
+              }"
+              :disabled="!hasSelection || !canShowReceipt"
+              label="View Receipt"
+              icon="pi pi-file"
+              class="ml-2"
+              variant="outlined"
+              severity="secondary"
+              @click="bulkShowReceipt"
             />
           </template>
-        </Column>
-      </DataTable>
-    </div>
+        </Toolbar>
 
-    <div class="block lg:hidden">
-      <Button
-        icon="pi pi-filter"
-        :label="`Filter & Sort (${numActiveFilters})`"
-        variant="outlined"
-        @click="filterDialogVisible = true"
-        class="mb-4"
-      />
-      <DataView
-        :value="filteredOrders"
-        layout="list"
-        :sortOrder="sortOrder"
-        :sortField="sortField"
-      >
-        <template #empty>
-          <div class="p-4 text-center text-muted-color">
-            {{ props.noTransactionsMessage || 'No transactions found.' }}
-          </div>
-        </template>
-        <template #list="slotProps">
-          <div class="flex flex-col">
-            <div
-              v-for="(transaction, index) in slotProps.items"
-              :key="index"
-              class="pt-5 pb-5 border-t border-solid border-gray-200"
-            >
-              <div class="flex w-full justify-between">
+        <DataTable
+          v-model:selection="selectedTransactions"
+          v-model:filters="filters"
+          filterDisplay="row"
+          :globalFilterFields="globalFilterFields"
+          :value="orders"
+          data-key="id"
+          sort-field="sortDate"
+          :sort-order="-1"
+          :paginator="props.paginated !== false"
+          :rows="20"
+          :rows-per-page-options="[20, 50, 100]"
+          size="small"
+        >
+          <Column
+            v-if="props.transactionTypes !== 'all'"
+            selection-mode="multiple"
+            header-style="width: 3rem"
+          />
+          <Column
+            v-if="
+              props.transactionTypes === 'troop' ||
+              props.transactionTypes === 'all' ||
+              props.transactionTypes === 'audit' ||
+              props.transactionTypes === 'audit-extra'
+            "
+            field="supplier"
+            header="Supplier"
+            sortable
+          >
+            <template #body="slotProps">
+              <span>{{ slotProps.data.supplier }}</span>
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                v-model="filterModel.value"
+                type="text"
+                @input="filterCallback()"
+                placeholder="Search Supplier"
+              />
+            </template>
+          </Column>
+          <Column field="order_num" header="TXN #" sortable>
+            <template #body="slotProps">
+              <span>{{ slotProps.data.order_num }}</span>
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                v-model="filterModel.value"
+                type="text"
+                @input="filterCallback()"
+                placeholder="Search TXN #"
+              />
+            </template>
+          </Column>
+          <Column
+            v-if="
+              props.transactionTypes === 'girl' ||
+              props.transactionTypes === 'all' ||
+              props.transactionTypes === 'audit' ||
+              props.transactionTypes === 'audit-extra'
+            "
+            field="from"
+            header="From"
+            sortable
+            sortField="fromName"
+            :showFilterMenu="false"
+          >
+            <template #body="slotProps">
+              {{ slotProps.data.fromName }}
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <Select
+                v-model="filterModel.value"
+                @change="filterCallback()"
+                :options="girlsSelect"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select One"
+                :showClear="true"
+              />
+            </template>
+          </Column>
+          <Column
+            v-if="
+              props.transactionTypes === 'girl' ||
+              props.transactionTypes === 'all' ||
+              props.transactionTypes === 'audit' ||
+              props.transactionTypes === 'audit-extra'
+            "
+            field="to"
+            header="To"
+            sortable
+            sortField="toName"
+            :showFilterMenu="false"
+          >
+            <template #body="slotProps">
+              {{ slotProps.data.toName }}
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <Select
+                v-model="filterModel.value"
+                @change="filterCallback()"
+                :options="girlsSelect"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select One"
+                :showClear="true"
+              />
+            </template>
+          </Column>
+
+          <Column
+            field="type"
+            header="Type"
+            filterField="type"
+            :showFilterMenu="false"
+            style="min-width: 120px"
+            sortable
+          >
+            <template #body="slotProps">
+              <TransactionTypeBadge :type="slotProps.data.type" />
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <Select
+                v-if="props.transactionTypes === 'troop'"
+                v-model="filterModel.value"
+                @change="filterCallback()"
+                :options="troopTransactionTypeOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select One"
+                :showClear="true"
+              />
+              <Select
+                v-else-if="props.transactionTypes === 'girl'"
+                v-model="filterModel.value"
+                @change="filterCallback()"
+                :options="girlsTransactionTypeOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select One"
+                :showClear="true"
+              />
+              <Select
+                v-else
+                v-model="filterModel.value"
+                @change="filterCallback()"
+                :options="allTransactionTypeOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select One"
+                :showClear="true"
+              />
+            </template>
+          </Column>
+          <Column field="cookies" filterField="cookies" :showFilterMenu="false">
+            <template #header>
+              <span class="p-datatable-column-title">Cookies </span>
+            </template>
+            <template #body="slotProps">
+              <CookieList :cookies="slotProps.data.cookies" />
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <MultiSelect
+                v-model="filterModel.value"
+                @change="filterCallback()"
+                :options="cookiesStore.allCookies"
+                optionLabel="name"
+                optionValue="abbreviation"
+                placeholder="Any"
+                :maxSelectedLabels="1"
+              />
+            </template>
+          </Column>
+          <Column
+            field="order_date"
+            header="Date"
+            sort-field="sortDate"
+            sortable
+          >
+            <template #body="slotProps">
+              <NuxtTime :datetime="slotProps.data.order_date" time-zone="UTC" />
+            </template>
+          </Column>
+          <Column
+            v-if="props.transactionTypes === 'audit'"
+            field="status"
+            header="Status"
+            sortable
+          >
+            <template #body="slotProps">
+              <Badge
+                :severity="getStatusBadgeSeverity(slotProps.data.status)"
+                >{{ slotProps.data.status }}</Badge
+              >
+            </template>
+          </Column>
+          <Column field="notes" header="Notes" />
+          <Column field="actions" header="Actions" style="min-width: 224px">
+            <template #body="slotProps">
+              <Button
+                v-if="props.transactionTypes === 'audit-extra'"
+                v-tooltip.bottom="{
+                  value: 'Add this row to the database as a new transaction',
+                  showDelay: 500,
+                }"
+                aria-label="Extra Audit Row"
+                icon="pi pi-plus"
+                class="mr-2"
+                variant="outlined"
+                @click="addAuditRow(slotProps.data)"
+              />
+              <Button
+                v-if="
+                  props.transactionTypes !== 'all' &&
+                  props.transactionTypes !== 'audit-extra' &&
+                  slotProps.data.status === 'pending'
+                "
+                v-tooltip.bottom="{
+                  value: 'Click this when physical inventory has changed hands',
+                  showDelay: 500,
+                }"
+                aria-label="Mark Complete"
+                icon="pi pi-check"
+                class="mr-2"
+                variant="outlined"
+                @click="
+                  transactionsStore.updateTransactionStatus(
+                    slotProps.data.id,
+                    'complete',
+                  )
+                "
+              />
+              <Button
+                v-if="
+                  props.transactionTypes !== 'all' &&
+                  props.transactionTypes !== 'audit-extra' &&
+                  slotProps.data.status === 'complete'
+                "
+                v-tooltip.bottom="{
+                  value:
+                    'Click this when you have recorded this transaction in your council\'s cookie management system (Smart Cookies or eBudde)',
+                  showDelay: 500,
+                }"
+                aria-label="Mark Recorded"
+                icon="pi pi-check-circle"
+                class="mr-2"
+                variant="outlined"
+                @click="
+                  transactionsStore.updateTransactionStatus(
+                    slotProps.data.id,
+                    'recorded',
+                  )
+                "
+              />
+              <Button
+                v-if="
+                  props.transactionTypes !== 'all' &&
+                  props.transactionTypes !== 'audit-extra' &&
+                  slotProps.data.status === 'requested'
+                "
+                v-tooltip.bottom="{
+                  value:
+                    'Click this to approve this request and mark as pending',
+                  showDelay: 500,
+                }"
+                aria-label="Approve Request"
+                icon="pi pi-check"
+                class="mr-2"
+                variant="outlined"
+                @click="
+                  transactionsStore.updateTransactionStatus(
+                    slotProps.data.id,
+                    'pending',
+                  )
+                "
+              />
+              <Button
+                v-if="
+                  props.transactionTypes !== 'audit' &&
+                  props.transactionTypes !== 'audit-extra' &&
+                  (slotProps.data.status === 'rejected' ||
+                    (props.transactionTypes !== 'all' &&
+                      slotProps.data.status === 'complete'))
+                "
+                v-tooltip.bottom="{
+                  value: 'Click this to mark this transaction as pending again',
+                  showDelay: 500,
+                }"
+                aria-label="Mark Pending"
+                icon="pi pi-undo"
+                class="mr-2"
+                variant="outlined"
+                severity="secondary"
+                @click="
+                  transactionsStore.updateTransactionStatus(
+                    slotProps.data.id,
+                    'pending',
+                  )
+                "
+              />
+              <Button
+                v-if="
+                  props.transactionTypes !== 'all' &&
+                  props.transactionTypes !== 'audit-extra' &&
+                  slotProps.data.status === 'recorded'
+                "
+                v-tooltip.bottom="{
+                  value:
+                    'Click this to undo marking as recorded and mark as completed again',
+                  showDelay: 500,
+                }"
+                aria-label="Undo Mark Recorded"
+                icon="pi pi-undo"
+                class="mr-2"
+                variant="outlined"
+                severity="secondary"
+                @click="
+                  transactionsStore.updateTransactionStatus(
+                    slotProps.data.id,
+                    'complete',
+                  )
+                "
+              />
+              <Button
+                v-if="
+                  props.transactionTypes !== 'audit' &&
+                  props.transactionTypes !== 'audit-extra'
+                "
+                v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                aria-label="Edit"
+                icon="pi pi-pencil"
+                class="mr-2"
+                variant="outlined"
+                severity="secondary"
+                @click="
+                  transactionHelpers.editTransaction(
+                    slotProps.data,
+                    props.transactionTypes,
+                  )
+                "
+              />
+              <Button
+                v-if="
+                  props.transactionTypes !== 'audit' &&
+                  props.transactionTypes !== 'audit-extra' &&
+                  props.transactionTypes !== 'all' &&
+                  props.transactionTypes === 'girl' &&
+                  (slotProps.data.status === 'requested' ||
+                    slotProps.data.status === 'pending')
+                "
+                v-tooltip.bottom="{
+                  value: 'Reject Transaction Request',
+                  showDelay: 500,
+                }"
+                aria-label="Reject Transaction Request"
+                icon="pi pi-times"
+                class="mr-2"
+                variant="outlined"
+                severity="warn"
+                @click="
+                  transactionsStore.updateTransactionStatus(
+                    slotProps.data.id,
+                    'rejected',
+                  )
+                "
+              />
+              <Button
+                v-if="
+                  props.transactionTypes !== 'audit' &&
+                  props.transactionTypes !== 'audit-extra' &&
+                  transactionsStore.transactionRequiresReceipt(slotProps.data)
+                "
+                v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
+                aria-label="View Receipt"
+                icon="pi pi-file"
+                class="mr-2"
+                variant="outlined"
+                severity="secondary"
+                @click="showReceipt(slotProps.data)"
+              />
+              <Button
+                type="button"
+                icon="pi pi-ellipsis-v"
+                outlined
+                severity="secondary"
+                @click="toggleMenu($event, slotProps.data.id)"
+                aria-haspopup="true"
+                :aria-controls="'overlay_menu_' + slotProps.data.id"
+              />
+              <Menu
+                :ref="(el) => setMenuRef(el, slotProps.data.id)"
+                :id="'overlay_menu_' + slotProps.data.id"
+                :model="moreActions(slotProps.data)"
+                :popup="true"
+              />
+            </template>
+          </Column>
+        </DataTable>
+      </div>
+    </ClientOnly>
+
+    <ClientOnly>
+      <div v-if="isMobile">
+        <Button
+          icon="pi pi-filter"
+          :label="`Filter & Sort (${numActiveFilters})`"
+          variant="outlined"
+          @click="filterDialogVisible = true"
+          class="mb-4"
+        />
+        <DataView
+          :value="filteredOrders"
+          layout="list"
+          :sortOrder="sortOrder"
+          :sortField="sortField"
+        >
+          <template #empty>
+            <div class="p-4 text-center text-muted-color">
+              {{ props.noTransactionsMessage || 'No transactions found.' }}
+            </div>
+          </template>
+          <template #list="slotProps">
+            <div class="flex flex-col">
+              <div
+                v-for="(transaction, index) in slotProps.items"
+                :key="index"
+                class="pt-5 pb-5 border-t border-solid border-gray-200"
+              >
+                <div class="flex w-full justify-between">
+                  <div>
+                    <span class="font-bold">{{
+                      getTransactionHeader(transaction)
+                    }}</span
+                    ><br />
+                    <NuxtTime
+                      :datetime="transaction.order_date"
+                      time-zone="UTC"
+                    />
+                  </div>
+                  <TransactionTypeBadge :type="transaction.type" />
+                </div>
+                <div class="mb-2 min-w-0 flex-1">
+                  <CookieList :cookies="transaction.cookies" />
+                  <div
+                    v-if="transaction.notes"
+                    class="truncate"
+                    @click="$event.currentTarget.classList.toggle('truncate')"
+                  >
+                    Notes: {{ transaction.notes }}
+                  </div>
+                </div>
                 <div>
-                  <span class="font-bold">{{
-                    getTransactionHeader(transaction)
-                  }}</span
-                  ><br />
-                  <NuxtTime
-                    :datetime="transaction.order_date"
-                    time-zone="UTC"
+                  <Button
+                    v-if="props.transactionTypes === 'audit-extra'"
+                    v-tooltip.bottom="{
+                      value:
+                        'Add this row to the database as a new transaction',
+                      showDelay: 500,
+                    }"
+                    aria-label="Extra Audit Row"
+                    icon="pi pi-plus"
+                    class="mr-2"
+                    variant="outlined"
+                    @click="addAuditRow(transaction)"
+                  />
+                  <Button
+                    v-if="
+                      props.transactionTypes !== 'all' &&
+                      props.transactionTypes !== 'audit-extra' &&
+                      transaction.status === 'pending'
+                    "
+                    v-tooltip.bottom="{
+                      value:
+                        'Click this when physical inventory has changed hands',
+                      showDelay: 500,
+                    }"
+                    aria-label="Mark Complete"
+                    icon="pi pi-check"
+                    class="mr-2"
+                    variant="outlined"
+                    @click="
+                      transactionsStore.updateTransactionStatus(
+                        transaction.id,
+                        'complete',
+                      )
+                    "
+                  />
+                  <Button
+                    v-if="
+                      props.transactionTypes !== 'all' &&
+                      props.transactionTypes !== 'audit-extra' &&
+                      transaction.status === 'complete'
+                    "
+                    v-tooltip.bottom="{
+                      value:
+                        'Click this when you have recorded this transaction in your council\'s cookie management system (Smart Cookies or eBudde)',
+                      showDelay: 500,
+                    }"
+                    aria-label="Mark Recorded"
+                    icon="pi pi-check-circle"
+                    class="mr-2"
+                    variant="outlined"
+                    @click="
+                      transactionsStore.updateTransactionStatus(
+                        transaction.id,
+                        'recorded',
+                      )
+                    "
+                  />
+                  <Button
+                    v-if="
+                      props.transactionTypes !== 'all' &&
+                      props.transactionTypes !== 'audit-extra' &&
+                      transaction.status === 'requested'
+                    "
+                    v-tooltip.bottom="{
+                      value:
+                        'Click this to approve this request and mark as pending',
+                      showDelay: 500,
+                    }"
+                    aria-label="Approve Request"
+                    icon="pi pi-check"
+                    class="mr-2"
+                    variant="outlined"
+                    @click="
+                      transactionsStore.updateTransactionStatus(
+                        transaction.id,
+                        'pending',
+                      )
+                    "
+                  />
+                  <Button
+                    v-if="
+                      props.transactionTypes !== 'audit' &&
+                      props.transactionTypes !== 'audit-extra' &&
+                      (transaction.status === 'rejected' ||
+                        (props.transactionTypes !== 'all' &&
+                          transaction.status === 'complete'))
+                    "
+                    v-tooltip.bottom="{
+                      value:
+                        'Click this to mark this transaction as pending again',
+                      showDelay: 500,
+                    }"
+                    aria-label="Mark Pending"
+                    icon="pi pi-undo"
+                    class="mr-2"
+                    variant="outlined"
+                    severity="secondary"
+                    @click="
+                      transactionsStore.updateTransactionStatus(
+                        transaction.id,
+                        'pending',
+                      )
+                    "
+                  />
+                  <Button
+                    v-if="
+                      props.transactionTypes !== 'all' &&
+                      props.transactionTypes !== 'audit-extra' &&
+                      transaction.status === 'recorded'
+                    "
+                    v-tooltip.bottom="{
+                      value:
+                        'Click this to undo marking as recorded and mark as completed again',
+                      showDelay: 500,
+                    }"
+                    aria-label="Undo Mark Recorded"
+                    icon="pi pi-undo"
+                    class="mr-2"
+                    variant="outlined"
+                    severity="secondary"
+                    @click="
+                      transactionsStore.updateTransactionStatus(
+                        transaction.id,
+                        'complete',
+                      )
+                    "
+                  />
+                  <Button
+                    v-if="
+                      props.transactionTypes !== 'audit' &&
+                      props.transactionTypes !== 'audit-extra'
+                    "
+                    v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                    aria-label="Edit"
+                    icon="pi pi-pencil"
+                    class="mr-2"
+                    variant="outlined"
+                    severity="secondary"
+                    @click="
+                      transactionHelpers.editTransaction(
+                        transaction,
+                        props.transactionTypes,
+                      )
+                    "
+                  />
+                  <Button
+                    v-if="
+                      props.transactionTypes !== 'audit' &&
+                      props.transactionTypes !== 'audit-extra' &&
+                      props.transactionTypes !== 'all' &&
+                      props.transactionTypes === 'girl' &&
+                      (transaction.status === 'requested' ||
+                        transaction.status === 'pending')
+                    "
+                    v-tooltip.bottom="{
+                      value: 'Reject Transaction Request',
+                      showDelay: 500,
+                    }"
+                    aria-label="Reject Transaction Request"
+                    icon="pi pi-times"
+                    class="mr-2"
+                    variant="outlined"
+                    severity="warn"
+                    @click="
+                      transactionsStore.updateTransactionStatus(
+                        transaction.id,
+                        'rejected',
+                      )
+                    "
+                  />
+                  <Button
+                    v-if="
+                      props.transactionTypes !== 'audit' &&
+                      props.transactionTypes !== 'audit-extra' &&
+                      transactionsStore.transactionRequiresReceipt(transaction)
+                    "
+                    v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
+                    aria-label="View Receipt"
+                    icon="pi pi-file"
+                    class="mr-2"
+                    variant="outlined"
+                    severity="secondary"
+                    @click="showReceipt(transaction)"
+                  />
+                  <Button
+                    type="button"
+                    icon="pi pi-ellipsis-v"
+                    outlined
+                    severity="secondary"
+                    @click="toggleMenu($event, transaction.id)"
+                    aria-haspopup="true"
+                    :aria-controls="'overlay_menu_' + transaction.id"
+                  />
+                  <Menu
+                    :ref="(el) => setMenuRef(el, transaction.id)"
+                    :id="'overlay_menu_' + transaction.id"
+                    :model="moreActions(transaction)"
+                    :popup="true"
                   />
                 </div>
-                <TransactionTypeBadge :type="transaction.type" />
-              </div>
-              <div class="mb-2 min-w-0 flex-1">
-                <CookieList :cookies="transaction.cookies" />
-                <div
-                  v-if="transaction.notes"
-                  class="truncate"
-                  @click="$event.currentTarget.classList.toggle('truncate')"
-                >
-                  Notes: {{ transaction.notes }}
-                </div>
-              </div>
-              <div>
-                <Button
-                  v-if="props.transactionTypes === 'audit-extra'"
-                  v-tooltip.bottom="{
-                    value: 'Add this row to the database as a new transaction',
-                    showDelay: 500,
-                  }"
-                  aria-label="Extra Audit Row"
-                  icon="pi pi-plus"
-                  class="mr-2"
-                  variant="outlined"
-                  @click="addAuditRow(transaction)"
-                />
-                <Button
-                  v-if="
-                    props.transactionTypes !== 'all' &&
-                    props.transactionTypes !== 'audit-extra' &&
-                    transaction.status === 'pending'
-                  "
-                  v-tooltip.bottom="{
-                    value:
-                      'Click this when physical inventory has changed hands',
-                    showDelay: 500,
-                  }"
-                  aria-label="Mark Complete"
-                  icon="pi pi-check"
-                  class="mr-2"
-                  variant="outlined"
-                  @click="
-                    transactionsStore.updateTransactionStatus(
-                      transaction.id,
-                      'complete',
-                    )
-                  "
-                />
-                <Button
-                  v-if="
-                    props.transactionTypes !== 'all' &&
-                    props.transactionTypes !== 'audit-extra' &&
-                    transaction.status === 'complete'
-                  "
-                  v-tooltip.bottom="{
-                    value:
-                      'Click this when you have recorded this transaction in your council\'s cookie management system (Smart Cookies or eBudde)',
-                    showDelay: 500,
-                  }"
-                  aria-label="Mark Recorded"
-                  icon="pi pi-check-circle"
-                  class="mr-2"
-                  variant="outlined"
-                  @click="
-                    transactionsStore.updateTransactionStatus(
-                      transaction.id,
-                      'recorded',
-                    )
-                  "
-                />
-                <Button
-                  v-if="
-                    props.transactionTypes !== 'all' &&
-                    props.transactionTypes !== 'audit-extra' &&
-                    transaction.status === 'requested'
-                  "
-                  v-tooltip.bottom="{
-                    value:
-                      'Click this to approve this request and mark as pending',
-                    showDelay: 500,
-                  }"
-                  aria-label="Approve Request"
-                  icon="pi pi-check"
-                  class="mr-2"
-                  variant="outlined"
-                  @click="
-                    transactionsStore.updateTransactionStatus(
-                      transaction.id,
-                      'pending',
-                    )
-                  "
-                />
-                <Button
-                  v-if="
-                    props.transactionTypes !== 'audit' &&
-                    props.transactionTypes !== 'audit-extra' &&
-                    (transaction.status === 'rejected' ||
-                      (props.transactionTypes !== 'all' &&
-                        transaction.status === 'complete'))
-                  "
-                  v-tooltip.bottom="{
-                    value:
-                      'Click this to mark this transaction as pending again',
-                    showDelay: 500,
-                  }"
-                  aria-label="Mark Pending"
-                  icon="pi pi-undo"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="secondary"
-                  @click="
-                    transactionsStore.updateTransactionStatus(
-                      transaction.id,
-                      'pending',
-                    )
-                  "
-                />
-                <Button
-                  v-if="
-                    props.transactionTypes !== 'all' &&
-                    props.transactionTypes !== 'audit-extra' &&
-                    transaction.status === 'recorded'
-                  "
-                  v-tooltip.bottom="{
-                    value:
-                      'Click this to undo marking as recorded and mark as completed again',
-                    showDelay: 500,
-                  }"
-                  aria-label="Undo Mark Recorded"
-                  icon="pi pi-undo"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="secondary"
-                  @click="
-                    transactionsStore.updateTransactionStatus(
-                      transaction.id,
-                      'complete',
-                    )
-                  "
-                />
-                <Button
-                  v-if="
-                    props.transactionTypes !== 'audit' &&
-                    props.transactionTypes !== 'audit-extra'
-                  "
-                  v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
-                  aria-label="Edit"
-                  icon="pi pi-pencil"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="secondary"
-                  @click="
-                    transactionHelpers.editTransaction(
-                      transaction,
-                      props.transactionTypes,
-                    )
-                  "
-                />
-                <Button
-                  v-if="
-                    props.transactionTypes !== 'audit' &&
-                    props.transactionTypes !== 'audit-extra' &&
-                    props.transactionTypes !== 'all' &&
-                    props.transactionTypes === 'girl' &&
-                    (transaction.status === 'requested' ||
-                      transaction.status === 'pending')
-                  "
-                  v-tooltip.bottom="{
-                    value: 'Reject Transaction Request',
-                    showDelay: 500,
-                  }"
-                  aria-label="Reject Transaction Request"
-                  icon="pi pi-times"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="warn"
-                  @click="
-                    transactionsStore.updateTransactionStatus(
-                      transaction.id,
-                      'rejected',
-                    )
-                  "
-                />
-                <Button
-                  v-if="
-                    props.transactionTypes !== 'audit' &&
-                    props.transactionTypes !== 'audit-extra' &&
-                    transactionsStore.transactionRequiresReceipt(transaction)
-                  "
-                  v-tooltip.bottom="{ value: 'View Receipt', showDelay: 500 }"
-                  aria-label="View Receipt"
-                  icon="pi pi-file"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="secondary"
-                  @click="showReceipt(transaction)"
-                />
-                <Button
-                  type="button"
-                  icon="pi pi-ellipsis-v"
-                  outlined
-                  severity="secondary"
-                  @click="toggleMenu($event, transaction.id)"
-                  aria-haspopup="true"
-                  :aria-controls="'overlay_menu_' + transaction.id"
-                />
-                <Menu
-                  :ref="(el) => setMenuRef(el, transaction.id)"
-                  :id="'overlay_menu_' + transaction.id"
-                  :model="moreActions(transaction)"
-                  :popup="true"
-                />
               </div>
             </div>
-          </div>
-        </template>
-      </DataView>
-    </div>
+          </template>
+        </DataView>
+      </div>
+    </ClientOnly>
   </div>
 
   <Dialog
