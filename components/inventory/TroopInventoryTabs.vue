@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import type { NewOrder } from '@/types/types';
   const loading = ref(true);
+  const { isMobile } = useDevice();
 
   loading.value = true;
 
@@ -32,52 +33,134 @@
           />
         </template>
       </Toolbar>
-      <Tabs value="0">
-        <TabList>
-          <Tab value="0" class="flex items-center gap-2"
-            ><i class="pi pi-box" />Current Inventory</Tab
-          >
-          <Tab value="1" class="flex items-center gap-2"
-            ><i class="pi pi-truck" />Pending ({{
-              ordersStore.pendingTroopTransactionListCount
-            }})</Tab
-          >
-          <Tab value="2" class="flex items-center gap-2"
-            ><i class="pi pi-check" />Completed ({{
-              ordersStore.completedTroopTransactionListCount
-            }})</Tab
-          >
-          <Tab value="3" class="flex items-center gap-2"
-            ><i class="pi pi-check-circle" />Recorded ({{
-              ordersStore.recordedTroopTransactionListCount
-            }})</Tab
-          >
-        </TabList>
-        <TabPanels>
-          <TabPanel value="0">
-            <TroopCurrentInventoryDataTable />
-          </TabPanel>
-          <TabPanel value="1">
-            <TransactionsDataTable
-              :orders="ordersStore.pendingTroopTransactionList"
-              transaction-types="troop"
-            />
-          </TabPanel>
-          <TabPanel value="2">
-            <TransactionsDataTable
-              :orders="ordersStore.completedTroopTransactionList"
-              transaction-types="troop"
-            />
-          </TabPanel>
-          <TabPanel value="3">
-            <TransactionsDataTable
-              :orders="ordersStore.recordedTroopTransactionList"
-              transaction-types="troop"
-              :paginated="true"
-            />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+      <ClientOnly>
+        <div v-if="!isMobile">
+          <Tabs value="0">
+            <TabList>
+              <Tab value="0" class="flex items-center gap-2"
+                ><i class="pi pi-box" />Current Inventory</Tab
+              >
+              <Tab value="1" class="flex items-center gap-2"
+                ><i class="pi pi-truck" />Pending ({{
+                  ordersStore.pendingTroopTransactionListCount
+                }})</Tab
+              >
+              <Tab value="2" class="flex items-center gap-2"
+                ><i class="pi pi-check" />Completed ({{
+                  ordersStore.completedTroopTransactionListCount
+                }})</Tab
+              >
+              <Tab value="3" class="flex items-center gap-2"
+                ><i class="pi pi-check-circle" />Recorded ({{
+                  ordersStore.recordedTroopTransactionListCount
+                }})</Tab
+              >
+            </TabList>
+            <TabPanels>
+              <TabPanel value="0">
+                <TroopCurrentInventoryDataTable />
+              </TabPanel>
+              <TabPanel value="1">
+                <TransactionsDataTable
+                  :orders="ordersStore.pendingTroopTransactionList"
+                  transaction-types="troop"
+                />
+              </TabPanel>
+              <TabPanel value="2">
+                <TransactionsDataTable
+                  :orders="ordersStore.completedTroopTransactionList"
+                  transaction-types="troop"
+                />
+              </TabPanel>
+              <TabPanel value="3">
+                <TransactionsDataTable
+                  :orders="ordersStore.recordedTroopTransactionList"
+                  transaction-types="troop"
+                  :paginated="true"
+                />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </div>
+      </ClientOnly>
     </div>
+
+    <ClientOnly>
+      <div v-if="isMobile">
+        <Accordion value="0">
+          <AccordionPanel value="0">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-box" /><span>Current Inventory</span>
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+            >
+              <TroopCurrentInventoryDataTable />
+            </AccordionContent>
+          </AccordionPanel>
+          <AccordionPanel value="1">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-truck" />
+                <span>Pending</span>
+                <Badge
+                  :value="ordersStore.pendingTroopTransactionListCount"
+                  class="ml-auto mr-2"
+                />
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+            >
+              <TransactionsDataTable
+                :orders="ordersStore.pendingTroopTransactionList"
+                transaction-types="troop"
+            /></AccordionContent>
+          </AccordionPanel>
+          <AccordionPanel value="2">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-check" />
+                <span>Completed</span>
+                <Badge
+                  :value="ordersStore.completedTroopTransactionListCount"
+                  class="ml-auto mr-2"
+                />
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+            >
+              <TransactionsDataTable
+                :orders="ordersStore.completedTroopTransactionList"
+                transaction-types="troop"
+              />
+            </AccordionContent>
+          </AccordionPanel>
+          <AccordionPanel value="3">
+            <AccordionHeader>
+              <span class="flex items-center gap-2 w-full">
+                <i class="pi pi-check-circle" />
+                <span>Recorded</span>
+                <Badge
+                  :value="ordersStore.recordedTroopTransactionListCount"
+                  class="ml-auto mr-2"
+                />
+              </span>
+            </AccordionHeader>
+            <AccordionContent
+              :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+            >
+              <TransactionsDataTable
+                :orders="ordersStore.recordedTroopTransactionList"
+                transaction-types="troop"
+              />
+            </AccordionContent>
+          </AccordionPanel>
+        </Accordion>
+      </div>
+    </ClientOnly>
   </div>
 </template>

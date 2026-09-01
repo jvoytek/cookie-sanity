@@ -10,6 +10,8 @@ export type Order = Database['public']['Tables']['orders']['Row'] & {
   auto_calculate_cookies?: boolean;
   total_cookies?: number;
   sortDate?: Date;
+  toName?: string;
+  fromName?: string;
 };
 export type Girl = Database['public']['Tables']['sellers']['Row'];
 export type Adult = Database['public']['Tables']['adults']['Row'];
