@@ -343,9 +343,8 @@
             <Column field="member" header="Member" sortable>
               <template #body="slotProps">
                 <i
-                  :class="
-                    slotProps.data.member ? 'pi pi-check' : 'pi pi-times'
-                  "
+                  v-if="slotProps.data.member"
+                  class="text-emerald-500 pi pi-heart-fill"
                 />
               </template>
             </Column>
@@ -422,9 +421,11 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <div>
-            <span class="font-semibold">Member:</span>
-            <span class="ml-2">{{ adult.member ? 'Yes' : 'No' }}</span>
+          <div v-if="adult.member">
+            <span
+              ><i class="text-emerald-500 pi pi-heart-fill mr-1" />
+              <span class="text-emerald-500">Member</span></span
+            >
           </div>
           <div v-if="girlsStore.getGirlsByIdList(adult.sellers).length > 0">
             <div
