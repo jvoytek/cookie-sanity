@@ -294,7 +294,7 @@
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     order_num: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    notes: { value: null, matchMode: FilterMatchMode.IN },
+    notes: { value: null, matchMode: FilterMatchMode.CONTAINS },
     supplier: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     from: { value: null, matchMode: FilterMatchMode.EQUALS },
     to: { value: null, matchMode: FilterMatchMode.EQUALS },
@@ -798,7 +798,15 @@
               >
             </template>
           </Column>
-          <Column field="notes" header="Notes" />
+          <Column field="notes" header="Notes">
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                v-model="filterModel.value"
+                type="text"
+                @input="filterCallback()"
+                placeholder="Search Notes"
+              /> </template
+          ></Column>
           <Column field="actions" header="Actions" style="min-width: 224px">
             <template #body="slotProps">
               <Button
