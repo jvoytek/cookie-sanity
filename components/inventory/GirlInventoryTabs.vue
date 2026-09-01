@@ -245,7 +245,9 @@
               />
             </span>
           </AccordionHeader>
-          <AccordionContent>
+          <AccordionContent
+            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+          >
             <TransactionsDataTable
               :orders="filteredRequestedTransactions"
               transaction-types="girl"
@@ -259,7 +261,9 @@
               <Badge :value="filteredPendingCount" class="ml-auto mr-2" />
             </span>
           </AccordionHeader>
-          <AccordionContent>
+          <AccordionContent
+            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+          >
             <TransactionsDataTable
               :orders="filteredPendingTransactions"
               transaction-types="girl"
@@ -273,7 +277,9 @@
               <Badge :value="filteredCompletedCount" class="ml-auto mr-2" />
             </span>
           </AccordionHeader>
-          <AccordionContent>
+          <AccordionContent
+            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+          >
             <TransactionsDataTable
               :orders="filteredCompletedTransactions"
               transaction-types="girl"
@@ -288,7 +294,9 @@
               <Badge :value="filteredRecordedCount" class="ml-auto mr-2" />
             </span>
           </AccordionHeader>
-          <AccordionContent>
+          <AccordionContent
+            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+          >
             <TransactionsDataTable
               :orders="filteredRecordedTransactions"
               transaction-types="girl"
@@ -303,7 +311,9 @@
               <Badge :value="filteredRejectedCount" class="ml-auto mr-2" />
             </span>
           </AccordionHeader>
-          <AccordionContent>
+          <AccordionContent
+            :pt="{ contentWrapper: { class: 'min-w-0 w-full' } }"
+          >
             <TransactionsDataTable
               :orders="filteredRejectedTransactions"
               transaction-types="girl"
