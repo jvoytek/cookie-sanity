@@ -195,8 +195,22 @@
               :key="adult.id"
               class="hover:bg-surface-50"
             >
-              <td class="p-2 border border-surface-200">
-                {{ adult.first_name }} {{ adult.last_name[0] }}.
+              <td
+                class="p-2 border border-surface-200 flex justify-between items-center gap-2"
+              >
+                <span
+                  class="truncate"
+                  @click="$event.currentTarget.classList.toggle('truncate')"
+                  >{{ adult.first_name }} {{ adult.last_name[0] }}.</span
+                >
+                <span v-if="adult.member"
+                  ><span
+                    ><i class="text-emerald-500 pi pi-heart-fill lg:mr-1" />
+                    <span class="text-emerald-500 hidden lg:inline"
+                      >Member</span
+                    ></span
+                  ></span
+                >
               </td>
               <td
                 v-for="form in adultForms"

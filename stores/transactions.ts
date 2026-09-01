@@ -196,6 +196,23 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   /* Private Functions */
 
+  const _transformDataForTransactionWithGirlNames = (
+    transaction: Order,
+  ): Order => {
+    const transformedTransaction = transformDataForTransaction(transaction);
+    return {
+      ...transformedTransaction,
+      toName:
+        transaction.to !== null
+          ? girlsStore.getGirlNameById(transaction.to)
+          : 'Troop',
+      fromName:
+        transaction.from !== null
+          ? girlsStore.getGirlNameById(transaction.from)
+          : 'Troop',
+    } as Order;
+  };
+
   const _getTransactionListByStatusAndType = (
     status: string,
     type: 'girl' | 'troop',
@@ -342,7 +359,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const transactionTypeMap: Record<string, string> = {
       T2G: 'Troop to Girl',
       'T2G(B)': 'Troop to Girl (Booth)',
-      'T2G(VB)': 'Troop to Girl (Virtual Booth)',
+      'T2G(VB)': 'Troop to Girl (V. Booth)',
       G2G: 'Girl to Girl',
       G2T: 'Girl to Troop',
       T2T: 'Troop to Troop',
@@ -359,7 +376,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
         return;
       const { data, error } = await _supabaseFetchTransactions();
       if (error) throw error;
-      allTransactions.value = data.map(transformDataForTransaction) ?? [];
+      allTransactions.value =
+        data.map(_transformDataForTransactionWithGirlNames) ?? [];
     } catch (error) {
       notificationHelpers.addError(error as Error);
     }
@@ -370,6 +388,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     delete tx.auto_calculate_cookies;
     delete tx.total_cookies;
     delete tx.sortDate;
+    delete tx.toName;
+    delete tx.fromName;
 
     if (transactionTypesToInvert.includes(tx.type || '')) {
       tx = invertCookieQuantitiesInTransaction(tx);
@@ -400,7 +420,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         await _supabaseInsertTransaction(validatedTransaction);
 
       if (error) throw error;
-      _addTransaction(transformDataForTransaction(data));
+      _addTransaction(_transformDataForTransactionWithGirlNames(data));
       _sortTransactions();
       if (audit === true) {
         const auditSessionsStore = useAuditSessionsStore();
@@ -452,13 +472,15 @@ export const useTransactionsStore = defineStore('transactions', () => {
       delete transaction.total_cookies;
 
     if (transaction.sortDate !== undefined) delete transaction.sortDate;
+    if (transaction.toName !== undefined) delete transaction.toName;
+    if (transaction.fromName !== undefined) delete transaction.fromName;
 
     try {
       const { data, error } = await _supabaseUpsertTransaction(transaction);
 
       if (error) throw error;
 
-      _updateTransaction(transformDataForTransaction(data));
+      _updateTransaction(_transformDataForTransactionWithGirlNames(data));
       _sortTransactions();
       notificationHelpers.addSuccess('Transaction Updated');
     } catch (error) {
@@ -583,7 +605,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         status,
       );
       if (error) throw error;
-      _updateTransaction(transformDataForTransaction(data));
+      _updateTransaction(_transformDataForTransactionWithGirlNames(data));
       _sortTransactions();
       notificationHelpers.addSuccess(
         `Transaction Marked ${status.charAt(0).toUpperCase() + status.slice(1)}`,

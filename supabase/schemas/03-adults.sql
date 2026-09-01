@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS "public"."adults" (
     "season" bigint DEFAULT '1'::bigint NOT NULL,
     "email" text,
     "phone" text,
-    "sellers" bigint[] DEFAULT '{}'::bigint[] NOT NULL
+    "sellers" bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    "member" boolean DEFAULT false NOT NULL
 );
 
 
