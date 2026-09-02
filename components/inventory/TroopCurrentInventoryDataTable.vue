@@ -9,8 +9,69 @@
   loading.value = true;
 
   const cookiesStore = useCookiesStore();
+  const toast = useToast();
 
   loading.value = false;
+
+  const copiedColumn = ref<string | null>(null);
+  let copyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  onUnmounted(() => {
+    if (copyTimeoutId) {
+      clearTimeout(copyTimeoutId);
+    }
+  });
+
+  const formatColumnInventory = (field: string): string => {
+    return inventoryTotals.value
+      .filter((cookie) => !cookie.is_virtual)
+      .map((cookie) => {
+        const val = (cookie as Record<string, unknown>)[field] ?? 0;
+        return `${cookie.abbreviation}: ${val}`;
+      })
+      .join('\n');
+  };
+
+  const copyColumnInventory = async (field: string, label: string) => {
+    if (!navigator.clipboard) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Clipboard API not available in this browser',
+        life: 3000,
+      });
+      return;
+    }
+
+    try {
+      const text = formatColumnInventory(field);
+      await navigator.clipboard.writeText(text);
+      copiedColumn.value = field;
+
+      if (copyTimeoutId) {
+        clearTimeout(copyTimeoutId);
+      }
+
+      copyTimeoutId = setTimeout(() => {
+        copiedColumn.value = null;
+        copyTimeoutId = null;
+      }, 2000);
+
+      toast.add({
+        severity: 'success',
+        summary: 'Copied',
+        detail: `Copied ${label} inventory to clipboard`,
+        life: 3000,
+      });
+    } catch {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Failed to copy ${label} inventory to clipboard`,
+        life: 3000,
+      });
+    }
+  };
 
   const inventoryTotals = computed(() => {
     return cookiesStore.allCookiesWithInventoryTotals(true);
@@ -107,8 +168,28 @@
             </Column>
             <Column>
               <template #header>
-                <strong v-if="screenWidth > 991">On Hand</strong>
-                <strong v-else>O/H</strong>
+                <div class="flex items-center gap-1">
+                  <strong v-if="screenWidth > 991">On Hand</strong>
+                  <strong v-else>O/H</strong>
+                  <Button
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'onHand' ? 'Copied!' : 'Copy On Hand',
+                      showDelay: 500,
+                    }"
+                    :icon="
+                      copiedColumn === 'onHand' ? 'pi pi-check' : 'pi pi-copy'
+                    "
+                    :aria-label="
+                      copiedColumn === 'onHand' ? 'Copied' : 'Copy On Hand'
+                    "
+                    size="small"
+                    variant="text"
+                    severity="secondary"
+                    class="!p-1 text-xs"
+                    @click.stop="copyColumnInventory('onHand', 'On Hand')"
+                  />
+                </div>
               </template>
             </Column>
             <Column header="Pending" v-if="screenWidth > 991" />
@@ -129,23 +210,148 @@
             <Column header="Pending" v-if="screenWidth > 991" />
             <Column>
               <template #header>
-                <strong v-if="screenWidth > 991">After Pending</strong>
-                <strong v-else>A/P</strong>
+                <div class="flex items-center gap-1">
+                  <strong v-if="screenWidth > 991">After Pending</strong>
+                  <strong v-else>A/P</strong>
+                  <Button
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'afterPending'
+                          ? 'Copied!'
+                          : 'Copy After Pending',
+                      showDelay: 500,
+                    }"
+                    :icon="
+                      copiedColumn === 'afterPending'
+                        ? 'pi pi-check'
+                        : 'pi pi-copy'
+                    "
+                    :aria-label="
+                      copiedColumn === 'afterPending'
+                        ? 'Copied'
+                        : 'Copy After Pending'
+                    "
+                    size="small"
+                    variant="text"
+                    severity="secondary"
+                    class="!p-1 text-xs"
+                    @click.stop="
+                      copyColumnInventory('afterPending', 'After Pending')
+                    "
+                  />
+                </div>
               </template>
             </Column>
             <Column>
               <template #header>
-                <strong v-if="screenWidth > 991">Inc. Requests</strong>
-                <strong v-else>+REQ</strong>
+                <div class="flex items-center gap-1">
+                  <strong v-if="screenWidth > 991">Inc. Requests</strong>
+                  <strong v-else>+REQ</strong>
+                  <Button
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'afterPendingIncludingRequests'
+                          ? 'Copied!'
+                          : 'Copy Inc. Requests',
+                      showDelay: 500,
+                    }"
+                    :icon="
+                      copiedColumn === 'afterPendingIncludingRequests'
+                        ? 'pi pi-check'
+                        : 'pi pi-copy'
+                    "
+                    :aria-label="
+                      copiedColumn === 'afterPendingIncludingRequests'
+                        ? 'Copied'
+                        : 'Copy Inc. Requests'
+                    "
+                    size="small"
+                    variant="text"
+                    severity="secondary"
+                    class="!p-1 text-xs"
+                    @click.stop="
+                      copyColumnInventory(
+                        'afterPendingIncludingRequests',
+                        'Inc. Requests',
+                      )
+                    "
+                  />
+                </div>
               </template>
             </Column>
             <Column>
               <template #header>
-                <strong v-if="screenWidth > 991">Inc. Booths</strong>
-                <strong v-else>+BTH</strong>
+                <div class="flex items-center gap-1">
+                  <strong v-if="screenWidth > 991">Inc. Booths</strong>
+                  <strong v-else>+BTH</strong>
+                  <Button
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'afterPendingIncludingBooths'
+                          ? 'Copied!'
+                          : 'Copy Inc. Booths',
+                      showDelay: 500,
+                    }"
+                    :icon="
+                      copiedColumn === 'afterPendingIncludingBooths'
+                        ? 'pi pi-check'
+                        : 'pi pi-copy'
+                    "
+                    :aria-label="
+                      copiedColumn === 'afterPendingIncludingBooths'
+                        ? 'Copied'
+                        : 'Copy Inc. Booths'
+                    "
+                    size="small"
+                    variant="text"
+                    severity="secondary"
+                    class="!p-1 text-xs"
+                    @click.stop="
+                      copyColumnInventory(
+                        'afterPendingIncludingBooths',
+                        'Inc. Booths',
+                      )
+                    "
+                  />
+                </div>
               </template>
             </Column>
-            <Column header="Total Received" v-if="screenWidth > 991" />
+            <Column v-if="screenWidth > 991">
+              <template #header>
+                <div class="flex items-center gap-1">
+                  <strong>Total Received</strong>
+                  <Button
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'totalReceivedByTroop'
+                          ? 'Copied!'
+                          : 'Copy Total Received',
+                      showDelay: 500,
+                    }"
+                    :icon="
+                      copiedColumn === 'totalReceivedByTroop'
+                        ? 'pi pi-check'
+                        : 'pi pi-copy'
+                    "
+                    :aria-label="
+                      copiedColumn === 'totalReceivedByTroop'
+                        ? 'Copied'
+                        : 'Copy Total Received'
+                    "
+                    size="small"
+                    variant="text"
+                    severity="secondary"
+                    class="!p-1 text-xs"
+                    @click.stop="
+                      copyColumnInventory(
+                        'totalReceivedByTroop',
+                        'Total Received',
+                      )
+                    "
+                  />
+                </div>
+              </template>
+            </Column>
           </Row>
         </ColumnGroup>
         <Column field="name" header="Cookie Type" sortable>
