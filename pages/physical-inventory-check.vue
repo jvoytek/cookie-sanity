@@ -3,6 +3,8 @@
   import NoCookiesOverlay from '~/components/other/NoCookiesOverlay.vue';
   import type { Json } from '~/types/supabase';
 
+  const { isMobile } = useDevice();
+
   const loading = ref(true);
   loading.value = true;
 
@@ -168,6 +170,19 @@
     return 'danger';
   };
 
+  const getTotalPhysical = (abbreviation: string) => {
+    const counts = physicalCounts.value[abbreviation];
+    if (!counts) return 0;
+    return counts.cases * 12 + counts.packages;
+  };
+
+  const getVariance = (abbreviation: string) => {
+    return (
+      getTotalPhysical(abbreviation) -
+      (expectedInventory.value[abbreviation] || 0)
+    );
+  };
+
   const aLongTimeAgo = (datetime: string) => {
     const date = new Date(datetime);
     const now = new Date();
@@ -209,79 +224,171 @@
         </div>
 
         <!-- Physical Inventory Check History -->
-        <DataTable
-          :value="inventoryChecksStore.sortedInventoryChecks"
-          paginator
-          :rows="10"
-          size="small"
-        >
-          <template #empty>
-            <div class="text-center py-8">
-              <i
-                class="pi pi-clipboard text-xl text-surface-300 dark:text-surface-600 mb-4"
-                style="font-size: 4rem"
-              />
-              <p
-                class="text-4xl mb-2 text-surface-300 dark:text-surface-60 font-bold"
-              >
-                Ready to Start Physical Count
-              </p>
-              <p class="text-surface-500 dark:text-surface-400">
-                Click "Start Physical Check" to begin counting your physical
-                inventory. You can save the check results for record-keeping or
-                reconcile discrepancies immediately.
-              </p>
-            </div>
-          </template>
-          <Column field="check_date" header="Check Date" sortable>
-            <template #body="slotProps">
-              <NuxtTime
-                :datetime="slotProps.data.check_date"
-                :relative="aLongTimeAgo(slotProps.data.check_date)"
-              />
+        <ClientOnly>
+          <DataTable
+            v-if="!isMobile"
+            :value="inventoryChecksStore.sortedInventoryChecks"
+            paginator
+            :rows="10"
+            size="small"
+          >
+            <template #empty>
+              <div class="text-center py-8">
+                <i
+                  class="pi pi-clipboard text-xl text-surface-300 dark:text-surface-600 mb-4"
+                  style="font-size: 4rem"
+                />
+                <p
+                  class="text-4xl mb-2 text-surface-300 dark:text-surface-60 font-bold"
+                >
+                  Ready to Start Physical Count
+                </p>
+                <p class="text-surface-500 dark:text-surface-400">
+                  Click "Start Physical Check" to begin counting your physical
+                  inventory. You can save the check results for record-keeping
+                  or reconcile discrepancies immediately.
+                </p>
+              </div>
             </template>
-          </Column>
-          <Column field="conducted_by" header="Conducted By" sortable />
-          <Column field="status" header="Status" sortable>
-            <template #body="slotProps">
-              <Tag :value="slotProps.data.status" severity="success" />
+            <Column field="check_date" header="Check Date" sortable>
+              <template #body="slotProps">
+                <NuxtTime
+                  :datetime="slotProps.data.check_date"
+                  :relative="aLongTimeAgo(slotProps.data.check_date)"
+                />
+              </template>
+            </Column>
+            <Column field="conducted_by" header="Conducted By" sortable />
+            <Column field="status" header="Status" sortable>
+              <template #body="slotProps">
+                <Tag :value="slotProps.data.status" severity="success" />
+              </template>
+            </Column>
+            <Column header="Items Checked">
+              <template #body="slotProps">
+                {{ Object.keys(slotProps.data.physical_inventory).length }}
+                items
+              </template>
+            </Column>
+            <Column header="Total Discrepancies" sortable>
+              <template #body="slotProps">
+                <Tag
+                  :value="`${slotProps.data.total_discrepancies} packages`"
+                  :severity="
+                    getDiscrepancySeverity(slotProps.data.total_discrepancies)
+                  "
+                />
+              </template>
+            </Column>
+            <Column field="notes" header="Notes" />
+            <Column header="Actions">
+              <template #body="slotProps">
+                <Button
+                  icon="pi pi-pencil"
+                  text
+                  rounded
+                  severity="secondary"
+                  @click="editCheck(slotProps.data)"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  text
+                  rounded
+                  severity="danger"
+                  @click="confirmDelete(slotProps.data)"
+                />
+              </template>
+            </Column>
+          </DataTable>
+
+          <DataView
+            v-else
+            :value="inventoryChecksStore.sortedInventoryChecks"
+            layout="list"
+            paginator
+            :rows="10"
+          >
+            <template #empty>
+              <div class="text-center py-8">
+                <i
+                  class="pi pi-clipboard text-xl text-surface-300 dark:text-surface-600 mb-4"
+                  style="font-size: 4rem"
+                />
+                <p
+                  class="text-4xl mb-2 text-surface-300 dark:text-surface-60 font-bold"
+                >
+                  Ready to Start Physical Count
+                </p>
+                <p class="text-surface-500 dark:text-surface-400">
+                  Click "Start Physical Check" to begin counting your physical
+                  inventory. You can save the check results for record-keeping
+                  or reconcile discrepancies immediately.
+                </p>
+              </div>
             </template>
-          </Column>
-          <Column header="Items Checked">
-            <template #body="slotProps">
-              {{ Object.keys(slotProps.data.physical_inventory).length }} items
+            <template #list="slotProps">
+              <div class="flex flex-col">
+                <div
+                  v-for="(check, index) in slotProps.items"
+                  :key="index"
+                  class="pt-4 pb-4 border-t border-solid border-gray-200"
+                >
+                  <div class="flex w-full justify-between items-start mb-2">
+                    <div>
+                      <span class="font-bold">
+                        <NuxtTime
+                          :datetime="check.check_date"
+                          :relative="aLongTimeAgo(check.check_date)"
+                        />
+                      </span>
+                      <br />
+                      <span class="text-sm text-muted-color"
+                        >Conducted by {{ check.conducted_by }}</span
+                      >
+                    </div>
+                    <Tag :value="check.status" severity="success" />
+                  </div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-sm text-muted-color">Items Checked:</span>
+                    <span>{{
+                      Object.keys(check.physical_inventory).length
+                    }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-sm text-muted-color"
+                      >Total Discrepancies:</span
+                    >
+                    <Tag
+                      :value="`${check.total_discrepancies} packages`"
+                      :severity="
+                        getDiscrepancySeverity(check.total_discrepancies)
+                      "
+                    />
+                  </div>
+                  <div v-if="check.notes" class="mb-2">
+                    Notes: {{ check.notes }}
+                  </div>
+                  <div>
+                    <Button
+                      icon="pi pi-pencil"
+                      text
+                      rounded
+                      severity="secondary"
+                      @click="editCheck(check)"
+                    />
+                    <Button
+                      icon="pi pi-trash"
+                      text
+                      rounded
+                      severity="danger"
+                      @click="confirmDelete(check)"
+                    />
+                  </div>
+                </div>
+              </div>
             </template>
-          </Column>
-          <Column header="Total Discrepancies" sortable>
-            <template #body="slotProps">
-              <Tag
-                :value="`${slotProps.data.total_discrepancies} packages`"
-                :severity="
-                  getDiscrepancySeverity(slotProps.data.total_discrepancies)
-                "
-              />
-            </template>
-          </Column>
-          <Column field="notes" header="Notes" />
-          <Column header="Actions">
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-pencil"
-                text
-                rounded
-                severity="secondary"
-                @click="editCheck(slotProps.data)"
-              />
-              <Button
-                icon="pi pi-trash"
-                text
-                rounded
-                severity="danger"
-                @click="confirmDelete(slotProps.data)"
-              />
-            </template>
-          </Column>
-        </DataTable>
+          </DataView>
+        </ClientOnly>
       </div>
     </div>
 
@@ -307,94 +414,151 @@
 
         <div>
           <h3 class="font-semibold mb-3">Cookie Counts</h3>
-          <DataTable
-            :value="cookiesStore.allCookies.filter((c) => !c.is_virtual)"
-            size="small"
-          >
-            <Column field="name" header="Cookie">
-              <template #body="slotProps">
-                <div class="flex items-center gap-2">
+          <ClientOnly>
+            <DataTable
+              v-if="!isMobile"
+              :value="cookiesStore.allCookies.filter((c) => !c.is_virtual)"
+              size="small"
+            >
+              <Column field="name" header="Cookie">
+                <template #body="slotProps">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="w-3 h-3 rounded-full flex-shrink-0"
+                      :style="{
+                        backgroundColor: slotProps.data.color || '#888',
+                      }"
+                    />
+                    <span>{{ slotProps.data.name }}</span>
+                  </div>
+                </template>
+              </Column>
+              <Column header="Cases">
+                <template #body="slotProps">
+                  <InputNumber
+                    v-model="physicalCounts[slotProps.data.abbreviation].cases"
+                    :min="0"
+                    :use-grouping="false"
+                    input-class="w-16"
+                  />
+                </template>
+              </Column>
+              <Column header="Packages">
+                <template #body="slotProps">
+                  <InputNumber
+                    v-model="
+                      physicalCounts[slotProps.data.abbreviation].packages
+                    "
+                    :min="0"
+                    :use-grouping="false"
+                    input-class="w-16"
+                  />
+                </template>
+              </Column>
+              <Column header="Total Physical">
+                <template #body="slotProps">
+                  <span class="font-bold">
+                    {{ getTotalPhysical(slotProps.data.abbreviation) }}
+                  </span>
+                </template>
+              </Column>
+              <Column header="Digital Count">
+                <template #body="slotProps">
+                  <span class="font-bold">
+                    {{ expectedInventory[slotProps.data.abbreviation] || 0 }}
+                  </span>
+                </template>
+              </Column>
+              <Column header="Variance">
+                <template #body="slotProps">
+                  <span
+                    class="font-bold"
+                    :class="{
+                      'text-red-600':
+                        getVariance(slotProps.data.abbreviation) !== 0,
+                      'text-green-600':
+                        getVariance(slotProps.data.abbreviation) === 0,
+                    }"
+                  >
+                    <span v-if="getVariance(slotProps.data.abbreviation) > 0"
+                      >+</span
+                    >{{ getVariance(slotProps.data.abbreviation) }}
+                  </span>
+                </template>
+              </Column>
+            </DataTable>
+
+            <div v-else class="flex flex-col gap-3">
+              <div
+                v-for="cookie in cookiesStore.allCookies.filter(
+                  (c) => !c.is_virtual,
+                )"
+                :key="cookie.abbreviation"
+                class="p-3 border border-solid border-gray-200 rounded-md"
+              >
+                <div class="flex items-center gap-2 mb-3">
                   <span
                     class="w-3 h-3 rounded-full flex-shrink-0"
-                    :style="{ backgroundColor: slotProps.data.color || '#888' }"
+                    :style="{ backgroundColor: cookie.color || '#888' }"
                   />
-                  <span>{{ slotProps.data.name }}</span>
+                  <span class="font-bold">{{ cookie.name }}</span>
                 </div>
-              </template>
-            </Column>
-            <Column header="Cases">
-              <template #body="slotProps">
-                <InputNumber
-                  v-model="physicalCounts[slotProps.data.abbreviation].cases"
-                  :min="0"
-                  :use-grouping="false"
-                  input-class="w-16"
-                />
-              </template>
-            </Column>
-            <Column header="Packages">
-              <template #body="slotProps">
-                <InputNumber
-                  v-model="physicalCounts[slotProps.data.abbreviation].packages"
-                  :min="0"
-                  :use-grouping="false"
-                  input-class="w-16"
-                />
-              </template>
-            </Column>
-            <Column header="Total Physical">
-              <template #body="slotProps">
-                <span class="font-bold">
-                  {{
-                    physicalCounts[slotProps.data.abbreviation].cases * 12 +
-                    physicalCounts[slotProps.data.abbreviation].packages
-                  }}
-                </span>
-              </template>
-            </Column>
-            <Column header="Digital Count">
-              <template #body="slotProps">
-                <span class="font-bold">
-                  {{ expectedInventory[slotProps.data.abbreviation] || 0 }}
-                </span>
-              </template>
-            </Column>
-            <Column header="Variance">
-              <template #body="slotProps">
-                <span
-                  class="font-bold"
-                  :class="{
-                    'text-red-600':
-                      physicalCounts[slotProps.data.abbreviation].cases * 12 +
-                        physicalCounts[slotProps.data.abbreviation].packages -
-                        (expectedInventory[slotProps.data.abbreviation] ||
-                          0) !==
-                      0,
-                    'text-green-600':
-                      physicalCounts[slotProps.data.abbreviation].cases * 12 +
-                        physicalCounts[slotProps.data.abbreviation].packages -
-                        (expectedInventory[slotProps.data.abbreviation] ||
-                          0) ===
-                      0,
-                  }"
-                >
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label class="block text-sm text-muted-color mb-1"
+                      >Cases</label
+                    >
+                    <InputNumber
+                      v-model="physicalCounts[cookie.abbreviation].cases"
+                      :min="0"
+                      :use-grouping="false"
+                      input-class="w-full"
+                      class="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm text-muted-color mb-1"
+                      >Packages</label
+                    >
+                    <InputNumber
+                      v-model="physicalCounts[cookie.abbreviation].packages"
+                      :min="0"
+                      :use-grouping="false"
+                      input-class="w-full"
+                      class="w-full"
+                    />
+                  </div>
+                </div>
+                <div class="flex justify-between text-sm">
                   <span
-                    v-if="
-                      physicalCounts[slotProps.data.abbreviation].cases * 12 +
-                        physicalCounts[slotProps.data.abbreviation].packages -
-                        (expectedInventory[slotProps.data.abbreviation] || 0) >
-                      0
-                    "
-                    >+</span
-                  >{{
-                    physicalCounts[slotProps.data.abbreviation].cases * 12 +
-                    physicalCounts[slotProps.data.abbreviation].packages -
-                    (expectedInventory[slotProps.data.abbreviation] || 0)
-                  }}
-                </span>
-              </template>
-            </Column>
-          </DataTable>
+                    >Total Physical:
+                    <span class="font-bold">{{
+                      getTotalPhysical(cookie.abbreviation)
+                    }}</span></span
+                  >
+                  <span
+                    >Digital Count:
+                    <span class="font-bold">{{
+                      expectedInventory[cookie.abbreviation] || 0
+                    }}</span></span
+                  >
+                </div>
+                <div class="mt-1 text-sm">
+                  Variance:
+                  <span
+                    class="font-bold"
+                    :class="{
+                      'text-red-600': getVariance(cookie.abbreviation) !== 0,
+                      'text-green-600': getVariance(cookie.abbreviation) === 0,
+                    }"
+                  >
+                    <span v-if="getVariance(cookie.abbreviation) > 0">+</span
+                    >{{ getVariance(cookie.abbreviation) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ClientOnly>
         </div>
 
         <div>
