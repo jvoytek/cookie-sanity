@@ -6,6 +6,8 @@
   const cookiesStore = useCookiesStore();
   const boothsStore = useBoothsStore();
   const notificationHelpers = useNotificationHelpers();
+  const useClient = useDevice();
+  const { isMobile } = useClient;
 
   const dt = ref();
   const deleteDepositDialog = ref(false);
@@ -247,61 +249,133 @@
           </div>
         </div>
 
-        <!-- Deposits Table -->
-        <DataTable
-          ref="dt"
-          :value="depositsStore.allDeposits"
-          data-key="id"
-          sort-field="deposit_date"
-          :sort-order="-1"
-        >
-          <Column field="deposit_date" header="Date" sortable>
-            <template #body="slotProps">
-              <NuxtTime
-                :datetime="slotProps.data.deposit_date"
-                time-zone="UTC"
-              />
-            </template>
-          </Column>
-          <Column field="amount" header="Amount" sortable>
-            <template #body="slotProps">
-              {{ formatCurrency(slotProps.data.amount) }}
-            </template>
-          </Column>
-          <Column field="deposited_by" header="Deposited By" sortable>
-            <template #body="slotProps">
-              {{ slotProps.data.deposited_by || '-' }}
-            </template>
-          </Column>
-          <Column field="notes" header="Notes">
-            <template #body="slotProps">
-              {{ slotProps.data.notes || '-' }}
-            </template>
-          </Column>
-          <Column :exportable="false" style="min-width: 12rem">
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-pencil"
-                outlined
-                rounded
-                class="mr-2"
-                @click="editDeposit(slotProps.data)"
-              />
-              <Button
-                icon="pi pi-trash"
-                outlined
-                rounded
-                severity="danger"
-                @click="confirmDeleteDeposit(slotProps.data)"
-              />
-            </template>
-          </Column>
-          <template #footer>
-            <div class="flex justify-end font-bold">
+        <!-- Deposits Table / Cards -->
+        <ClientOnly>
+          <div v-if="!isMobile">
+            <DataTable
+              ref="dt"
+              :value="depositsStore.allDeposits"
+              data-key="id"
+              sort-field="deposit_date"
+              :sort-order="-1"
+            >
+              <Column field="deposit_date" header="Date" sortable>
+                <template #body="slotProps">
+                  <NuxtTime
+                    :datetime="slotProps.data.deposit_date"
+                    time-zone="UTC"
+                  />
+                </template>
+              </Column>
+              <Column field="amount" header="Amount" sortable>
+                <template #body="slotProps">
+                  {{ formatCurrency(slotProps.data.amount) }}
+                </template>
+              </Column>
+              <Column field="deposited_by" header="Deposited By" sortable>
+                <template #body="slotProps">
+                  {{ slotProps.data.deposited_by || '-' }}
+                </template>
+              </Column>
+              <Column field="notes" header="Notes">
+                <template #body="slotProps">
+                  {{ slotProps.data.notes || '-' }}
+                </template>
+              </Column>
+              <Column :exportable="false" style="min-width: 12rem">
+                <template #body="slotProps">
+                  <Button
+                    icon="pi pi-pencil"
+                    outlined
+                    rounded
+                    class="mr-2"
+                    @click="editDeposit(slotProps.data)"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    outlined
+                    rounded
+                    severity="danger"
+                    @click="confirmDeleteDeposit(slotProps.data)"
+                  />
+                </template>
+              </Column>
+              <template #footer>
+                <div class="flex justify-end font-bold">
+                  Total: {{ formatCurrency(depositsStore.totalDeposits) }}
+                </div>
+              </template>
+            </DataTable>
+          </div>
+          <div v-else class="space-y-4">
+            <div
+              v-if="depositsStore.allDeposits.length === 0"
+              class="text-center py-8 text-muted-color"
+            >
+              No deposits found.
+            </div>
+            <div
+              v-for="deposit in depositsStore.allDeposits"
+              :key="deposit.id"
+              class="p-4 border rounded-xl border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <h6 class="font-bold text-lg mb-0">
+                    {{ formatCurrency(deposit.amount) }}
+                  </h6>
+                  <div
+                    class="text-sm text-surface-600 dark:text-surface-300 mt-1"
+                  >
+                    <NuxtTime
+                      :datetime="deposit.deposit_date"
+                      time-zone="UTC"
+                    />
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Button
+                    icon="pi pi-pencil"
+                    outlined
+                    rounded
+                    @click="editDeposit(deposit)"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    outlined
+                    rounded
+                    severity="danger"
+                    @click="confirmDeleteDeposit(deposit)"
+                  />
+                </div>
+              </div>
+              <div
+                class="mt-3 pt-3 border-t border-surface-200 dark:border-surface-700 text-sm space-y-1 text-surface-600 dark:text-surface-300"
+              >
+                <div>
+                  <span
+                    class="font-semibold text-surface-900 dark:text-surface-0"
+                    >Deposited By:</span
+                  >
+                  {{ deposit.deposited_by || '-' }}
+                </div>
+                <div>
+                  <span
+                    class="font-semibold text-surface-900 dark:text-surface-0"
+                    >Notes:</span
+                  >
+                  {{ deposit.notes || '-' }}
+                </div>
+              </div>
+            </div>
+            <div
+              v-if="depositsStore.allDeposits.length > 0"
+              class="flex justify-end font-bold p-4 bg-surface-50 dark:bg-surface-800 rounded-lg"
+            >
               Total: {{ formatCurrency(depositsStore.totalDeposits) }}
             </div>
-          </template>
-        </DataTable>
+          </div>
+        </ClientOnly>
 
         <!-- Deposit Dialog -->
         <Dialog
