@@ -173,17 +173,17 @@
   const getDiscrepancyText = (discrepancy: Record<string, number>) => {
     const entries = Object.entries(discrepancy);
     let hasDiscrepancies = false;
-    let discrepancyText = '';
+    let discrepancyText: string[] = [];
     for (const [cookieAbbr, diff] of entries) {
       if (diff !== 0) {
         hasDiscrepancies = true;
         const sign = diff > 0 ? '+' : '';
 
-        discrepancyText += `${cookieAbbr}: ${sign}${diff} `;
+        discrepancyText.push(`${sign}${diff} ${cookieAbbr}`);
       }
     }
     if (!hasDiscrepancies) return 'None';
-    return discrepancyText.trim();
+    return discrepancyText.join(', ');
   };
 
   const getTotalPhysical = (abbreviation: string) => {
@@ -270,7 +270,7 @@
               </template>
             </Column>
             <Column field="conducted_by" header="Conducted By" sortable />
-            <Column header="Total Discrepancies" sortable>
+            <Column header="Discrepancies" sortable>
               <template #body="slotProps">
                 <Tag
                   :set="
@@ -376,7 +376,7 @@
                 </div>
                 <div class="flex flex-col gap-2">
                   <div>
-                    Total Discrepancies:
+                    Discrepancies:
                     <Tag
                       :set="
                         discrepancyText = getDiscrepancyText(
