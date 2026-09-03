@@ -4,6 +4,8 @@
   import { useFormKitNodeById } from '@formkit/vue';
   import type { CookieDefault } from '~/types/types';
 
+  const { isMobile } = useDevice();
+
   const loading = ref(true);
   loading.value = true;
 
