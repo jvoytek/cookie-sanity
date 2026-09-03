@@ -146,7 +146,7 @@ export const useInventoryChecksStore = defineStore('inventoryChecks', () => {
 
       const diff = totalPhysical - expected;
       discrepancies[cookieAbbr] = diff;
-      totalDiscrepancies += Math.abs(diff);
+      totalDiscrepancies += diff;
     });
 
     return { discrepancies, totalDiscrepancies };
