@@ -73,6 +73,11 @@ const useLayoutMock = vi.fn(() => ({
 }));
 vi.stubGlobal('useLayout', useLayoutMock);
 
+const useDeviceMock = vi.fn(() => ({
+  isMobile: ref(false),
+}));
+vi.stubGlobal('useDevice', useDeviceMock);
+
 const usePaymentHelpersMock = vi.fn(() => ({
   form: { value: null },
   submitted: { value: false },
