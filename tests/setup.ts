@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { defineStore } from 'pinia';
-import { ref, computed, reactive, watch, onMounted } from 'vue';
+import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue';
 import { startVitest } from 'vitest/dist/node.js';
 
 // Mock Nuxt global functions and auto-imports
@@ -11,6 +11,7 @@ vi.stubGlobal('computed', computed);
 vi.stubGlobal('reactive', reactive);
 vi.stubGlobal('watch', watch);
 vi.stubGlobal('onMounted', onMounted);
+vi.stubGlobal('onUnmounted', onUnmounted);
 vi.stubGlobal('navigateTo', vi.fn());
 
 // Mock Supabase composables
