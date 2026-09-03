@@ -385,131 +385,210 @@
             </template>
           </Toolbar>
 
-          <DataTable
-            ref="dt"
-            v-model:selection="selectedProducts"
-            :value="cookiesStore.allCookies"
-            data-key="id"
-            :filters="filters"
-            sort-field="order"
-            @row-reorder="onRowReorder"
-          >
-            <template #header>
-              <div class="flex flex-wrap gap-2 items-center justify-between">
-                <h4 class="m-0">Manage Cookies</h4>
-                <IconField>
-                  <InputIcon>
-                    <i class="pi pi-search" />
-                  </InputIcon>
-                  <InputText
-                    v-model="filters['global'].value"
-                    placeholder="Search..."
-                  />
-                </IconField>
-              </div>
-            </template>
+          <ClientOnly>
+            <DataTable
+              v-if="!isMobile"
+              ref="dt"
+              v-model:selection="selectedProducts"
+              :value="cookiesStore.allCookies"
+              data-key="id"
+              :filters="filters"
+              sort-field="order"
+              @row-reorder="onRowReorder"
+            >
+              <template #header>
+                <div class="flex flex-wrap gap-2 items-center justify-between">
+                  <h4 class="m-0">Manage Cookies</h4>
+                  <IconField>
+                    <InputIcon>
+                      <i class="pi pi-search" />
+                    </InputIcon>
+                    <InputText
+                      v-model="filters['global'].value"
+                      placeholder="Search..."
+                    />
+                  </IconField>
+                </div>
+              </template>
 
-            <Column
-              row-reorder
-              header-style="width: 3rem"
-              :reorderable-column="false"
-            />
-            <Column field="order" header="Order" />
-            <Column field="name" header="Name" />
-            <Column field="price" header="Price">
-              <template #body="slotProps">
-                {{ formatHelpers.formatCurrency(slotProps.data.price) }}
+              <Column
+                row-reorder
+                header-style="width: 3rem"
+                :reorderable-column="false"
+              />
+              <Column field="order" header="Order" />
+              <Column field="name" header="Name" />
+              <Column field="price" header="Price">
+                <template #body="slotProps">
+                  {{ formatHelpers.formatCurrency(slotProps.data.price) }}
+                </template>
+              </Column>
+              <Column field="color" header="Color">
+                <template #body="slotProps">
+                  <Badge
+                    size="xlarge"
+                    :style="{ backgroundColor: slotProps.data.color }"
+                  />
+                </template>
+              </Column>
+              <Column field="abbreviation" header="Abbrv." />
+              <Column field="percent_of_sale">
+                <template #header>
+                  <strong>% of Sale</strong>
+                  <i
+                    v-tooltip.bottom="{
+                      value:
+                        'Expected percentage of total sale. Used for inventory needs calculations.',
+                      showDelay: 500,
+                    }"
+                    class="pi pi-info-circle ml-2"
+                    style="cursor: pointer"
+                  />
+                </template>
+                <template #body="slotProps">
+                  {{ slotProps.data.percent_of_sale || 0 }}%
+                </template>
+              </Column>
+              <Column field="overbooking_allowed">
+                <template #header>
+                  <strong>Overbooking Allowed</strong>
+                  <i
+                    v-tooltip.bottom="{
+                      value:
+                        'When checked, allows creating transactions for more cookies than are currently available in inventory. Uncheck for limited varieties.',
+                      showDelay: 500,
+                    }"
+                    class="pi pi-info-circle ml-2"
+                    style="cursor: pointer"
+                  />
+                </template>
+                <template #body="slotProps">
+                  <i
+                    v-if="slotProps.data.overbooking_allowed"
+                    class="pi pi-check text-green-500"
+                  />
+                </template>
+              </Column>
+              <Column field="is_virtual">
+                <template #header>
+                  <strong>Virtual (Donated)</strong>
+                  <i
+                    v-tooltip.bottom="{
+                      value:
+                        'Virtual packages don\'t count against your inventory. These are packages that are donated or not physically distributed to customers. Sometimes called Cookie Share or Gift of Caring.',
+                      showDelay: 500,
+                    }"
+                    class="pi pi-info-circle ml-2"
+                    style="cursor: pointer"
+                  />
+                </template>
+                <template #body="slotProps">
+                  <i
+                    v-if="slotProps.data.is_virtual"
+                    class="pi pi-check text-green-500"
+                  />
+                </template>
+              </Column>
+              <Column :exportable="false" nowrap>
+                <template #body="slotProps">
+                  <Button
+                    v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
+                    aria-label="Edit"
+                    icon="pi pi-pencil"
+                    class="mr-2"
+                    variant="outlined"
+                    severity="secondary"
+                    @click="editProduct(slotProps.data)"
+                  />
+                  <Button
+                    v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
+                    aria-label="Delete"
+                    icon="pi pi-trash"
+                    class="mr-2"
+                    variant="outlined"
+                    severity="warn"
+                    @click="confirmDeleteProduct(slotProps.data)"
+                  />
+                </template>
+              </Column>
+            </DataTable>
+          </ClientOnly>
+
+          <ClientOnly>
+            <DataView
+              v-if="isMobile"
+              :value="cookiesStore.allCookies"
+              layout="list"
+              :pt="{ content: { class: 'bg-transparent! mb-2' } }"
+            >
+              <template #empty>
+                <div class="text-center py-8 card">
+                  <p class="text-surface-500 dark:text-surface-400">
+                    No cookies have been added yet.
+                  </p>
+                </div>
               </template>
-            </Column>
-            <Column field="color" header="Color">
-              <template #body="slotProps">
-                <Badge
-                  size="xlarge"
-                  :style="{ backgroundColor: slotProps.data.color }"
-                />
+              <template #list="slotProps">
+                <div class="flex flex-col">
+                  <div
+                    v-for="cookie in slotProps.items"
+                    :key="cookie.id"
+                    class="pt-2 pb-2 card"
+                  >
+                    <div class="flex justify-between items-center mb-2">
+                      <div class="flex items-center gap-2">
+                        <Badge
+                          size="xlarge"
+                          :style="{ backgroundColor: cookie.color }"
+                        />
+                        <span class="font-bold">{{ cookie.name }}</span>
+                      </div>
+                      <div class="flex gap-2">
+                        <Button
+                          aria-label="Edit"
+                          icon="pi pi-pencil"
+                          outlined
+                          severity="secondary"
+                          @click="editProduct(cookie)"
+                        />
+                        <Button
+                          aria-label="Delete"
+                          icon="pi pi-trash"
+                          outlined
+                          severity="warn"
+                          @click="confirmDeleteProduct(cookie)"
+                        />
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div>
+                        Price:
+                        {{ formatHelpers.formatCurrency(cookie.price) }}
+                      </div>
+                      <div>Abbrv.: {{ cookie.abbreviation }}</div>
+                      <div>% of Sale: {{ cookie.percent_of_sale || 0 }}%</div>
+                      <div>
+                        Overbooking Allowed:
+                        <i
+                          v-if="cookie.overbooking_allowed"
+                          class="pi pi-check text-green-500"
+                        />
+                        <i v-else class="pi pi-times text-red-500" />
+                      </div>
+                      <div>
+                        Virtual (Donated):
+                        <i
+                          v-if="cookie.is_virtual"
+                          class="pi pi-check text-green-500"
+                        />
+                        <i v-else class="pi pi-times text-red-500" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </template>
-            </Column>
-            <Column field="abbreviation" header="Abbrv." />
-            <Column field="percent_of_sale">
-              <template #header>
-                <strong>% of Sale</strong>
-                <i
-                  v-tooltip.bottom="{
-                    value:
-                      'Expected percentage of total sale. Used for inventory needs calculations.',
-                    showDelay: 500,
-                  }"
-                  class="pi pi-info-circle ml-2"
-                  style="cursor: pointer"
-                />
-              </template>
-              <template #body="slotProps">
-                {{ slotProps.data.percent_of_sale || 0 }}%
-              </template>
-            </Column>
-            <Column field="overbooking_allowed">
-              <template #header>
-                <strong>Overbooking Allowed</strong>
-                <i
-                  v-tooltip.bottom="{
-                    value:
-                      'When checked, allows creating transactions for more cookies than are currently available in inventory. Uncheck for limited varieties.',
-                    showDelay: 500,
-                  }"
-                  class="pi pi-info-circle ml-2"
-                  style="cursor: pointer"
-                />
-              </template>
-              <template #body="slotProps">
-                <i
-                  v-if="slotProps.data.overbooking_allowed"
-                  class="pi pi-check text-green-500"
-                />
-              </template>
-            </Column>
-            <Column field="is_virtual">
-              <template #header>
-                <strong>Virtual (Donated)</strong>
-                <i
-                  v-tooltip.bottom="{
-                    value:
-                      'Virtual packages don\'t count against your inventory. These are packages that are donated or not physically distributed to customers. Sometimes called Cookie Share or Gift of Caring.',
-                    showDelay: 500,
-                  }"
-                  class="pi pi-info-circle ml-2"
-                  style="cursor: pointer"
-                />
-              </template>
-              <template #body="slotProps">
-                <i
-                  v-if="slotProps.data.is_virtual"
-                  class="pi pi-check text-green-500"
-                />
-              </template>
-            </Column>
-            <Column :exportable="false" nowrap>
-              <template #body="slotProps">
-                <Button
-                  v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
-                  aria-label="Edit"
-                  icon="pi pi-pencil"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="secondary"
-                  @click="editProduct(slotProps.data)"
-                />
-                <Button
-                  v-tooltip.bottom="{ value: 'Delete', showDelay: 500 }"
-                  aria-label="Delete"
-                  icon="pi pi-trash"
-                  class="mr-2"
-                  variant="outlined"
-                  severity="warn"
-                  @click="confirmDeleteProduct(slotProps.data)"
-                />
-              </template>
-            </Column>
-          </DataTable>
+            </DataView>
+          </ClientOnly>
         </div>
       </div>
     </div>
