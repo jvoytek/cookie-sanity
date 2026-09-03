@@ -3,6 +3,8 @@
   import NoCookiesOverlay from '~/components/other/NoCookiesOverlay.vue';
   import type { Json } from '~/types/supabase';
 
+  const { isMobile } = useDevice();
+
   const loading = ref(true);
   loading.value = true;
 
@@ -162,10 +164,39 @@
     checkToDelete.value = null;
   };
 
-  const getDiscrepancySeverity = (diff: number) => {
-    if (diff === 0) return 'success';
+  const getDiscrepancySeverity = (diff: number, discrepancyText: string) => {
+    if (discrepancyText === 'None') return 'success';
     if (Math.abs(diff) <= 5) return 'warn';
     return 'danger';
+  };
+
+  const getDiscrepancyText = (discrepancy: Record<string, number>) => {
+    const entries = Object.entries(discrepancy);
+    let hasDiscrepancies = false;
+    let discrepancyText: string[] = [];
+    for (const [cookieAbbr, diff] of entries) {
+      if (diff !== 0) {
+        hasDiscrepancies = true;
+        const sign = diff > 0 ? '+' : '';
+
+        discrepancyText.push(`${sign}${diff} ${cookieAbbr}`);
+      }
+    }
+    if (!hasDiscrepancies) return 'None';
+    return discrepancyText.join(', ');
+  };
+
+  const getTotalPhysical = (abbreviation: string) => {
+    const counts = physicalCounts.value[abbreviation];
+    if (!counts) return 0;
+    return counts.cases * 12 + counts.packages;
+  };
+
+  const getVariance = (abbreviation: string) => {
+    return (
+      getTotalPhysical(abbreviation) -
+      (expectedInventory.value[abbreviation] || 0)
+    );
   };
 
   const aLongTimeAgo = (datetime: string) => {
@@ -183,40 +214,113 @@
   <div class="grid grid-cols-12 gap-8 relative">
     <div class="col-span-12">
       <div class="card">
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <div class="flex items-center gap-2 mb-2">
-              <i class="pi pi-clipboard-check text-2xl" />
-              <h2 class="text-2xl font-semibold">Physical Inventory Check</h2>
-            </div>
-            <p>Count physical inventory and compare with digital records</p>
-            <div
-              v-if="inventoryChecksStore.latestInventoryCheck"
-              class="mt-2 text-sm text-surface-600 dark:text-surface-300"
-            >
-              Last check:
-              <NuxtTime
-                :datetime="inventoryChecksStore.latestInventoryCheck.check_date"
-              />
-              by {{ inventoryChecksStore.latestInventoryCheck.conducted_by }}
-            </div>
-          </div>
-          <Button
-            label="Start Physical Check"
-            icon="pi pi-plus"
-            @click="startNewCheck"
+        <h5>Physical Inventory Check</h5>
+        <p>Count physical inventory and compare with digital records</p>
+        <Toolbar class="mb-6">
+          <template #start>
+            <Button
+              label="Start Physical Check"
+              icon="pi pi-plus"
+              @click="startNewCheck"
+              severity="secondary"
+            />
+          </template>
+        </Toolbar>
+        <p v-if="inventoryChecksStore.latestInventoryCheck">
+          Last check:
+          <NuxtTime
+            :datetime="inventoryChecksStore.latestInventoryCheck.check_date"
           />
-        </div>
+          by {{ inventoryChecksStore.latestInventoryCheck.conducted_by }}
+        </p>
 
         <!-- Physical Inventory Check History -->
-        <DataTable
+        <ClientOnly>
+          <DataTable
+            v-if="!isMobile"
+            :value="inventoryChecksStore.sortedInventoryChecks"
+            paginator
+            :rows="10"
+            size="small"
+          >
+            <template #empty>
+              <div class="text-center py-8">
+                <i
+                  class="pi pi-clipboard text-xl text-surface-300 dark:text-surface-600 mb-4"
+                  style="font-size: 4rem"
+                />
+                <p
+                  class="text-4xl mb-2 text-surface-300 dark:text-surface-60 font-bold"
+                >
+                  Ready to Start Physical Count
+                </p>
+                <p class="text-surface-500 dark:text-surface-400">
+                  Click "Start Physical Check" to begin counting your physical
+                  inventory. You can save the check results for record-keeping
+                  or reconcile discrepancies immediately.
+                </p>
+              </div>
+            </template>
+            <Column field="check_date" header="Check Date" sortable>
+              <template #body="slotProps">
+                <NuxtTime
+                  :datetime="slotProps.data.check_date"
+                  :relative="aLongTimeAgo(slotProps.data.check_date)"
+                />
+              </template>
+            </Column>
+            <Column field="conducted_by" header="Conducted By" sortable />
+            <Column header="Discrepancies" sortable>
+              <template #body="slotProps">
+                <Tag
+                  :set="
+                    discrepancyText = getDiscrepancyText(
+                      slotProps.data.discrepancies,
+                    )
+                  "
+                  :value="`${discrepancyText}`"
+                  :severity="
+                    getDiscrepancySeverity(
+                      slotProps.data.total_discrepancies,
+                      discrepancyText,
+                    )
+                  "
+                />
+              </template>
+            </Column>
+            <Column field="notes" header="Notes" />
+            <Column header="Actions">
+              <template #body="slotProps">
+                <Button
+                  icon="pi pi-pencil"
+                  text
+                  rounded
+                  severity="secondary"
+                  @click="editCheck(slotProps.data)"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  text
+                  rounded
+                  severity="danger"
+                  @click="confirmDelete(slotProps.data)"
+                />
+              </template>
+            </Column>
+          </DataTable>
+        </ClientOnly>
+      </div>
+      <ClientOnly>
+        <DataView
+          v-if="isMobile"
           :value="inventoryChecksStore.sortedInventoryChecks"
+          layout="list"
           paginator
           :rows="10"
-          size="small"
+          :pt="{ content: { class: 'bg-transparent! mb-2' } }"
         >
           <template #empty>
-            <div class="text-center py-8">
+            <div class="text-center py-8 card">
               <i
                 class="pi pi-clipboard text-xl text-surface-300 dark:text-surface-600 mb-4"
                 style="font-size: 4rem"
@@ -233,56 +337,70 @@
               </p>
             </div>
           </template>
-          <Column field="check_date" header="Check Date" sortable>
-            <template #body="slotProps">
-              <NuxtTime
-                :datetime="slotProps.data.check_date"
-                :relative="aLongTimeAgo(slotProps.data.check_date)"
-              />
-            </template>
-          </Column>
-          <Column field="conducted_by" header="Conducted By" sortable />
-          <Column field="status" header="Status" sortable>
-            <template #body="slotProps">
-              <Tag :value="slotProps.data.status" severity="success" />
-            </template>
-          </Column>
-          <Column header="Items Checked">
-            <template #body="slotProps">
-              {{ Object.keys(slotProps.data.physical_inventory).length }} items
-            </template>
-          </Column>
-          <Column header="Total Discrepancies" sortable>
-            <template #body="slotProps">
-              <Tag
-                :value="`${slotProps.data.total_discrepancies} packages`"
-                :severity="
-                  getDiscrepancySeverity(slotProps.data.total_discrepancies)
-                "
-              />
-            </template>
-          </Column>
-          <Column field="notes" header="Notes" />
-          <Column header="Actions">
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-pencil"
-                text
-                rounded
-                severity="secondary"
-                @click="editCheck(slotProps.data)"
-              />
-              <Button
-                icon="pi pi-trash"
-                text
-                rounded
-                severity="danger"
-                @click="confirmDelete(slotProps.data)"
-              />
-            </template>
-          </Column>
-        </DataTable>
-      </div>
+          <template #list="slotProps">
+            <div class="flex flex-col">
+              <div
+                v-for="(check, index) in slotProps.items"
+                :key="index"
+                class="pt-2 pb-2 card"
+              >
+                <div class="flex justify-between items-center mb-2">
+                  <div>
+                    <div class="font-bold">
+                      <NuxtTime
+                        :datetime="check.check_date"
+                        :relative="aLongTimeAgo(check.check_date)"
+                      />
+                    </div>
+                    <span>Conducted by {{ check.conducted_by }}</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <Button
+                      label="Edit"
+                      icon="pi pi-pencil"
+                      aria-label="Edit"
+                      outlined
+                      class="float-right"
+                      severity="secondary"
+                      @click="editCheck(check)"
+                    />
+                    <Button
+                      icon="pi pi-trash"
+                      aria-label="Delete"
+                      outlined
+                      class="float-right"
+                      severity="warn"
+                      @click="confirmDelete(check)"
+                    />
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div>
+                    Discrepancies:
+                    <Tag
+                      :set="
+                        discrepancyText = getDiscrepancyText(
+                          check.discrepancies,
+                        )
+                      "
+                      :value="`${discrepancyText}`"
+                      :severity="
+                        getDiscrepancySeverity(
+                          check.total_discrepancies,
+                          discrepancyText,
+                        )
+                      "
+                    />
+                  </div>
+                  <div v-if="check.notes" class="mb-2">
+                    Notes: {{ check.notes }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </DataView>
+      </ClientOnly>
     </div>
 
     <!-- Check Dialog -->
@@ -294,14 +412,12 @@
       :dismissable-mask="true"
     >
       <div class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
+        <div>
           <div>
             <label class="block font-medium mb-2">Conducted By</label>
-            <InputText v-model="conductedBy" class="w-full" />
-          </div>
-          <div>
-            <label class="block font-medium mb-2">Date</label>
-            <InputText :value="check_date" disabled class="w-full" />
+            <InputText v-model="conductedBy" class="w-full" /><br />
+            <span class="text-sm text-muted-color">Date: {{ check_date }}</span>
+            <InputText :value="check_date" disabled class="hiddenx" />
           </div>
         </div>
 
@@ -311,38 +427,90 @@
             :value="cookiesStore.allCookies.filter((c) => !c.is_virtual)"
             size="small"
           >
-            <Column field="name" header="Cookie">
+            <Column field="name">
+              <template #header="slotProps">
+                <div class="hidden lg:block flex items-center gap-2">
+                  <span>Cookie</span>
+                </div>
+              </template>
               <template #body="slotProps">
                 <div class="flex items-center gap-2">
                   <span
                     class="w-3 h-3 rounded-full flex-shrink-0"
                     :style="{ backgroundColor: slotProps.data.color || '#888' }"
                   />
-                  <span>{{ slotProps.data.name }}</span>
+                  <span class="hidden lg:inline">{{
+                    slotProps.data.name
+                  }}</span>
+                  <span class="inline lg:hidden">{{
+                    slotProps.data.abbreviation
+                  }}</span>
                 </div>
               </template>
             </Column>
-            <Column header="Cases">
+            <Column>
+              <template #header="slotProps">
+                <div class="hidden lg:block flex items-center gap-2">
+                  <span>Cases</span>
+                  <i
+                    class="pi pi-question-circle ml-1"
+                    v-tooltip.bottom="{
+                      value:
+                        'Enter the number of cases for each cookie. 1 case = 12 packages.',
+                      showDelay: 500,
+                    }"
+                  ></i>
+                </div>
+                <span class="inline lg:hidden font-bold">CSE</span>
+              </template>
               <template #body="slotProps">
                 <InputNumber
                   v-model="physicalCounts[slotProps.data.abbreviation].cases"
                   :min="0"
                   :use-grouping="false"
-                  input-class="w-16"
+                  input-class="w-12"
                 />
               </template>
             </Column>
-            <Column header="Packages">
+            <Column>
+              <template #header="slotProps">
+                <div class="hidden lg:block flex items-center gap-2">
+                  <span>Packages</span>
+                  <i
+                    class="pi pi-question-circle ml-1"
+                    v-tooltip.bottom="{
+                      value:
+                        'Enter the number of additional packages not in cases.',
+                      showDelay: 500,
+                    }"
+                  ></i>
+                </div>
+                <span class="inline lg:hidden font-bold">PKG</span>
+              </template>
               <template #body="slotProps">
                 <InputNumber
                   v-model="physicalCounts[slotProps.data.abbreviation].packages"
                   :min="0"
                   :use-grouping="false"
-                  input-class="w-16"
+                  input-class="w-12"
                 />
               </template>
             </Column>
-            <Column header="Total Physical">
+            <Column>
+              <template #header="slotProps">
+                <div class="hidden lg:block flex items-center gap-2">
+                  <span>Total</span>
+                  <i
+                    class="pi pi-question-circle ml-1"
+                    v-tooltip.bottom="{
+                      value:
+                        'Cases * 12 + Packages = Total Physical Count in Packages',
+                      showDelay: 500,
+                    }"
+                  ></i>
+                </div>
+                <span class="inline lg:hidden font-bold">TOT</span>
+              </template>
               <template #body="slotProps">
                 <span class="font-bold">
                   {{
@@ -352,14 +520,42 @@
                 </span>
               </template>
             </Column>
-            <Column header="Digital Count">
+            <Column>
+              <template #header="slotProps">
+                <div class="hidden lg:block flex items-center gap-2">
+                  <span>Expected Inventory</span>
+                  <i
+                    class="pi pi-question-circle ml-1"
+                    v-tooltip.bottom="{
+                      value:
+                        'The expected inventory count from the digital records.',
+                      showDelay: 500,
+                    }"
+                  ></i>
+                </div>
+                <span class="inline lg:hidden font-bold">EXP</span>
+              </template>
               <template #body="slotProps">
                 <span class="font-bold">
                   {{ expectedInventory[slotProps.data.abbreviation] || 0 }}
                 </span>
               </template>
             </Column>
-            <Column header="Variance">
+            <Column>
+              <template #header="slotProps">
+                <div class="hidden lg:block flex items-center gap-2">
+                  <span>Difference</span>
+                  <i
+                    class="pi pi-question-circle ml-1"
+                    v-tooltip.bottom="{
+                      value:
+                        'Difference = Total Physical Count - Expected Inventory. Positive means more physical inventory than expected, negative means less.',
+                      showDelay: 500,
+                    }"
+                  ></i>
+                </div>
+                <span class="inline lg:hidden font-bold">DIF</span>
+              </template>
               <template #body="slotProps">
                 <span
                   class="font-bold"
