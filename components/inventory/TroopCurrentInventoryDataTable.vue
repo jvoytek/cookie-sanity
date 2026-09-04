@@ -1,16 +1,80 @@
 <script setup lang="ts">
   import { useWindowSize } from '@vueuse/core';
 
-  const { width } = useWindowSize();
-  const screenWidth = width;
+  const { isMobile } = useDevice();
 
   const loading = ref(true);
 
   loading.value = true;
 
   const cookiesStore = useCookiesStore();
+  const toast = useToast();
 
   loading.value = false;
+
+  const copiedColumn = ref<string | null>(null);
+  let copyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  onUnmounted(() => {
+    if (copyTimeoutId) {
+      clearTimeout(copyTimeoutId);
+    }
+  });
+
+  const formatColumnInventory = (field: string): string => {
+    let total = 0;
+    return inventoryTotals.value
+      .map((cookie) => {
+        const val = (cookie as Record<string, unknown>)[field] ?? 0;
+        if (typeof val === 'number') {
+          total += val;
+        }
+        return `${cookie.abbreviation}: ${val}`;
+      })
+      .join('\n')
+      .concat(`\nTotal: ${total}`);
+  };
+
+  const copyColumnInventory = async (field: string, label: string) => {
+    if (!navigator.clipboard) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Clipboard API not available in this browser',
+        life: 3000,
+      });
+      return;
+    }
+
+    try {
+      const text = formatColumnInventory(field);
+      await navigator.clipboard.writeText(text);
+      copiedColumn.value = field;
+
+      if (copyTimeoutId) {
+        clearTimeout(copyTimeoutId);
+      }
+
+      copyTimeoutId = setTimeout(() => {
+        copiedColumn.value = null;
+        copyTimeoutId = null;
+      }, 2000);
+
+      toast.add({
+        severity: 'success',
+        summary: 'Copied',
+        detail: `Copied ${label} inventory to clipboard`,
+        life: 3000,
+      });
+    } catch {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Failed to copy ${label} inventory to clipboard`,
+        life: 3000,
+      });
+    }
+  };
 
   const inventoryTotals = computed(() => {
     return cookiesStore.allCookiesWithInventoryTotals(true);
@@ -91,7 +155,7 @@
         showGridlines
       >
         <ColumnGroup type="header">
-          <Row v-if="screenWidth > 991">
+          <Row v-if="!isMobile">
             <Column header="" class="font-bold" />
             <Column header="Troop" :colspan="3" />
             <Column header="Girl" :colspan="2" />
@@ -107,12 +171,30 @@
             </Column>
             <Column>
               <template #header>
-                <strong v-if="screenWidth > 991">On Hand</strong>
-                <strong v-else>O/H</strong>
+                <div class="flex items-center gap-1">
+                  <strong v-if="!isMobile">On Hand</strong>
+                  <strong v-else>O/H</strong>
+                  <i
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'onHand' ? 'Copied!' : 'Copy On Hand',
+                      showDelay: 500,
+                    }"
+                    :aria-label="
+                      copiedColumn === 'onHand' ? 'Copied' : 'Copy On Hand'
+                    "
+                    :class="
+                      copiedColumn === 'onHand'
+                        ? 'ml-1 pi pi-check'
+                        : 'ml-1 pi pi-copy cursor-pointer'
+                    "
+                    @click.stop="copyColumnInventory('onHand', 'On Hand')"
+                  />
+                </div>
               </template>
             </Column>
-            <Column header="Pending" v-if="screenWidth > 991" />
-            <Column v-if="screenWidth > 991">
+            <Column header="Pending" v-if="!isMobile" />
+            <Column v-if="!isMobile">
               <template #header>
                 <strong>Upcoming Booths</strong>
                 <i
@@ -125,27 +207,136 @@
                 />
               </template>
             </Column>
-            <Column header="Requested" v-if="screenWidth > 991" />
-            <Column header="Pending" v-if="screenWidth > 991" />
+            <Column header="Requested" v-if="!isMobile" />
+            <Column header="Pending" v-if="!isMobile" />
             <Column>
               <template #header>
-                <strong v-if="screenWidth > 991">After Pending</strong>
-                <strong v-else>A/P</strong>
+                <div class="flex items-center gap-1">
+                  <strong v-if="!isMobile">After Pending</strong>
+                  <strong v-else>A/P</strong>
+                  <i
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'afterPending'
+                          ? 'Copied!'
+                          : 'Copy After Pending',
+                      showDelay: 500,
+                    }"
+                    :aria-label="
+                      copiedColumn === 'afterPending'
+                        ? 'Copied'
+                        : 'Copy After Pending'
+                    "
+                    :class="
+                      copiedColumn === 'afterPending'
+                        ? 'ml-1 pi pi-check'
+                        : 'ml-1 pi pi-copy cursor-pointer'
+                    "
+                    @click.stop="
+                      copyColumnInventory('afterPending', 'After Pending')
+                    "
+                  />
+                </div>
               </template>
             </Column>
             <Column>
               <template #header>
-                <strong v-if="screenWidth > 991">Inc. Requests</strong>
-                <strong v-else>+REQ</strong>
+                <div class="flex items-center gap-1">
+                  <strong v-if="!isMobile">Inc. Requests</strong>
+                  <strong v-else>+REQ</strong>
+                  <i
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'afterPendingIncludingRequests'
+                          ? 'Copied!'
+                          : 'Copy Inc. Requests',
+                      showDelay: 500,
+                    }"
+                    :class="
+                      copiedColumn === 'afterPendingIncludingRequests'
+                        ? 'ml-1 pi pi-check'
+                        : 'ml-1 pi pi-copy cursor-pointer'
+                    "
+                    :aria-label="
+                      copiedColumn === 'afterPendingIncludingRequests'
+                        ? 'Copied'
+                        : 'Copy Inc. Requests'
+                    "
+                    @click.stop="
+                      copyColumnInventory(
+                        'afterPendingIncludingRequests',
+                        'Inc. Requests',
+                      )
+                    "
+                  />
+                </div>
               </template>
             </Column>
             <Column>
               <template #header>
-                <strong v-if="screenWidth > 991">Inc. Booths</strong>
-                <strong v-else>+BTH</strong>
+                <div class="flex items-center gap-1">
+                  <strong v-if="!isMobile">Inc. Booths</strong>
+                  <strong v-else>+BTH</strong>
+                  <i
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'afterPendingIncludingBooths'
+                          ? 'Copied!'
+                          : 'Copy Inc. Booths',
+                      showDelay: 500,
+                    }"
+                    :class="
+                      copiedColumn === 'afterPendingIncludingBooths'
+                        ? 'ml-1 pi pi-check'
+                        : 'ml-1 pi pi-copy cursor-pointer'
+                    "
+                    :aria-label="
+                      copiedColumn === 'afterPendingIncludingBooths'
+                        ? 'Copied'
+                        : 'Copy Inc. Booths'
+                    "
+                    @click.stop="
+                      copyColumnInventory(
+                        'afterPendingIncludingBooths',
+                        'Inc. Booths',
+                      )
+                    "
+                  />
+                </div>
               </template>
             </Column>
-            <Column header="Total Received" v-if="screenWidth > 991" />
+            <Column v-if="!isMobile">
+              <template #header>
+                <div class="flex items-center gap-1">
+                  <strong>Total Received</strong>
+                  <i
+                    v-tooltip.bottom="{
+                      value:
+                        copiedColumn === 'totalReceivedByTroop'
+                          ? 'Copied!'
+                          : 'Copy Total Received',
+                      showDelay: 500,
+                    }"
+                    :class="
+                      copiedColumn === 'totalReceivedByTroop'
+                        ? 'ml-1 pi pi-check'
+                        : 'ml-1 pi pi-copy cursor-pointer'
+                    "
+                    :aria-label="
+                      copiedColumn === 'totalReceivedByTroop'
+                        ? 'Copied'
+                        : 'Copy Total Received'
+                    "
+                    @click.stop="
+                      copyColumnInventory(
+                        'totalReceivedByTroop',
+                        'Total Received',
+                      )
+                    "
+                  />
+                </div>
+              </template>
+            </Column>
           </Row>
         </ColumnGroup>
         <Column field="name" header="Cookie Type" sortable>
@@ -169,25 +360,25 @@
           field="pendingTroop"
           header="Pend Troop"
           sortable
-          v-if="screenWidth > 991"
+          v-if="!isMobile"
         />
         <Column
           field="pendingBooth"
           header="Booth(s) Est"
           sortable
-          v-if="screenWidth > 991"
+          v-if="!isMobile"
         />
         <Column
           field="requestedGirl"
           header="Req Girl"
           sortable
-          v-if="screenWidth > 991"
+          v-if="!isMobile"
         />
         <Column
           field="pendingGirl"
           header="Pend Girl"
           sortable
-          v-if="screenWidth > 991"
+          v-if="!isMobile"
         />
         <Column field="afterPending" header="After Pending" sortable>
           <template #body="slotProps">
@@ -200,7 +391,7 @@
                 slotProps.data.afterPending != 0 &&
                 slotProps.data.percent_of_sale &&
                 totalAfterPending > 0 &&
-                screenWidth > 991
+                !isMobile
               "
               :set="
                 percentDiff = Math.round(
@@ -244,7 +435,7 @@
                 slotProps.data.afterPendingIncludingRequests != 0 &&
                 slotProps.data.percent_of_sale &&
                 totalAfterPendingIncludingRequests > 0 &&
-                screenWidth > 991
+                !isMobile
               "
               :set="
                 percentDiff = Math.round(
@@ -298,7 +489,7 @@
                 slotProps.data.afterPendingIncludingBooths != 0 &&
                 slotProps.data.percent_of_sale &&
                 totalAfterPendingIncludingBooths > 0 &&
-                screenWidth > 991
+                !isMobile
               "
               :set="
                 percentDiff = Math.round(
@@ -337,7 +528,7 @@
           field="totalReceivedByTroop"
           header="Total Received"
           sortable
-          v-if="screenWidth > 991"
+          v-if="!isMobile"
         />
 
         <ColumnGroup type="footer">
@@ -347,22 +538,22 @@
             <Column
               :footer="totalPendingTroop"
               class="font-bold"
-              v-if="screenWidth > 991"
+              v-if="!isMobile"
             />
             <Column
               :footer="totalPendingBooth"
               class="font-bold"
-              v-if="screenWidth > 991"
+              v-if="!isMobile"
             />
             <Column
               :footer="totalRequestedGirl"
               class="font-bold"
-              v-if="screenWidth > 991"
+              v-if="!isMobile"
             />
             <Column
               :footer="totalPendingGirl"
               class="font-bold"
-              v-if="screenWidth > 991"
+              v-if="!isMobile"
             />
             <Column :footer="totalAfterPending" class="font-bold" />
             <Column
@@ -376,7 +567,7 @@
             <Column
               :footer="totalReceivedByTroop"
               class="font-bold"
-              v-if="screenWidth > 991"
+              v-if="!isMobile"
             />
           </Row>
         </ColumnGroup>
