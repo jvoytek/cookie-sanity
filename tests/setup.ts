@@ -247,7 +247,21 @@ const useRouterMock = vi.fn(() => ({
 }));
 vi.stubGlobal('useRouter', useRouterMock);
 
+const useDeviceMock = vi.fn(() => ({
+  isMobile: ref(false),
+}));
+vi.stubGlobal('useDevice', useDeviceMock);
+
 const useDepositsStoreMock = vi.fn(() => ({
+  allDeposits: [],
+  totalDeposits: 0,
+  activeDeposit: null,
+  depositDialogVisible: false,
+  depositDialogFormSchema: { value: [] },
+  setActiveDeposit: vi.fn(),
+  insertDeposit: vi.fn(),
+  upsertDeposit: vi.fn(),
+  deleteDeposit: vi.fn(),
   insertNewDeposit: vi.fn(),
 }));
 vi.stubGlobal('useDepositsStore', useDepositsStoreMock);

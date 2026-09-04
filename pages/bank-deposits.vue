@@ -6,6 +6,8 @@
   const cookiesStore = useCookiesStore();
   const boothsStore = useBoothsStore();
   const notificationHelpers = useNotificationHelpers();
+  const useClient = useDevice();
+  const { isMobile } = useClient;
 
   const dt = ref();
   const deleteDepositDialog = ref(false);
@@ -153,7 +155,7 @@
           Track bank deposits of cash and checks collected from cookie sales.
         </p>
 
-        <Toolbar class="mb-6">
+        <Toolbar v-if="!isMobile">
           <template #start>
             <Button
               label="New Deposit"
@@ -166,7 +168,7 @@
         </Toolbar>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-12 gap-6 mb-6">
+        <div class="grid grid-cols-12 lg:gap-6 mb-6">
           <div class="col-span-12 lg:col-span-6 xl:col-span-3">
             <Fieldset>
               <template #legend>
@@ -247,125 +249,199 @@
           </div>
         </div>
 
-        <!-- Deposits Table -->
-        <DataTable
-          ref="dt"
-          :value="depositsStore.allDeposits"
-          data-key="id"
-          sort-field="deposit_date"
-          :sort-order="-1"
-        >
-          <Column field="deposit_date" header="Date" sortable>
-            <template #body="slotProps">
-              <NuxtTime
-                :datetime="slotProps.data.deposit_date"
-                time-zone="UTC"
-              />
-            </template>
-          </Column>
-          <Column field="amount" header="Amount" sortable>
-            <template #body="slotProps">
-              {{ formatCurrency(slotProps.data.amount) }}
-            </template>
-          </Column>
-          <Column field="deposited_by" header="Deposited By" sortable>
-            <template #body="slotProps">
-              {{ slotProps.data.deposited_by || '-' }}
-            </template>
-          </Column>
-          <Column field="notes" header="Notes">
-            <template #body="slotProps">
-              {{ slotProps.data.notes || '-' }}
-            </template>
-          </Column>
-          <Column :exportable="false" style="min-width: 12rem">
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-pencil"
-                outlined
-                rounded
-                class="mr-2"
-                @click="editDeposit(slotProps.data)"
-              />
-              <Button
-                icon="pi pi-trash"
-                outlined
-                rounded
-                severity="danger"
-                @click="confirmDeleteDeposit(slotProps.data)"
-              />
-            </template>
-          </Column>
-          <template #footer>
-            <div class="flex justify-end font-bold">
-              Total: {{ formatCurrency(depositsStore.totalDeposits) }}
-            </div>
-          </template>
-        </DataTable>
-
-        <!-- Deposit Dialog -->
-        <Dialog
-          v-model:visible="depositsStore.depositDialogVisible"
-          :style="{ width: '550px' }"
-          header="Deposit Details"
-          :modal="true"
-          @after-hide="depositsStore.setActiveDeposit(null)"
-        >
-          <div class="flex flex-col gap-6">
-            <FormKit
-              id="deposit-form"
-              v-model="depositsStore.activeDeposit"
-              type="form"
-              :actions="false"
-              @submit="saveDeposit"
+        <!-- Deposits Table / Cards -->
+        <ClientOnly>
+          <div v-if="!isMobile">
+            <DataTable
+              ref="dt"
+              :value="depositsStore.allDeposits"
+              data-key="id"
+              sort-field="deposit_date"
+              :sort-order="-1"
             >
-              <FormKitSchema
-                :schema="depositsStore.depositDialogFormSchema.value"
-              />
-            </FormKit>
+              <Column field="deposit_date" header="Date" sortable>
+                <template #body="slotProps">
+                  <NuxtTime
+                    :datetime="slotProps.data.deposit_date"
+                    time-zone="UTC"
+                  />
+                </template>
+              </Column>
+              <Column field="amount" header="Amount" sortable>
+                <template #body="slotProps">
+                  {{ formatCurrency(slotProps.data.amount) }}
+                </template>
+              </Column>
+              <Column field="deposited_by" header="Deposited By" sortable>
+                <template #body="slotProps">
+                  {{ slotProps.data.deposited_by || '-' }}
+                </template>
+              </Column>
+              <Column field="notes" header="Notes">
+                <template #body="slotProps">
+                  {{ slotProps.data.notes || '-' }}
+                </template>
+              </Column>
+              <Column :exportable="false" style="min-width: 12rem">
+                <template #body="slotProps">
+                  <Button
+                    icon="pi pi-pencil"
+                    outlined
+                    rounded
+                    class="mr-2"
+                    @click="editDeposit(slotProps.data)"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    outlined
+                    rounded
+                    severity="danger"
+                    @click="confirmDeleteDeposit(slotProps.data)"
+                  />
+                </template>
+              </Column>
+              <template #footer>
+                <div class="flex justify-end font-bold">
+                  Total: {{ formatCurrency(depositsStore.totalDeposits) }}
+                </div>
+              </template>
+            </DataTable>
           </div>
-
-          <template #footer>
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              outlined
-              @click="hideDialog"
-            />
-            <Button label="Save" icon="pi pi-check" @click="saveDeposit" />
-          </template>
-        </Dialog>
-
-        <!-- Delete Confirmation Dialog -->
-        <Dialog
-          v-model:visible="deleteDepositDialog"
-          :style="{ width: '450px' }"
-          header="Confirm"
-          :modal="true"
-        >
-          <div class="flex items-center gap-4">
-            <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
-            <span v-if="depositsStore.activeDeposit">
-              Are you sure you want to delete the deposit of
-              <b>{{ formatCurrency(depositsStore.activeDeposit.amount) }}</b>
-              on
-              <b
-                ><NuxtTime
-                  :datetime="depositsStore.activeDeposit.deposit_date" /></b
-              >?
-            </span>
-          </div>
-          <template #footer>
-            <Button
-              label="No"
-              icon="pi pi-times"
-              text
-              @click="deleteDepositDialog = false"
-            />
-            <Button label="Yes" icon="pi pi-check" @click="deleteDeposit" />
-          </template>
-        </Dialog>
+        </ClientOnly>
       </div>
+
+      <ClientOnly>
+        <div v-if="isMobile" class="card">
+          <h5>Deposits</h5>
+          <Toolbar class="mb-4">
+            <template #start>
+              <Button
+                label="New Deposit"
+                icon="pi pi-plus"
+                severity="secondary"
+                class="mr-2"
+                @click="openNew"
+              />
+            </template>
+          </Toolbar>
+          <div class="space-y-4">
+            <div
+              v-if="depositsStore.allDeposits.length === 0"
+              class="text-center py-8 text-muted-color"
+            >
+              No deposits found.
+            </div>
+            <DataView :value="depositsStore.allDeposits">
+              <template #empty>
+                <div class="text-center py-8 text-muted-color">
+                  No deposits found.
+                </div>
+              </template>
+              <template #list="slotProps">
+                <div
+                  v-for="deposit in slotProps.items"
+                  :key="deposit.id"
+                  class="pt-5 pb-5 border-t border-solid border-gray-200"
+                >
+                  <div class="flex flext-full items-center justify-between">
+                    <div>
+                      <span class="font-bold mr-2">
+                        {{ formatCurrency(deposit.amount) }}
+                      </span>
+                      <NuxtTime
+                        :datetime="deposit.deposit_date"
+                        time-zone="UTC"
+                      />
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <Button
+                        icon="pi pi-pencil"
+                        outlined
+                        severity="secondary"
+                        @click="editDeposit(deposit)"
+                      />
+                      <Button
+                        icon="pi pi-trash"
+                        outlined
+                        severity="danger"
+                        @click="confirmDeleteDeposit(deposit)"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div>Deposited By: {{ deposit.deposited_by || '-' }}</div>
+                    <div v-if="deposit.notes">Notes: {{ deposit.notes }}</div>
+                  </div>
+                </div>
+              </template>
+            </DataView>
+          </div>
+        </div>
+      </ClientOnly>
+
+      <!-- Deposit Dialog -->
+      <Dialog
+        v-model:visible="depositsStore.depositDialogVisible"
+        :style="{ width: '550px' }"
+        header="Deposit Details"
+        :modal="true"
+        @after-hide="depositsStore.setActiveDeposit(null)"
+      >
+        <div class="flex flex-col gap-6">
+          <FormKit
+            id="deposit-form"
+            v-model="depositsStore.activeDeposit"
+            type="form"
+            :actions="false"
+            @submit="saveDeposit"
+          >
+            <FormKitSchema
+              :schema="depositsStore.depositDialogFormSchema.value"
+            />
+          </FormKit>
+        </div>
+
+        <template #footer>
+          <Button
+            label="Cancel"
+            icon="pi pi-times"
+            outlined
+            @click="hideDialog"
+          />
+          <Button label="Save" icon="pi pi-check" @click="saveDeposit" />
+        </template>
+      </Dialog>
+
+      <!-- Delete Confirmation Dialog -->
+      <Dialog
+        v-model:visible="deleteDepositDialog"
+        :style="{ width: '450px' }"
+        header="Confirm"
+        :modal="true"
+      >
+        <div class="flex items-center gap-4">
+          <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
+          <span v-if="depositsStore.activeDeposit">
+            Are you sure you want to delete the deposit of
+            <b>{{ formatCurrency(depositsStore.activeDeposit.amount) }}</b>
+            on
+            <b
+              ><NuxtTime
+                :datetime="depositsStore.activeDeposit.deposit_date" /></b
+            >?
+          </span>
+        </div>
+        <template #footer>
+          <Button
+            label="No"
+            icon="pi pi-times"
+            text
+            @click="deleteDepositDialog = false"
+          />
+          <Button label="Yes" icon="pi pi-check" @click="deleteDeposit" />
+        </template>
+      </Dialog>
     </div>
   </div>
 </template>
