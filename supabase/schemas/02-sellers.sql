@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS "public"."sellers" (
     "last_name" character varying NOT NULL,
     "preferred_name" character varying,
     "season" bigint DEFAULT '1'::bigint NOT NULL,
-    "email" text
+    "email" text,
+    "pronouns" text
 );
 
 

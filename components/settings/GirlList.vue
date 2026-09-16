@@ -1,6 +1,7 @@
 <script setup>
   import { FilterMatchMode } from '@primevue/core/api';
   import { useFormKitNodeById } from '@formkit/vue';
+  import { formatPersonDisplayName } from '@/shared/utils/personDisplay';
 
   const notificationHelpers = useNotificationHelpers();
 
@@ -166,7 +167,11 @@
   };
 
   const getAdultDisplayName = (adult) => {
-    return `${adult.preferred_name || adult.first_name} ${adult.last_name}`;
+    return formatPersonDisplayName(adult, { usePreferredName: true });
+  };
+
+  const getGirlDisplayName = (girl) => {
+    return formatPersonDisplayName(girl, { includePreferredName: true });
   };
 
   const getFormNames = (formIds) => {
@@ -337,6 +342,17 @@
     },
     {
       $formkit: 'primeInputText',
+      name: 'pronouns',
+      label: 'Pronouns',
+      key: 'pronouns',
+      placeholder: 'Enter pronouns (optional)',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeInputText',
       name: 'email',
       label: 'Email',
       key: 'email',
@@ -445,8 +461,11 @@
               </div>
             </template>
 
-            <Column field="first_name" header="First Name" sortable />
-            <Column field="last_name" header="Last Name" sortable />
+            <Column header="Name" sortable sort-field="first_name">
+              <template #body="slotProps">
+                {{ getGirlDisplayName(slotProps.data) }}
+              </template>
+            </Column>
             <Column field="preferred_name" header="Preferred Name" sortable />
             <Column field="email" header="Email" sortable />
             <Column header="Related Adults">
@@ -545,11 +564,7 @@
         <div class="flex justify-between items-center mb-2">
           <div>
             <div class="font-bold">
-              {{ girl.first_name }}
-              <span v-if="girl.preferred_name"
-                >({{ girl.preferred_name }})</span
-              >
-              {{ girl.last_name }}
+              {{ getGirlDisplayName(girl) }}
             </div>
             <a
               v-if="girl.email"

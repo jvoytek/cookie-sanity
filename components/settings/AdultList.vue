@@ -1,6 +1,7 @@
 <script setup>
   import { FilterMatchMode } from '@primevue/core/api';
   import { useFormKitNodeById } from '@formkit/vue';
+  import { formatPersonDisplayName } from '@/shared/utils/personDisplay';
 
   const loading = ref(true);
 
@@ -95,9 +96,11 @@
   }
 
   function getGirlDisplayName(girl) {
-    return `${girl.first_name} ${girl.last_name}${
-      girl.preferred_name ? ` (${girl.preferred_name})` : ''
-    }`;
+    return formatPersonDisplayName(girl, { includePreferredName: true });
+  }
+
+  function getAdultDisplayName(adult) {
+    return formatPersonDisplayName(adult, { includePreferredName: true });
   }
 
   const getAdultIdFromQuery = () => {
@@ -207,6 +210,17 @@
       label: 'Preferred Name',
       key: 'preferred_name',
       placeholder: 'Enter preferred name (optional)',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeInputText',
+      name: 'pronouns',
+      label: 'Pronouns',
+      key: 'pronouns',
+      placeholder: 'Enter pronouns (optional)',
       wrapperClass: 'grid grid-cols-5 gap-4 items-center',
       labelClass: 'col-span-2',
       innerClass: 'col-span-3 mt-1 mb-1',
@@ -335,8 +349,11 @@
               </div>
             </template>
 
-            <Column field="first_name" header="First Name" sortable />
-            <Column field="last_name" header="Last Name" sortable />
+            <Column header="Name" sortable sort-field="first_name">
+              <template #body="slotProps">
+                {{ getAdultDisplayName(slotProps.data) }}
+              </template>
+            </Column>
             <Column field="preferred_name" header="Preferred Name" sortable />
             <Column field="email" header="Email" sortable />
             <Column field="phone" header="Phone" sortable />
@@ -385,11 +402,7 @@
         <div class="flex justify-between items-center mb-2">
           <div>
             <div class="font-bold">
-              {{ adult.first_name }}
-              <span v-if="adult.preferred_name"
-                >({{ adult.preferred_name }})</span
-              >
-              {{ adult.last_name }}
+              {{ getAdultDisplayName(adult) }}
             </div>
             <a
               v-if="adult.email"
