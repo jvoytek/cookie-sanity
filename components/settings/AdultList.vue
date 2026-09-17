@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
   import { FilterMatchMode } from '@primevue/core/api';
   import { useFormKitNodeById } from '@formkit/vue';
   import { formatPersonDisplayName } from '@/shared/utils/personDisplay';
+  import type { Adult } from '@/types/types';
 
   const loading = ref(true);
 
@@ -18,6 +19,7 @@
   loading.value = false;
 
   const toast = useToast();
+  const mobileContact = useMobileContact();
   const adultDialog = ref(false);
   const deleteAdultDialog = ref(false);
   const relatedGirlDialog = ref(false);
@@ -72,19 +74,6 @@
     adultDialog.value = true;
   }
 
-  function emailRelatedGirl(girl) {
-    if (girl.email) {
-      window.location.href = `mailto:${girl.email}`;
-    } else {
-      toast.add({
-        severity: 'warn',
-        summary: 'No Email',
-        detail: 'This girl does not have an email address.',
-        life: 3000,
-      });
-    }
-  }
-
   function editRelatedGirl(girl) {
     //hideRelatedAdultDialog();
     const path =
@@ -93,14 +82,6 @@
       path: path,
       query: { girl: girl.id.toString() },
     });
-  }
-
-  function getGirlDisplayName(girl) {
-    return formatPersonDisplayName(girl, { includePreferredName: true });
-  }
-
-  function getAdultDisplayName(adult) {
-    return formatPersonDisplayName(adult, { includePreferredName: true });
   }
 
   const getAdultIdFromQuery = () => {
@@ -179,7 +160,7 @@
     }
   }
 
-  const adultDialogFormSchema = [
+  const adultDialogFormSchema = computed(() => [
     {
       $formkit: 'primeInputText',
       name: 'first_name',
@@ -288,7 +269,7 @@
       key: 'forms',
       showToggleAll: false,
     },
-  ];
+  ]);
 
   const formNode = useFormKitNodeById('adult-form');
 
@@ -298,6 +279,29 @@
 
   const submitButtonClickHandler = () => {
     if (formNode.value) formNode.value.submit();
+  };
+
+  const moreActions = (adult: Adult) => [
+    {
+      label: 'Edit Adult',
+      icon: 'pi pi-pencil',
+      command: () => editAdult(adult),
+    },
+    {
+      label: 'Delete Adult',
+      icon: 'pi pi-trash',
+      command: () => confirmDeleteAdult(adult),
+    },
+  ];
+
+  const menuRefs = ref({});
+
+  const setMenuRef = (el, id) => {
+    if (el) menuRefs.value[id] = el;
+  };
+
+  const toggleMenu = (event, itemId) => {
+    menuRefs.value[itemId].toggle(event);
   };
 
   watch(
@@ -351,7 +355,7 @@
 
             <Column header="Name" sortable sort-field="first_name">
               <template #body="slotProps">
-                {{ getAdultDisplayName(slotProps.data) }}
+                {{ formatPersonDisplayName(slotProps.data) }}
               </template>
             </Column>
             <Column field="preferred_name" header="Preferred Name" sortable />
@@ -402,33 +406,49 @@
         <div class="flex justify-between items-center mb-2">
           <div>
             <div class="font-bold">
-              {{ getAdultDisplayName(adult) }}
+              {{ formatPersonDisplayName(adult, { usePreferredName: true }) }}
             </div>
-            <a
-              v-if="adult.email"
-              :href="`mailto:${adult.email}`"
-              class="text-primary hover:underline"
-            >
-              {{ adult.email }}
-            </a>
           </div>
           <div class="flex gap-2">
             <Button
-              label="Edit"
-              icon="pi pi-pencil"
-              severity="secondary"
-              aria-lable="Edit"
-              outlined
-              class="float-right"
-              @click="editAdult(adult)"
+              v-if="adult.phone"
+              aria-label="Call"
+              icon="pi pi-phone"
+              size="small"
+              @click="mobileContact.callNumber(adult.phone)"
             />
             <Button
-              icon="pi pi-trash"
-              severity="warn"
-              aria-label="Delete"
+              v-if="adult.phone"
+              v-tooltip.bottom="{ value: 'Text', showDelay: 500 }"
+              aria-label="Text"
+              icon="pi pi-comment"
+              size="small"
+              severity="info"
+              @click="mobileContact.textNumber(adult.phone)"
+            />
+            <Button
+              v-if="adult.email"
+              v-tooltip.bottom="{ value: 'Email', showDelay: 500 }"
+              aria-label="Email"
+              icon="pi pi-envelope"
+              size="small"
+              severity="secondary"
+              @click="mobileContact.emailAddress(adult.email)"
+            />
+            <Button
+              type="button"
+              icon="pi pi-ellipsis-v"
               outlined
-              class="float-right"
-              @click="confirmDeleteAdult(adult)"
+              severity="secondary"
+              @click="toggleMenu($event, adult.id)"
+              aria-haspopup="true"
+              :aria-controls="'overlay_menu_' + adult.id"
+            />
+            <Menu
+              :ref="(el) => setMenuRef(el, adult.id)"
+              :id="'overlay_menu_' + adult.id"
+              :model="moreActions(adult)"
+              :popup="true"
             />
           </div>
         </div>
@@ -457,7 +477,7 @@
                   icon="pi pi-envelope"
                   size="small"
                   severity="secondary"
-                  @click="emailRelatedGirl(relatedGirl)"
+                  @click="mobileContact.emailAddress(relatedGirl.email)"
                 />
                 <Button
                   v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
@@ -498,7 +518,9 @@
       :style="{ width: '450px' }"
       :header="
         selectedRelatedGirl
-          ? getGirlDisplayName(selectedRelatedGirl)
+          ? formatPersonDisplayName(selectedRelatedGirl, {
+              usePreferredName: true,
+            })
           : 'Girl Details'
       "
       :modal="true"

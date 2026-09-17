@@ -8,6 +8,8 @@ type PersonDisplayFields = {
 type PersonDisplayOptions = {
   includePreferredName?: boolean;
   usePreferredName?: boolean;
+  abbreviateLastName?: boolean;
+  includePronouns?: boolean;
 };
 
 export const formatPersonDisplayName = (
@@ -22,6 +24,11 @@ export const formatPersonDisplayName = (
   const preferredNameSuffix =
     options.includePreferredName && preferredName ? ` (${preferredName})` : '';
   const pronouns = person.pronouns?.trim();
+  const lastName = options.abbreviateLastName
+    ? `${person.last_name[0]}.`
+    : person.last_name;
 
-  return `${firstName}${preferredNameSuffix} ${person.last_name}${pronouns ? ` (${pronouns})` : ''}`;
+  return `${firstName}${preferredNameSuffix} ${lastName}${
+    options.includePronouns && pronouns ? ` (${pronouns})` : ''
+  }`;
 };

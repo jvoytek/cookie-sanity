@@ -1,5 +1,6 @@
 import type { Database } from '@/types/supabase';
 import type { Adult, Girl } from '@/types/types';
+import { formatPersonDisplayName } from '@/shared/utils/personDisplay';
 
 /*
 ref()s become state properties
@@ -25,13 +26,17 @@ export const useGirlsStore = defineStore('girls', () => {
       label: _getGirlDisplayName(girl),
       value: girl.id,
     }));
+    console.log('girlOptions computed:', girlOptions);
     return girlOptions;
   });
 
   /* Private Functions */
 
   const _getGirlDisplayName = (girl: Girl) => {
-    return girl.first_name + ' ' + girl.last_name[0] + '.';
+    return formatPersonDisplayName(girl, {
+      usePreferredName: true,
+      abbreviateLastName: true,
+    });
   };
 
   const _updateGirl = (girl: Girl) => {
