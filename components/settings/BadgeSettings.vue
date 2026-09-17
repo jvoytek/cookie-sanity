@@ -11,6 +11,7 @@
   const girlsStore = useGirlsStore();
   const notificationHelpers = useNotificationHelpers();
   const supabaseClient = useSupabaseClient<Database>();
+  const programLevelDisplay = useProgramLevelDisplay();
 
   const badgeDialogVisible = ref(false);
   const deleteBadgeDialogVisible = ref(false);
@@ -19,15 +20,6 @@
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
-
-  const programLevelOptions = [
-    { label: 'Daisy', value: 'daisy' },
-    { label: 'Brownie', value: 'brownie' },
-    { label: 'Junior', value: 'junior' },
-    { label: 'Cadette', value: 'cadette' },
-    { label: 'Senior', value: 'senior' },
-    { label: 'Ambassador', value: 'ambassador' },
-  ];
 
   function openNew() {
     badge.value = {
@@ -72,13 +64,6 @@
     deleteBadgeDialogVisible.value = false;
     badgeDialogVisible.value = false;
     badge.value = {};
-  }
-
-  function getProgramLevelLabel(programLevel: string) {
-    return (
-      programLevelOptions.find((option) => option.value === programLevel)
-        ?.label ?? programLevel
-    );
   }
 
   function badgeCountForField(
@@ -139,7 +124,7 @@
     {
       $formkit: 'primeInputText',
       name: 'url',
-      label: 'URL',
+      label: 'Download URL',
       key: 'url',
       placeholder: 'Enter badge URL (optional)',
       wrapperClass: 'grid grid-cols-5 gap-4 items-center',
@@ -152,7 +137,7 @@
       name: 'program_level',
       label: 'Program Level',
       key: 'program_level',
-      options: programLevelOptions,
+      options: programLevelDisplay.programLevelOptions,
       'option-label': 'label',
       'option-value': 'value',
       placeholder: 'Select program level',
@@ -180,8 +165,8 @@
     <div class="card">
       <h5>Badges</h5>
       <p>
-        Manage badges for the current season and track which girls have earned
-        and received them.
+        Add badges you're working on to track which scouts have earned and
+        received them.
       </p>
 
       <Toolbar class="mb-6">
@@ -222,10 +207,14 @@
           <Column field="name" header="Name" sortable />
           <Column field="program_level" header="Program Level" sortable>
             <template #body="slotProps">
-              {{ getProgramLevelLabel(slotProps.data.program_level) }}
+              {{
+                programLevelDisplay.getProgramLevelLabel(
+                  slotProps.data.program_level,
+                )
+              }}
             </template>
           </Column>
-          <Column field="url" header="URL">
+          <Column field="url" header="Download URL">
             <template #body="slotProps">
               <a
                 v-if="slotProps.data.url"
@@ -250,6 +239,15 @@
             <template #body="slotProps">
               {{
                 badgeCountForField('badges_received', slotProps.data.id) || '—'
+              }}
+            </template>
+          </Column>
+          <Column header="Pending">
+            <template #body="slotProps">
+              {{
+                badgeCountForField('badges_earned', slotProps.data.id) -
+                  badgeCountForField('badges_received', slotProps.data.id) ||
+                '—'
               }}
             </template>
           </Column>
@@ -302,26 +300,19 @@
             >
               <div class="flex justify-between items-start gap-3">
                 <div class="min-w-0">
-                  <div class="font-bold">{{ currentBadge.name }}</div>
-                  <div>
-                    {{ getProgramLevelLabel(currentBadge.program_level) }}
-                  </div>
-                  <a
-                    v-if="currentBadge.url"
-                    :href="currentBadge.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-primary hover:underline break-all"
-                  >
-                    {{ currentBadge.url }}
-                  </a>
-                  <div>
-                    Earned:
-                    {{ badgeCountForField('badges_earned', currentBadge.id) }}
-                  </div>
-                  <div>
-                    Received:
-                    {{ badgeCountForField('badges_received', currentBadge.id) }}
+                  <div class="font-bold">
+                    <ProgramLevelBadge
+                      :programLevel="currentBadge.program_level"
+                    />{{ currentBadge.name }}
+                    <a
+                      v-if="currentBadge.url"
+                      :href="currentBadge.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-primary hover:underline break-all"
+                    >
+                      <i class="pi pi-download" />
+                    </a>
                   </div>
                 </div>
                 <div class="flex gap-2">
@@ -341,6 +332,16 @@
                   />
                 </div>
               </div>
+
+              <div>
+                ({{ badgeCountForField('badges_earned', currentBadge.id) }})
+                Earned ({{
+                  badgeCountForField('badges_received', currentBadge.id)
+                }}) Received ({{
+                  badgeCountForField('badges_earned', currentBadge.id) -
+                  badgeCountForField('badges_received', currentBadge.id)
+                }}) Pending
+              </div>
             </div>
           </div>
         </template>
@@ -349,7 +350,7 @@
 
     <Dialog
       v-model:visible="badgeDialogVisible"
-      :style="{ width: '900px' }"
+      :style="{ width: '450px' }"
       header="Badge Details"
       :modal="true"
     >
@@ -365,110 +366,48 @@
         </FormKit>
 
         <div v-if="badge.id">
-          <h6 class="mb-3">Girls in this Season</h6>
-          <ClientOnly>
-            <DataTable
-              v-if="!isMobile"
-              :value="girlsStore.allGirls"
-              data-key="id"
-            >
-              <Column header="Girl">
-                <template #body="slotProps">
-                  {{ girlsStore.getGirlNameById(slotProps.data.id) }}
-                </template>
-              </Column>
-              <Column header="Earned">
-                <template #body="slotProps">
-                  <Checkbox
-                    :model-value="
-                      girlHasBadge(slotProps.data, 'badges_earned', badge.id)
-                    "
-                    :binary="true"
-                    @update:model-value="
-                      toggleGirlBadge(slotProps.data, 'badges_earned', badge.id)
-                    "
-                  />
-                </template>
-              </Column>
-              <Column header="Received">
-                <template #body="slotProps">
-                  <Checkbox
-                    :model-value="
-                      girlHasBadge(slotProps.data, 'badges_received', badge.id)
-                    "
-                    :binary="true"
-                    @update:model-value="
-                      toggleGirlBadge(
-                        slotProps.data,
-                        'badges_received',
-                        badge.id,
-                      )
-                    "
-                  />
-                </template>
-              </Column>
-            </DataTable>
-          </ClientOnly>
-
-          <ClientOnly>
-            <DataView
-              v-if="isMobile"
-              :value="girlsStore.allGirls"
-              layout="list"
-              :pt="{ content: { class: 'bg-transparent! mb-2' } }"
-            >
-              <template #empty>
-                <div class="text-center py-4 card">
-                  <p class="text-surface-500 dark:text-surface-400">
-                    No girls have been added to this season yet.
-                  </p>
-                </div>
+          <DataTable :value="girlsStore.allGirls" data-key="id">
+            <Column header="Girl">
+              <template #body="slotProps">
+                {{ girlsStore.getGirlNameById(slotProps.data.id) }}
               </template>
-              <template #list="slotProps">
-                <div class="flex flex-col">
-                  <div
-                    v-for="girl in slotProps.items"
-                    :key="girl.id"
-                    class="pt-2 pb-2 card"
-                  >
-                    <div class="font-bold mb-2">
-                      {{ girlsStore.getGirlNameById(girl.id) }}
-                    </div>
-                    <div class="flex items-center justify-between mb-2">
-                      <span>Earned</span>
-                      <Checkbox
-                        :model-value="
-                          girlHasBadge(girl, 'badges_earned', badge.id)
-                        "
-                        :binary="true"
-                        @update:model-value="
-                          toggleGirlBadge(girl, 'badges_earned', badge.id)
-                        "
-                      />
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span>Received</span>
-                      <Checkbox
-                        :model-value="
-                          girlHasBadge(girl, 'badges_received', badge.id)
-                        "
-                        :binary="true"
-                        @update:model-value="
-                          toggleGirlBadge(girl, 'badges_received', badge.id)
-                        "
-                      />
-                    </div>
-                  </div>
-                </div>
+            </Column>
+            <Column header="Earned">
+              <template #body="slotProps">
+                <Checkbox
+                  :model-value="
+                    girlHasBadge(slotProps.data, 'badges_earned', badge.id)
+                  "
+                  :binary="true"
+                  @update:model-value="
+                    toggleGirlBadge(slotProps.data, 'badges_earned', badge.id)
+                  "
+                />
               </template>
-            </DataView>
-          </ClientOnly>
+            </Column>
+            <Column header="Received">
+              <template #body="slotProps">
+                <Checkbox
+                  :disabled="
+                    !girlHasBadge(slotProps.data, 'badges_earned', badge.id)
+                  "
+                  :model-value="
+                    girlHasBadge(slotProps.data, 'badges_received', badge.id)
+                  "
+                  :binary="true"
+                  @update:model-value="
+                    toggleGirlBadge(slotProps.data, 'badges_received', badge.id)
+                  "
+                />
+              </template>
+            </Column>
+          </DataTable>
         </div>
 
-        <Message v-else severity="info" variant="simple">
+        <div v-else class="text-center">
           Save the badge to start tracking which girls have earned and received
           it.
-        </Message>
+        </div>
       </div>
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />

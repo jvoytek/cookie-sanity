@@ -19,14 +19,14 @@
               to: '/troop-sanity/adults',
             },
             {
-              label: 'Badges',
-              icon: 'pi pi-fw pi-id-card',
-              to: '/troop-sanity/badges',
-            },
-            {
               label: 'Forms',
               icon: 'pi pi-fw pi-file',
               to: '/troop-sanity/forms',
+            },
+            {
+              label: 'Badges',
+              icon: 'pi pi-fw pi-crown',
+              to: '/troop-sanity/badges',
             },
             {
               label: 'Events',
