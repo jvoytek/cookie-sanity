@@ -202,6 +202,7 @@ describe('stores/girls', () => {
       const mockGirl = {
         first_name: 'Charlie',
         last_name: 'Brown',
+        program_level: 'junior',
         season: 1,
       } as Girl;
       const mockInsertedGirl = { ...mockGirl, profile: 'test-user-id' };
@@ -233,6 +234,7 @@ describe('stores/girls', () => {
       expect(mockGirl.profile).toBe('test-user-id');
       expect(newGirlsStore.allGirls).toHaveLength(1);
       expect(newGirlsStore.allGirls[0]).toEqual(mockInsertedGirl);
+      expect(newGirlsStore.allGirls[0].program_level).toBe('junior');
       expect(toastSpy).toHaveBeenCalledWith('Girl Created');
     });
 
@@ -785,6 +787,7 @@ describe('stores/girls', () => {
           first_name: 'Alice',
           last_name: 'Smith',
           profile: 'old-profile-id',
+          program_level: 'brownie',
           season: 1,
           created_at: '2023-01-01',
         },
@@ -795,6 +798,7 @@ describe('stores/girls', () => {
           first_name: 'Bob',
           last_name: 'Johnson',
           profile: 'old-profile-id',
+          program_level: 'cadette',
           season: 1,
           created_at: '2023-01-01',
         },
@@ -808,6 +812,7 @@ describe('stores/girls', () => {
           first_name: 'Alice',
           last_name: 'Smith',
           profile: 'test-user-id',
+          program_level: 'brownie',
           season: 2,
         },
         {
@@ -817,6 +822,7 @@ describe('stores/girls', () => {
           first_name: 'Bob',
           last_name: 'Johnson',
           profile: 'test-user-id',
+          program_level: 'cadette',
           season: 2,
         },
       ] as Girl[];
@@ -961,6 +967,8 @@ describe('stores/girls', () => {
       expect(newGirlsStore.allGirls[1].badges_received).toEqual([200]);
       expect(newGirlsStore.allGirls[0].profile).toBe('test-user-id');
       expect(updateSellerMock).toHaveBeenCalledTimes(2);
+      expect(newGirlsStore.allGirls[0].program_level).toBe('brownie');
+      expect(newGirlsStore.allGirls[1].program_level).toBe('cadette');
       expect(insertAdultsMock).toHaveBeenCalledTimes(1);
       const insertedAdultsPayload = insertAdultsMock.mock.calls[0][0];
       expect(insertedAdultsPayload).toEqual([
