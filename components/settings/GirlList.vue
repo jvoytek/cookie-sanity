@@ -5,6 +5,7 @@
   import type { Girl } from '@/types/types';
 
   const notificationHelpers = useNotificationHelpers();
+  const programLevelDisplay = useProgramLevelDisplay();
 
   const publishGirlRequestForm = computed({
     get: () => seasonsStore.currentSeason?.publish_girl_request_form ?? false,
@@ -54,37 +55,6 @@
   // Track which request link was copied
   const copiedLinkId = ref(null);
   let copyTimeoutId = null;
-
-  const programLevelOptions = [
-    { label: 'Daisy', value: 'daisy' },
-    { label: 'Brownie', value: 'brownie' },
-    { label: 'Junior', value: 'junior' },
-    { label: 'Cadette', value: 'cadette' },
-    { label: 'Senior', value: 'senior' },
-    { label: 'Ambassador', value: 'ambassador' },
-  ] as const;
-
-  const getProgramLevelLabel = (programLevel: Girl['program_level']) => {
-    return (
-      programLevelOptions.find((option) => option.value === programLevel)
-        ?.label ?? '—'
-    );
-  };
-
-  const programLevelClassMap: Record<string, string> = {
-    daisy:
-      'w-4 h-4 inline-flex items-center justify-center text-white bg-sky-400 rounded-full mr-1 text-xs',
-    brownie:
-      'w-4 h-4 inline-flex items-center justify-center text-white bg-yellow-800 rounded-full mr-1 text-xs',
-    junior:
-      'w-4 h-4 inline-flex items-center justify-center text-white bg-emerald-500 rounded-full mr-1 text-xs',
-    cadette:
-      'w-4 h-4 inline-flex items-center justify-center text-white bg-red-600 rounded-full mr-1 text-xs',
-    senior:
-      'w-4 h-4 inline-flex items-center justify-center text-white bg-amber-400 rounded-full mr-1 text-xs',
-    ambassador:
-      'w-4 h-4 inline-flex items-center justify-center text-white bg-yellow-300 rounded-full mr-1 text-xs',
-  };
 
   // Check if there are other seasons to copy from
   const hasOtherSeasons = computed(() => {
@@ -353,7 +323,7 @@
       name: 'program_level',
       label: 'Program Level',
       key: 'program_level',
-      options: programLevelOptions,
+      options: programLevelDisplay.programLevelOptions,
       'option-label': 'label',
       'option-value': 'value',
       placeholder: 'Select program level',
@@ -491,7 +461,11 @@
             <Column field="preferred_name" header="Preferred Name" sortable />
             <Column header="Program Level" sortable sort-field="program_level">
               <template #body="slotProps">
-                {{ getProgramLevelLabel(slotProps.data.program_level) }}
+                {{
+                  programLevelDisplay.getProgramLevelLabel(
+                    slotProps.data.program_level,
+                  )
+                }}
               </template>
             </Column>
             <Column field="email" header="Email" sortable />
@@ -595,11 +569,9 @@
         <div class="flex justify-between items-center mb-2">
           <div>
             <div class="font-bold flex justify-between items-center">
-              <span
-                v-if="girl.program_level"
-                :class="programLevelClassMap[girl.program_level]"
-                >{{ getProgramLevelLabel(girl.program_level)[0] }}</span
-              >{{ formatPersonDisplayName(girl, { usePreferredName: true }) }}
+              <ProgramLevelBadge :programLevel="girl.program_level" />{{
+                formatPersonDisplayName(girl, { usePreferredName: true })
+              }}
             </div>
           </div>
           <div class="flex gap-2">

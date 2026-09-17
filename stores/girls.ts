@@ -1,5 +1,5 @@
 import type { Database } from '@/types/supabase';
-import type { Adult, Girl } from '@/types/types';
+import type { Adult, Badge, Girl } from '@/types/types';
 import { formatPersonDisplayName } from '@/shared/utils/personDisplay';
 
 /*
@@ -104,6 +104,21 @@ export const useGirlsStore = defineStore('girls', () => {
     adults: Database['public']['Tables']['adults']['Insert'][],
   ) => {
     return await supabaseClient.from('adults').insert(adults).select();
+  };
+
+  const _supabaseFetchBadgesBySeason = async (seasonId: number) => {
+    return await supabaseClient
+      .from('badges')
+      .select(`*`)
+      .eq('season', seasonId)
+      .order('program_level')
+      .order('name');
+  };
+
+  const _supabaseInsertMultipleBadges = async (
+    badges: Database['public']['Tables']['badges']['Insert'][],
+  ) => {
+    return await supabaseClient.from('badges').insert(badges).select();
   };
 
   const _supabaseDeleteGirl = async (girl: Girl) => {
@@ -257,6 +272,8 @@ export const useGirlsStore = defineStore('girls', () => {
             season: targetSeasonId,
             profile: user.value!.id,
             forms: [],
+            badges_earned: [],
+            badges_received: [],
           };
         },
       );
@@ -291,6 +308,7 @@ export const useGirlsStore = defineStore('girls', () => {
           });
 
           const girlIdMap = new Map<number, number>();
+          const badgeIdMap = new Map<number, number>();
           girls.forEach((sourceGirl) => {
             const matchingGirls = copiedGirlsByKey.get(
               getGirlMatchKey(sourceGirl),
@@ -300,6 +318,110 @@ export const useGirlsStore = defineStore('girls', () => {
               girlIdMap.set(sourceGirl.id, copiedGirl.id);
             }
           });
+
+          const { data: sourceBadges, error: sourceBadgesError } =
+            await _supabaseFetchBadgesBySeason(sourceSeasonId);
+          if (sourceBadgesError) throw sourceBadgesError;
+
+          const sourceBadgesList = (sourceBadges as Badge[]) ?? [];
+          const { data: targetBadges, error: targetBadgesError } =
+            await _supabaseFetchBadgesBySeason(targetSeasonId);
+          if (targetBadgesError) throw targetBadgesError;
+
+          const getBadgeMatchKey = (badge: Badge) =>
+            [badge.name, badge.program_level, badge.url ?? ''].join('::');
+
+          const targetBadgesByKey = new Map<string, Badge[]>();
+          ((targetBadges as Badge[]) ?? []).forEach((targetBadge) => {
+            const key = getBadgeMatchKey(targetBadge);
+            if (!targetBadgesByKey.has(key)) {
+              targetBadgesByKey.set(key, []);
+            }
+            targetBadgesByKey.get(key)!.push(targetBadge);
+          });
+
+          const badgesToCopy: Database['public']['Tables']['badges']['Insert'][] =
+            sourceBadgesList
+              .filter((sourceBadge) => {
+                const existingBadge = targetBadgesByKey.get(
+                  getBadgeMatchKey(sourceBadge),
+                )?.[0];
+                if (existingBadge?.id) {
+                  badgeIdMap.set(sourceBadge.id, existingBadge.id);
+                  return false;
+                }
+                return true;
+              })
+              .map((badge) => {
+                const {
+                  id: _id,
+                  created_at: _createdAt,
+                  updated_at: _updatedAt,
+                  ...badgeData
+                } = badge;
+                return {
+                  ...badgeData,
+                  season: targetSeasonId,
+                  profile: user.value!.id,
+                };
+              });
+
+          if (badgesToCopy.length > 0) {
+            const { data: copiedBadges, error: copiedBadgesError } =
+              await _supabaseInsertMultipleBadges(badgesToCopy);
+            if (copiedBadgesError) throw copiedBadgesError;
+
+            const copiedBadgesByKey = new Map<string, Badge[]>();
+            ((copiedBadges as Badge[]) ?? []).forEach((copiedBadge) => {
+              const key = getBadgeMatchKey(copiedBadge);
+              if (!copiedBadgesByKey.has(key)) {
+                copiedBadgesByKey.set(key, []);
+              }
+              copiedBadgesByKey.get(key)!.push(copiedBadge);
+            });
+
+            sourceBadgesList.forEach((sourceBadge) => {
+              if (badgeIdMap.has(sourceBadge.id)) return;
+              const matchingBadges = copiedBadgesByKey.get(
+                getBadgeMatchKey(sourceBadge),
+              );
+              const copiedBadge = matchingBadges?.shift();
+              if (copiedBadge?.id) {
+                badgeIdMap.set(sourceBadge.id, copiedBadge.id);
+              }
+            });
+          }
+
+          (data as Girl[]).forEach((copiedGirl) => {
+            const sourceGirl = girls.find(
+              (girl) => girlIdMap.get(girl.id) === copiedGirl.id,
+            );
+            if (!sourceGirl) return;
+
+            copiedGirl.badges_earned = (sourceGirl.badges_earned ?? [])
+              .map((badgeId) => badgeIdMap.get(badgeId))
+              .filter((badgeId): badgeId is number => badgeId !== undefined);
+            copiedGirl.badges_received = (sourceGirl.badges_received ?? [])
+              .map((badgeId) => badgeIdMap.get(badgeId))
+              .filter((badgeId): badgeId is number => badgeId !== undefined);
+          });
+
+          const copiedGirlsWithBadgeMappings = (data as Girl[]).filter(
+            (copiedGirl) =>
+              copiedGirl.badges_earned.length > 0 ||
+              copiedGirl.badges_received.length > 0,
+          );
+
+          for (const copiedGirl of copiedGirlsWithBadgeMappings) {
+            const { error: updateCopiedGirlError } = await supabaseClient
+              .from('sellers')
+              .update({
+                badges_earned: copiedGirl.badges_earned,
+                badges_received: copiedGirl.badges_received,
+              })
+              .eq('id', copiedGirl.id);
+            if (updateCopiedGirlError) throw updateCopiedGirlError;
+          }
 
           const sourceGirlIds = new Set(
             girls.map((sourceGirl) => sourceGirl.id),
