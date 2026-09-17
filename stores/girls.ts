@@ -329,11 +329,7 @@ export const useGirlsStore = defineStore('girls', () => {
           if (targetBadgesError) throw targetBadgesError;
 
           const getBadgeMatchKey = (badge: Badge) =>
-            [
-              badge.name,
-              badge.program_level,
-              badge.url ?? '',
-            ].join('::');
+            [badge.name, badge.program_level, badge.url ?? ''].join('::');
 
           const targetBadgesByKey = new Map<string, Badge[]>();
           ((targetBadges as Badge[]) ?? []).forEach((targetBadge) => {
@@ -347,8 +343,9 @@ export const useGirlsStore = defineStore('girls', () => {
           const badgesToCopy: Database['public']['Tables']['badges']['Insert'][] =
             sourceBadgesList
               .filter((sourceBadge) => {
-                const existingBadge =
-                  targetBadgesByKey.get(getBadgeMatchKey(sourceBadge))?.[0];
+                const existingBadge = targetBadgesByKey.get(
+                  getBadgeMatchKey(sourceBadge),
+                )?.[0];
                 if (existingBadge?.id) {
                   badgeIdMap.set(sourceBadge.id, existingBadge.id);
                   return false;
@@ -396,7 +393,9 @@ export const useGirlsStore = defineStore('girls', () => {
           }
 
           (data as Girl[]).forEach((copiedGirl) => {
-            const sourceGirl = girls.find((girl) => girlIdMap.get(girl.id) === copiedGirl.id);
+            const sourceGirl = girls.find(
+              (girl) => girlIdMap.get(girl.id) === copiedGirl.id,
+            );
             if (!sourceGirl) return;
 
             copiedGirl.badges_earned = (sourceGirl.badges_earned ?? [])

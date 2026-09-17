@@ -367,7 +367,11 @@
         <div v-if="badge.id">
           <h6 class="mb-3">Girls in this Season</h6>
           <ClientOnly>
-            <DataTable v-if="!isMobile" :value="girlsStore.allGirls" data-key="id">
+            <DataTable
+              v-if="!isMobile"
+              :value="girlsStore.allGirls"
+              data-key="id"
+            >
               <Column header="Girl">
                 <template #body="slotProps">
                   {{ girlsStore.getGirlNameById(slotProps.data.id) }}

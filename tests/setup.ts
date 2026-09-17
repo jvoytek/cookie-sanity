@@ -1,7 +1,6 @@
 import { vi } from 'vitest';
 import { defineStore } from 'pinia';
 import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue';
-import { startVitest } from 'vitest/dist/node.js';
 
 // Mock Nuxt global functions and auto-imports
 //global.defineStore = defineStore
