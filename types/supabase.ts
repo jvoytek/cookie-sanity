@@ -831,6 +831,7 @@ export type Database = {
           id: number;
           last_name: string;
           preferred_name: string | null;
+          program_level: string | null;
           pronouns: string | null;
           profile: string | null;
           season: number;
@@ -843,6 +844,7 @@ export type Database = {
           id?: number;
           last_name: string;
           preferred_name?: string | null;
+          program_level?: string | null;
           pronouns?: string | null;
           profile?: string | null;
           season?: number;
@@ -855,6 +857,7 @@ export type Database = {
           id?: number;
           last_name?: string;
           preferred_name?: string | null;
+          program_level?: string | null;
           pronouns?: string | null;
           profile?: string | null;
           season?: number;
