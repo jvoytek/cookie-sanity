@@ -157,6 +157,54 @@ export type Database = {
           },
         ];
       };
+      badges: {
+        Row: {
+          created_at: string;
+          id: number;
+          name: string;
+          profile: string | null;
+          program_level: string;
+          season: number;
+          updated_at: string;
+          url: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          name: string;
+          profile?: string | null;
+          program_level: string;
+          season: number;
+          updated_at?: string;
+          url?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          name?: string;
+          profile?: string | null;
+          program_level?: string;
+          season?: number;
+          updated_at?: string;
+          url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'badges_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'badges_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       audit_sessions: {
         Row: {
           created_at: string;
@@ -824,6 +872,8 @@ export type Database = {
       };
       sellers: {
         Row: {
+          badges_earned: number[];
+          badges_received: number[];
           created_at: string;
           email: string | null;
           first_name: string;
@@ -836,6 +886,8 @@ export type Database = {
           season: number;
         };
         Insert: {
+          badges_earned?: number[];
+          badges_received?: number[];
           created_at?: string;
           email?: string | null;
           first_name: string;
@@ -848,6 +900,8 @@ export type Database = {
           season?: number;
         };
         Update: {
+          badges_earned?: number[];
+          badges_received?: number[];
           created_at?: string;
           email?: string | null;
           first_name?: string;

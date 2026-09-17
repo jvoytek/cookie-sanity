@@ -57,6 +57,7 @@
             { label: 'Adults', icon: 'pi pi-fw pi-users', to: '/adults' },
             { label: 'Cookies', icon: 'pi pi-fw pi-box', to: '/cookies' },
 
+            { label: 'Badges', icon: 'pi pi-fw pi-id-card', to: '/badges' },
             { label: 'Forms', icon: 'pi pi-fw pi-file', to: '/forms' },
             {
               label: 'Events',

@@ -181,9 +181,10 @@ vi.stubGlobal('useAccountsStore', useAccountsStoreMock);
 const useGirlsStoreMock = vi.fn(() => ({
   girlOptions: [],
   allGirls: [
-    { id: 1, name: 'Test Girl' },
-    { id: 2, name: 'Test Girl 2' },
+    { id: 1, name: 'Test Girl', badges_earned: [], badges_received: [] },
+    { id: 2, name: 'Test Girl 2', badges_earned: [], badges_received: [] },
   ],
+  getGirlNameById: vi.fn((id: number) => `Test Girl ${id}`),
 }));
 
 vi.stubGlobal('useGirlsStore', useGirlsStoreMock);
@@ -237,6 +238,16 @@ const useUploadsStoreMock = vi.fn(() => ({
 }));
 vi.stubGlobal('useUploadsStore', useUploadsStoreMock);
 
+const useBadgesStoreMock = vi.fn(() => ({
+  allBadges: [],
+  badgeOptions: [],
+  fetchBadges: vi.fn(),
+  insertBadge: vi.fn(),
+  upsertBadge: vi.fn(),
+  deleteBadge: vi.fn(),
+}));
+vi.stubGlobal('useBadgesStore', useBadgesStoreMock);
+
 const useRouteMock = vi.fn(() => ({
   push: vi.fn(),
 }));
@@ -246,11 +257,6 @@ const useRouterMock = vi.fn(() => ({
   push: vi.fn(),
 }));
 vi.stubGlobal('useRouter', useRouterMock);
-
-const useDeviceMock = vi.fn(() => ({
-  isMobile: ref(false),
-}));
-vi.stubGlobal('useDevice', useDeviceMock);
 
 const useDepositsStoreMock = vi.fn(() => ({
   allDeposits: [],
