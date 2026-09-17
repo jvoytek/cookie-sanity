@@ -71,6 +71,21 @@
     );
   };
 
+  const programLevelClassMap: Record<string, string> = {
+    daisy:
+      'w-4 h-4 inline-flex items-center justify-center text-white bg-sky-400 rounded-full mr-1 text-xs',
+    brownie:
+      'w-4 h-4 inline-flex items-center justify-center text-white bg-yellow-800 rounded-full mr-1 text-xs',
+    junior:
+      'w-4 h-4 inline-flex items-center justify-center text-white bg-emerald-500 rounded-full mr-1 text-xs',
+    cadette:
+      'w-4 h-4 inline-flex items-center justify-center text-white bg-red-600 rounded-full mr-1 text-xs',
+    senior:
+      'w-4 h-4 inline-flex items-center justify-center text-white bg-amber-400 rounded-full mr-1 text-xs',
+    ambassador:
+      'w-4 h-4 inline-flex items-center justify-center text-white bg-yellow-300 rounded-full mr-1 text-xs',
+  };
+
   // Check if there are other seasons to copy from
   const hasOtherSeasons = computed(() => {
     return seasonsStore.allSeasons.length > 1;
@@ -579,11 +594,12 @@
       <div class="card" v-for="girl in girlsStore.allGirls" :key="girl.id">
         <div class="flex justify-between items-center mb-2">
           <div>
-            <div class="font-bold">
-              {{ formatPersonDisplayName(girl, { usePreferredName: true }) }}
-            </div>
-            <div class="text-sm text-surface-600 dark:text-surface-300">
-              Program Level: {{ getProgramLevelLabel(girl.program_level) }}
+            <div class="font-bold flex justify-between items-center">
+              <span
+                v-if="girl.program_level"
+                :class="programLevelClassMap[girl.program_level]"
+                >{{ getProgramLevelLabel(girl.program_level)[0] }}</span
+              >{{ formatPersonDisplayName(girl, { usePreferredName: true }) }}
             </div>
           </div>
           <div class="flex gap-2">
