@@ -1,7 +1,6 @@
 import { vi } from 'vitest';
 import { defineStore } from 'pinia';
 import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue';
-import { startVitest } from 'vitest/dist/node.js';
 
 // Mock Nuxt global functions and auto-imports
 //global.defineStore = defineStore
@@ -246,11 +245,6 @@ const useRouterMock = vi.fn(() => ({
   push: vi.fn(),
 }));
 vi.stubGlobal('useRouter', useRouterMock);
-
-const useDeviceMock = vi.fn(() => ({
-  isMobile: ref(false),
-}));
-vi.stubGlobal('useDevice', useDeviceMock);
 
 const useDepositsStoreMock = vi.fn(() => ({
   allDeposits: [],

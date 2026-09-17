@@ -55,6 +55,22 @@
   const copiedLinkId = ref(null);
   let copyTimeoutId = null;
 
+  const programLevelOptions = [
+    { label: 'Daisy', value: 'daisy' },
+    { label: 'Brownie', value: 'brownie' },
+    { label: 'Junior', value: 'junior' },
+    { label: 'Cadette', value: 'cadette' },
+    { label: 'Senior', value: 'senior' },
+    { label: 'Ambassador', value: 'ambassador' },
+  ] as const;
+
+  const getProgramLevelLabel = (programLevel: Girl['program_level']) => {
+    return (
+      programLevelOptions.find((option) => option.value === programLevel)
+        ?.label ?? '—'
+    );
+  };
+
   // Check if there are other seasons to copy from
   const hasOtherSeasons = computed(() => {
     return seasonsStore.allSeasons.length > 1;
@@ -318,6 +334,20 @@
       class: 'w-full',
     },
     {
+      $formkit: 'primeSelect',
+      name: 'program_level',
+      label: 'Program Level',
+      key: 'program_level',
+      options: programLevelOptions,
+      'option-label': 'label',
+      'option-value': 'value',
+      placeholder: 'Select program level',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
       $formkit: 'primeMultiSelect',
       name: 'forms',
       options: formsStore.girlFormOptions,
@@ -444,6 +474,11 @@
               </template>
             </Column>
             <Column field="preferred_name" header="Preferred Name" sortable />
+            <Column header="Program Level" sortable sort-field="program_level">
+              <template #body="slotProps">
+                {{ getProgramLevelLabel(slotProps.data.program_level) }}
+              </template>
+            </Column>
             <Column field="email" header="Email" sortable />
             <Column header="Related Adults">
               <template #body="slotProps">
@@ -546,6 +581,9 @@
           <div>
             <div class="font-bold">
               {{ formatPersonDisplayName(girl, { usePreferredName: true }) }}
+            </div>
+            <div class="text-sm text-surface-600 dark:text-surface-300">
+              Program Level: {{ getProgramLevelLabel(girl.program_level) }}
             </div>
           </div>
           <div class="flex gap-2">
