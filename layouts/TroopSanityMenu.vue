@@ -24,6 +24,11 @@
               to: '/troop-sanity/forms',
             },
             {
+              label: 'Badges',
+              icon: 'pi pi-fw pi-crown',
+              to: '/troop-sanity/badges',
+            },
+            {
               label: 'Events',
               icon: 'pi pi-fw pi-calendar',
               to: '/troop-sanity/events',

@@ -93,10 +93,11 @@
   ];
 
   const menuRefs = ref({});
+
   const setMenuRef = (el, id) => {
     if (el) menuRefs.value[id] = el;
   };
-  // Use in template: :ref="(el) => setMenuRef(el, item.id)"
+
   const toggleMenu = (event, itemId) => {
     menuRefs.value[itemId].toggle(event);
   };

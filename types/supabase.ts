@@ -104,6 +104,7 @@ export type Database = {
           member: boolean;
           phone: string | null;
           preferred_name: string | null;
+          pronouns: string | null;
           profile: string | null;
           season: number;
           sellers: number[];
@@ -118,6 +119,7 @@ export type Database = {
           member?: boolean;
           phone?: string | null;
           preferred_name?: string | null;
+          pronouns?: string | null;
           profile?: string | null;
           season?: number;
           sellers?: number[];
@@ -132,6 +134,7 @@ export type Database = {
           member?: boolean;
           phone?: string | null;
           preferred_name?: string | null;
+          pronouns?: string | null;
           profile?: string | null;
           season?: number;
           sellers?: number[];
@@ -147,6 +150,54 @@ export type Database = {
           },
           {
             foreignKeyName: 'adults_season_fkey';
+            columns: ['season'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      badges: {
+        Row: {
+          created_at: string;
+          id: number;
+          name: string;
+          profile: string | null;
+          program_level: string;
+          season: number;
+          updated_at: string;
+          url: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          name: string;
+          profile?: string | null;
+          program_level: string;
+          season: number;
+          updated_at?: string;
+          url?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          name?: string;
+          profile?: string | null;
+          program_level?: string;
+          season?: number;
+          updated_at?: string;
+          url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'badges_profile_fkey';
+            columns: ['profile'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'badges_season_fkey';
             columns: ['season'];
             isOneToOne: false;
             referencedRelation: 'seasons';
@@ -821,6 +872,8 @@ export type Database = {
       };
       sellers: {
         Row: {
+          badges_earned: number[];
+          badges_received: number[];
           created_at: string;
           email: string | null;
           first_name: string;
@@ -828,10 +881,14 @@ export type Database = {
           id: number;
           last_name: string;
           preferred_name: string | null;
+          program_level: string | null;
+          pronouns: string | null;
           profile: string | null;
           season: number;
         };
         Insert: {
+          badges_earned?: number[];
+          badges_received?: number[];
           created_at?: string;
           email?: string | null;
           first_name: string;
@@ -839,10 +896,14 @@ export type Database = {
           id?: number;
           last_name: string;
           preferred_name?: string | null;
+          program_level?: string | null;
+          pronouns?: string | null;
           profile?: string | null;
           season?: number;
         };
         Update: {
+          badges_earned?: number[];
+          badges_received?: number[];
           created_at?: string;
           email?: string | null;
           first_name?: string;
@@ -850,6 +911,8 @@ export type Database = {
           id?: number;
           last_name?: string;
           preferred_name?: string | null;
+          program_level?: string | null;
+          pronouns?: string | null;
           profile?: string | null;
           season?: number;
         };

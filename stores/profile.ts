@@ -14,6 +14,7 @@ export const useProfileStore = defineStore('profile', () => {
   const cookiesStore = useCookiesStore();
   const girlsStore = useGirlsStore();
   const adultsStore = useAdultsStore();
+  const badgesStore = useBadgesStore();
   const formsStore = useFormsStore();
   const eventsStore = useEventsStore();
   const ordersStore = useTransactionsStore();
@@ -70,6 +71,7 @@ export const useProfileStore = defineStore('profile', () => {
         await cookiesStore.fetchDefaultCookieSets();
         await girlsStore.fetchGirls();
         await adultsStore.fetchAdults();
+        await badgesStore.fetchBadges();
         await formsStore.fetchForms();
         await eventsStore.fetchEvents();
         await ordersStore.fetchTransactions();

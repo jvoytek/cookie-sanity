@@ -20,14 +20,14 @@
       <h5>Seasons</h5>
       <p>
         Create a season for each troop and year you manage. You can manage
-        inventory, cookies and girls separately for each season. You can also
-        copy cookies and girls from one season to the next. You can easily
-        switch between them using the dropdown in the header.
+        inventory, cookies, badges and girls separately for each season. You can
+        also copy cookies, badges and girls from one season to the next. You can
+        easily switch between them using the dropdown in the header.
       </p>
 
       <p>
-        Once you've created a season add Girls, Cookies, and Collaborators from
-        the left menu under "Season Settings"
+        Once you've created a season add Girls, Cookies, Badges, and
+        Collaborators from the left menu under "Season Settings"
       </p>
 
       <div>

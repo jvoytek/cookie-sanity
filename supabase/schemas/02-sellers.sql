@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS "public"."sellers" (
     "last_name" character varying NOT NULL,
     "preferred_name" character varying,
     "season" bigint DEFAULT '1'::bigint NOT NULL,
-    "email" text
+    "email" text,
+    "pronouns" text,
+    "program_level" text
 );
 
 
@@ -33,6 +35,10 @@ ALTER TABLE ONLY "public"."sellers"
 
 ALTER TABLE ONLY "public"."sellers"
     ADD CONSTRAINT "sellers_season_fkey" FOREIGN KEY ("season") REFERENCES "public"."seasons"("id") on delete cascade;
+
+
+ALTER TABLE ONLY "public"."sellers"
+    ADD CONSTRAINT "sellers_program_level_check" CHECK ((("program_level" IS NULL) OR ("program_level" = ANY (ARRAY['daisy'::text, 'brownie'::text, 'junior'::text, 'cadette'::text, 'senior'::text, 'ambassador'::text]))));
 
 
 ALTER TABLE "public"."sellers" ENABLE ROW LEVEL SECURITY;

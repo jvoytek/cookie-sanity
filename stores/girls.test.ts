@@ -202,6 +202,7 @@ describe('stores/girls', () => {
       const mockGirl = {
         first_name: 'Charlie',
         last_name: 'Brown',
+        program_level: 'junior',
         season: 1,
       } as Girl;
       const mockInsertedGirl = { ...mockGirl, profile: 'test-user-id' };
@@ -233,6 +234,7 @@ describe('stores/girls', () => {
       expect(mockGirl.profile).toBe('test-user-id');
       expect(newGirlsStore.allGirls).toHaveLength(1);
       expect(newGirlsStore.allGirls[0]).toEqual(mockInsertedGirl);
+      expect(newGirlsStore.allGirls[0].program_level).toBe('junior');
       expect(toastSpy).toHaveBeenCalledWith('Girl Created');
     });
 
@@ -779,18 +781,24 @@ describe('stores/girls', () => {
 
       const girlsToCopy = [
         {
+          badges_earned: [100],
+          badges_received: [101],
           id: 1,
           first_name: 'Alice',
           last_name: 'Smith',
           profile: 'old-profile-id',
+          program_level: 'brownie',
           season: 1,
           created_at: '2023-01-01',
         },
         {
+          badges_earned: [],
+          badges_received: [100],
           id: 2,
           first_name: 'Bob',
           last_name: 'Johnson',
           profile: 'old-profile-id',
+          program_level: 'cadette',
           season: 1,
           created_at: '2023-01-01',
         },
@@ -798,20 +806,72 @@ describe('stores/girls', () => {
 
       const copiedGirls = [
         {
+          badges_earned: [],
+          badges_received: [],
           id: 3,
           first_name: 'Alice',
           last_name: 'Smith',
           profile: 'test-user-id',
+          program_level: 'brownie',
           season: 2,
         },
         {
+          badges_earned: [],
+          badges_received: [],
           id: 4,
           first_name: 'Bob',
           last_name: 'Johnson',
           profile: 'test-user-id',
+          program_level: 'cadette',
           season: 2,
         },
       ] as Girl[];
+
+      const sourceBadges = [
+        {
+          id: 100,
+          name: 'My Great Badge',
+          profile: 'old-profile-id',
+          program_level: 'junior',
+          season: 1,
+          url: 'https://example.com/badge-1',
+          created_at: '2023-01-01',
+          updated_at: '2023-01-01',
+        },
+        {
+          id: 101,
+          name: 'Another Badge',
+          profile: 'old-profile-id',
+          program_level: 'junior',
+          season: 1,
+          url: null,
+          created_at: '2023-01-01',
+          updated_at: '2023-01-01',
+        },
+      ];
+
+      const copiedBadges = [
+        {
+          id: 200,
+          name: 'My Great Badge',
+          profile: 'test-user-id',
+          program_level: 'junior',
+          season: 2,
+          url: 'https://example.com/badge-1',
+          created_at: '2023-01-01',
+          updated_at: '2023-01-01',
+        },
+        {
+          id: 201,
+          name: 'Another Badge',
+          profile: 'test-user-id',
+          program_level: 'junior',
+          season: 2,
+          url: null,
+          created_at: '2023-01-01',
+          updated_at: '2023-01-01',
+        },
+      ];
 
       const sourceAdults = [
         {
@@ -831,6 +891,11 @@ describe('stores/girls', () => {
       const insertAdultsMock = vi.fn(() => ({
         select: vi.fn(() => Promise.resolve({ data: [], error: null })),
       }));
+      const updateSellerEqMock = vi.fn(() => Promise.resolve({ error: null }));
+      const updateSellerMock = vi.fn(() => ({
+        eq: updateSellerEqMock,
+      }));
+      let badgeFetchCount = 0;
 
       const useSupabaseClientMock = vi.fn(() => ({
         from: vi.fn((table: string) => {
@@ -839,6 +904,35 @@ describe('stores/girls', () => {
               insert: vi.fn(() => ({
                 select: vi.fn(() =>
                   Promise.resolve({ data: copiedGirls, error: null }),
+                ),
+              })),
+              update: updateSellerMock,
+            };
+          }
+
+          if (table === 'badges') {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn(() => ({
+                  order: vi.fn(() => ({
+                    order: vi.fn(() => {
+                      badgeFetchCount += 1;
+                      return Promise.resolve({
+                        data:
+                          badgeFetchCount === 1
+                            ? sourceBadges
+                            : badgeFetchCount === 2
+                              ? []
+                              : copiedBadges,
+                        error: null,
+                      });
+                    }),
+                  })),
+                })),
+              })),
+              insert: vi.fn(() => ({
+                select: vi.fn(() =>
+                  Promise.resolve({ data: copiedBadges, error: null }),
                 ),
               })),
             };
@@ -868,7 +962,13 @@ describe('stores/girls', () => {
 
       expect(newGirlsStore.allGirls).toHaveLength(2);
       expect(newGirlsStore.allGirls[0].season).toBe(2);
+      expect(newGirlsStore.allGirls[0].badges_earned).toEqual([200]);
+      expect(newGirlsStore.allGirls[0].badges_received).toEqual([201]);
+      expect(newGirlsStore.allGirls[1].badges_received).toEqual([200]);
       expect(newGirlsStore.allGirls[0].profile).toBe('test-user-id');
+      expect(updateSellerMock).toHaveBeenCalledTimes(2);
+      expect(newGirlsStore.allGirls[0].program_level).toBe('brownie');
+      expect(newGirlsStore.allGirls[1].program_level).toBe('cadette');
       expect(insertAdultsMock).toHaveBeenCalledTimes(1);
       const insertedAdultsPayload = insertAdultsMock.mock.calls[0][0];
       expect(insertedAdultsPayload).toEqual([
