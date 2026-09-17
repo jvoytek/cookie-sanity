@@ -104,6 +104,7 @@ export type Database = {
           member: boolean;
           phone: string | null;
           preferred_name: string | null;
+          pronouns: string | null;
           profile: string | null;
           season: number;
           sellers: number[];
@@ -118,6 +119,7 @@ export type Database = {
           member?: boolean;
           phone?: string | null;
           preferred_name?: string | null;
+          pronouns?: string | null;
           profile?: string | null;
           season?: number;
           sellers?: number[];
@@ -132,6 +134,7 @@ export type Database = {
           member?: boolean;
           phone?: string | null;
           preferred_name?: string | null;
+          pronouns?: string | null;
           profile?: string | null;
           season?: number;
           sellers?: number[];
@@ -828,6 +831,7 @@ export type Database = {
           id: number;
           last_name: string;
           preferred_name: string | null;
+          pronouns: string | null;
           profile: string | null;
           season: number;
         };
@@ -839,6 +843,7 @@ export type Database = {
           id?: number;
           last_name: string;
           preferred_name?: string | null;
+          pronouns?: string | null;
           profile?: string | null;
           season?: number;
         };
@@ -850,6 +855,7 @@ export type Database = {
           id?: number;
           last_name?: string;
           preferred_name?: string | null;
+          pronouns?: string | null;
           profile?: string | null;
           season?: number;
         };

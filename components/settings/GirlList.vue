@@ -1,6 +1,8 @@
-<script setup>
+<script setup lang="ts">
   import { FilterMatchMode } from '@primevue/core/api';
   import { useFormKitNodeById } from '@formkit/vue';
+  import { formatPersonDisplayName } from '@/shared/utils/personDisplay';
+  import type { Girl } from '@/types/types';
 
   const notificationHelpers = useNotificationHelpers();
 
@@ -32,11 +34,11 @@
   const seasonsStore = useSeasonsStore();
   const router = useRouter();
   const route = useRoute();
+  const mobileContact = useMobileContact();
 
   loading.value = false;
 
   const toast = useToast();
-  const dt = ref();
   const girlDialog = ref(false);
   const deleteGirlDialog = ref(false);
   const relatedAdultDialog = ref(false);
@@ -165,10 +167,6 @@
     return adultsBySellerId.value[girlId] ?? [];
   };
 
-  const getAdultDisplayName = (adult) => {
-    return `${adult.preferred_name || adult.first_name} ${adult.last_name}`;
-  };
-
   const getFormNames = (formIds) => {
     return formIds
       .map((id) => formsStore.allForms.find((form) => form.id === id))
@@ -224,45 +222,6 @@
     });
   }
 
-  function callRelatedAdult(adult) {
-    if (adult.phone) {
-      window.location.href = `tel:${adult.phone}`;
-    } else {
-      toast.add({
-        severity: 'warn',
-        summary: 'No Phone Number',
-        detail: 'This adult does not have a phone number listed.',
-        life: 3000,
-      });
-    }
-  }
-
-  function textRelatedAdult(adult) {
-    if (adult.phone) {
-      window.location.href = `sms:${adult.phone}`;
-    } else {
-      toast.add({
-        severity: 'warn',
-        summary: 'No Phone Number',
-        detail: 'This adult does not have a phone number listed.',
-        life: 3000,
-      });
-    }
-  }
-
-  function emailRelatedAdult(adult) {
-    if (adult.email) {
-      window.location.href = `mailto:${adult.email}`;
-    } else {
-      toast.add({
-        severity: 'warn',
-        summary: 'No Email Address',
-        detail: 'This adult does not have an email address listed.',
-        life: 3000,
-      });
-    }
-  }
-
   const getGirlIdFromQuery = () => {
     const rawGirlId = route.query?.girl;
     const first = Array.isArray(rawGirlId) ? rawGirlId[0] : rawGirlId;
@@ -299,7 +258,7 @@
     }
   }
 
-  const girlDialogFormSchema = [
+  const girlDialogFormSchema = computed(() => [
     {
       $formkit: 'primeInputText',
       name: 'first_name',
@@ -337,6 +296,17 @@
     },
     {
       $formkit: 'primeInputText',
+      name: 'pronouns',
+      label: 'Pronouns',
+      key: 'pronouns',
+      placeholder: 'Enter pronouns (optional)',
+      wrapperClass: 'grid grid-cols-5 gap-4 items-center',
+      labelClass: 'col-span-2',
+      innerClass: 'col-span-3 mt-1 mb-1',
+      class: 'w-full',
+    },
+    {
+      $formkit: 'primeInputText',
       name: 'email',
       label: 'Email',
       key: 'email',
@@ -362,7 +332,7 @@
       key: 'forms',
       showToggleAll: false,
     },
-  ];
+  ]);
 
   const formNode = useFormKitNodeById('girl-form');
 
@@ -372,6 +342,29 @@
 
   const submitButtonClickHandler = () => {
     if (formNode.value) formNode.value.submit();
+  };
+
+  const moreActions = (girl: Girl) => [
+    {
+      label: 'Edit Girl',
+      icon: 'pi pi-pencil',
+      command: () => editGirl(girl),
+    },
+    {
+      label: 'Delete Girl',
+      icon: 'pi pi-trash',
+      command: () => confirmDeleteGirl(girl),
+    },
+  ];
+
+  const menuRefs = ref({});
+
+  const setMenuRef = (el, id) => {
+    if (el) menuRefs.value[id] = el;
+  };
+
+  const toggleMenu = (event, itemId) => {
+    menuRefs.value[itemId].toggle(event);
   };
 
   watch(
@@ -445,8 +438,11 @@
               </div>
             </template>
 
-            <Column field="first_name" header="First Name" sortable />
-            <Column field="last_name" header="Last Name" sortable />
+            <Column header="Name" sortable sort-field="first_name">
+              <template #body="slotProps">
+                {{ formatPersonDisplayName(slotProps.data) }}
+              </template>
+            </Column>
             <Column field="preferred_name" header="Preferred Name" sortable />
             <Column field="email" header="Email" sortable />
             <Column header="Related Adults">
@@ -464,7 +460,11 @@
                       size="small"
                       @click="openRelatedAdultDialog(relatedAdult)"
                     >
-                      {{ getAdultDisplayName(relatedAdult) }}
+                      {{
+                        formatPersonDisplayName(relatedAdult, {
+                          usePreferredName: true,
+                        })
+                      }}
                     </Button></span
                   >
                 </div>
@@ -545,37 +545,49 @@
         <div class="flex justify-between items-center mb-2">
           <div>
             <div class="font-bold">
-              {{ girl.first_name }}
-              <span v-if="girl.preferred_name"
-                >({{ girl.preferred_name }})</span
-              >
-              {{ girl.last_name }}
+              {{ formatPersonDisplayName(girl, { usePreferredName: true }) }}
             </div>
-            <a
-              v-if="girl.email"
-              :href="`mailto:${girl.email}`"
-              class="text-primary hover:underline"
-            >
-              {{ girl.email }}
-            </a>
           </div>
           <div class="flex gap-2">
             <Button
-              label="Edit"
-              icon="pi pi-pencil"
-              severity="secondary"
-              aria-label="Edit"
-              outlined
-              class="float-right"
-              @click="editGirl(girl)"
+              v-if="girl.phone"
+              aria-label="Call"
+              icon="pi pi-phone"
+              size="small"
+              @click="mobileContact.callNumber(girl.phone)"
             />
             <Button
-              icon="pi pi-trash"
-              severity="warn"
-              aria-label="Delete"
+              v-if="girl.phone"
+              v-tooltip.bottom="{ value: 'Text', showDelay: 500 }"
+              aria-label="Text"
+              icon="pi pi-comment"
+              size="small"
+              severity="info"
+              @click="mobileContact.textNumber(girl.phone)"
+            />
+            <Button
+              v-if="girl.email"
+              v-tooltip.bottom="{ value: 'Email', showDelay: 500 }"
+              aria-label="Email"
+              icon="pi pi-envelope"
+              size="small"
+              severity="secondary"
+              @click="mobileContact.emailAddress(girl.email)"
+            />
+            <Button
+              type="button"
+              icon="pi pi-ellipsis-v"
               outlined
-              class="float-right"
-              @click="confirmDeleteGirl(girl)"
+              severity="secondary"
+              @click="toggleMenu($event, girl.id)"
+              aria-haspopup="true"
+              :aria-controls="'overlay_menu_' + girl.id"
+            />
+            <Menu
+              :ref="(el) => setMenuRef(el, girl.id)"
+              :id="'overlay_menu_' + girl.id"
+              :model="moreActions(girl)"
+              :popup="true"
             />
           </div>
         </div>
@@ -588,7 +600,11 @@
               :key="relatedAdult.id"
             >
               <span>
-                {{ getAdultDisplayName(relatedAdult) }}
+                {{
+                  formatPersonDisplayName(relatedAdult, {
+                    usePreferredName: true,
+                  })
+                }}
               </span>
               <div class="flex gap-2">
                 <Button
@@ -597,7 +613,7 @@
                   icon="pi pi-phone"
                   label="Call"
                   size="small"
-                  @click="callRelatedAdult(relatedAdult)"
+                  @click="mobileContact.callNumber(relatedAdult.phone)"
                 />
                 <Button
                   v-if="relatedAdult.phone"
@@ -606,7 +622,7 @@
                   icon="pi pi-comment"
                   size="small"
                   severity="info"
-                  @click="textRelatedAdult(relatedAdult)"
+                  @click="mobileContact.textNumber(relatedAdult.phone)"
                 />
                 <Button
                   v-if="relatedAdult.email"
@@ -615,7 +631,7 @@
                   icon="pi pi-envelope"
                   size="small"
                   severity="secondary"
-                  @click="emailRelatedAdult(relatedAdult)"
+                  @click="mobileContact.emailAddress(relatedAdult.email)"
                 />
                 <Button
                   v-tooltip.bottom="{ value: 'Edit', showDelay: 500 }"
@@ -624,7 +640,6 @@
                   size="small"
                   variant="outlined"
                   severity="success"
-                  lable="Edit"
                   @click="editRelatedAdult(relatedAdult)"
                 />
                 <Button
@@ -657,7 +672,9 @@
       :style="{ width: '450px' }"
       :header="
         selectedRelatedAdult
-          ? getAdultDisplayName(selectedRelatedAdult)
+          ? formatPersonDisplayName(selectedRelatedAdult, {
+              usePreferredName: true,
+            })
           : 'Adult Details'
       "
       :modal="true"
