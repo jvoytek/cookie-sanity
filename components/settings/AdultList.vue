@@ -292,6 +292,17 @@
       icon: 'pi pi-trash',
       command: () => confirmDeleteAdult(adult),
     },
+    {
+      label: 'Add to Contacts',
+      icon: 'pi pi-address-book',
+      command: () =>
+        mobileContact.addToContacts({
+          firstName: adult.first_name,
+          lastName: adult.last_name,
+          tel: adult.phone || '',
+          email: adult.email || '',
+        }),
+    },
   ];
 
   const menuRefs = ref({});
